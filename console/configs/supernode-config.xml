@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config version="1.0">
+  <array name="mina">
+    <int name="excess-packet-loss-ban-time"><![CDATA[600]]></int>
+    <int name="max-cached-broadcaster-age"><![CDATA[300]]></int>
+    <int name="optimum-number-broadcasters"><![CDATA[4]]></int>
+    <bool name="quota-autodetect"><![CDATA[true]]></bool>
+    <bool name="log-all-commands"><![CDATA[true]]></bool>
+    <bool name="locate-remote-nodes"><![CDATA[true]]></bool>
+    <int name="gateway-udp-port"><![CDATA[23233]]></int>
+    <int name="max-stream-header-size"><![CDATA[8192]]></int>
+    <int name="local-locator-udp-port"><![CDATA[23233]]></int>
+    <bool name="locate-local-nodes"><![CDATA[false]]></bool>
+    <bool name="log-all-packets"><![CDATA[true]]></bool>
+    <int name="local-eon-port"><![CDATA[23]]></int>
+    <int name="locate-nodes-freq"><![CDATA[120]]></int>
+    <int name="command-history-size-supernode-multiplier"><![CDATA[10]]></int>
+    <string name="local-address"><![CDATA[192.168.13.1]]></string>
+    <int name="catchup-min-period"><![CDATA[30]]></int>
+    <int name="last-resort-timeout"><![CDATA[5000]]></int>
+    <int name="outgoing-total-quota"><![CDATA[60000]]></int>
+    <int name="misp-packet-payload-size"><![CDATA[1440]]></int>
+    <int name="max-ok-packet-loss"><![CDATA[3]]></int>
+    <int name="find-broadcasters-timeout"><![CDATA[30]]></int>
+    <int name="local-udp-port"><![CDATA[23233]]></int>
+    <string name="gateway-address"><![CDATA[87.194.36.14]]></string>
+    <int name="command-history-max-size"><![CDATA[1000]]></int>
+    <bool name="chase-packets"><![CDATA[true]]></bool>
+    <int name="stream-buffer-time"><![CDATA[5]]></int>
+    <int name="packet-chaser-interval"><![CDATA[1500]]></int>
+    <int name="transmissions-per-second"><![CDATA[30]]></int>
+    <int name="command-max-size"><![CDATA[8192]]></int>
+    <int name="wait-for-last-resort-time"><![CDATA[5]]></int>
+    <int name="misp-packet-total-size"><![CDATA[1448]]></int>
+    <int name="initial-bad-node-timeout"><![CDATA[60]]></int>
+    <int name="successful-reception-event-freq"><![CDATA[120]]></int>
+    <int name="command-timeout"><![CDATA[10]]></int>
+    <int name="find-more-broadcasters-interval"><![CDATA[60]]></int>
+    <int name="packet-loss-kill-connection"><![CDATA[30]]></int>
+    <int name="local-locator-eon-port"><![CDATA[5]]></int>
+    <int name="incoming-total-quota"><![CDATA[200000]]></int>
+    <bool name="last-resort-broadcaster"><![CDATA[false]]></bool>
+    <bool name="supernode"><![CDATA[true]]></bool>
+    <int name="stream-content-buffer-size"><![CDATA[4096]]></int>
+  </array>
+  <array name="robonobo">
+    <array name="webserver">
+      <string name="address"><![CDATA[localhost]]></string>
+      <int name="port"><![CDATA[23233]]></int>
+      <bool name="enabled"><![CDATA[true]]></bool>
+    </array>
+    <array name="plugins">
+      <array name="net_robonobo_plugin_urlmunger_UrlMungerPlugin">
+        <bool name="enabled"><![CDATA[true]]></bool>
+      </array>
+      <array name="net_robonobo_plugin_wmv_AsfPlugin">
+        <bool name="enabled"><![CDATA[true]]></bool>
+      </array>
+      <array name="net_robonobo_plugin_mp3_Mp3Plugin">
+        <bool name="enabled"><![CDATA[true]]></bool>
+      </array>
+      <array name="net_robonobo_plugin_oggvorbis_OggVorbisPlugin">
+        <bool name="enabled"><![CDATA[true]]></bool>
+      </array>
+    </array>
+    <int name="upnpDefaultPort"><![CDATA[23233]]></int>
+    <bool name="launchAtSystemStart"><![CDATA[true]]></bool>
+    <int name="upnpTimeout"><![CDATA[2000]]></int>
+    <array name="midas">
+      <bool name="sendStreamEvents"><![CDATA[true]]></bool>
+      <string name="baseUrl"><![CDATA[http://midas.robonobo.net/midas-1.0/]]></string>
+    </array>
+    <int name="threadPoolSize"><![CDATA[16]]></int>
+    <int name="upnpPortsToTry"><![CDATA[50]]></int>
+  </array>
+</config>
+

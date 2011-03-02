@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config version="1.0">
+
+  <array name="robonobo">
+	<bool name="launchAtSystemStart"><![CDATA[true]]></bool>
+	<int name="threadPoolSize">16</int>
+	
+	<array name="service">
+		<array name="core">
+			<bool name="upnp">true</bool>
+			<bool name="webserver">true</bool>
+		</array>
+	</array>
+	
+	<!-- UPNP Related -->
+	<array name="upnp"
+		description="UPnP allows routers and firewalls to be automatically configured">
+		<int name="timeout">2000</int><!-- Millisecs -->
+		<int name="defaultPort">23232</int>
+		<int name="portsToTry">50</int>
+	</array>
+	
+	<array name="webserver"
+		description="The embeded webserver allows other application to communicate with Robonobo">
+		<string 	name="address">localhost</string>
+		<int 		name="port">23232</int>
+	</array>
+	
+	<array name="sonar"
+		description="Sonar is the location service for the echostream network">
+		<array name="urls">
+			<string name="0"><![CDATA[http://midas.test:8080/midas-1.0/nodes]]></string>
+		</array>
+	</array>
+	
+	<array name="reporting"
+		description="Controls how robonobo reports stream events">
+		<bool   name="sendStreamEvents">true</bool>
+	</array>
+	
+	<array name="midas"
+		description="Midas is the resource service for echostream network">
+		<string name="baseUrl"><![CDATA[http://midas.test:8080/midas-1.0/]]></string>
+	</array>
+	
+	<array name="plugins"
+		description="Plugins to be loaded on startup">
+		<array name="OggVorbisPlugin">
+			<string name="class">net.robonobo.plugin.oggvorbis.OggVorbisPlugin</string>
+			<bool name="enabled">true</bool>
+		</array>
+		<array name="AsfPlugin">
+			<string name="class">net.robonobo.plugin.wmv.AsfPlugin</string>
+			<bool name="enabled">true</bool>
+		</array>
+	</array>
+  </array>
+  
+  
+  <array name="mina">
+  	<string name="local-address" />
+  	<string name="gateway-address" />
+  	
+  	<int name="max-cached-broadcaster-age">300</int>
+  	<int name="successful-reception-event-freq">120</int>
+  	<int name="locate-nodes-freq">120</int>
+  	<int name="command-history-max-size">1000</int>
+  	<int name="command-history-size-supernode-multiplier">10</int>
+  	<int name="local-udp-port">23232</int>
+  	<int name="gateway-udp-port">23232</int>
+  	<int name="local-locator-udp-port">23232</int>
+  	<int name="local-locator-eon-port">5</int>
+  	<int name="local-eon-port">23</int>
+  	<int name="outgoing-initial-limit">16000</int> <!-- Bytes/second -->
+  	<int name="outgoing-hard-limit">32000</int> <!-- Bytes/second -->
+  	<int name="incoming-total-quota">200000</int> <!-- Bytes/second -->
+  	<int name="command-max-size">8192</int> <!-- Bytes -->
+  	<int name="command-timeout">10</int> <!-- Seconds -->
+  	<int name="find-broadcasters-timeout">30</int> <!-- Seconds -->
+  	<int name="find-more-broadcasters-interval">60</int> <!-- Seconds -->
+  	<int name="initial-bad-node-timeout">60</int> <!-- Seconds -->
+  	<int name="catchup-min-period">30</int> <!-- Seconds -->
+  	<int name="packet-chaser-interval">5000</int> <!-- Milliseconds -->
+  	<int name="transmissions-per-second">30</int>
+  	<int name="optimum-number-broadcasters">4</int>
+  	<int name="max-ok-packet-loss">3</int> <!-- Percentage -->
+  	<int name="packet-loss-lower-quota">5</int> <!-- Percentage -->
+  	<int name="packet-loss-kill-connection">50</int> <!-- Percentage -->
+  	<int name="excess-packet-loss-ban-time">300</int> <!-- Seconds -->
+  	<int name="stream-buffer-time">12</int> <!-- Seconds -->
+  	<int name="wait-for-last-resort-time">5</int> <!-- Seconds -->
+  	<int name="stream-content-buffer-size">4096</int> <!-- Packets, NOT bytes -->
+  	<int name="misp-packet-total-size">1496</int> <!-- Bytes -->
+  	<int name="misp-packet-payload-size">1475</int> <!-- Bytes -->
+  	<int name="max-stream-header-size">8192</int> <!-- Bytes -->
+  	<int name="max-stream-page-size">8192</int> <!-- Bytes -->
+  	<int name="locate-nodes-freq">120</int> <!-- Seconds -->
+   	<int name="last-resort-timeout">5000</int> <!-- Milliseconds -->
+  
+    <bool name="locate-local-nodes">true</bool>
+  	<bool name="locate-remote-nodes">true</bool>
+  	<bool name="supernode">false</bool>
+  	<bool name="log-all-commands">true</bool>
+  	<bool name="log-all-packets">false</bool>
+  	<bool name="chase-packets">true</bool>
+  	<bool name="last-resort-broadcaster">false</bool>
+  	<bool name="ignore-hard-upload-limit">true</bool>
+  </array>
+</config>

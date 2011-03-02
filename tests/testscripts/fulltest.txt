@@ -1,0 +1,197 @@
+D=Do
+E=Expect
+
+Run this whole script on windows (ie), mac (safari) & ubuntu (ff)
+
+
+Adminsite
+=========
+D Go to admin url
+E login page
+D log in with admin creds
+E admin home page
+
+D delete test user if exists
+E user deleted, including friendships
+
+D create test user - check 'send welcome email'
+E test user created with default balance and invites, welcome email received
+D top up test user account
+E account balance credited
+D edit user name and invites left
+E user updated ok
+D add user as friend to test user
+E friendship created (from both sides)
+D delete test user
+E user deleted
+
+Website
+=======
+D Go to http://robonobo.com
+E login page
+D click 'forgot password', enter email, click submit
+E receive password reminder email
+
+D Enter email, password, click login
+E news page, including rss feed
+D delete session cookies, visit http://robonobo.com/website/home
+E login page
+
+D Enter email, password, check 'remember me', click login
+E news page
+D delete session cookies, visit http://robonobo.com/website/home
+E news page
+D Click logout
+E login page
+
+D click help
+E go to getsatisfaction.com page
+D back, click developers
+E go to berlios page
+D back, click contact
+E go to contact page
+
+D click account
+E account page up, including current balance
+D click request topup
+E topup request email sent
+D change name, enter current pwd, click save
+E name changes
+
+D shutdown tomcat, visit http://robonobo.com/website/home
+E error page
+D wait 10 mins
+E receive monitoring alert
+D start tomcat again
+E verify that supernode has checked in with sonar
+
+
+App Login
+=========
+D Delete robonobo home dir
+D login to website, click launch
+E launch page, inc instructions
+E jnlp file pops up
+D allow jnlp to run
+E eula page
+D cancel eula
+E robonobo quits
+D relaunch robonobo, accept eula
+E robonobo pops up, asks for login
+D enter login details with incorrect password
+E shakey login window
+D enter correct login details
+E login successful, robonobo connected, can see friends and playlists
+
+D quit app
+D login to website, go to account page
+D enter current pwd, enter new pwd twice, save, logout, login with new details
+E get home page
+D relaunch app
+E get login dialog
+D log into application with new details
+E login successful
+
+
+Sharing and Mirroring
+=====================
+D add tracks via File->Share Files
+E tracks added
+D add tracks via dnd
+E tracks added
+D watch dir, add tracks to dir, wait 30 secs
+E tracks added
+
+D Check new tracks aren't already shared by mirror
+D create new playlist, save
+E playlist created
+D add 2 tracks via dnd from my music, wait 30s
+E tracks start to upload to mirror
+D wait for tracks to upload
+D drag 3 more tracks directly in from os, wait 30s
+E tracks start to upload
+D wait for track to upload
+
+D (mac/win) select 'import from itunes' from menu
+E tracks and playlists imported
+
+D share playlist with test user
+E test user receives invite email
+D accept invite, put in details
+E test user created, receives welcome email
+D login as test user
+E friend is there, playlist is there
+D add track to playlist as test user
+D login as orig user
+E playlist is updated
+
+D make new playlist, add same tracks
+D share playlist with test user
+E test user receives email
+D login as test user
+E playlist is there
+D login as orig user
+
+D go to admin site, delete friendships for test user
+E friendships deleted
+
+D log in as orig user, share playlist with test user
+E test user receives friendship request
+D test user accepts friendship request
+E friendship created
+D log in as test user
+E friendship, playlist created
+
+D go to admin site, look at orig user
+E invites have decremented
+
+D Open preferences
+D Disable uPnP
+D Restart robo, check console and ensure uPnP not started
+
+D make new playlist, add same tracks
+D add two new tracks, wait 30s
+E tracks get mirrored
+D let them be mirrored, uncheck playlist public, save playlist
+D login as test user
+E can't see playlist
+D login as orig user
+
+D Re-enable uPnP, restart robonobo
+
+
+Downloading and Playing
+=======================
+D delete some tracks using delete button
+E tracks deleted
+D delete rest of tracks using del key
+E tracks deleted
+D look at playlists
+E Found 1+ sources
+D delete all playlists
+E playlists deleted
+D quit app
+
+D launch app
+D search for previously-shared track
+E finds track, has sources
+D download track
+E track downloads
+D as track is downloading, hit play
+E track plays
+
+D go to friend's playlist (>4 items), hit download automatically
+E all items in playlist download successfully
+D (mac/win) Check 'sync with iTunes'
+E iTunes opens, playlist appears with correct tracks
+
+D login to another node as friend user, add track to playlist
+D wait 5 mins
+E playlist updates and starts downloading
+E (mac/win) iTunes playlist updates with new track
+
+
+Misc
+====
+D help->about
+E displays correct version

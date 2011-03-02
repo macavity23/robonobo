@@ -1,0 +1,7 @@
+The "RobonoboLookAndFeel.lfp" file is the project file for the new look and feel, it can be loaded with EaSynth Look And Feel Designer.
+
+The "Robonobo.esf" file is the export settings of the new look and feel, it should be loaded in EaSynth Look And Feel Designer when need to re-generate the look and feel jar file.
+
+EASYNTH Look And Feel Customize Team
+http://www.easynth.com
+Auguest 2010

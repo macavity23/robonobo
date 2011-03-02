@@ -1,0 +1,64 @@
+package wang;
+
+option java_package = "com.robonobo.wang.proto";
+option java_outer_classname = "WangProtocol";
+
+// Compile me from the eclipse workspace dir with protoc -I . --java_out=wang-client/src/java wang-client/src/java/com/robonobo/wang/proto/wang.proto 
+
+message BalanceMsg {
+	required double amount = 1;
+}
+
+message BlindedCoinMsg {
+	required sint32 denom = 1;
+	required string blinded_signature = 2;
+}
+
+message BlindedCoinListMsg {
+	required Status status = 1;
+	repeated BlindedCoinMsg coin = 2;
+	enum Status {
+		OK = 1;
+		Error = 2;
+		InsufficientWang = 3;
+	}
+}
+
+message CoinMsg {
+	required sint32 denom = 1;
+	required string coin_id = 2;
+	required string signature = 3;
+}
+
+message CoinListMsg {
+	repeated CoinMsg coin = 1;
+}
+
+message CoinRequestMsg {
+	required sint32 denom = 1;
+	required string request = 2;
+}
+
+message CoinRequestListMsg {
+	repeated CoinRequestMsg coin_request = 1;
+}
+
+message DenominationMsg {
+	required sint32 denom = 1;
+	required string generator = 2;
+	required string prime = 3;
+	required string public_key = 4;
+}
+
+message DenominationListMsg {
+	repeated DenominationMsg denomination = 1;
+}
+
+message DepositStatusMsg {
+	required Status status = 1;
+	repeated string bad_coin_id = 2;
+	enum Status {
+		OK = 1;
+		Error = 2;
+	}
+}

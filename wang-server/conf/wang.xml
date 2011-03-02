@@ -1,0 +1,22 @@
+<!--
+	On a server, plonk this file into
+	$tomcat_home/conf/Catalina/localhost. In eclipse, copy the contents of
+	<Context> into the equivalent element in Servers/<server
+	name>/server.xml
+-->
+
+<Context path="/wang" crossContext="true" reloadable="true"
+	debug="1">
+
+	<!-- Wang DB details -->
+	<Resource name="jdbc/wang" auth="Container" type="javax.sql.DataSource"
+		driverClassName="org.postgresql.Driver" url="jdbc:postgresql://localhost/wang"
+		username="wang_admin" password="" maxActive="100" maxIdle="5" maxWait="60000" />
+
+
+	<!-- Remoting Details so other webapps can talk to us -->
+	<Parameter name="remoteWangListenURL" value="socket://127.0.0.1:10124"
+		override="true" />
+	<Parameter name="remoteWangSecret" value="" override="true" />
+
+</Context>

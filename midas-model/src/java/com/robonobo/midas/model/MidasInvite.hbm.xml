@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.robonobo.midas.model">
+	<class name="MidasInvite" table="invites">
+        <id name="inviteId" type="long">
+        	<generator class="native"/>
+        </id>
+        
+        <property name="email"/>
+        <property name="inviteCode"/>
+        <property name="updated"/>
+        
+        <set name="playlistIds" table="playlistIdsInInvite" lazy="false">
+        	<key column="friendRequestId"/>
+        	<element column="playlistId" type="long"/>
+        </set>
+        <set name="friendIds" table="friendIdsInInvite" lazy="false">
+        	<key column="friendRequestId"/>
+        	<element column="friendId" type="long"/>
+        </set>
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,45 @@
+<project name="midas-model" default="build">
+	<property name="out" location="target/dist/" />
+
+	<target name="compile-all">
+		<ant dir="../common" inheritall="false" target="compile-all"/>
+		<ant dir="../api" inheritall="false" target="compile-all"/>
+		<ant dir="../common-hibernate" inheritall="false" target="compile-all"/>
+
+		<mkdir dir="target/classes"/>
+		
+		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on" 
+		includes="**/*.java,**/*.properties,**/*.xml">
+			<classpath>
+				<pathelement path="../common-hibernate/target/classes"/>
+				<pathelement path="../api/target/classes"/>
+				<pathelement path="../common/target/classes"/>
+				<fileset dir="lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="../common-hibernate/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="../common/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		
+		<copy todir="target/classes">
+			<fileset dir="src/java" includes="**/*.xml,**/*.properties"/>
+		</copy>
+	</target>
+
+	<target name="build" depends="compile-all">
+	</target>
+
+	<target name="clean">
+		<delete dir="target/classes"/>
+		<delete dir="${out}"/>
+		<ant dir="../common" inheritall="false" target="clean"/>
+		<ant dir="../api" inheritall="false" target="clean"/>
+		<ant dir="../common-hibernate" inheritall="false" target="clean"/>
+	</target>
+
+</project>

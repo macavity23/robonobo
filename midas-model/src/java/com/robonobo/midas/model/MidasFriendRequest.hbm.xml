@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.robonobo.midas.model">
+	<class name="MidasFriendRequest" table="friendRequests">
+        <id name="friendRequestId" type="long">
+        	<generator class="native"/>
+        </id>
+        
+        <property name="requestorId"/>
+        <property name="requesteeId"/>
+        <property name="requestCode"/>
+        <property name="updated"/>
+        
+        <set name="playlistIds" table="playlistIdsInFriendRequest" lazy="false">
+        	<key column="friendRequestId"/>
+        	<element column="playlistId" type="long"/>
+        </set>
+    </class>
+</hibernate-mapping>

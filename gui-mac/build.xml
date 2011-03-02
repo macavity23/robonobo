@@ -1,0 +1,36 @@
+<project name="console" default="build">
+	<property name="ant.reuse.loader" value="true" />
+	<property name="out" location="target/dist/" />
+
+	<target name="compile-all">
+		<mkdir dir="target/classes" />
+		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on" includes="**/*.java,**/*.properties,**/*.xml">
+			<classpath>
+				<pathelement path="../gui/target/classes" />
+				<pathelement path="../api/target/classes" />
+				<pathelement path="../core/target/classes" />
+				<pathelement path="../common/target/classes" />
+				<fileset dir="../common/lib">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="../core/lib">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+		<copy todir="target/classes">
+			<fileset dir="src/java" includes="**/*.properties,**/*.xml,**/*.png" />
+		</copy>
+	</target>
+
+	<target name="build" depends="compile-all">
+		<jar jarfile="dist/gui-mac.jar">
+			<fileset dir="target/classes"/>
+		</jar>
+	</target>
+				
+	<target name="clean">
+		<delete dir="target/classes" />
+		<delete dir="${out}" />
+	</target>
+</project>

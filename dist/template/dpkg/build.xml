@@ -1,0 +1,40 @@
+<project name="robonobo" default="build" basedir=".">
+	<description>robonobo build file for debian</description>
+
+	<!-- Properties -->
+	<property name="src" location="src" />
+	<property name="build" location="build" />
+	<property name="lib" location="lib" />
+	<property name="jar" location="robonobo.jar" />
+
+	<target name="init">
+		<mkdir dir="build" />
+	</target>
+
+	<target name="build" depends="init">
+		<javac srcdir="${src}" destdir="${build}">
+			<classpath>
+				<fileset dir="lib">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="/usr/share/java">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+		<copy todir="${build}">
+			<fileset dir="${src}" includes="**/*.properties,**/*.xml,**/*.png,**/*.js,**/*.wsf, **/*.html,**/*.txt" />
+		</copy>
+		<jar destfile="${jar}" level="9">
+			<fileset dir="${build}">
+				<include name="**/*" />
+			</fileset>
+			<zipgroupfileset dir="${lib}" includes="*.jar" />
+		</jar>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build}" />
+		<delete file="${jar}" />
+	</target>
+</project>

@@ -1,0 +1,214 @@
+<project name="console" default="fatjar" xmlns:jw="org.unintelligible.antjnlpwar">
+	<property name="ant.reuse.loader" value="true" />
+	<!-- TASK LIBS -->
+	<path id="fjepPath" location="../common/buildlib/fatjar-0.0.31.jar" />
+	<taskdef name="fatjar.build" classname="net.sf.fjep.anttask.FJBuildTask" classpathref="fjepPath" />
+	<typedef name="fatjar.manifest" classname="net.sf.fjep.anttask.FJManifestType" classpathref="fjepPath" />
+	<typedef name="fatjar.exclude" classname="net.sf.fjep.anttask.FJExcludeType" classpathref="fjepPath" />
+	<typedef name="fatjar.jarsource" classname="net.sf.fjep.anttask.FJJarSourceType" classpathref="fjepPath" />
+	<typedef name="fatjar.filesource" classname="net.sf.fjep.anttask.FJFileSourceType" classpathref="fjepPath" />
+	<typedef name="yguard" classname="com.yworks.yguard.YGuardTask" classpath="../core/buildlib/yguard.jar" />
+	<typedef resource="org/unintelligible/antjnlpwar/antjnlpwar.xml" format="xml" uri="org.unintelligible.antjnlpwar">
+		<classpath>
+			<pathelement location="../core/buildlib/ant-jnlp-war-0.9_deps.jar" />
+		</classpath>
+	</typedef>
+
+	<property name="dist.dir" location="target/dist/" />
+	<property name="tmp.dir" location="target/tmp" />
+	<property name="classes.dir" location="target/classes"/>
+
+	<tstamp>
+		<format property="timestamp" pattern="yyMMddHHmm" />
+	</tstamp>
+
+	<property name="version" value="DEV-${timestamp}" />
+
+	<target name="build" depends="compile-all" />
+
+	<target name="compile-all">
+		<ant dir="../console" inheritall="false" target="compile-all" />
+
+		<mkdir dir="${classes.dir}" />
+		<javac source="1.5" target="1.5" srcdir="src/java" destdir="${classes.dir}" debug="on" includes="**/*.java,**/*.properties,**/*.xml">
+			<classpath>
+				<pathelement path="../common/target/classes" />
+				<pathelement path="../api/target/classes" />
+				<pathelement path="../eon/target/classes" />
+				<pathelement path="../core/target/classes" />
+				<pathelement path="../console/target/classes" />
+				<fileset dir="lib">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="../common/lib">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="../core/lib">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+		<copy todir="${classes.dir}">
+			<fileset dir="src/font"/>
+			<fileset dir="src/img"/>
+			<fileset dir="src/text"/>
+			<fileset dir="src/java" includes="**/*.js,**/*.wsf" />
+		</copy>
+
+		<!-- Make our build.properties -->
+		<propertyfile file="${classes.dir}/robonobo-build.properties">
+			<entry key="version" value="${version}" />
+		</propertyfile>
+	</target>
+
+	<target name="fatjar" depends="build">
+		<fatjar.build output="${dist.dir}/robonobo-${version}.jar">
+			<fatjar.manifest manifestfile="${basedir}/fatjar.manifest" mergemanifests="false" />
+
+			<fatjar.filesource path="${classes.dir}" relpath="." />
+			<fatjar.jarsource file="${basedir}/lib/robolaf.jar" relpath="." />
+			<fatjar.jarsource file="${basedir}/lib/swingx-0.9.7.jar" relpath="." />
+
+			<fatjar.filesource path="../console/target/classes" relpath="." />
+			<fatjar.filesource path="../plugin-mp3/target/classes" relpath="." />
+			<fatjar.filesource path="../plugin-default/target/classes" relpath="." />
+			<fatjar.filesource path="../common/target/classes" relpath="." />
+			<fatjar.filesource path="../api/target/classes" relpath="." />
+			<fatjar.filesource path="../eon/target/classes" relpath="." />
+			<fatjar.filesource path="../mina/target/classes" relpath="." />
+			<fatjar.filesource path="../core/target/classes" relpath="." />
+			<fatjar.filesource path="../wang-client/target/classes" relpath="." />
+
+			<!-- Include pre-built gui-mac (won't compile on non-apple platform) -->
+			<fatjar.jarsource file="../gui-mac/dist/gui-mac.jar" />
+			<fatjar.jarsource file="../plugin-mp3/lib/mp3spi-robo.jar" relpath="." />
+			<fatjar.jarsource file="../plugin-mp3/lib/jl1.0.1.jar" relpath="." />
+			<fatjar.jarsource file="../plugin-mp3/lib/basicplayer3.0-robo.jar" relpath="." />
+			<fatjar.jarsource file="../core/lib/commons-cli-1.0.jar" relpath="." />
+			<fatjar.jarsource file="../core/lib/commons-jxpath-1.1.jar" relpath="." />
+			<fatjar.jarsource file="../core/lib/sbbi-jmx-1.0.jar" relpath="." />
+			<fatjar.jarsource file="../core/lib/sbbi-upnplib-1.0.3.jar" relpath="." />
+			<fatjar.jarsource file="../console/lib/bsh-2.0b4.jar" relpath="." />
+			<fatjar.jarsource file="../common/lib/tablelayout.jar" relpath="." />
+			<fatjar.jarsource file="../common/lib/jug-1.1.2.jar" relpath="." />
+			<fatjar.jarsource file="../common/lib/log4j-1.2.13.jar" relpath="." />
+			<fatjar.jarsource file="../common/lib/commons-logging-1.0.3.jar" relpath="." />
+			<fatjar.jarsource file="../common/lib/commons-httpclient-3.0.jar" relpath="." />
+			<fatjar.jarsource file="../common/lib/commons-codec-1.2.jar" relpath="." />
+			<fatjar.jarsource file="../common/lib/protobuf-java-2.3.0.jar" relpath="." />
+			<fatjar.jarsource file="../common/lib/twmacinta-fastmd5.jar" relpath="." />
+			<fatjar.jarsource file="../common/lib/hsqldb.jar" relpath="." />
+		</fatjar.build>
+	</target>
+
+	<target name="shrink" depends="fatjar">
+		<yguard>
+			<inoutpair in="${dist.dir}/robonobo-${version}.jar" out="${dist.dir}/robonobo-${version}-shrunk.jar" />
+			<shrink logfile="shrink.log">
+				<keep sourcefile="true" linenumbertable="true" localvariabletable="true" localvariabletypetable="true">
+					<!-- Mainline -->
+					<method name="void main(java.lang.String[])" class="com.robonobo.gui.RobonoboFrame" />
+					<!-- Enum -->
+					<class methods="public" name="com.robonobo.core.api.model.Share$ShareStatus" />
+					<!-- Private stuff for serialization -->
+					<field name="serialVersionUID">
+						<patternset>
+							<include name="com.robonobo.**.*" />
+						</patternset>
+					</field>
+					<method name="void readObject(java.io.ObjectInputStream)">
+						<patternset>
+							<include name="com.robonobo.**.*" />
+						</patternset>
+					</method>
+					<method name="void writeObject(java.io.ObjectOutputStream)">
+						<patternset>
+							<include name="com.robonobo.**.*" />
+						</patternset>
+					</method>
+					<!-- Stuff determined by reflection: -->
+					<!-- Configs -->
+					<class methods="private" name="com.robonobo.core.api.config.RobonoboConfig" />
+					<class methods="private" name="com.robonobo.mina.external.MinaConfig" />
+					<!-- Commons logging & log4j -->
+					<class methods="public">
+						<patternset>
+							<include name="org.apache.commons.logging.impl.*" />
+						</patternset>
+						<patternset>
+							<include name="org.apache.log4j.*Appender" />
+						</patternset>
+					</class>
+					<!-- Platforms -->
+					<class methods="public">
+						<patternset>
+							<include name="com.robonobo.gui.platform.*" />
+						</patternset>
+					</class>
+					<!-- FormatSupportProviders -->
+					<class methods="public" name="com.robonobo.plugin.defaultplugin.DefaultFormatSupportProvider" />
+					<class methods="public" name="com.robonobo.plugin.mp3.Mp3FormatSupportProvider" />
+					<!-- Database driver -  -->
+					<class methods="public" name="org.hsqldb.jdbcDriver" />
+					<!-- HttpClient -->
+					<class methods="public">
+						<patternset>
+							<include name="org.apache.commons.httpclient.auth.CredentialsNotAvailableException" />
+							<include name="org.apache.commons.httpclient.auth.BasicScheme" />
+						</patternset>
+					</class>
+					<!-- XML parser -->
+					<class methods="public" name="org.jdom.input.JAXPParserFactory" />
+					<!-- Console commands -->
+					<class methods="public">
+						<patternset>
+							<include name="com.robonobo.console.cmds.*" />
+							<include name="com.robonobo.console.cmds.**.*" />
+						</patternset>
+					</class>
+					<!-- Mina network commands -->
+					<class methods="public">
+						<patternset>
+							<include name="com.robonobo.mina.message.*" />
+						</patternset>
+					</class>
+					<!-- Mina endpoint managers -->
+					<class methods="public" name="com.robonobo.mina.network.eon.EonEndPointMgr" />
+					<!-- UPnP -->
+					<class methods="public" name="org.apache.commons.jxpath.ri.JXPathContextFactoryReferenceImpl" />
+					<class methods="public" name="org.apache.commons.jxpath.ri.model.dom.DOMPointerFactory" />
+					<class methods="public" name="org.apache.commons.jxpath.ri.model.jdom.JDOMPointerFactory" />
+					<!-- DEBUG -->
+					<class methods="public">
+						<patternset>
+							<include name="org.apache.commons.jxpath.**.*" />
+						</patternset>
+					</class>
+					<!-- MP3 classes loaded via SPI -->
+					<class methods="public" name="javazoom.spi.mpeg.sampled.file.MpegAudioFileReader" />
+					<class methods="public" name="javazoom.spi.mpeg.sampled.convert.MpegFormatConversionProvider" />
+				</keep>
+			</shrink>
+		</yguard>
+	</target>
+
+	<target name="genkey">
+		<genkey alias="robo-jnlp" storepass="password" dname="CN=Robonobo Dev Key, O=robonobo.com, C=UK" />
+	</target>
+
+	<target name="jnlp" depends="fatjar">
+		<jw:jnlpwar tofile="${dist.dir}/robonobo-launch-${version}.war" codebase="http://robonobo.com/robonobo-launch-${version}" title="robonobo" vendor="The robonobo project" homepage="http://robonobo.com" pack200="false" signStorepass="password" signAlias="robo-jnlp">
+			<jw:application jar="${dist.dir}/robonobo-${version}.jar" mainclass="com.robonobo.Robonobo" />
+			<jw:description>robonobo is a music-sharing application</jw:description>
+			<jw:j2se minVersion="1.5" />
+		</jw:jnlpwar>
+	</target>
+
+	<target name="clean">
+		<delete dir="${classes.dir}" />
+		<delete dir="${dist.dir}" />
+		<delete dir="${tmp.dir}"/>
+		<ant dir="../console" inheritall="false" target="clean" />
+	</target>
+
+</project>

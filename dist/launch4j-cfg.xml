@@ -1,0 +1,31 @@
+<launch4jConfig>
+	<headerType>gui</headerType>
+	<!-- outfile, jarPath, txtFileVersion, txtProductVersion defined by ant -->
+	
+	<versionInfo>
+		<fileDescription>robonobo is a music sharing application</fileDescription>
+		<copyright>2010 robonobo project</copyright>
+		<productName>robonobo</productName>
+		<internalName>robonobo</internalName>
+		<originalFilename>robonobo.exe</originalFilename>
+	</versionInfo>
+	
+	<customProcName>true</customProcName>
+	<singleInstance>
+		<mutexName>robo-instance-mutex</mutexName>
+		<windowTitle>robonobo</windowTitle>
+	</singleInstance>
+	<jre>
+		<minVersion>1.6.0</minVersion>
+	</jre>
+	<messages>
+		<startupErr>robonobo encountered an error on startup. We are sorry :-( Please file a bug report at http://robonobo.com/ and we will fix it ASAP.</startupErr>
+		<jreVersionErr>The version of Java you have is too old - but a newer one should have been installed by robonobo! Please file a bug report at http://robonobo.com/ and we will fix it ASAP.</jreVersionErr>
+		<launcherErr>robonobo encountered an error while launching. We are sorry :-( Please file a bug report at http://robonobo.com/ and we will fix it ASAP.</launcherErr>
+	</messages>
+	<!-- 
+	<splash>
+		<file>img/splash.bmp</file>
+	</splash>
+	 -->
+</launch4jConfig>

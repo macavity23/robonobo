@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.robonobo.sonar.beans">
+	<class name="SonarNode" table="Node">
+        <id name="id" type="string">
+        	<generator class="assigned"/>
+        </id>
+        
+        <property name="applicationUri"/>
+        <property name="lastSeen" not-null="true" />
+        <property name="protocolVersion" not-null="true" />
+        <property name="supernode" not-null="true" type="true_false" />
+        
+        <set name="endPoints" 
+            inverse="true"
+            lazy="true"
+            cascade="all">
+            <key column="node" not-null="true" />    
+            <one-to-many class="SonarEndPoint"/>
+        </set>       
+    </class>
+</hibernate-mapping>

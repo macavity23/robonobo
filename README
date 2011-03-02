@@ -1,0 +1,22 @@
+robonobo source readme
+----------------------
+
+Welcome to robonobo, an open source p2p music streaming & downloading application.
+
+Quick:
+$ cd gui
+$ ant clean fatjar
+$ java -jar target/dist/robonobo-*.jar
+
+Each directory is an eclipse project, or else you can run things from ant as you see above.
+For the ui, look in the gui project, main class com.robonobo.Robonobo
+For the core functionality - transferring files around, managing users and playlists, playing music - look in the core project, main class com.robobobo.core.RobonoboController
+For the lowish level broadcasting and receiving of data in streams, look in the mina project, main class com.robonobo.mina.instance.MinaInstance
+For the tcp-like network stack that does data throttling, look in the eon project, you'll probably want to look at all of it :-)
+For the currency, look in wang-client for the client end, and wang-server for the bank end
+For the centralised web-based bits that bootstrap the rbnb network and provide stream metadata, see sonar-webapp and midas-webapp
+For os-specific stuff, creating installers and packages, etc, look in dist
+
+All queries to info@robonobo.com
+
+Created: 2011/03/02

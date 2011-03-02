@@ -1,0 +1,211 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252"><title>Dlugosz' Variable-Length Integer Encoding</title>
+
+<style type="text/css">
+   .bit { font-family: monospace;
+      color: green
+      }
+</style></head><body>
+
+<h1>Dlugosz' Variable-Length Integer Encoding — Revision 2</h1>
+
+<h1 style="color: red;">NOTE: this doc was originally from http://www.dlugosz.com/ZIP2/VLI.html but has been changed as the byte thresholds in the original doc are wrong!</h1>
+
+<h2>Introduction</h2>
+
+<p>Since the whole idea of the ZIP2 file format is to save room, it is
+wasteful to store values with a larger number of bytes when a small
+number is generally enough. Also, since it is designed with the future
+in mind, what is the upper limit of the value's size? For example, 32
+bits might be a good choice for a length value now, but insufficient in
+the near future. So it is natural that many integer values will be
+stored as variable-sized integers. It will be short when possible,
+keeping the file efficient. However, it may be long when necessary.</p>
+
+<p>My first idea was to simply use UTF-8 encoding.  However, this is less 
+efficient for small integers than it could be (two byte forms only goes up to 
+2K) and is limited to handling numbers up to 31 bits.  A design goal was to 
+handle 64 bits, so this would not do.</p>
+
+<p>Since I was looking for something different anyway, it became clear that the 
+design considerations for UTF-8 were simply not applicable for my needs.  A 
+simpler format would work quite well, and offer other benefits in exchange.</p>
+
+<h2>History and Previous Versions</h2>
+
+<p>Version 1 of this idea used a very simple and elegant approach, where an n-
+byte field contained n-1 1-bits, a 0-bit, and finally 7*n bits making up the 
+number.  This proved more difficult than anticipated to implement efficiently 
+in Perl, and has the disadvantage of not knowing how many bytes you need to 
+read from a stream before you know the length.</p>
+
+<p>Version 2 is totally revised, but has some features in common.  It further 
+optimizes some common number ranges, and makes reading from a stream easier.</p>
+
+<p>It can't be explained in a sentence anymore, but requires some tables.  But, 
+real implementations used tables anyway, so it's not actually more difficult 
+to program.</p>
+
+<h2>Overview</h2>
+
+<p>The first byte of the variable-length field will indicate how long the field 
+is, and may contain some bits of the value.  Subsequent bytes contain the 
+rest of the number's value.  In addition, there is a super-extended form that 
+encodes the length in the second (or more) bytes, but this is not needed 
+except for very large multi-precision integers.</p>
+
+<p>In all cases, masking off the highest bits will leave the value readable in 
+big-endian format in the field, once you know the field's length (which is 
+encoded in those high bits).</p>
+
+<table border="1">
+<tbody><tr><td>prefix bits</td><td>bytes</td><td>data bits</td><td>unsigned range</td></tr>
+<tr><td>0	</td><td>1 </td><td>7 </td><td>127
+</td></tr><tr><td>10	</td><td>2 </td><td>14 </td><td>16,383
+</td></tr><tr><td>110 </td><td>3 </td><td>21 </td><td>2,097,151
+</td></tr><tr><td>111 00 </td><td>4 </td><td>27 </td><td>134,217,727 (128K)
+</td></tr><tr><td>111 01 </td><td>5 </td><td>35 </td><td>34,359,738,367 (32G)
+</td></tr><tr><td>111 11 000 </td><td>6 </td><td>40 </td><td>1,099,511,627,775 (1T)
+</td></tr><tr><td>111 11 001 </td><td>9 </td><td>64 </td><td>A full 64-bit value with one byte overhead
+</td></tr><tr><td>111 11 010 </td><td>17 </td><td>128 </td><td>A GUID/UUID
+</td></tr><tr><td>111 11 111 </td><td>n</td><td>any </td><td>Any multi-precision integer
+</td></tr></tbody></table>
+
+<p>A byte with its high bit cleared is a one-byte value, holding a number from 0-
+127.  If the high bit is set, the next highest bit indicates that the value 
+is two bytes long when clear, longer when set.</p>
+
+<p>So a two-byte value can hold up to 16K, which is sufficient for ordinals most 
+of the time.  A 4-byte value can hold up to 128 Meg, which is sufficient for 
+most length values.  If you're storing files longer than that, an extra byte 
+for a longer length field is not significant.</p>
+
+<p>Longer fields still have less than 1 byte of overhead to encode the length.  
+A 64-bit Windows FILETIME really has 57 bits for current time values, and 
+that will still encode to a 8-byte field (5 bits overhead for the length).</p>
+
+<p>There are 4 unused encodings with 1 byte of overhead, and they can be 
+assigned to optimize cases for common needs, as they are discovered.  For 
+more arbitrary storage, a final form gives the length as a separate value, 
+and can encode any length.</p>
+
+<h2>Benifits and Features</h2>
+
+<ul>
+	<li>Efficient encoding keeps the values short most of the time.
+	</li><li>Easy to decode, compared to UTF-8.  Rather than extracting some bits from 
+each byte and shifting them into position, the value can be read simply by 
+masking off the high bits.
+	</li><li>The algorithm extends to integers of arbitrary size.
+</li></ul>
+
+<h2>Details</h2>
+
+<p>There are four general forms.  The shortest preserve minimum size and maximum 
+range for ordinal values.  They have n= 0, 1, or 2 leading 1 bits followed by 
+a 0 bit, followed by n additional bytes.</p>
+
+<p>The second format has 3 leading 1 bits, followed by a 2-bit selector.  The 
+selector encodes for 3, 4 or 7 additional bytes.</p>
+
+<p>When the selector is binary 11, the rest of the byte encodes a 3-bit selector 
+that encodes more lengths.</p>
+
+<p>When that selector is binary 111, the length follows the first byte.  The 
+length is itself encoded as a VLI.  That is followed by that many value bytes.</p>
+
+<p>
+<span class="bit">[0 xxxxxxx]</span> holds 0—127 in one byte.</p>
+<p>The first bit is zero, indicating this form.  The remaining 7 bits hold the 
+value.</p>
+
+<p>
+<span class="bit">[10 xxxxxx] [yyyyyyyy]</span> holds 0—16,383 in two 
+bytes.</p>
+<p>The first two bits are <span class="bit">10</span>, indicating this form.  
+The remaining 6 <span class="bit">x</span> bits are the most-significant bits 
+of the value, and the second byte is the least-significant 8 bits of the value.
+</p>
+
+<p>If you mask off the first two bits (set them both to zero for an unsigned 
+vli), the two bytes will hold the value in big-endian.</p>
+
+<p><span class="bit">[110 xxxxx] [yyyyyyyy] [zzzzzzzz]</span> holds 
+0—2,097,151 in three bytes.</p>
+<p>The first three bits are <span class="bit">110</span>, indicating this form.
+The remaining 5 <span class="bit">x</span> bits are the most-significant bits 
+of the value, followed by two more bytes of value.</p>
+
+<p><span class="bit">[111 ff xxx] [[ n bytes ]]</span></p>
+<p>The first three bits are <span class="bit">110</span>, indicating this form.
+The following two <span class="bit">f</span> bits encode the length.  The 
+remaining 3 <span class="bit">x</span> bits are the most-significant bits 
+of the value, followed by the specified number of additional value bytes.
+</p>
+
+<p>Values of <span class="bit">ff</span> encode:  <span class="bit">00</span> = 3 
+more bytes (27 bits of value total), <span class="bit">01</span> = 4 more bytes 
+(35 bits total), <span class="bit">10</span> =7 more bytes (59 bits total), and <span class="bit">11</span> means to use the even longer <span class="bit">g</span> 
+format.</p>
+
+<p>These are listed individually below.</p>
+
+<p><span class="bit">[111 00 xxx] [[ 3 bytes ]]</span> holds 0—128K in 4 
+bytes.<br>
+<span class="bit">[111 01 xxx] [[ 4 bytes ]]</span> holds a 35-bit value.<br>
+<span class="bit">[111 10 xxx] [[ 7 bytes ]]</span> holds a 59-bit value.</p>
+
+<p><span class="bit">[111 11 ggg] [[ n bytes ]]</span></p>
+<p>The first five bits are <span class="bit">11111</span>, indicating this form.
+The following three <span class="bit">g</span> bits encode the length.  This 
+is followed by the indicated number of value bytes.</p>
+
+<p>Values of <span class="bit">ggg</span> encode:  <span class="bit">000</span> 
+= 5 more bytes, <span class="bit">001</span> = 8 more bytes, <span class="bit">010</span> = 16 more bytes, and <span class="bit">111</span> means to use the even longer <span class="bit">v</span> 
+format.  The other 4 values of <span class="bit">ggg</span> are reserved for 
+future definition.</p>
+
+<p><span class="bit">[111 11 000] [[ 5 bytes ]]</span><br>
+<span class="bit">[111 11 001] [[ 8 bytes ]]</span><br>
+<span class="bit">[111 11 010] [[ 16 bytes ]]</span><br>
+<span class="bit">[111 11 011] [[ ??? ]]</span> is reserved<br>
+<span class="bit">[111 11 100] [[ ??? ]]</span> is reserved<br>
+<span class="bit">[111 11 101] [[ ??? ]]</span> is reserved<br>
+<span class="bit">[111 11 110] [[ ??? ]]</span> is reserved<br>
+<span class="bit">[111 11 111] [[ v-field ]] [[ lots more bytes]]</span>
+</p>
+
+
+<h2>Examples</h2>
+<p>Example numbers are written with a leading +/- to indicate signed values, 
+and with no prefix to indicate unsigned values.  The prefix (+) means that the 
+number has the same encoding whether treated as signed or unsigned.</p>
+
+<table border="1">
+<tbody><tr><td>number	</td><td>encoding </td><td>form </td><td>notes
+</td></tr><tr><td>(+) 1 </td><td>01 </td><td class="bit">0 {7 bits} 
+</td></tr><tr><td>(+) 5 </td><td>05   </td><td class="bit">0 {7 bits}  
+</td></tr><tr><td>(+) 20 </td><td>14  </td><td class="bit">0 {7 bits} </td><td> 
+</td></tr><tr><td>(+) 200 </td><td>80 c8  </td><td class="bit">10 {14 bits} </td><td> 
+</td></tr><tr><td>(+) 400 </td><td>81 90 </td><td class="bit">10 {14 bits} </td><td> 
+</td></tr><tr><td>(+) 10,000 </td><td>a7 10 </td><td class="bit">10 {14 bits} </td><td>
+</td></tr><tr><td>(+) 16,384 </td><td>c0 40 00 </td><td class="bit">110 {21 bits} </td><td>Smallest 
+unsigned number that needs 3 bytes 
+</td></tr><tr><td>(+) 2,000,000 </td><td>de 84 80 </td><td class="bit">110 {21 bits} </td><td> 
+</td></tr><tr><td>
+</td></tr><tr><td>
+</td></tr><tr><td>
+</td></tr></tbody></table>
+
+<!-- Stock footer-->
+<hr>
+<p style="font-size: xx-small;">Page content copyright 2003 by John M. Dlugosz.
+Home:<a href="http://www.dlugosz.com/">http://www.dlugosz.com</a>,
+email:<a href="mailto:john@dlugosz.com">mailto:john@dlugosz.com</a>
+</p>
+<!-- End footer-->
+
+</body></html>

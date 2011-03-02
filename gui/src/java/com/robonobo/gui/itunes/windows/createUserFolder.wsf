@@ -1,0 +1,4 @@
+<job id="Includer">
+  <script language="JScript" src="commonFuncs.js"/>
+  <script language="JScript" src="createUserFolder.js"/>
+</job>

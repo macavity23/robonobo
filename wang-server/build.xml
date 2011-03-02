@@ -1,0 +1,58 @@
+<project name="wang-server" default="build">
+	<property name="out" location="target/dist/" />
+	<property name="war" location="${out}/wang.war" />
+	
+	<target name="compile-all">
+		<ant dir="../common" inheritall="false" target="compile-all"/>
+		<ant dir="../wang-client" inheritall="false" target="compile-all"/>
+
+		<mkdir dir="target/classes"/>
+		
+		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on" 
+		includes="**/*.java,**/*.properties,**/*.xml">
+			<classpath>
+				<pathelement path="../common/target/classes"/>
+				<pathelement path="../common-hibernate/target/classes"/>				
+				<pathelement path="../wang-client/target/classes"/>
+				<fileset dir="WebContent/WEB-INF/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="../common/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="../common-hibernate/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		
+		<copy todir="target/classes">
+			<fileset dir="src/java" includes="**/*.xml,**/*.properties"/>
+		</copy>
+	</target>
+
+	<target name="build" depends="compile-all">
+		<mkdir dir="${out}"/>
+
+		<war destfile="${war}" webxml="WebContent/WEB-INF/web.xml">
+			<!-- Don't include context.xml, instead define context (datasources etc) outside the webapp -->
+			<fileset dir="WebContent">
+				<exclude name="**/context.xml"/>
+			</fileset>
+			<lib dir="../common/lib"/>
+			<lib dir="../common-hibernate/lib"/>
+			<lib dir="../midas-model/lib"/>
+			<classes dir="target/classes"/>
+			<classes dir="../common/target/classes"/>
+			<classes dir="../common-hibernate/target/classes"/>
+			<classes dir="../wang-client/target/classes"/>
+		</war>
+	</target>
+
+	<target name="clean">
+		<delete dir="target/classes"/>
+		<delete dir="${out}"/>
+		<ant dir="../common" inheritall="false" target="clean"/>
+		<ant dir="../wang-client" inheritall="false" target="clean"/>
+	</target>
+</project>

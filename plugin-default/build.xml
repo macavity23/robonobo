@@ -1,0 +1,43 @@
+<project name="plugin-default" default="build">
+	<property name="ant.reuse.loader" value="true"/> 
+	<path id="fjepPath" location="../common/buildlib/fatjar-0.0.31.jar"/>
+	<taskdef name="fatjar.build" classname="net.sf.fjep.anttask.FJBuildTask" classpathref="fjepPath"/>
+	<typedef name="fatjar.manifest" classname="net.sf.fjep.anttask.FJManifestType" classpathref="fjepPath"/>
+	<typedef name="fatjar.exclude" classname="net.sf.fjep.anttask.FJExcludeType" classpathref="fjepPath"/>
+	<typedef name="fatjar.jarsource" classname="net.sf.fjep.anttask.FJJarSourceType" classpathref="fjepPath"/>
+	<typedef name="fatjar.filesource" classname="net.sf.fjep.anttask.FJFileSourceType" classpathref="fjepPath"/>
+
+	<property name="out" location="target/dist" />
+
+	<target name="compile-all">
+		<mkdir dir="target/classes"/>
+		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on">
+			<classpath>
+				<pathelement path="../common/target/classes"/>
+				<pathelement path="../api/target/classes"/>
+				<pathelement path="../core/target/classes"/>
+				<pathelement path="../mina/bin"/>
+				<fileset dir="../common/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		<copy todir="target/classes">
+			<fileset dir="src/java" includes="META-INF/**/*"/>
+		</copy>
+	</target>
+
+	<target name="build">
+		<mkdir dir="${out}"/>
+
+		<fatjar.build output="${out}/lib/robonobo-plugin-default.jar">
+			<fatjar.filesource path="${basedir}/target/classes" relpath="." />
+		</fatjar.build>
+	</target>
+	
+	<target name="clean">
+		<delete dir="target/classes"/>
+		<delete dir="${out}"/>
+	</target>
+
+</project>

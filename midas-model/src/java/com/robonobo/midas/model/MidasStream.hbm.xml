@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.robonobo.midas.model">
+	<class name="MidasStream" table="streams">
+        <id name="streamId" column="streamId"/>
+        
+        <property name="mimeType" column="mimeType" length="128"/>
+        <property name="title" length="256"/>
+        <property name="description" length="512"/>
+        <property name="size"/>
+        <property name="duration"/>
+        <property name="modified"/>
+        
+        <set name="attributes" inverse="true" cascade="all">
+        	<key column="streamId" />
+        	<one-to-many class="MidasStreamAttribute"/>
+        </set>
+    </class>
+</hibernate-mapping>

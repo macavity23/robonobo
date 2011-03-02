@@ -1,0 +1,55 @@
+<project name="eon" default="build">
+    <property name="ant.reuse.loader" value="true"/> 
+    <path id="fjepPath" location="../common/buildlib/fatjar-0.0.31.jar"/>
+    <taskdef name="fatjar.build" classname="net.sf.fjep.anttask.FJBuildTask" classpathref="fjepPath"/>
+    <typedef name="fatjar.manifest" classname="net.sf.fjep.anttask.FJManifestType" classpathref="fjepPath"/>
+    <typedef name="fatjar.exclude" classname="net.sf.fjep.anttask.FJExcludeType" classpathref="fjepPath"/>
+    <typedef name="fatjar.jarsource" classname="net.sf.fjep.anttask.FJJarSourceType" classpathref="fjepPath"/>
+    <typedef name="fatjar.filesource" classname="net.sf.fjep.anttask.FJFileSourceType" classpathref="fjepPath"/>
+	
+	<target name="compile-all">
+		<ant dir="../common" inheritall="false" target="compile-all"/>
+		<mkdir dir="target/classes"/>
+		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on" 
+		includes="**/*.java,**/*.properties,**/*.xml">
+			<classpath>
+				<pathelement path="../common/target/classes"/>
+				<fileset dir="../common/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		<copy todir="target/classes">
+			<fileset dir="src/java" includes="**/*.properties,**/*.xml"/>
+		</copy>
+		<javac source="1.5" target="1.5" srcdir="test/java" destdir="target/classes" debug="on" 
+		includes="**/*.java,**/*.properties,**/*.xml">
+			<classpath>
+				<pathelement path="target/classes"/>
+				<pathelement path="../common/target/classes"/>
+				<fileset dir="../common/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		<copy todir="target/classes">
+			<fileset dir="test/java" includes="**/*.properties,**/*.xml"/>
+		</copy>
+	</target>
+		
+	<target name="build" depends="compile-all"/>
+	
+	<target name="fatjar" depends="compile-all">
+		<fatjar.build output="target/seon-tester.jar">
+			<fatjar.manifest mergemanifests="false" mainclass="com.robonobo.eon.test.SeonTester"/>
+			<fatjar.filesource path="target/classes" relpath="." />
+			<fatjar.filesource path="../common/target/classes" relpath="." />
+			<fatjar.jarsource file="../common/lib/log4j-1.2.13.jar" relpath="."/>
+			<fatjar.jarsource file="../common/lib/commons-logging-1.0.3.jar" relpath="."/>
+		</fatjar.build>	
+	</target>
+	<target name="clean">
+		<delete dir="target/classes"/>
+	</target>
+
+</project>

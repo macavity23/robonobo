@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/java"/>
+	<classpathentry kind="src" path="src/test"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-cli-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/sbbi-upnplib-1.0.3.jar" sourcepath="/home/macavity/Desktop/sbbi-upnplib-src-1.0.4/src"/>
+	<classpathentry exported="true" kind="lib" path="lib/sbbi-jmx-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-jxpath-1.1.jar" sourcepath="/home/macavity/Desktop/commons-jxpath-1.1/src"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/mina"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/common"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/api"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/wang-client"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>

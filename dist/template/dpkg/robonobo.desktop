@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=robonobo
+GenericName=Music sharing application
+Exec=robonobo
+Icon=robonobo
+Terminal=false
+StartupNotify=false
+Categories=AudioVideo;Audio;FileTransfer;P2P;Player;Java

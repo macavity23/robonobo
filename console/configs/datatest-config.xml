@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config version="1.0">
+  <array name="mina">
+    <int name="excess-packet-loss-ban-time"><![CDATA[300]]></int>
+    <int name="max-cached-broadcaster-age"><![CDATA[300]]></int>
+    <int name="optimum-number-broadcasters"><![CDATA[4]]></int>
+    <bool name="ignore-truy-local"><![CDATA[true]]></bool>
+    <int name="max-stream-page-size"><![CDATA[8192]]></int>
+    <bool name="log-all-commands"><![CDATA[true]]></bool>
+    <bool name="locate-remote-nodes"><![CDATA[false]]></bool>
+    <int name="gateway-udp-port"><![CDATA[23232]]></int>
+    <int name="max-stream-header-size"><![CDATA[8192]]></int>
+    <int name="local-locator-udp-port"><![CDATA[23232]]></int>
+    <int name="outgoing-initial-limit"><![CDATA[16000]]></int>
+    <bool name="locate-local-nodes"><![CDATA[true]]></bool>
+    <int name="outgoing-hard-limit"><![CDATA[32000]]></int>
+    <bool name="log-all-packets"><![CDATA[true]]></bool>
+    <int name="local-eon-port"><![CDATA[23]]></int>
+    <bool name="ignore-hard-upload-limit"><![CDATA[true]]></bool>
+    <int name="locate-nodes-freq"><![CDATA[120]]></int>
+    <int name="command-history-size-supernode-multiplier"><![CDATA[10]]></int>
+    <string name="local-address"><![CDATA[192.168.10.17]]></string>
+    <int name="catchup-min-period"><![CDATA[30]]></int>
+    <int name="last-resort-timeout"><![CDATA[5000]]></int>
+    <int name="misp-packet-payload-size"><![CDATA[1475]]></int>
+    <int name="max-ok-packet-loss"><![CDATA[3]]></int>
+    <int name="packet-loss-lower-quota"><![CDATA[5]]></int>
+    <bool name="ignore-try-local"><![CDATA[true]]></bool>
+    <int name="find-broadcasters-timeout"><![CDATA[30]]></int>
+    <int name="local-udp-port"><![CDATA[23233]]></int>
+    <string name="gateway-address" />
+    <int name="max-wodge-time"><![CDATA[12]]></int>
+    <int name="command-history-max-size"><![CDATA[1000]]></int>
+    <bool name="chase-packets"><![CDATA[true]]></bool>
+    <int name="stream-buffer-time"><![CDATA[12]]></int>
+    <int name="packet-chaser-interval"><![CDATA[5000]]></int>
+    <int name="transmissions-per-second"><![CDATA[30]]></int>
+    <int name="command-max-size"><![CDATA[8192]]></int>
+    <int name="wait-for-last-resort-time"><![CDATA[5]]></int>
+    <int name="misp-packet-total-size"><![CDATA[1496]]></int>
+    <int name="initial-bad-node-timeout"><![CDATA[60]]></int>
+    <bool name="log-import-rate"><![CDATA[true]]></bool>
+    <int name="successful-reception-event-freq"><![CDATA[120]]></int>
+    <int name="command-timeout"><![CDATA[10]]></int>
+    <int name="find-more-broadcasters-interval"><![CDATA[60]]></int>
+    <bool name="can-send-wodge"><![CDATA[true]]></bool>
+    <int name="local-locator-eon-port"><![CDATA[5]]></int>
+    <int name="packet-loss-kill-connection"><![CDATA[50]]></int>
+    <int name="incoming-total-quota"><![CDATA[200000]]></int>
+    <bool name="last-resort-broadcaster"><![CDATA[false]]></bool>
+    <bool name="supernode"><![CDATA[false]]></bool>
+    <int name="stream-content-buffer-size"><![CDATA[4096]]></int>
+  </array>
+  <array name="robonobo">
+    <bool name="sendStreamEvents"><![CDATA[true]]></bool>
+    <array name="midas" description="Midas is the resource service for echostream network">
+      <string name="baseUrl"><![CDATA[http://robonobo.net/resources/]]></string>
+    </array>
+    <int name="threadPoolSize"><![CDATA[16]]></int>
+    <array name="sonar" description="Sonar is the location service for the echostream network">
+      <array name="urls">
+        <string name="0"><![CDATA[http://robonobo.net/resources/nodes]]></string>
+      </array>
+    </array>
+    <array name="plugins" description="Plugins to be loaded on startup">
+      <array name="OggVorbisPlugin">
+        <bool name="enabled"><![CDATA[true]]></bool>
+        <string name="class"><![CDATA[net.robonobo.plugin.oggvorbis.OggVorbisPlugin]]></string>
+      </array>
+      <array name="DataTestPlugin">
+        <bool name="enabled"><![CDATA[true]]></bool>
+        <string name="class"><![CDATA[net.robonobo.plugin.datatest.DataTestPlugin]]></string>
+      </array>
+      <array name="AsfPlugin">
+        <bool name="enabled"><![CDATA[true]]></bool>
+        <string name="class"><![CDATA[net.robonobo.plugin.wmv.AsfPlugin]]></string>
+      </array>
+    </array>
+    <bool name="recordStreams"><![CDATA[false]]></bool>
+    <array name="service">
+      <array name="core">
+        <bool name="webserver"><![CDATA[true]]></bool>
+        <bool name="plugins"><![CDATA[true]]></bool>
+        <bool name="upnp"><![CDATA[true]]></bool>
+        <bool name="mina"><![CDATA[true]]></bool>
+        <bool name="keys"><![CDATA[true]]></bool>
+      </array>
+    </array>
+    <array name="upnp" description="UPnP allows routers and firewalls to be automatically configured">
+      <int name="defaultPort"><![CDATA[23232]]></int>
+      <int name="timeout"><![CDATA[2000]]></int>
+      <int name="portsToTry"><![CDATA[50]]></int>
+    </array>
+    <array name="webserver" description="The embeded webserver allows other application to communicate with Robonobo">
+      <string name="address"><![CDATA[localhost]]></string>
+      <int name="port"><![CDATA[23233]]></int>
+    </array>
+    <bool name="launchAtSystemStart"><![CDATA[true]]></bool>
+  </array>
+</config>
+

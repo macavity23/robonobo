@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<java version="1.5.0_07" class="java.beans.XMLDecoder"> 
+ <object class="net.robonobo.api.config.RobonoboConfig"> 
+  <void property="defaultAnnounceUrl"> 
+   <string>http://foo/bar</string> 
+  </void> 
+  <void property="homeDir"> 
+   <string>/Users/macavity/.robonobo</string> 
+  </void> 
+  <void property="httpServerAddress"> 
+   <string>127.0.0.1</string> 
+  </void> 
+  <void property="httpServerPort"> 
+   <int>12345</int> 
+  </void> 
+  <void property="installDir"> 
+   <string>/Users/macavity/Development/eclipse-workspace/robonobo-console/.</string> 
+  </void> 
+  <void property="mina"> 
+   <void property="cacheDir"> 
+    <string>/Users/macavity/.robonobo/cache</string> 
+   </void> 
+   <void property="findMoreBroadcastersInterval"> 
+    <int>300</int> 
+   </void> 
+   <void property="gatewayAddress"> 
+    <string>123.123.123.123</string> 
+   </void> 
+   <void property="gatewayUdpPort"> 
+    <int>12345</int> 
+   </void> 
+   <void property="localAddress"> 
+    <string>10.0.0.1</string> 
+   </void> 
+   <void property="localLocatorUdpPort"> 
+    <int>12345</int> 
+   </void> 
+   <void property="localUdpPort"> 
+    <int>12345</int> 
+   </void> 
+   <void property="locateBroadcastersFreq"> 
+    <int>300</int> 
+   </void> 
+   <void property="locateLocalNodes"> 
+    <boolean>false</boolean> 
+   </void> 
+   <void property="locateNodesFreq"> 
+    <int>500</int> 
+   </void> 
+   <void property="locateRemoteNodes"> 
+    <boolean>false</boolean> 
+   </void> 
+   <void property="maxBroadcasters"> 
+    <int>123</int> 
+   </void> 
+   <void property="maxCachedBroadcasterAge"> 
+    <int>500</int> 
+   </void> 
+   <void property="maxPktSize"> 
+    <int>1500</int> 
+   </void> 
+   <void property="supernode"> 
+    <boolean>true</boolean> 
+   </void> 
+   <void property="uploadLimit"> 
+    <int>200000</int> 
+   </void> 
+  </void> 
+  <void property="threadPoolSize"> 
+   <int>123</int> 
+  </void> 
+  <void property="upnpDefaultPort"> 
+   <int>12345</int> 
+  </void> 
+  <void property="upnpPortsToTry"> 
+   <int>10</int> 
+  </void> 
+  <void property="upnpTimeout"> 
+   <int>20</int> 
+  </void> 
+ </object> 
+</java> 

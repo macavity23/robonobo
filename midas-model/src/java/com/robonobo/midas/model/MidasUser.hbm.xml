@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.robonobo.midas.model">
+	<class name="MidasUser" table="users">
+        <id name="userId" type="long">
+        	<generator class="native"/>
+        </id>
+        
+        <property name="email"/>
+        <property name="friendlyName"/>
+        <property name="password"/>    
+        <property name="verified"/>         
+        <property name="updated"/>
+        <property name="invitesLeft"/>
+        <property name="imgUrl" length="1024"/>
+        <set name="playlistIds" table="playlistIdsInUser" lazy="false">
+        	<key column="userId"/>
+        	<element column="playlistId" type="long"/>
+        </set>
+        <set name="friendIds" table="friendIdsInUser" lazy="false">
+        	<key column="userId"/>
+        	<element column="friendId" type="long"/>
+        </set>
+    </class>
+</hibernate-mapping>

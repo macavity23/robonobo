@@ -1,0 +1,142 @@
+<minaconfig>
+	<stringoption>
+		<name>application-name</name>
+		<value><![CDATA[Robonobo Core v0.1]]></value>
+	</stringoption>
+	<stringoption>
+		<name>local-address</name>
+		<value><![CDATA[192.168.10.17]]></value>
+	</stringoption>
+	<stringoption>
+		<name>gateway-address</name>
+		<value><![CDATA[4.2.2.1]]></value>
+	</stringoption>
+	<stringoption>
+		<name>midas-url-base</name>
+		<value><![CDATA[http://midas.robonobo.net/midas/1.0/]]></value>
+	</stringoption>
+	<intoption>
+		<name>thread-pool-size</name>
+		<value>4</value>
+	</intoption>
+	<intoption>
+		<name>local-udp-port</name>
+		<value>23232</value>
+	</intoption>
+	<intoption>
+		<name>local-eon-port</name>
+		<value>23</value>
+	</intoption>
+	<intoption>
+		<name>gateway-udp-port</name>
+		<value>23232</value>
+	</intoption>
+	<intoption>
+		<name>local-locator-udp-port</name>
+		<value>23232</value>
+	</intoption>
+	<intoption>
+		<name>local-locator-eon-port</name>
+		<value>5</value>
+	</intoption>
+	<intoption>
+		<name>command-max-size</name>
+		<value>1024</value> <!-- Bytes -->
+	</intoption>
+	<intoption>
+		<name>control-connection-timeout</name>
+		<value>30</value> <!-- Seconds -->
+	</intoption>
+	<intoption>
+		<name>command-timeout-indirect</name>
+		<value>30</value> <!-- Seconds -->
+	</intoption>
+	<intoption>
+		<name>command-timeout-direct</name>
+		<value>30</value> <!-- Seconds -->
+	</intoption>
+	<intoption>
+		<name>misp-packet-total-size</name>
+		<value>1448</value> <!-- Bytes -->
+	</intoption>
+	<intoption>
+		<name>misp-packet-payload-size</name>
+		<value>1440</value> <!-- Bytes -->
+	</intoption>
+	<intoption>
+		<name>stream-content-buffer-size</name>
+		<value>4096</value> <!-- Packets, *NOT* bytes -->
+	</intoption>
+	<intoption>
+		<name>find-broadcasters-timeout</name>
+		<value>30</value> <!-- Seconds -->
+	</intoption>
+	<intoption>
+		<name>catchup-min-period</name>
+		<value>30</value> <!-- Seconds -->
+	</intoption>
+	<intoption>
+		<name>transmissions-per-second</name>
+		<value>4</value>
+	</intoption>
+	<intoption>
+		<name>optimum-number-broadcasters</name>
+		<value>4</value>
+	</intoption>
+	<intoption>
+		<name>max-ok-packet-loss</name>
+		<value>3</value> <!-- Percentage -->
+	</intoption>
+	<intoption>
+		<name>command-history-max-size</name>
+		<value>1000</value>
+	</intoption>
+	<intoption>
+		<name>command-history-size-supernode-multiplier</name>
+		<value>10</value>
+	</intoption>
+	<intoption>
+		<name>packet-chaser-interval</name>
+		<value>5000</value> <!-- Milliseconds -->
+	</intoption>
+	<intoption>
+		<name>find-more-broadcasters-interval</name>
+		<value>60</value> <!-- Seconds -->
+	</intoption>
+	<intoption>
+		<name>initial-bad-node-timeout</name>
+		<value>60</value> <!-- Seconds -->
+	</intoption>
+	<intoption>
+		<name>incoming-total-quota</name>
+		<value>128000</value> <!-- Bytes per second -->
+	</intoption>
+	<intoption>
+		<name>outgoing-total-quota</name>
+		<value>96000</value> <!-- Bytes per second -->
+	</intoption>
+	<booloption>
+		<name>locate-local-nodes</name>
+		<value>true</value>
+	</booloption>
+	<booloption>
+		<name>chase-packets</name>
+		<value>true</value>
+	</booloption>
+	<booloption>
+		<name>locate-remote-nodes</name>
+		<value>true</value>
+	</booloption>
+	<booloption>
+		<name>supernode</name>
+		<value>true</value>
+	</booloption>
+	<booloption>
+		<name>log-all-cmds</name>
+		<value>true</value>
+	</booloption>
+	<booloption>
+		<name>log-all-pkts</name>
+		<value>false</value>
+	</booloption>
+</minaconfig>

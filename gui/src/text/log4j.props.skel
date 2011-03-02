@@ -1,0 +1,17 @@
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=%d{HH:mm:ss:SSS} [%-5p] %-16t : %m (%C)%n
+
+log4j.appender.mainfile=org.apache.log4j.FileAppender
+log4j.appender.mainfile.File=${robo.log.dir}/robonobo.log
+log4j.appender.mainfile.append=false
+log4j.appender.mainfile.layout=org.apache.log4j.PatternLayout
+log4j.appender.mainfile.layout.ConversionPattern=%d{HH:mm:ss:SSS} [%-5p] %-16t : %m (%C)%n
+
+log4j.rootCategory=INFO, mainfile
+log4j.logger.com.robonobo.mina=DEBUG
+log4j.logger.com.robonobo.core=DEBUG
+log4j.logger.com.robonobo.gui=DEBUG
+log4j.logger.com.robonobo.common.serialization=DEBUG
+log4j.logger.com.robonobo.common.pageio.buffer=DEBUG
+log4j.logger.com.robonobo.plugins=DEBUG

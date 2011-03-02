@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.robonobo.sonar.beans">
+	<class name="SonarEndPoint" table="EndPoint">
+		<id name="id" type="long">
+			<generator class="native" />
+		</id>
+
+		<many-to-one name="node" class="SonarNode" column="node" />
+
+		<property name="url" />
+	</class>
+</hibernate-mapping>

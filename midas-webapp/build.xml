@@ -1,0 +1,73 @@
+<project name="midas-webapp" default="build">
+	<property name="out" location="target/dist/" />
+	<property name="war" location="${out}/midas.war" />
+	<property name="tomcat-home" location="/usr/local/robonobo/tomcat" />
+	<property name="tomcat-deploy" location="${tomcat-home}/webapps" />
+	
+	<target name="compile-all">
+		<ant dir="../common" inheritall="false" target="compile-all"/>
+		<ant dir="../api" inheritall="false" target="compile-all"/>
+		<ant dir="../common-hibernate" inheritall="false" target="compile-all"/>
+		<ant dir="../midas-model" inheritall="false" target="compile-all"/>
+
+		<mkdir dir="target/classes"/>
+		
+		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on" 
+		includes="**/*.java,**/*.properties,**/*.xml">
+			<classpath>
+				<pathelement path="../common-hibernate/target/classes"/>
+				<pathelement path="../api/target/classes"/>
+				<pathelement path="../common/target/classes"/>
+				<pathelement path="../midas-model/target/classes"/>
+				<fileset dir="WebContent/WEB-INF/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="../common-hibernate/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="../common/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="../midas-model/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		
+		<copy todir="target/classes">
+			<fileset dir="src/java" includes="**/*.xml,**/*.properties"/>
+		</copy>
+	</target>
+
+	<target name="build" depends="compile-all">
+		<mkdir dir="${out}"/>
+
+		<war destfile="${war}" webxml="WebContent/WEB-INF/web.xml">
+			<!-- Don't include context.xml, instead define context (datasources etc) outside the webapp -->
+			<fileset dir="WebContent">
+				<exclude name="**/context.xml"/>
+			</fileset>
+			<lib dir="../common-hibernate/lib"/>
+			<lib dir="../common/lib"/>
+			<lib dir="../midas-model/lib"/>
+			<classes dir="target/classes"/>
+			<classes dir="../common-hibernate/target/classes"/>
+			<classes dir="../common/target/classes"/>
+			<classes dir="../api/target/classes"/>
+			<classes dir="../midas-model/target/classes"/>
+		</war>
+	</target>
+
+	<target name="deploy" depends="build">
+		<copy todir="${tomcat-deploy}" file="${war}"/>
+	</target>
+	
+	<target name="clean">
+		<delete dir="target/classes"/>
+		<delete dir="${out}"/>
+		<ant dir="../common" inheritall="false" target="clean"/>
+		<ant dir="../api" inheritall="false" target="clean"/>
+		<ant dir="../common-hibernate" inheritall="false" target="clean"/>
+		<ant dir="../midas-model" inheritall="false" target="clean"/>
+	</target>
+</project>

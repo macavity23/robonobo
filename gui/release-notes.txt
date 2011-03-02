@@ -1,0 +1,72 @@
+robonobo release notes
+======== ======= =====
+
+----------------------
+v0.4.0 2010/06/14
+----------------------
+* Massive improvement of networking layer, lots of bug fixes
+
+----------------------
+v0.3.1 2010/03/25
+----------------------
+* Initial alpha release
+
+* Preferences
+
+* Many many many bug fixes
+
+* Lots of speed improvements
+
+----------------------
+v0.3.0 2009/11/14
+----------------------
+* Currency integration
+
+* Protocol buffers replace xml throughout
+
+* Lots of bug fixes 
+
+----------------------
+v0.2.2 2009/09/30
+----------------------
+* iTunes integration on mac and windows
+
+----------------------
+v0.2.1 2009/08/03
+----------------------
+* Friends and playlists work (mostly)
+
+* Many network bug fixes
+
+----------------------
+v0.2 2009/07/01
+----------------------
+* Friends
+
+* Playlists
+
+----------------------
+v0.1.1 2009/05/08
+----------------------
+* Fixed bug preventing connection if UPnP is dodgy.  Now, if a connection fails, the node will fall back to indirect connection (by sending a reqconn command)
+
+* Now works in java v5
+
+* Downloads now display number of sources, and progress bar
+
+* 'Playing' icon in track list table now only displays once data is being received
+
+* Incomplete downloads are now displayed in the 'My Music' table on startup
+
+* Delete key now deletes tracks from 'My Music' table
+
+* SpaceBar now plays/pauses when track list table is focussed
+
+* If a newly-found search result is already playing, it now has the 'Playing' icon
+
+* Lots of little bug fixes
+
+----------------------
+v0.1 2009/04/30
+----------------------
+* Initial release

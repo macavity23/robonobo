@@ -1,0 +1,32 @@
+<project name="common-hibernate" default="build">
+	<property name="out" location="target/dist"/>
+	
+	<target name="compile-all">
+		<mkdir dir="target/classes"/>
+		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on"
+		includes="**/*.java,**/*.properties,**/*.xml">
+			<classpath>
+				<pathelement path="../common/target/classes"/>
+				<fileset dir="lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		<copy todir="target/classes">
+			<fileset dir="src/java" includes="**/*.properties,**/*.xml"/>
+		</copy>
+	</target>
+		
+	<target name="dist" depends="build">
+		<copy todir="${out}">
+			<fileset dir="lib" includes="*.jar"/>
+		</copy>
+	</target>
+	
+	<target name="build"/>
+
+	<target name="clean">
+		<delete dir="target/classes"/>
+		<delete dir="${out}"/>
+	</target>
+</project>

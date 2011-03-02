@@ -1,0 +1,194 @@
+// Compile me from the eclipse workspace dir with protoc -I . --java_out=mina/src/java mina/src/java/com/robonobo/mina/message/proto/mina.proto 
+
+import "api/src/java/com/robonobo/core/api/proto/coreapi.proto";
+
+package mina;
+option java_package = "com.robonobo.mina.message.proto";
+option java_outer_classname = "MinaProtocol";
+
+message AbandonEscrow {
+	required string escrow_id = 1;
+}
+
+message AcctClosed {
+	required bytes currency_token = 1;
+}
+
+message AdvEscrow {
+	required double fee = 1;
+	required double opening_balance = 2;
+}
+
+message AdvSource {
+	repeated string stream_id = 1;
+}
+
+message Agorics {
+	required string currency_url = 1;
+	required string accept_payment_methods = 2;
+	required double min_bid = 3;
+	required double increment = 4;
+	required int32 min_top_rate = 5;
+}
+
+message AuctionResult {
+	required AuctionStateMsg auction_state = 1;
+}
+
+message ReceivedBid {
+	required string listener_id = 1;
+	required double bid = 2;
+	optional int32 flow_rate = 3 [default = 0];
+}
+
+message AuctionStateMsg {
+	required int32 index = 1;
+	required int32 max_running_listeners = 2;
+	optional int32 bids_open = 3;
+	optional string you_are = 4;
+	repeated ReceivedBid bid = 5;
+}
+
+message BeginEscrow {
+	required double amount = 1;
+	required string escrow_id = 2;
+}
+
+message Bid {
+	required double amount = 1;
+}
+
+message BidUpdate {
+	optional string you_are = 1;
+	// The ordering of these two fields is the same, listenerIds[0] relates to bidAmounts[0], etc
+	repeated string listener_id = 2;
+	repeated double bid_amount = 3;
+}
+
+message Bye {
+	optional string reason = 1;
+}
+
+message CloseAcct {
+}
+
+message DontWantSource {
+	repeated string stream_id = 1;
+}
+
+message EscrowBegan {
+	required double amount = 1;
+	required string escrow_id = 2;
+}
+
+message EscrowFinished {
+	required double amount_left = 1;
+	required string escrow_id = 2;
+}
+
+message EscrowLocked {
+	required double amount = 1;
+	required string escrow_id = 2;
+}
+
+message EscrowPaid {
+	required double amount = 1;
+	required string escrow_id = 2;
+}
+
+message GotSource {
+	required string stream_id = 1;
+	repeated coreapi.Node node = 2;
+}
+
+message Hello {
+	required coreapi.Node node = 1;
+}
+
+message LockEscrow {
+	required string escrow_id = 1;
+}
+
+message MinCharge {
+	required double amount = 1;
+}
+
+message NoBid {
+}
+
+message PayUp {
+	required double balance = 1;
+}
+
+message Ping {
+	optional string ping_id = 1;
+}
+
+message Pong {
+	optional string ping_id = 1;
+}
+
+message QueryEscrow {
+}
+
+message ReqConn {
+	required string to_node_id = 1;
+	required coreapi.Node from_node = 2;
+}
+
+message ReqPage {
+	required string stream_id = 1;
+	repeated int64 requested_page = 2;
+	repeated int64 confirmed_page = 3;
+}
+
+message ReqSourceStatus {
+	optional coreapi.Node from_node = 1;
+	optional string to_node_id = 2;
+	repeated string stream_id = 3;
+}
+
+message SourceStatus {
+	required coreapi.Node from_node = 1;
+	required string to_node_id = 2;
+	optional AuctionStateMsg auction_state = 3;
+	optional Agorics agorics = 4;
+	repeated StreamStatus ss = 5;
+}
+
+message SourceStopping {
+	required string stream_id = 1;
+}
+
+message StartSource {
+	required string stream_id = 1;
+	required coreapi.EndPoint ep = 2;
+	repeated int64 page = 3;
+}
+
+message StopSource {
+	required string stream_id = 1;
+}
+
+message StreamStatus {
+	required string stream_id = 1;
+	required int64 last_contiguous_page = 2;
+	optional string from_node_id = 3;
+	optional string to_node_id = 4;
+	optional int64 total_pages = 5;
+	optional int32 page_map = 6;
+}
+
+message TopUp {
+	required bytes currency_token = 1;
+}
+
+message UnAdvSource {
+	repeated string stream_id = 1;
+}
+
+message WantSource {
+	repeated string stream_id = 1;
+}
+
+

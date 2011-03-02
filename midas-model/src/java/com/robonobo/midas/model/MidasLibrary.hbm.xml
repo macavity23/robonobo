@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.robonobo.midas.model">
+	<class name="MidasLibrary" table="libraries">
+        <id name="userId" type="long">
+        	<generator class="assigned"/>
+        </id>
+ 	    <map name="tracks" cascade="all" table="library_tracks">
+        	<key column="id" />
+        	<index column="streamId" type="string"/>
+        	<element column="dateAdded" type="timestamp"/>
+        </map>
+    </class>
+</hibernate-mapping>

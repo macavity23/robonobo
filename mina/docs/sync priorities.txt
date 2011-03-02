@@ -1,0 +1,50 @@
+Synchronization Priorities
+==========================
+
+Rules:
+======
+*  Methods can only be synchronized only on the class they are contained in, with one exception:
+   If the method is on an inner class, it can be synchronized on the outer class instance
+
+*  All classes containing synchronized methods (or inner classes that sync on the outer class)
+   must be marked up with the custom javadoc taglet @syncpriority, eg:
+   /**
+    * @syncpriority 100
+    */
+
+*  All synchronized methods must also be marked up with the @syncpriority tag as above, with the
+   priority set to that of the class (or the outer class)
+
+*  All unsynchronized methods that call synchronized methods must be marked up with the 
+   @syncpriority tag, with the priority set to the highest-priority synchronized method called
+   within the method body
+
+*  Synchronized methods may not call methods with a higher sync priority than the calling class
+
+*  If a method wishes to call a method with a higher sync priority, it can take one of two steps:
+   a.  Come out of the synchronized block before calling the higher-priority method.  In this 
+       case the syncpriority of the calling method must be raised to that of the called method.
+   b.  Schedule a Runnable using MinaInstance.getExecutor, and make sure the runnable is not 
+       synchronized.  Due to the overhead this should be avoided if at all possible.
+
+
+Priorities:
+===========
+StreamMgr				200
+StreamConnsMgr			180
+BuyMgr					170
+SellMgr					160
+CCM						140
+LCPair					130
+BCPair					120
+LC						110
+BC						100
+PageRequestManager		90
+DataReceiver			85
+PageBuffer				80
+CC						60
+BadNodeList				50
+SRT						40
+FlowRateIndicator		30
+SMRegister				25
+LogVisitor				10

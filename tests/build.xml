@@ -1,0 +1,33 @@
+<project name="plugin-robotest" default="build">
+	<property name="out" location="target/dist/" />
+
+	<target name="compile-all">
+		<ant dir="../console" inheritall="false" target="compile-all"/>
+		<mkdir dir="target/classes"/>
+		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on" 
+		includes="**/*.java,**/*.properties,**/*.xml">
+			<classpath>
+				<pathelement path="../api/target/classes"/>
+				<pathelement path="../common/target/classes"/>
+				<pathelement path="../core/target/classes"/>
+				<pathelement path="../mina/target/classes"/>
+				<pathelement path="../console/target/classes"/>
+				<fileset dir="../common/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+	
+	<target name="build" depends="compile-all">
+		<mkdir dir="${out}" />
+		<jar destfile="${out}/plugin-robotest.jar" manifest="MANIFEST.MF">
+			<fileset dir="target/classes"/>
+		</jar>
+	</target>
+
+	<target name="clean">
+		<delete dir="target/classes"/>
+		<delete dir="${out}"/>
+	</target>
+</project>

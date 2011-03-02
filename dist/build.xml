@@ -1,0 +1,175 @@
+<project name="dist">
+	<taskdef name="nsis" classname="net.sf.nsisant.Task">
+		<classpath location="buildlib/nsisant-1.2.jar" />
+	</taskdef>
+	<property name="nsis.path" location="c:/apps/NSIS/" />
+	<taskdef name="envgen" classname="com.basilv.envgen.EnvGenTask" classpath="buildlib/EnvGen-with-dependencies.jar"/>
+
+	<!-- Uncomment this and point it at your launch4j installation -->
+	<!--
+	<property name="launch4j.dir" location="C:/apps/Launch4J" />
+	<taskdef name="launch4j" classname="net.sf.launch4j.ant.Launch4jTask" classpath="${launch4j.dir}/launch4j.jar:${launch4j.dir}/lib/xstream.jar" />
+	-->
+	
+	<property name="out" location="target/dist"/>
+	<property name="dist.dir" location="target/dist/" />
+	<property name="tmp.dir" location="target/tmp" />
+	<property name="classes.dir" location="target/classes"/>
+
+	<tstamp>
+		<format property="timestamp" pattern="yyMMddHHmm" />
+	</tstamp>
+	<property name="version" value="DEV-${timestamp}" />
+	<!-- <property name="version" value="0.4.0" /> -->
+	<!-- launch4j requires the version number to be x.x.x.x -->
+	<property name="launch4jVersion" value="0.4.0.0" />
+
+	<target name="build-jar">
+		<ant dir="../gui" target="fatjar"/>
+	</target>
+	
+	<target name="exe" depends="build-jar">
+		<launch4j configFile="./launch4j-cfg.xml" jar="${dist.dir}/robonobo-${version}.jar" outfile="${dist.dir}/robonobo-${version}.exe" fileVersion="${launch4jVersion}" txtFileVersion="${launch4jVersion}" productVersion="${launch4jVersion}" txtProductVersion="${launch4jVersion}" />
+	</target>
+
+	<target name="dist-win" depends="exe">
+		<nsis path="${nsis.path}" script="robo-installer.nsi">
+			<define name="VERSION" value="${version}" />
+		</nsis>
+	</target>
+
+	<target name="generate-plist">
+		<mkdir dir="${tmp.dir}"/>
+		<delete quiet="true" file="${tmp.dir}/plist-props.csv"/>
+		<echo file="${tmp.dir}/plist-props.csv" message="version,${version}"/>
+		<envgen 
+			destdir="${tmp.dir}" 
+			envPropertiesFile="${tmp.dir}/plist-props.csv"
+			stripFileExtension="true"
+			overwrite="true">
+			<source file="template/Info.plist.ftl"/>
+		</envgen>
+	</target>
+
+	<target name="osx-app" depends="build-jar, generate-plist">
+		<copy todir="${dist.dir}/robonobo.app">
+			<fileset dir="template/robonobo.app"/>
+		</copy>
+		<copy todir="${dist.dir}/robonobo.app/Contents">
+			<fileset file="${tmp.dir}/Info.plist"/>
+		</copy>
+		<copy todir="${dist.dir}/robonobo.app/Contents/MacOS" file="/System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub" />
+		<chmod file="${dist.dir}/robonobo.app/Contents/MacOS/JavaApplicationStub" perm="755" />
+		<copy toDir="${dist.dir}/robonobo.app/Contents/Resources/Java/">
+			<fileset file="${dist.dir}/robonobo-${version}.jar" />
+		</copy>
+	</target>
+
+	<target name="dist-osx" depends="osx-app">
+		<copy todir="${tmp.dir}/dmg-skel">
+			<fileset dir="template/dmg-skel"/>
+		</copy>
+		<copy todir="${tmp.dir}/dmg-skel/robonobo.app">
+			<fileset dir="${dist.dir}/robonobo.app"/>
+		</copy>
+		<chmod file="${tmp.dir}/dmg-skel/robonobo.app/Contents/MacOS/JavaApplicationStub" perm="755" />
+		<exec executable="./build-dmg.sh">
+			<arg value="${tmp.dir}/dmg-skel"/>
+			<arg value="robonobo ${version}"/>
+			<arg value="20000"/>
+			<arg value="${dist.dir}/robonobo-${version}.dmg"/>
+		</exec>
+	</target>
+
+	<target name="dist-tar" depends="build-jar">
+		<mkdir dir="${tmp.dir}"/>
+		<copy todir="${tmp.dir}/robonobo-${version}">
+			<fileset dir="template/tarball"/>
+		</copy>
+		<copy todir="${tmp.dir}/robonobo-${version}">
+			<fileset file="../gui/release-notes.txt"/>
+			<fileset file="${dist.dir}/robonobo-${version}.jar"/>
+		</copy>
+		<delete quiet="true" file="${tmp.dir}/tarprops.csv"/>
+		<echo file="${tmp.dir}/tarprops.csv" message="version,${version}"/>
+		<envgen 
+			destdir="${tmp.dir}/robonobo-${version}" 
+			envPropertiesFile="${tmp.dir}/tarprops.csv"
+			stripFileExtension="true"
+			overwrite="true">
+			<source file="template/robonobo.ftl"/>
+		</envgen>
+		<chmod file="${tmp.dir}/robonobo-${version}/robonobo" perm="755"/>
+		<exec executable="tar">
+			<arg value="-czf"/>
+			<arg value="${dist.dir}/robonobo-${version}.tar.gz"/>
+			<arg value="-C"/>
+			<arg value="${tmp.dir}"/>
+			<arg value="robonobo-${version}"/>
+		</exec>
+	</target>
+		
+	<target name="unified-src">
+		<!-- Builds a unified source tree for the robonobo client -->
+		<!-- NOTE: Doesn't include any mac code -->
+		<mkdir dir="${tmp.dir}"/>
+		<property name="src.dir" value="${tmp.dir}/robonobo-${version}"/>
+		<mkdir dir="${src.dir}"/>
+		<copy todir="${src.dir}/src">
+			<fileset dir="../api/src/java">
+				<include name="com/**/*"/>
+			</fileset>
+			<fileset dir="../common/src/java">
+				<include name="com/**/*"/>
+			</fileset>
+			<fileset dir="../console/src/java">
+				<include name="com/**/*"/>
+			</fileset>
+			<fileset dir="../core/src/java">
+				<include name="com/**/*"/>
+			</fileset>
+			<fileset dir="../eon/src/java">
+				<include name="com/**/*"/>
+			</fileset>
+			<fileset dir="../gui/src/java">
+				<include name="**/*"/>
+			</fileset>
+			<fileset dir="../mina/src/java">
+				<include name="com/**/*"/>
+			</fileset>
+			<fileset dir="../plugin-mp3/src/java">
+				<include name="com/**/*"/>
+			</fileset>
+			<fileset dir="../wang-client/src/java">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+		<mkdir dir="${src.dir}/lib"/>
+		<!-- Even though debian has mp3spi/tritonus packages, robonobo doesn't work when uses them, so
+		     package in our own, and investigate this in our copious free time... -->
+		<copy todir="${src.dir}/lib">
+			<fileset file="../common/lib/jug-1.1.2.jar"/>
+			<fileset file="../core/lib/sbbi-jmx-1.0.jar"/>
+			<fileset file="../core/lib/sbbi-upnplib-1.0.3.jar"/>
+			<fileset file="../gui/lib/swingx-0.9.7.jar"/>
+			<fileset file="../plugin-mp3/lib/mp3spi-robo.jar"/>
+		</copy>
+	</target>
+		
+	<target name="dist-debian" depends="unified-src">
+		<property name="src.dir" value="${tmp.dir}/robonobo-${version}"/>
+		<copy todir="${src.dir}">
+			<fileset dir="template/dpkg">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+		<echo message="NOW UPDATE THE DEBIAN CHANGELOG!"/>
+	</target>
+		
+	<target name="clean">
+		<delete dir="${classes.dir}" />
+		<delete dir="${dist.dir}" />
+		<delete dir="${tmp.dir}"/>
+		<ant dir="../gui" target="clean" />
+	</target>
+</project>

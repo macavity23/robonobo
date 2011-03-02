@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:mvc="http://www.springframework.org/schema/mvc" 
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+		http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+
+	<jee:jndi-lookup id="midasDS" jndi-name="java:/comp/env/jdbc/midas" />
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource" ref="midasDS" />
+		<property name="mappingResources">
+			<list>
+				<value>com/robonobo/midas/model/MidasPlaylist.hbm.xml</value>
+				<value>com/robonobo/midas/model/MidasStream.hbm.xml</value>
+				<value>com/robonobo/midas/model/MidasStreamAttribute.hbm.xml</value>
+				<value>com/robonobo/midas/model/MidasUser.hbm.xml</value>
+				<value>com/robonobo/midas/model/MidasInvite.hbm.xml</value>
+				<value>com/robonobo/midas/model/MidasFriendRequest.hbm.xml</value>
+				<value>com/robonobo/midas/model/MidasLibrary.hbm.xml</value>
+				<value>com/robonobo/midas/model/MidasUserConfig.hbm.xml</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<value>
+				hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+				hibernate.statement_cache.size=6
+				hibernate.cache.provider_class=org.hibernate.cache.NoCacheProvider
+				hibernate.show_sql=false
+				hibernate.hbm2ddl.auto=update
+				hibernate.search.default.directory_provider=org.hibernate.search.store.FSDirectoryProvider
+				hibernate.search.default.indexBase=/robo/lucene_index
+			</value>
+		</property>
+		<property name="eventListeners">
+			<map>
+				<entry key="post-update">
+					<bean class="org.hibernate.search.event.FullTextIndexEventListener" />
+				</entry>
+				<entry key="post-insert">
+					<bean class="org.hibernate.search.event.FullTextIndexEventListener" />
+				</entry>
+				<entry key="post-delete">
+					<bean class="org.hibernate.search.event.FullTextIndexEventListener" />
+				</entry>
+			</map>
+		</property>
+	</bean>
+
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<!-- All transactions are declared on the service class using annotations  -->
+	<!-- proxy-target-class is required otherwise methods can't have both @Transactional 
+		and @RequestMapping - the @Transactional produces a proxy class which doesn't 
+		keep annotations -->
+	<tx:annotation-driven proxy-target-class="true" />
+
+</beans>

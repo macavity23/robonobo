@@ -1,0 +1,38 @@
+<project name="console">
+	<target name="compile-all">
+		<ant dir="../core" inheritall="false" target="compile-all"/>
+		<ant dir="../plugin-default" inheritall="false" target="compile-all"/>
+		<ant dir="../plugin-mp3" inheritall="false" target="compile-all"/>
+
+		<mkdir dir="target/classes"/>
+		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on"
+		includes="**/*.java,**/*.properties,**/*.xml">
+			<classpath>
+				<pathelement path="../api/target/classes"/>
+				<pathelement path="../common/target/classes"/>
+				<pathelement path="../mina/bin"/>
+				<pathelement path="../core/target/classes"/>
+				<fileset dir="lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="../common/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="../core/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		<copy todir="target/classes">
+			<fileset dir="src/java" includes="**/*.properties,**/*.xml"/>
+		</copy>
+	</target>
+
+	<target name="clean">
+		<delete dir="target/classes"/>
+		<ant dir="../core" inheritall="false" target="clean"/>
+		<ant dir="../plugin-default" inheritall="false" target="clean"/>
+		<ant dir="../plugin-mp3" inheritall="false" target="clean"/>
+	</target>
+
+</project>

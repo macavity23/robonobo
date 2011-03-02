@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.robonobo.midas.model">
+	<class name="MidasUserConfig" table="userconfigs">
+        <id name="userId" type="long">
+        	<generator class="assigned"/>
+        </id>
+        
+        <map name="items" cascade="all" table="userconfig_items">
+        	<key column="id" />
+        	<index column="itemName" type="string"/>
+        	<element column="itemValue" type="string"/>
+        </map>
+    </class>
+</hibernate-mapping>

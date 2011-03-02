@@ -1,0 +1,29 @@
+<project name="robonobo-plugin-mp3">
+	<property name="out" location="target/dist" />
+
+	<target name="compile-all">
+		<mkdir dir="target/classes" />
+		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on">
+			<classpath>
+				<pathelement path="../common/target/classes" />
+				<pathelement path="../api/target/classes" />
+				<pathelement path="../core/target/classes" />
+				<pathelement path="../mina/bin" />
+				<fileset dir="lib">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="../common/lib">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="../core/lib">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+	<target name="clean">
+		<delete dir="target/classes"/>
+		<delete dir="${out}"/>
+	</target>
+
+</project>

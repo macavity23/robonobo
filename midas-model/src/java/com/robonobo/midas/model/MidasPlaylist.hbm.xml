@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="com.robonobo.midas.model">
+	<class name="MidasPlaylist" table="playlists">
+        <id name="playlistId" type="long">
+        	<generator class="assigned"/>
+        </id>
+        
+        <property name="title" length="128"/>
+        <property name="description" length="512"/>
+        <property name="updated"/>
+        <property name="visibility"/>
+        
+        <list name="streamIds" table="streamIdsInPlaylist" lazy="false">
+        	<key column="playlistId"/>
+        	<list-index column="listIndex"/>
+        	<element column="streamId" type="string"/>
+        </list>
+        
+        <set name="ownerIds" table="ownerIdsInPlaylist" lazy="false">
+        	<key column="playlistId"/>
+        	<element column="ownerId" type="long"/>
+        </set>
+    </class>
+</hibernate-mapping>

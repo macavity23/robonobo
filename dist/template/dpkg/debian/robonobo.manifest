@@ -1,0 +1,5 @@
+usr/share/robonobo/robonobo.jar:
+ Main-Class: com.robonobo.Robonobo
+ Class-Path: /usr/share/java/hsqldb.jar /usr/share/java/commons-codec.jar /usr/share/java/commons-logging.jar /usr/share/java/commons-httpclient.jar /usr/share/java/log4j-1.2.jar /usr/share/java/protobuf.jar /usr/share/java/fast-md5.jar /usr/share/java/commons-cli.jar /usr/share/java/commons-jxpath.jar /usr/share/java/tablelayout.jar /usr/share/java/jl.jar /usr/share/java/basicplayer.jar
+ Debian-Java-Home: /usr/lib/jvm/java-6-openjdk
+ Debian-Java-Parameters: -client -Xmx90m

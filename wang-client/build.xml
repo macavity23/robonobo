@@ -1,0 +1,21 @@
+<project name="wang-client" default="build">
+	
+	<target name="compile-all">
+		<mkdir dir="target/classes"/>
+		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on"
+			includes="**/*.java,**/*.properties,**/*.xml">
+			<classpath>
+				<pathelement path="../common/target/classes"/>
+				<fileset dir="../common/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+		
+	<target name="build"/>
+	
+	<target name="clean">
+		<delete dir="target/classes"/>
+	</target>
+</project>
