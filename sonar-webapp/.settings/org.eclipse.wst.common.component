@@ -7,10 +7,10 @@
         <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common/lib/commons-httpclient-3.0.jar">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-hibernate/lib/dom4j-1.6.1.jar">
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-webapps/lib/dom4j-1.6.1.jar">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-hibernate/lib/postgresql-8.3-603.jdbc3.jar">
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-webapps/lib/postgresql-8.3-603.jdbc3.jar">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <dependent-module archiveName="api.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/api/api">
@@ -19,10 +19,10 @@
         <dependent-module archiveName="common.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/common/common">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-hibernate/lib/log4j-1.2.15.jar">
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-webapps/lib/log4j-1.2.15.jar">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-hibernate/lib/slf4j-log4j12-1.5.8.jar">
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-webapps/lib/slf4j-log4j12-1.5.8.jar">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common/lib/protobuf-java-2.2.0.jar">

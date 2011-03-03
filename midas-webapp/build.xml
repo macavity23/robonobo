@@ -7,7 +7,7 @@
 	<target name="compile-all">
 		<ant dir="../common" inheritall="false" target="compile-all"/>
 		<ant dir="../api" inheritall="false" target="compile-all"/>
-		<ant dir="../common-hibernate" inheritall="false" target="compile-all"/>
+		<ant dir="../common-webapps" inheritall="false" target="compile-all"/>
 		<ant dir="../midas-model" inheritall="false" target="compile-all"/>
 
 		<mkdir dir="target/classes"/>
@@ -15,14 +15,14 @@
 		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on" 
 		includes="**/*.java,**/*.properties,**/*.xml">
 			<classpath>
-				<pathelement path="../common-hibernate/target/classes"/>
+				<pathelement path="../common-webapps/target/classes"/>
 				<pathelement path="../api/target/classes"/>
 				<pathelement path="../common/target/classes"/>
 				<pathelement path="../midas-model/target/classes"/>
 				<fileset dir="WebContent/WEB-INF/lib">
 					<include name="**/*.jar"/>
 				</fileset>
-				<fileset dir="../common-hibernate/lib">
+				<fileset dir="../common-webapps/lib">
 					<include name="**/*.jar"/>
 				</fileset>
 				<fileset dir="../common/lib">
@@ -47,11 +47,11 @@
 			<fileset dir="WebContent">
 				<exclude name="**/context.xml"/>
 			</fileset>
-			<lib dir="../common-hibernate/lib"/>
+			<lib dir="../common-webapps/lib"/>
 			<lib dir="../common/lib"/>
 			<lib dir="../midas-model/lib"/>
 			<classes dir="target/classes"/>
-			<classes dir="../common-hibernate/target/classes"/>
+			<classes dir="../common-webapps/target/classes"/>
 			<classes dir="../common/target/classes"/>
 			<classes dir="../api/target/classes"/>
 			<classes dir="../midas-model/target/classes"/>
@@ -67,7 +67,7 @@
 		<delete dir="${out}"/>
 		<ant dir="../common" inheritall="false" target="clean"/>
 		<ant dir="../api" inheritall="false" target="clean"/>
-		<ant dir="../common-hibernate" inheritall="false" target="clean"/>
+		<ant dir="../common-webapps" inheritall="false" target="clean"/>
 		<ant dir="../midas-model" inheritall="false" target="clean"/>
 	</target>
 </project>

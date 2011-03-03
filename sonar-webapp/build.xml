@@ -7,17 +7,17 @@
 	<target name="compile-all">
 		<ant dir="../common" inheritall="false" target="compile-all"/>
 		<ant dir="../api" inheritall="false" target="compile-all"/>
-		<ant dir="../common-hibernate" inheritall="false" target="compile-all"/>
+		<ant dir="../common-webapps" inheritall="false" target="compile-all"/>
 
 		<mkdir dir="target/classes"/>
 		
 		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on" 
 		includes="**/*.java,**/*.properties,**/*.xml">
 			<classpath>
-				<pathelement path="../common-hibernate/target/classes"/>
+				<pathelement path="../common-webapps/target/classes"/>
 				<pathelement path="../api/target/classes"/>
 				<pathelement path="../common/target/classes"/>
-				<fileset dir="../common-hibernate/lib">
+				<fileset dir="../common-webapps/lib">
 					<include name="**/*.jar"/>
 				</fileset>
 				<fileset dir="../common/lib">
@@ -39,10 +39,10 @@
 			<fileset dir="WebContent">
 				<exclude name="**/context.xml"/>
 			</fileset>
-			<lib dir="../common-hibernate/lib"/>
+			<lib dir="../common-webapps/lib"/>
 			<lib dir="../common/lib"/>
 			<classes dir="target/classes"/>
-			<classes dir="../common-hibernate/target/classes"/>
+			<classes dir="../common-webapps/target/classes"/>
 			<classes dir="../api/target/classes"/>
 			<classes dir="../common/target/classes"/>
 		</war>
@@ -57,6 +57,6 @@
 		<delete dir="${out}"/>
 		<ant dir="../common" inheritall="false" target="clean"/>
 		<ant dir="../api" inheritall="false" target="clean"/>
-		<ant dir="../common-hibernate" inheritall="false" target="clean"/>
+		<ant dir="../common-webapps" inheritall="false" target="clean"/>
 	</target>
 </project>

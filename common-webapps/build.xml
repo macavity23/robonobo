@@ -1,4 +1,4 @@
-<project name="common-hibernate" default="build">
+<project name="common-webapps" default="build">
 	<property name="out" location="target/dist"/>
 	
 	<target name="compile-all">

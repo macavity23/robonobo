@@ -12,7 +12,7 @@
 		includes="**/*.java,**/*.properties,**/*.xml">
 			<classpath>
 				<pathelement path="../common/target/classes"/>
-				<pathelement path="../common-hibernate/target/classes"/>				
+				<pathelement path="../common-webapps/target/classes"/>				
 				<pathelement path="../wang-client/target/classes"/>
 				<fileset dir="WebContent/WEB-INF/lib">
 					<include name="**/*.jar"/>
@@ -20,7 +20,7 @@
 				<fileset dir="../common/lib">
 					<include name="**/*.jar"/>
 				</fileset>
-				<fileset dir="../common-hibernate/lib">
+				<fileset dir="../common-webapps/lib">
 					<include name="**/*.jar"/>
 				</fileset>
 			</classpath>
@@ -40,11 +40,11 @@
 				<exclude name="**/context.xml"/>
 			</fileset>
 			<lib dir="../common/lib"/>
-			<lib dir="../common-hibernate/lib"/>
+			<lib dir="../common-webapps/lib"/>
 			<lib dir="../midas-model/lib"/>
 			<classes dir="target/classes"/>
 			<classes dir="../common/target/classes"/>
-			<classes dir="../common-hibernate/target/classes"/>
+			<classes dir="../common-webapps/target/classes"/>
 			<classes dir="../wang-client/target/classes"/>
 		</war>
 	</target>

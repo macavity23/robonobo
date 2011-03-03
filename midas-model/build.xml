@@ -4,20 +4,20 @@
 	<target name="compile-all">
 		<ant dir="../common" inheritall="false" target="compile-all"/>
 		<ant dir="../api" inheritall="false" target="compile-all"/>
-		<ant dir="../common-hibernate" inheritall="false" target="compile-all"/>
+		<ant dir="../common-webapps" inheritall="false" target="compile-all"/>
 
 		<mkdir dir="target/classes"/>
 		
 		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on" 
 		includes="**/*.java,**/*.properties,**/*.xml">
 			<classpath>
-				<pathelement path="../common-hibernate/target/classes"/>
+				<pathelement path="../common-webapps/target/classes"/>
 				<pathelement path="../api/target/classes"/>
 				<pathelement path="../common/target/classes"/>
 				<fileset dir="lib">
 					<include name="**/*.jar"/>
 				</fileset>
-				<fileset dir="../common-hibernate/lib">
+				<fileset dir="../common-webapps/lib">
 					<include name="**/*.jar"/>
 				</fileset>
 				<fileset dir="../common/lib">
@@ -39,7 +39,7 @@
 		<delete dir="${out}"/>
 		<ant dir="../common" inheritall="false" target="clean"/>
 		<ant dir="../api" inheritall="false" target="clean"/>
-		<ant dir="../common-hibernate" inheritall="false" target="clean"/>
+		<ant dir="../common-webapps" inheritall="false" target="clean"/>
 	</target>
 
 </project>
