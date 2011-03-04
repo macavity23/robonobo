@@ -23,7 +23,7 @@
 		</property>
 		<property name="hibernateProperties">
 			<value>
-				hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+				hibernate.dialect=org.hibernate.dialect.MySQLDialect
 				hibernate.statement_cache.size=6
 				hibernate.cache.provider_class=org.hibernate.cache.NoCacheProvider
 				hibernate.show_sql=false

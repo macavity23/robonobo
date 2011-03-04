@@ -1,5 +1,5 @@
 CREATE TABLE user_account (
-	id INTEGER PRIMARY KEY,
+	id INTEGER PRIMARY KEY AUTO_INCREMENT UNIQUE,
 	friendly_name VARCHAR(256),
 	email VARCHAR(256),
 	password VARCHAR(256),

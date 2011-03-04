@@ -99,6 +99,7 @@ public class RemoteWangService implements ServerInvocationHandler, InitializingB
 					} else
 						throw new IllegalArgumentException("Invalid method");
 				} catch (Exception e) {
+					log.error("Caught exception servicing remote request '"+method+"'", e);
 					// By default, the transactiontemplate only rolls back for RuntimeExceptions, and I can't figure out how
 					// to change this...
 					throw new RuntimeException(e);

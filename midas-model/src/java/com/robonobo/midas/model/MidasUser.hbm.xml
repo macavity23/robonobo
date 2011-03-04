@@ -9,7 +9,7 @@
         	<generator class="native"/>
         </id>
         
-        <property name="email"/>
+        <property name="email" index="user_email_idx"/>
         <property name="friendlyName"/>
         <property name="password"/>    
         <property name="verified"/>         

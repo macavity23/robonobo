@@ -1,7 +1,7 @@
 #!/bin/bash
 
-CLASSPATH=../target/classes:../../wang-client/target/classes
-for jar in ../../common/lib/*.jar ../../common-hibernate/lib/*.jar ../WebContent/WEB-INF/lib/*.jar
+CLASSPATH=../target/classes:../../wang-client/target/classes:../../common/target/classes
+for jar in ../../common/lib/*.jar ../../common-webapps/lib/*.jar ../WebContent/WEB-INF/lib/*.jar
 do
 	CLASSPATH=$CLASSPATH:$jar
 done
