@@ -61,6 +61,7 @@ public class EonSocketAddress {
 
 	public String toString() {
 		String addrStr = (address == null) ? "0.0.0.0" : address.getHostAddress();
+		// This next line gets optimised to stringbuffer at runtime
 		return addrStr + ":" + getUdpPort() + ":" + getEonPort();
 	}
 

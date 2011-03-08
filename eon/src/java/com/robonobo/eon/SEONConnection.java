@@ -46,7 +46,7 @@ import com.robonobo.common.util.*;
  * http://citeseer.ist.psu.edu/fall96simulationbased.html for some algorithm comparison and examples.
  */
 public class SEONConnection extends EONConnection implements PullDataReceiver, PushDataChannel {
-	enum State {
+	public enum State {
 		Closed, Listen, SynSent, SynReceived, Established, FinWait, LastAck
 	};
 
@@ -1787,5 +1787,9 @@ public class SEONConnection extends EONConnection implements PullDataReceiver, P
 				}
 			}
 		}
+	}
+
+	public State getState() {
+		return state;
 	}
 }
