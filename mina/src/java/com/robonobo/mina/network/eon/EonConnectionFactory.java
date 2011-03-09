@@ -1,16 +1,13 @@
 package com.robonobo.mina.network.eon;
 
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.eon.EONException;
 import com.robonobo.eon.EONManager;
 import com.robonobo.mina.external.node.EonEndPoint;
+import com.robonobo.mina.external.node.SeonEndPoint;
 import com.robonobo.mina.instance.MinaInstance;
-import com.robonobo.mina.network.BroadcastConnection;
-import com.robonobo.mina.network.ControlConnection;
-import com.robonobo.mina.network.ListenConnection;
-import com.robonobo.mina.network.StreamConnectionFactory;
+import com.robonobo.mina.network.*;
 import com.robonobo.mina.util.MinaConnectionException;
 
 public class EonConnectionFactory implements StreamConnectionFactory {
@@ -25,9 +22,9 @@ public class EonConnectionFactory implements StreamConnectionFactory {
 	public BroadcastConnection getBroadcastConnection(ControlConnection cc,
 			EndPoint listeningEp) throws MinaConnectionException {
 		// Ignore the host & udp port in the listening ep, just use the CC's details
-		EonEndPoint listenEonEp = new EonEndPoint(listeningEp.getUrl());
-		EonEndPoint ccEp = new EonEndPoint(cc.getTheirEp().getUrl());
-		EonEndPoint ep = new EonEndPoint(ccEp.getAddress(), ccEp.getUdpPort(), listenEonEp.getEonPort());
+		EonEndPoint listenEonEp = EonEndPoint.parse(listeningEp.getUrl());
+		EonEndPoint ccEp = EonEndPoint.parse(cc.getTheirEp().getUrl());
+		EonEndPoint ep = new SeonEndPoint(ccEp.getAddress(), ccEp.getUdpPort(), listenEonEp.getEonPort());
 		EonBroadcastConnection bc;
 		try {
 			bc = new EonBroadcastConnection(mina, eonMgr, ep);

@@ -21,7 +21,7 @@ public class AdvSourceHandler extends AbstractMessageHandler {
 		ControlConnection cc = mh.getFromCC();
 		if (cc.isLocal()) {
 			List<Node> sources = new ArrayList<Node>();
-			sources.add(cc.getNodeDescriptor());
+			sources.add(cc.getNode());
 			for (String streamId : as.getStreamIdList()) {
 				GotSource gs = GotSource.newBuilder().setStreamId(streamId).addAllNode(sources).build();
 				MessageHolder gsMh = new MessageHolder("GotSource", gs, cc, TimeUtil.now());
@@ -31,7 +31,7 @@ public class AdvSourceHandler extends AbstractMessageHandler {
 
 		if (mina.getConfig().isSupernode()) {
 			// Don't pass on the local attr to searchers
-			Node sourceNode = Node.newBuilder(cc.getNodeDescriptor()).setLocal(false).build();
+			Node sourceNode = Node.newBuilder(cc.getNode()).setLocal(false).build();
 			Map<String, List<Node>> searcherMap = mina.getSupernodeMgr().notifyAdvSource(mh);
 			for (String streamId : as.getStreamIdList()) {
 				List<Node> searchers = searcherMap.get(streamId);

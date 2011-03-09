@@ -394,7 +394,7 @@ public class SellMgr {
 			mina.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					ControlConnection cc = mina.getCCM().getCCWithId(bidderNodeId);
-					SourceStatus ss = buildSourceStatus(cc.getNodeDescriptor(), null);
+					SourceStatus ss = buildSourceStatus(cc.getNode(), null);
 					cc.sendMessage("SourceStatus", ss);
 				}
 			});

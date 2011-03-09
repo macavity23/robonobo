@@ -101,6 +101,10 @@ public class MessageMgr {
 		mh.setMina(mina);
 		registerHandler("MinCharge", mh);
 		
+		mh = new MyDetailsChangedHandler();
+		mh.setMina(mina);
+		registerHandler("MyDetailsChanged", mh);
+		
 		mh = new NoBidHandler();
 		mh.setMina(mina);
 		registerHandler("NoBid", mh);
@@ -117,6 +121,10 @@ public class MessageMgr {
 		mh.setMina(mina);
 		registerHandler("Pong", mh);
 		
+		mh = new PublicDetailsHandler();
+		mh.setMina(mina);
+		registerHandler("PublicDetails", mh);
+		
 		mh = new QueryEscrowHandler();
 		mh.setMina(mina);
 		registerHandler("QueryEscrow", mh);
@@ -128,6 +136,10 @@ public class MessageMgr {
 		mh = new ReqPageHandler();
 		mh.setMina(mina);
 		registerHandler("ReqPage", mh);
+		
+		mh = new ReqPublicDetailsHandler();
+		mh.setMina(mina);
+		registerHandler("ReqPublicDetails", mh);
 		
 		mh = new ReqSourceStatusHandler();
 		mh.setMina(mina);

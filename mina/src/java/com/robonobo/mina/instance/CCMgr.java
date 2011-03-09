@@ -1,5 +1,7 @@
 package com.robonobo.mina.instance;
 
+import static com.robonobo.mina.message.MessageUtil.*;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,11 +19,11 @@ import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.mina.external.ConnectedNode;
 import com.robonobo.mina.message.HelloHelper;
+import com.robonobo.mina.message.MessageUtil;
 import com.robonobo.mina.message.proto.MinaProtocol.ReqConn;
+import com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails;
 import com.robonobo.mina.message.proto.MinaProtocol.WantSource;
-import com.robonobo.mina.network.BCPair;
-import com.robonobo.mina.network.ControlConnection;
-import com.robonobo.mina.network.StreamConnectionFactory;
+import com.robonobo.mina.network.*;
 import com.robonobo.mina.stream.StreamMgr;
 import com.robonobo.mina.util.MinaConnectionException;
 
@@ -135,7 +137,7 @@ public class CCMgr {
 	 */
 	public synchronized boolean haveSupernode() {
 		for (ControlConnection con : cons.values()) {
-			if (con.getNodeDescriptor().getSupernode())
+			if (con.getNode().getSupernode())
 				return true;
 		}
 		return false;
@@ -157,6 +159,7 @@ public class CCMgr {
 		result.addAll(cons.keySet());
 		return result;
 	}
+
 	/**
 	 * @syncpriority 140
 	 */
@@ -169,7 +172,7 @@ public class CCMgr {
 	 */
 	public List<ConnectedNode> getConnectedNodes() {
 		List<ControlConnection> ccList;
-		synchronized(this) {
+		synchronized (this) {
 			ccList = new ArrayList<ControlConnection>(cons.values());
 		}
 		List<ConnectedNode> result = new ArrayList<ConnectedNode>(ccList.size());
@@ -186,9 +189,9 @@ public class CCMgr {
 		ConnectedNode node = new ConnectedNode();
 		String nodeId = cc.getNodeId();
 		node.setNodeId(nodeId);
-		node.setAppUri(cc.getNodeDescriptor().getApplicationUri());
+		node.setAppUri(cc.getNode().getApplicationUri());
 		node.setEndPointUrl(cc.getTheirEp().getUrl());
-		node.setSupernode(cc.getNodeDescriptor().getSupernode());
+		node.setSupernode(cc.getNode().getSupernode());
 		node.setDownloadRate(cc.getDownFlowRate());
 		node.setUploadRate(cc.getUpFlowRate());
 		if (mina.getConfig().isAgoric()) {
@@ -234,7 +237,7 @@ public class CCMgr {
 				log.debug("Not attempting connection to in-progress node " + newNodeId);
 				if (onCompletionAttempt != null) {
 					log.debug("Adding contingent attempt to in-progress connection with " + newNodeId);
-					if(connectAttempts.containsKey(newNodeId))
+					if (connectAttempts.containsKey(newNodeId))
 						connectAttempts.get(newNodeId).addContingentAttempt(onCompletionAttempt);
 					else
 						connectAttempts.put(newNodeId, onCompletionAttempt);
@@ -256,15 +259,19 @@ public class CCMgr {
 			inProgressCons.put(newNodeId, null);
 		}
 		// Come out of sync here as this may take 30+ secs
-		ControlConnection cc = mina.getNetMgr().makeCCTo(nd, triedEps);
+		ControlConnection cc = null;
+		for (EndPointMgr epMgr : mina.getNetMgr().getEndPointMgrs()) {
+			cc = epMgr.connectTo(nd, triedEps, sendReqConn);
+			if (cc != null)
+				break;
+		}
 		synchronized (this) {
 			inProgressCons.put(newNodeId, cc);
 			if (cc == null) {
 				// No way for us to connect to them - send a ReqConn to ask them
 				// to connect to us if they can (unless we're here as a result
 				// of them asking us, in which case fail)
-				// TODO holepunching
-				if (sendReqConn && mina.getNetMgr().amIPublicallyReachable()) {
+				if (sendReqConn && mina.getNetMgr().havePublicEndpoints()) {
 					ReqConn rcMsg = ReqConn.newBuilder().setFromNode(mina.getNetMgr().getPublicNodeDesc())
 							.setToNodeId(newNodeId).build();
 					log.debug("Sending Connection Request to " + newNodeId);
@@ -334,12 +341,15 @@ public class CCMgr {
 	 */
 	public synchronized void sendMessageToSupernodes(String msgName, GeneratedMessage msg) {
 		for (ControlConnection cc : cons.values()) {
-			if (cc.getNodeDescriptor().getSupernode()) {
+			if (cc.getNode().getSupernode()) {
 				cc.sendMessage(msgName, msg);
 			}
 		}
 	}
 
+	/**
+	 * @syncpriority 140
+	 */
 	public void sendMessageToLocals(String msgName, GeneratedMessage msg) {
 		sendMessageToLocals(msgName, msg, true);
 	}
@@ -350,10 +360,20 @@ public class CCMgr {
 	private synchronized void sendMessageToLocals(String msgName, GeneratedMessage msg, boolean incSuperNodes) {
 		for (ControlConnection cc : cons.values()) {
 			if (cc.isLocal()) {
-				if (cc.getNodeDescriptor().getSupernode() && !incSuperNodes)
+				if (cc.getNode().getSupernode() && !incSuperNodes)
 					continue;
 				cc.sendMessage(msgName, msg);
 			}
+		}
+	}
+
+	/**
+	 * @syncpriority 140
+	 */
+	public synchronized void sendMessageToNonLocals(String msgName, GeneratedMessage msg) {
+		for (ControlConnection cc : cons.values()) {
+			if (!cc.isLocal())
+				cc.sendMessage(msgName, msg);
 		}
 	}
 
@@ -384,8 +404,9 @@ public class CCMgr {
 					// It's possible, between low-computron nodes on a local network, that two nodes trying to connect
 					// to each other both get here at the same time
 					// We cross these treacherous waters by rejecting only one end - the one with the higher node id
-					if(myNodeId.compareTo(helloId) > 0) {
-						log.error("Ignoring simultaneous conn attempt from node "+helloId+" - my attempt should get through");
+					if (myNodeId.compareTo(helloId) > 0) {
+						log.error("Ignoring simultaneous conn attempt from node " + helloId
+								+ " - my attempt should get through");
 						return;
 					}
 				}
@@ -405,17 +426,17 @@ public class CCMgr {
 		Attempt a;
 		log.debug("Cleaning up CC " + nodeId);
 		if (mina.getConfig().isSupernode())
-			mina.getSupernodeMgr().notifyDeadConnection(cc.getNodeDescriptor());
+			mina.getSupernodeMgr().notifyDeadConnection(cc.getNode());
 		synchronized (this) {
 			inProgressCons.remove(nodeId);
 			waitingForCons.remove(nodeId);
 			wasConnected = cons.containsKey(nodeId);
 			cons.remove(nodeId);
 			// If we've lost our supernode, ask for more
-			if (cc.getNodeDescriptor().getSupernode() && !mina.getConfig().isSupernode() && !shuttingDown) {
+			if (cc.getNode().getSupernode() && !mina.getConfig().isSupernode() && !shuttingDown) {
 				int numSupernodes = 0;
 				for (ControlConnection thisCC : cons.values()) {
-					if (thisCC.getNodeDescriptor().getSupernode())
+					if (thisCC.getNode().getSupernode())
 						numSupernodes++;
 				}
 				if (numSupernodes == 0)
@@ -425,7 +446,7 @@ public class CCMgr {
 		}
 		if (a instanceof ConnectAttempt)
 			((ConnectAttempt) a).tryNextMethodOrFail();
-		else if(a != null)
+		else if (a != null)
 			a.failed();
 		if (wasConnected)
 			mina.getEventMgr().fireNodeDisconnected(buildConnectedNode(cc));
@@ -450,7 +471,7 @@ public class CCMgr {
 			mina.getBadNodeList().markNodeAsGood(cc.getNodeId());
 			// If this is a supernode, tell them about our broadcasts, and get
 			// broadcasters for any streams we're receiving
-			if (cc.getNodeDescriptor().getSupernode()) {
+			if (cc.getNode().getSupernode()) {
 				StreamMgr[] sms = mina.getSmRegister().getSMs();
 				// Batch up our stream adverts (there might be lots of them),
 				// but send out broadcaster searches individually (probably
@@ -469,6 +490,25 @@ public class CCMgr {
 		if (mina.getEscrowMgr() != null)
 			mina.getEscrowMgr().notifySuccessfulConnection(cc);
 		mina.getEventMgr().fireNodeConnected(buildConnectedNode(cc));
+		checkNATTraversal(cc);
+	}
+
+	/**
+	 * Use this new connection to figure out if our NAT (if any) supports traversal
+	 */
+	private void checkNATTraversal(ControlConnection cc) {
+		boolean needToCheck = false;
+		for (EndPointMgr epMgr : mina.getNetMgr().getEndPointMgrs()) {
+			if (!epMgr.natTraversalDecided()) {
+				needToCheck = true;
+				break;
+			}
+		}
+		if (needToCheck) {
+			ReqPublicDetails.Builder b = ReqPublicDetails.newBuilder();
+			b.setFromNodeId(mina.getMyNodeId());
+			cc.sendMessage("ReqPublicDetails", b.build());
+		}
 	}
 
 	public boolean isShuttingDown() {
@@ -535,8 +575,8 @@ public class CCMgr {
 			}
 			triedEps.add(tryingEp);
 			Attempt ca = (contingentAttempts.size() > 0) ? contingentAttempts.get(0) : null;
-			if(contingentAttempts.size() > 1) {
-				for(int i=1;i<contingentAttempts.size();i++) {
+			if (contingentAttempts.size() > 1) {
+				for (int i = 1; i < contingentAttempts.size(); i++) {
 					ca.addContingentAttempt(contingentAttempts.get(i));
 				}
 			}

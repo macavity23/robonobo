@@ -7340,6 +7340,317 @@ public final class MinaProtocol {
     // @@protoc_insertion_point(class_scope:mina.MinCharge)
   }
   
+  public static final class MyDetailsChanged extends
+      com.google.protobuf.GeneratedMessage {
+    // Use MyDetailsChanged.newBuilder() to construct.
+    private MyDetailsChanged() {
+      initFields();
+    }
+    private MyDetailsChanged(boolean noInit) {}
+    
+    private static final MyDetailsChanged defaultInstance;
+    public static MyDetailsChanged getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public MyDetailsChanged getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.robonobo.mina.message.proto.MinaProtocol.internal_static_mina_MyDetailsChanged_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.robonobo.mina.message.proto.MinaProtocol.internal_static_mina_MyDetailsChanged_fieldAccessorTable;
+    }
+    
+    // required .coreapi.Node node = 1;
+    public static final int NODE_FIELD_NUMBER = 1;
+    private boolean hasNode;
+    private com.robonobo.core.api.proto.CoreApi.Node node_;
+    public boolean hasNode() { return hasNode; }
+    public com.robonobo.core.api.proto.CoreApi.Node getNode() { return node_; }
+    
+    private void initFields() {
+      node_ = com.robonobo.core.api.proto.CoreApi.Node.getDefaultInstance();
+    }
+    public final boolean isInitialized() {
+      if (!hasNode) return false;
+      if (!getNode().isInitialized()) return false;
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (hasNode()) {
+        output.writeMessage(1, getNode());
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (hasNode()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getNode());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged result;
+      
+      // Construct using com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged();
+        return builder;
+      }
+      
+      protected com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged.getDescriptor();
+      }
+      
+      public com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged getDefaultInstanceForType() {
+        return com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged) {
+          return mergeFrom((com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged other) {
+        if (other == com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged.getDefaultInstance()) return this;
+        if (other.hasNode()) {
+          mergeNode(other.getNode());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              com.robonobo.core.api.proto.CoreApi.Node.Builder subBuilder = com.robonobo.core.api.proto.CoreApi.Node.newBuilder();
+              if (hasNode()) {
+                subBuilder.mergeFrom(getNode());
+              }
+              input.readMessage(subBuilder, extensionRegistry);
+              setNode(subBuilder.buildPartial());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // required .coreapi.Node node = 1;
+      public boolean hasNode() {
+        return result.hasNode();
+      }
+      public com.robonobo.core.api.proto.CoreApi.Node getNode() {
+        return result.getNode();
+      }
+      public Builder setNode(com.robonobo.core.api.proto.CoreApi.Node value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.hasNode = true;
+        result.node_ = value;
+        return this;
+      }
+      public Builder setNode(com.robonobo.core.api.proto.CoreApi.Node.Builder builderForValue) {
+        result.hasNode = true;
+        result.node_ = builderForValue.build();
+        return this;
+      }
+      public Builder mergeNode(com.robonobo.core.api.proto.CoreApi.Node value) {
+        if (result.hasNode() &&
+            result.node_ != com.robonobo.core.api.proto.CoreApi.Node.getDefaultInstance()) {
+          result.node_ =
+            com.robonobo.core.api.proto.CoreApi.Node.newBuilder(result.node_).mergeFrom(value).buildPartial();
+        } else {
+          result.node_ = value;
+        }
+        result.hasNode = true;
+        return this;
+      }
+      public Builder clearNode() {
+        result.hasNode = false;
+        result.node_ = com.robonobo.core.api.proto.CoreApi.Node.getDefaultInstance();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:mina.MyDetailsChanged)
+    }
+    
+    static {
+      defaultInstance = new MyDetailsChanged(true);
+      com.robonobo.mina.message.proto.MinaProtocol.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:mina.MyDetailsChanged)
+  }
+  
   public static final class NoBid extends
       com.google.protobuf.GeneratedMessage {
     // Use NoBid.newBuilder() to construct.
@@ -8444,6 +8755,329 @@ public final class MinaProtocol {
     // @@protoc_insertion_point(class_scope:mina.Pong)
   }
   
+  public static final class PublicDetails extends
+      com.google.protobuf.GeneratedMessage {
+    // Use PublicDetails.newBuilder() to construct.
+    private PublicDetails() {
+      initFields();
+    }
+    private PublicDetails(boolean noInit) {}
+    
+    private static final PublicDetails defaultInstance;
+    public static PublicDetails getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public PublicDetails getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.robonobo.mina.message.proto.MinaProtocol.internal_static_mina_PublicDetails_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.robonobo.mina.message.proto.MinaProtocol.internal_static_mina_PublicDetails_fieldAccessorTable;
+    }
+    
+    // repeated string url = 1;
+    public static final int URL_FIELD_NUMBER = 1;
+    private java.util.List<java.lang.String> url_ =
+      java.util.Collections.emptyList();
+    public java.util.List<java.lang.String> getUrlList() {
+      return url_;
+    }
+    public int getUrlCount() { return url_.size(); }
+    public java.lang.String getUrl(int index) {
+      return url_.get(index);
+    }
+    
+    private void initFields() {
+    }
+    public final boolean isInitialized() {
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (java.lang.String element : getUrlList()) {
+        output.writeString(1, element);
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      {
+        int dataSize = 0;
+        for (java.lang.String element : getUrlList()) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeStringSizeNoTag(element);
+        }
+        size += dataSize;
+        size += 1 * getUrlList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static com.robonobo.mina.message.proto.MinaProtocol.PublicDetails parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.PublicDetails parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.PublicDetails parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.PublicDetails parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.PublicDetails parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.PublicDetails parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.PublicDetails parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.PublicDetails parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.PublicDetails parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.PublicDetails parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.robonobo.mina.message.proto.MinaProtocol.PublicDetails prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private com.robonobo.mina.message.proto.MinaProtocol.PublicDetails result;
+      
+      // Construct using com.robonobo.mina.message.proto.MinaProtocol.PublicDetails.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new com.robonobo.mina.message.proto.MinaProtocol.PublicDetails();
+        return builder;
+      }
+      
+      protected com.robonobo.mina.message.proto.MinaProtocol.PublicDetails internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new com.robonobo.mina.message.proto.MinaProtocol.PublicDetails();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.robonobo.mina.message.proto.MinaProtocol.PublicDetails.getDescriptor();
+      }
+      
+      public com.robonobo.mina.message.proto.MinaProtocol.PublicDetails getDefaultInstanceForType() {
+        return com.robonobo.mina.message.proto.MinaProtocol.PublicDetails.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public com.robonobo.mina.message.proto.MinaProtocol.PublicDetails build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private com.robonobo.mina.message.proto.MinaProtocol.PublicDetails buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public com.robonobo.mina.message.proto.MinaProtocol.PublicDetails buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        if (result.url_ != java.util.Collections.EMPTY_LIST) {
+          result.url_ =
+            java.util.Collections.unmodifiableList(result.url_);
+        }
+        com.robonobo.mina.message.proto.MinaProtocol.PublicDetails returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.robonobo.mina.message.proto.MinaProtocol.PublicDetails) {
+          return mergeFrom((com.robonobo.mina.message.proto.MinaProtocol.PublicDetails)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.robonobo.mina.message.proto.MinaProtocol.PublicDetails other) {
+        if (other == com.robonobo.mina.message.proto.MinaProtocol.PublicDetails.getDefaultInstance()) return this;
+        if (!other.url_.isEmpty()) {
+          if (result.url_.isEmpty()) {
+            result.url_ = new java.util.ArrayList<java.lang.String>();
+          }
+          result.url_.addAll(other.url_);
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              addUrl(input.readString());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // repeated string url = 1;
+      public java.util.List<java.lang.String> getUrlList() {
+        return java.util.Collections.unmodifiableList(result.url_);
+      }
+      public int getUrlCount() {
+        return result.getUrlCount();
+      }
+      public java.lang.String getUrl(int index) {
+        return result.getUrl(index);
+      }
+      public Builder setUrl(int index, java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.url_.set(index, value);
+        return this;
+      }
+      public Builder addUrl(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  if (result.url_.isEmpty()) {
+          result.url_ = new java.util.ArrayList<java.lang.String>();
+        }
+        result.url_.add(value);
+        return this;
+      }
+      public Builder addAllUrl(
+          java.lang.Iterable<? extends java.lang.String> values) {
+        if (result.url_.isEmpty()) {
+          result.url_ = new java.util.ArrayList<java.lang.String>();
+        }
+        super.addAll(values, result.url_);
+        return this;
+      }
+      public Builder clearUrl() {
+        result.url_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:mina.PublicDetails)
+    }
+    
+    static {
+      defaultInstance = new PublicDetails(true);
+      com.robonobo.mina.message.proto.MinaProtocol.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:mina.PublicDetails)
+  }
+  
   public static final class QueryEscrow extends
       com.google.protobuf.GeneratedMessage {
     // Use QueryEscrow.newBuilder() to construct.
@@ -9041,6 +9675,294 @@ public final class MinaProtocol {
     }
     
     // @@protoc_insertion_point(class_scope:mina.ReqConn)
+  }
+  
+  public static final class ReqPublicDetails extends
+      com.google.protobuf.GeneratedMessage {
+    // Use ReqPublicDetails.newBuilder() to construct.
+    private ReqPublicDetails() {
+      initFields();
+    }
+    private ReqPublicDetails(boolean noInit) {}
+    
+    private static final ReqPublicDetails defaultInstance;
+    public static ReqPublicDetails getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public ReqPublicDetails getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.robonobo.mina.message.proto.MinaProtocol.internal_static_mina_ReqPublicDetails_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.robonobo.mina.message.proto.MinaProtocol.internal_static_mina_ReqPublicDetails_fieldAccessorTable;
+    }
+    
+    // required string from_node_id = 1;
+    public static final int FROM_NODE_ID_FIELD_NUMBER = 1;
+    private boolean hasFromNodeId;
+    private java.lang.String fromNodeId_ = "";
+    public boolean hasFromNodeId() { return hasFromNodeId; }
+    public java.lang.String getFromNodeId() { return fromNodeId_; }
+    
+    private void initFields() {
+    }
+    public final boolean isInitialized() {
+      if (!hasFromNodeId) return false;
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (hasFromNodeId()) {
+        output.writeString(1, getFromNodeId());
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (hasFromNodeId()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(1, getFromNodeId());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails result;
+      
+      // Construct using com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails();
+        return builder;
+      }
+      
+      protected com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails.getDescriptor();
+      }
+      
+      public com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails getDefaultInstanceForType() {
+        return com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails) {
+          return mergeFrom((com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails other) {
+        if (other == com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails.getDefaultInstance()) return this;
+        if (other.hasFromNodeId()) {
+          setFromNodeId(other.getFromNodeId());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              setFromNodeId(input.readString());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // required string from_node_id = 1;
+      public boolean hasFromNodeId() {
+        return result.hasFromNodeId();
+      }
+      public java.lang.String getFromNodeId() {
+        return result.getFromNodeId();
+      }
+      public Builder setFromNodeId(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasFromNodeId = true;
+        result.fromNodeId_ = value;
+        return this;
+      }
+      public Builder clearFromNodeId() {
+        result.hasFromNodeId = false;
+        result.fromNodeId_ = getDefaultInstance().getFromNodeId();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:mina.ReqPublicDetails)
+    }
+    
+    static {
+      defaultInstance = new ReqPublicDetails(true);
+      com.robonobo.mina.message.proto.MinaProtocol.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:mina.ReqPublicDetails)
   }
   
   public static final class ReqPage extends
@@ -13048,6 +13970,11 @@ public final class MinaProtocol {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_mina_MinCharge_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_mina_MyDetailsChanged_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_mina_MyDetailsChanged_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_mina_NoBid_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -13068,6 +13995,11 @@ public final class MinaProtocol {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_mina_Pong_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_mina_PublicDetails_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_mina_PublicDetails_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_mina_QueryEscrow_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -13077,6 +14009,11 @@ public final class MinaProtocol {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_mina_ReqConn_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_mina_ReqPublicDetails_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_mina_ReqPublicDetails_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_mina_ReqPage_descriptor;
   private static
@@ -13167,31 +14104,34 @@ public final class MinaProtocol {
       "\001 \002(\t\022\033\n\004node\030\002 \003(\0132\r.coreapi.Node\"$\n\005He" +
       "llo\022\033\n\004node\030\001 \002(\0132\r.coreapi.Node\"\037\n\nLock",
       "Escrow\022\021\n\tescrow_id\030\001 \002(\t\"\033\n\tMinCharge\022\016" +
-      "\n\006amount\030\001 \002(\001\"\007\n\005NoBid\"\030\n\005PayUp\022\017\n\007bala" +
-      "nce\030\001 \002(\001\"\027\n\004Ping\022\017\n\007ping_id\030\001 \001(\t\"\027\n\004Po" +
-      "ng\022\017\n\007ping_id\030\001 \001(\t\"\r\n\013QueryEscrow\"?\n\007Re" +
-      "qConn\022\022\n\nto_node_id\030\001 \002(\t\022 \n\tfrom_node\030\002" +
-      " \002(\0132\r.coreapi.Node\"L\n\007ReqPage\022\021\n\tstream" +
-      "_id\030\001 \002(\t\022\026\n\016requested_page\030\002 \003(\003\022\026\n\016con" +
-      "firmed_page\030\003 \003(\003\"Z\n\017ReqSourceStatus\022 \n\t" +
-      "from_node\030\001 \001(\0132\r.coreapi.Node\022\022\n\nto_nod" +
-      "e_id\030\002 \001(\t\022\021\n\tstream_id\030\003 \003(\t\"\262\001\n\014Source",
-      "Status\022 \n\tfrom_node\030\001 \002(\0132\r.coreapi.Node" +
-      "\022\022\n\nto_node_id\030\002 \002(\t\022,\n\rauction_state\030\003 " +
-      "\001(\0132\025.mina.AuctionStateMsg\022\036\n\007agorics\030\004 " +
-      "\001(\0132\r.mina.Agorics\022\036\n\002ss\030\005 \003(\0132\022.mina.St" +
-      "reamStatus\"#\n\016SourceStopping\022\021\n\tstream_i" +
-      "d\030\001 \002(\t\"M\n\013StartSource\022\021\n\tstream_id\030\001 \002(" +
-      "\t\022\035\n\002ep\030\002 \002(\0132\021.coreapi.EndPoint\022\014\n\004page" +
-      "\030\003 \003(\003\"\037\n\nStopSource\022\021\n\tstream_id\030\001 \002(\t\"" +
-      "\220\001\n\014StreamStatus\022\021\n\tstream_id\030\001 \002(\t\022\034\n\024l" +
-      "ast_contiguous_page\030\002 \002(\003\022\024\n\014from_node_i",
-      "d\030\003 \001(\t\022\022\n\nto_node_id\030\004 \001(\t\022\023\n\013total_pag" +
-      "es\030\005 \001(\003\022\020\n\010page_map\030\006 \001(\005\"\037\n\005TopUp\022\026\n\016c" +
-      "urrency_token\030\001 \002(\014\" \n\013UnAdvSource\022\021\n\tst" +
-      "ream_id\030\001 \003(\t\"\037\n\nWantSource\022\021\n\tstream_id" +
-      "\030\001 \003(\tB/\n\037com.robonobo.mina.message.prot" +
-      "oB\014MinaProtocol"
+      "\n\006amount\030\001 \002(\001\"/\n\020MyDetailsChanged\022\033\n\004no" +
+      "de\030\001 \002(\0132\r.coreapi.Node\"\007\n\005NoBid\"\030\n\005PayU" +
+      "p\022\017\n\007balance\030\001 \002(\001\"\027\n\004Ping\022\017\n\007ping_id\030\001 " +
+      "\001(\t\"\027\n\004Pong\022\017\n\007ping_id\030\001 \001(\t\"\034\n\rPublicDe" +
+      "tails\022\013\n\003url\030\001 \003(\t\"\r\n\013QueryEscrow\"?\n\007Req" +
+      "Conn\022\022\n\nto_node_id\030\001 \002(\t\022 \n\tfrom_node\030\002 " +
+      "\002(\0132\r.coreapi.Node\"(\n\020ReqPublicDetails\022\024" +
+      "\n\014from_node_id\030\001 \002(\t\"L\n\007ReqPage\022\021\n\tstrea" +
+      "m_id\030\001 \002(\t\022\026\n\016requested_page\030\002 \003(\003\022\026\n\016co",
+      "nfirmed_page\030\003 \003(\003\"Z\n\017ReqSourceStatus\022 \n" +
+      "\tfrom_node\030\001 \001(\0132\r.coreapi.Node\022\022\n\nto_no" +
+      "de_id\030\002 \001(\t\022\021\n\tstream_id\030\003 \003(\t\"\262\001\n\014Sourc" +
+      "eStatus\022 \n\tfrom_node\030\001 \002(\0132\r.coreapi.Nod" +
+      "e\022\022\n\nto_node_id\030\002 \002(\t\022,\n\rauction_state\030\003" +
+      " \001(\0132\025.mina.AuctionStateMsg\022\036\n\007agorics\030\004" +
+      " \001(\0132\r.mina.Agorics\022\036\n\002ss\030\005 \003(\0132\022.mina.S" +
+      "treamStatus\"#\n\016SourceStopping\022\021\n\tstream_" +
+      "id\030\001 \002(\t\"M\n\013StartSource\022\021\n\tstream_id\030\001 \002" +
+      "(\t\022\035\n\002ep\030\002 \002(\0132\021.coreapi.EndPoint\022\014\n\004pag",
+      "e\030\003 \003(\003\"\037\n\nStopSource\022\021\n\tstream_id\030\001 \002(\t" +
+      "\"\220\001\n\014StreamStatus\022\021\n\tstream_id\030\001 \002(\t\022\034\n\024" +
+      "last_contiguous_page\030\002 \002(\003\022\024\n\014from_node_" +
+      "id\030\003 \001(\t\022\022\n\nto_node_id\030\004 \001(\t\022\023\n\013total_pa" +
+      "ges\030\005 \001(\003\022\020\n\010page_map\030\006 \001(\005\"\037\n\005TopUp\022\026\n\016" +
+      "currency_token\030\001 \002(\014\" \n\013UnAdvSource\022\021\n\ts" +
+      "tream_id\030\001 \003(\t\"\037\n\nWantSource\022\021\n\tstream_i" +
+      "d\030\001 \003(\tB/\n\037com.robonobo.mina.message.pro" +
+      "toB\014MinaProtocol"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -13374,8 +14314,16 @@ public final class MinaProtocol {
               new java.lang.String[] { "Amount", },
               com.robonobo.mina.message.proto.MinaProtocol.MinCharge.class,
               com.robonobo.mina.message.proto.MinaProtocol.MinCharge.Builder.class);
-          internal_static_mina_NoBid_descriptor =
+          internal_static_mina_MyDetailsChanged_descriptor =
             getDescriptor().getMessageTypes().get(22);
+          internal_static_mina_MyDetailsChanged_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_mina_MyDetailsChanged_descriptor,
+              new java.lang.String[] { "Node", },
+              com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged.class,
+              com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged.Builder.class);
+          internal_static_mina_NoBid_descriptor =
+            getDescriptor().getMessageTypes().get(23);
           internal_static_mina_NoBid_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_NoBid_descriptor,
@@ -13383,7 +14331,7 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.NoBid.class,
               com.robonobo.mina.message.proto.MinaProtocol.NoBid.Builder.class);
           internal_static_mina_PayUp_descriptor =
-            getDescriptor().getMessageTypes().get(23);
+            getDescriptor().getMessageTypes().get(24);
           internal_static_mina_PayUp_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_PayUp_descriptor,
@@ -13391,7 +14339,7 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.PayUp.class,
               com.robonobo.mina.message.proto.MinaProtocol.PayUp.Builder.class);
           internal_static_mina_Ping_descriptor =
-            getDescriptor().getMessageTypes().get(24);
+            getDescriptor().getMessageTypes().get(25);
           internal_static_mina_Ping_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_Ping_descriptor,
@@ -13399,15 +14347,23 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.Ping.class,
               com.robonobo.mina.message.proto.MinaProtocol.Ping.Builder.class);
           internal_static_mina_Pong_descriptor =
-            getDescriptor().getMessageTypes().get(25);
+            getDescriptor().getMessageTypes().get(26);
           internal_static_mina_Pong_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_Pong_descriptor,
               new java.lang.String[] { "PingId", },
               com.robonobo.mina.message.proto.MinaProtocol.Pong.class,
               com.robonobo.mina.message.proto.MinaProtocol.Pong.Builder.class);
+          internal_static_mina_PublicDetails_descriptor =
+            getDescriptor().getMessageTypes().get(27);
+          internal_static_mina_PublicDetails_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_mina_PublicDetails_descriptor,
+              new java.lang.String[] { "Url", },
+              com.robonobo.mina.message.proto.MinaProtocol.PublicDetails.class,
+              com.robonobo.mina.message.proto.MinaProtocol.PublicDetails.Builder.class);
           internal_static_mina_QueryEscrow_descriptor =
-            getDescriptor().getMessageTypes().get(26);
+            getDescriptor().getMessageTypes().get(28);
           internal_static_mina_QueryEscrow_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_QueryEscrow_descriptor,
@@ -13415,15 +14371,23 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.QueryEscrow.class,
               com.robonobo.mina.message.proto.MinaProtocol.QueryEscrow.Builder.class);
           internal_static_mina_ReqConn_descriptor =
-            getDescriptor().getMessageTypes().get(27);
+            getDescriptor().getMessageTypes().get(29);
           internal_static_mina_ReqConn_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_ReqConn_descriptor,
               new java.lang.String[] { "ToNodeId", "FromNode", },
               com.robonobo.mina.message.proto.MinaProtocol.ReqConn.class,
               com.robonobo.mina.message.proto.MinaProtocol.ReqConn.Builder.class);
+          internal_static_mina_ReqPublicDetails_descriptor =
+            getDescriptor().getMessageTypes().get(30);
+          internal_static_mina_ReqPublicDetails_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_mina_ReqPublicDetails_descriptor,
+              new java.lang.String[] { "FromNodeId", },
+              com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails.class,
+              com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails.Builder.class);
           internal_static_mina_ReqPage_descriptor =
-            getDescriptor().getMessageTypes().get(28);
+            getDescriptor().getMessageTypes().get(31);
           internal_static_mina_ReqPage_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_ReqPage_descriptor,
@@ -13431,7 +14395,7 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.ReqPage.class,
               com.robonobo.mina.message.proto.MinaProtocol.ReqPage.Builder.class);
           internal_static_mina_ReqSourceStatus_descriptor =
-            getDescriptor().getMessageTypes().get(29);
+            getDescriptor().getMessageTypes().get(32);
           internal_static_mina_ReqSourceStatus_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_ReqSourceStatus_descriptor,
@@ -13439,7 +14403,7 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.ReqSourceStatus.class,
               com.robonobo.mina.message.proto.MinaProtocol.ReqSourceStatus.Builder.class);
           internal_static_mina_SourceStatus_descriptor =
-            getDescriptor().getMessageTypes().get(30);
+            getDescriptor().getMessageTypes().get(33);
           internal_static_mina_SourceStatus_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_SourceStatus_descriptor,
@@ -13447,7 +14411,7 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.SourceStatus.class,
               com.robonobo.mina.message.proto.MinaProtocol.SourceStatus.Builder.class);
           internal_static_mina_SourceStopping_descriptor =
-            getDescriptor().getMessageTypes().get(31);
+            getDescriptor().getMessageTypes().get(34);
           internal_static_mina_SourceStopping_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_SourceStopping_descriptor,
@@ -13455,7 +14419,7 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.SourceStopping.class,
               com.robonobo.mina.message.proto.MinaProtocol.SourceStopping.Builder.class);
           internal_static_mina_StartSource_descriptor =
-            getDescriptor().getMessageTypes().get(32);
+            getDescriptor().getMessageTypes().get(35);
           internal_static_mina_StartSource_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_StartSource_descriptor,
@@ -13463,7 +14427,7 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.StartSource.class,
               com.robonobo.mina.message.proto.MinaProtocol.StartSource.Builder.class);
           internal_static_mina_StopSource_descriptor =
-            getDescriptor().getMessageTypes().get(33);
+            getDescriptor().getMessageTypes().get(36);
           internal_static_mina_StopSource_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_StopSource_descriptor,
@@ -13471,7 +14435,7 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.StopSource.class,
               com.robonobo.mina.message.proto.MinaProtocol.StopSource.Builder.class);
           internal_static_mina_StreamStatus_descriptor =
-            getDescriptor().getMessageTypes().get(34);
+            getDescriptor().getMessageTypes().get(37);
           internal_static_mina_StreamStatus_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_StreamStatus_descriptor,
@@ -13479,7 +14443,7 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.StreamStatus.class,
               com.robonobo.mina.message.proto.MinaProtocol.StreamStatus.Builder.class);
           internal_static_mina_TopUp_descriptor =
-            getDescriptor().getMessageTypes().get(35);
+            getDescriptor().getMessageTypes().get(38);
           internal_static_mina_TopUp_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_TopUp_descriptor,
@@ -13487,7 +14451,7 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.TopUp.class,
               com.robonobo.mina.message.proto.MinaProtocol.TopUp.Builder.class);
           internal_static_mina_UnAdvSource_descriptor =
-            getDescriptor().getMessageTypes().get(36);
+            getDescriptor().getMessageTypes().get(39);
           internal_static_mina_UnAdvSource_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_UnAdvSource_descriptor,
@@ -13495,7 +14459,7 @@ public final class MinaProtocol {
               com.robonobo.mina.message.proto.MinaProtocol.UnAdvSource.class,
               com.robonobo.mina.message.proto.MinaProtocol.UnAdvSource.Builder.class);
           internal_static_mina_WantSource_descriptor =
-            getDescriptor().getMessageTypes().get(37);
+            getDescriptor().getMessageTypes().get(40);
           internal_static_mina_WantSource_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_mina_WantSource_descriptor,

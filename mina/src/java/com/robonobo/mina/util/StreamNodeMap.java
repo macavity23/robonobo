@@ -81,12 +81,24 @@ public class StreamNodeMap {
 		return result;
 	}
 
+	public synchronized List<String> getStreams(String nodeId) {
+		Set<String> streamsForThisNode = nodeMap.get(nodeId);
+		List<String> result = new ArrayList<String>();
+		if(streamsForThisNode != null)
+			result.addAll(streamsForThisNode);
+		return result;
+	}
+	
 	public synchronized Set<String> getAllStreams() {
 		Set<String> streams = new HashSet<String>();
 		streams.addAll(streamMap.keySet());
 		return streams;
 	}
 
+	public synchronized void updateNodeDetails(Node n) {
+		nodesById.put(n.getId(), n);
+	}
+	
 	public synchronized void clear() {
 		streamMap.clear();
 		nodeMap.clear();

@@ -11,14 +11,10 @@ import org.apache.commons.logging.Log;
 import com.robonobo.common.async.PushDataReceiver;
 import com.robonobo.common.pageio.buffer.PageSerializer;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
-import com.robonobo.eon.EONConnectionEvent;
-import com.robonobo.eon.EONException;
-import com.robonobo.eon.EONManager;
-import com.robonobo.eon.EonSocketAddress;
-import com.robonobo.eon.SEONConnection;
-import com.robonobo.eon.SEONConnectionListener;
+import com.robonobo.eon.*;
 import com.robonobo.mina.external.buffer.Page;
 import com.robonobo.mina.external.node.EonEndPoint;
+import com.robonobo.mina.external.node.SeonEndPoint;
 import com.robonobo.mina.instance.MinaInstance;
 import com.robonobo.mina.network.LCPair;
 import com.robonobo.mina.network.ListenConnection;
@@ -46,7 +42,7 @@ public class EonListenConnection implements ListenConnection, PushDataReceiver {
 		try {
 			// The host and udp port will be ignored here (they're the same as
 			// our CC endpoint)
-			myListenEp = new EonEndPoint(InetAddress.getByName("0.0.0.0"), 0, mySockAddr.getEonPort());
+			myListenEp = new SeonEndPoint(InetAddress.getByName("0.0.0.0"), 0, mySockAddr.getEonPort());
 		} catch (UnknownHostException e) {
 			throw new EONException(e);
 		}

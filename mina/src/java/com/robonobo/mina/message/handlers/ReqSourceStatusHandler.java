@@ -20,10 +20,8 @@ public class ReqSourceStatusHandler extends AbstractMessageHandler {
 		ReqSourceStatus rss = (ReqSourceStatus) mh.getMessage();
 		if (rss.getToNodeId().equals(mina.getMyNodeId()) || rss.getToNodeId().length() == 0) {
 			// This is for me
-			if (!mina.getConfig().isAgoric())
-				return;
 			// If there is no node set in the message, this is from the other end of this CC
-			Node reqNode = rss.hasFromNode() ? rss.getFromNode() : mh.getFromCC().getNodeDescriptor();
+			Node reqNode = rss.hasFromNode() ? rss.getFromNode() : mh.getFromCC().getNode();
 			
 			// If there were any stream ids attached, send
 			// corresponding StreamStatus msgs
@@ -36,7 +34,10 @@ public class ReqSourceStatusHandler extends AbstractMessageHandler {
 				}
 				streamStatList.add(sm.buildStreamStatus(null));
 			}
+			if(streamStatList.size() == 0)
+				return;
 			ControlConnection ccToNode = mina.getCCM().getCCWithId(reqNode.getId());
+			// TODO If we're not agoric, this will just fail...
 			SourceStatus ss = mina.getSellMgr().buildSourceStatus(reqNode, streamStatList);
 			if (ccToNode != null)
 				ccToNode.sendMessage("SourceStatus", ss);

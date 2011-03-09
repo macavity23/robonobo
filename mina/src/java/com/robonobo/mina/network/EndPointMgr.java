@@ -6,6 +6,7 @@ import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.mina.external.HandoverHandler;
 import com.robonobo.mina.instance.MinaInstance;
+import com.robonobo.mina.message.proto.MinaProtocol.PublicDetails;
 
 public interface EndPointMgr {
 	public void start() throws Exception;
@@ -29,10 +30,11 @@ public interface EndPointMgr {
 
 	/**
 	 * Connect to the specified node, but don't use any of the endpoints in
-	 * alreadyTriedEps. Returns null if no connection can be made using this
-	 * endpoint
+	 * alreadyTriedEps.
+	 * @param indirectAllowed Are we allowed to ask them to connect to us based on this ep (eg nat traversal) 
+	 * @return The newly-created cc, or null if no connection can be made using this endpoint
 	 */
-	public ControlConnection connectTo(Node node, List<EndPoint> alreadyTriedEps);
+	public ControlConnection connectTo(Node node, List<EndPoint> alreadyTriedEps, boolean indirectAllowed);
 
 	/** Locates local nodes (those reachable without a supernode) */
 	public void locateLocalNodes();
@@ -42,4 +44,11 @@ public interface EndPointMgr {
 	public void configUpdated();
 	
 	public void setHandoverHandler(HandoverHandler handler);
+	
+	/** Have we decided if we can holepunch through NAT yet? */
+	public boolean natTraversalDecided();
+	
+	/** Advised of my public details so I can decide if we can holepunch through NAT.
+	 * @return true if I now have an extra endpoint to advertise, false otherwise */
+	public boolean advisePublicDetails(PublicDetails publicDetails, EndPoint source);
 }

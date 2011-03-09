@@ -138,7 +138,7 @@ public class StreamMgr {
 	public Set<Node> getKnownSources() {
 		Set<Node> result = mina.getSourceMgr().getReadyNodes(streamId);
 		for (ConnectionPair lcp : streamConns.getAllListenConns()) {
-			result.add(lcp.getCC().getNodeDescriptor());
+			result.add(lcp.getCC().getNode());
 		}
 		return result;
 	}
@@ -146,7 +146,7 @@ public class StreamMgr {
 	public Set<String> getSourceNodeIds() {
 		Set<String> result = mina.getSourceMgr().getReadyNodeIds(streamId);
 		for (ConnectionPair lcp : streamConns.getAllListenConns()) {
-			result.add(lcp.getCC().getNodeDescriptor().getId());
+			result.add(lcp.getCC().getNode().getId());
 		}
 		return result;
 	}
@@ -389,7 +389,7 @@ public class StreamMgr {
 				bidStrategy.cleanup(pair.getCC().getNodeId());
 				// Make note of them in case they come back
 				LCPair lcp = (LCPair) pair;
-				mina.getSourceMgr().cachePossiblyDeadSource(lcp.getCC().getNodeDescriptor(), streamId);
+				mina.getSourceMgr().cachePossiblyDeadSource(lcp.getCC().getNode(), streamId);
 			}
 			if (streamConns.getNumBroadcastConns() == 0 && streamConns.getNumListenConns() == 0) {
 				try {

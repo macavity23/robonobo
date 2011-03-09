@@ -134,8 +134,11 @@ public class EONManager implements StartStopable {
 	}
 
 	public void sendNATSeed(InetSocketAddress remoteEP) throws EONException {
-		DEONPacket seed = new DEONPacket(new EonSocketAddress(localEP, 0), new EonSocketAddress(remoteEP, 0), null);
-		sendPktImmediate(seed);
+		// Send three packets, hopefully one will get through
+		for(int i=0;i<3;i++) {
+			DEONPacket seed = new DEONPacket(new EonSocketAddress(localEP, 0), new EonSocketAddress(remoteEP, 0), null);
+			sendPktImmediate(seed);			
+		}
 	}
 
 	public ScheduledThreadPoolExecutor getExecutor() {
@@ -318,14 +321,10 @@ public class EONManager implements StartStopable {
 			if (badPkt.isACK())
 				rstPacket.setSequenceNumber(badPkt.getAckNumber());
 			else {
-				try {
-					rstPacket.setSequenceNumber(0);
-					rstPacket.setAckNumber(mod.add(badPkt.getSequenceNumber(), (long) ((badPkt.getPayload() == null) ? 0
-							: badPkt.getPayload().remaining())));
-					rstPacket.setACK(true);
-				} catch (IllegalArgumentException e) {
-					log.error("Unable to perform modulo operation", e);
-				}
+				rstPacket.setSequenceNumber(0);
+				rstPacket.setAckNumber(mod.add(badPkt.getSequenceNumber(), (long) ((badPkt.getPayload() == null) ? 0
+						: badPkt.getPayload().remaining())));
+				rstPacket.setACK(true);
 			}
 			sendPktImmediate(rstPacket);
 		}

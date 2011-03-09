@@ -21,7 +21,7 @@ public class WantSourceHandler extends AbstractMessageHandler {
 
 		if (cc.isLocal()) {
 			for (String streamId : ws.getStreamIdList()) {
-				GotSource.Builder gsb = GotSource.newBuilder().addNode(mina.getNetMgr().getDescriptorForTalkingTo(cc.getNodeDescriptor(), true));
+				GotSource.Builder gsb = GotSource.newBuilder().addNode(mina.getNetMgr().getDescriptorForTalkingTo(cc.getNode(), true));
 				StreamMgr sm = mina.getSmRegister().getSM(streamId);
 				if (sm != null)
 					cc.sendMessage("GotSource", gsb.setStreamId(streamId).build());
@@ -36,7 +36,7 @@ public class WantSourceHandler extends AbstractMessageHandler {
 				// Add me!
 				StreamMgr sm = mina.getSmRegister().getSM(streamId);
 				if (sm != null && (sm.isBroadcasting() || sm.isRebroadcasting()))
-					gsb.addNode(mina.getNetMgr().getDescriptorForTalkingTo(mh.getFromCC().getNodeDescriptor(), mh.getFromCC().isLocal()));
+					gsb.addNode(mina.getNetMgr().getDescriptorForTalkingTo(mh.getFromCC().getNode(), mh.getFromCC().isLocal()));
 				if (gsb.getNodeCount() > 0)
 					cc.sendMessage("GotSource", gsb.build());
 			}

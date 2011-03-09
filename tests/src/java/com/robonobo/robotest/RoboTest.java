@@ -138,7 +138,7 @@ public class RoboTest {
 		@Override
 		public boolean acceptNode(Node node) {
 			for (EndPoint ep : node.getEndPointList()) {
-				EonEndPoint eep = new EonEndPoint(ep.getUrl());
+				EonEndPoint eep = EonEndPoint.parse(ep.getUrl());
 				if (eep.getAddress().equals(myIp))
 					return false;
 			}

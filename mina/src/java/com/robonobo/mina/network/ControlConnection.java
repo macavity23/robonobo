@@ -273,7 +273,7 @@ public class ControlConnection implements PushDataReceiver {
 		return nodeId;
 	}
 
-	public Node getNodeDescriptor() {
+	public Node getNode() {
 		return nodeDesc;
 	}
 
@@ -300,11 +300,17 @@ public class ControlConnection implements PushDataReceiver {
 		return nodeDesc.getLocal();
 	}
 
-	public void updateDetails(Node newNodeDesc) {
+	/**
+	 * @return true if the update went ok, false if something went wrong and we closed
+	 */
+	public boolean updateDetails(Node newNodeDesc) {
 		String newNodeId = newNodeDesc.getId();
-		if (!newNodeId.equals(nodeId))
+		if (!newNodeId.equals(nodeId)) {
 			close("You're not allowed to change your node ID");
+			return false;
+		}
 		nodeDesc = newNodeDesc;
+		return true;
 	}
 
 	public void notifyPong(Pong pong) {

@@ -93,12 +93,20 @@ public class SourceMgr {
 		mina.getCCM().sendMessageToNetwork("DontWantSource", dws);
 	}
 
+	/**
+	 * @syncpriority 180
+	 */
 	public void gotSource(String streamId, Node source) {
 		synchronized (this) {
 			if (!wantSources.contains(streamId))
 				return;
 		}
 		if (source.getId().equals(mina.getMyNodeId().toString()))
+			return;
+		StreamMgr sm = mina.getSmRegister().getSM(streamId);
+		if (sm == null)
+			return;
+		if(sm.getStreamConns().getListenConn(source.getId()) != null)
 			return;
 		if (mina.getBadNodeList().checkBadNode(source.getId())) {
 			log.debug("Ignoring Bad source " + source.getId());
@@ -108,9 +116,6 @@ public class SourceMgr {
 			log.debug("Ignoring source " + source + " - cannot connect");
 			return;
 		}
-		StreamMgr sm = mina.getSmRegister().getSM(streamId);
-		if (sm == null)
-			return;
 		cacheSourceInitially(source, streamId);
 		SourceDetails sd;
 		synchronized (this) {

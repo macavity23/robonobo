@@ -1,10 +1,14 @@
 package com.robonobo.mina.external.node;
 
 import java.net.InetAddress;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import com.robonobo.common.util.TextUtil;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
 
-public class EonEndPoint {
+public abstract class EonEndPoint {
+	static final Pattern EP_PATTERN = Pattern.compile("^(\\w+?):(.*):(\\d+):(\\d+);(.*)$");
 	protected int udpPort;
 	protected int eonPort;
 	protected InetAddress address;
@@ -13,56 +17,49 @@ public class EonEndPoint {
 	/** Does only a quick check against the protocol, doesn't check the url components */
 	public static boolean isEonUrl(String url) {
 		int colPos = url.indexOf(":");
-		if(colPos < 0)
+		if (colPos < 0)
 			return false;
 		String protocol = url.substring(0, colPos);
-		if(!protocol.equals("mina-eon"))
-			return false;
-		return true;
-	}
-	
-	public EonEndPoint(String url) {
-		this.url = url;
-		int colPos = url.indexOf(':');
-		if(colPos < 0)
-			throw new RuntimeException("Error in url "+url);
-		String protocol = url.substring(0, colPos);
-		if(!protocol.equals("mina-eon"))
-			throw new RuntimeException("Invalid eon url "+url);
-		String urlStr = url.substring(colPos+1, url.length() - ((url.endsWith("/")) ? 1 : 0));
-		// Grab the last : and substring, rather than just splitting, to allow ipv6 addresses
-		colPos = urlStr.lastIndexOf(':');
-		String addrAndUdp = urlStr.substring(0, colPos);
-		String eonPortStr = urlStr.substring(colPos+1);
-		colPos = addrAndUdp.lastIndexOf(':');
-		String addrStr = addrAndUdp.substring(0, colPos);
-		String udpPortStr = addrAndUdp.substring(colPos+1);
-		try {
-			address = InetAddress.getByName(addrStr);
-			udpPort = Integer.parseInt(udpPortStr);
-			eonPort = Integer.parseInt(eonPortStr);
-		} catch(Exception e) {
-			throw new RuntimeException("Invalid eon url "+url);
-		}
+		return (protocol.equals("seon") || protocol.equals("deon"));
 	}
 
-	public EonEndPoint(InetAddress addr, int udpPort, int eonPort) {
-		this.udpPort = udpPort;
-		this.eonPort = eonPort;
-		this.address = addr;
-		url = "mina-eon:"+addr.getHostAddress()+":"+udpPort+":"+eonPort;
+	public static EonEndPoint parse(String url) {
+		Matcher m = EP_PATTERN.matcher(url);
+		if (!m.matches())
+			throw new RuntimeException("Error in url " + url);
+		String protocol = m.group(1);
+		try {
+			InetAddress addr = InetAddress.getByName(m.group(2));
+			int udpPort = Integer.parseInt(m.group(3));
+			int eonPort = Integer.parseInt(m.group(4));
+			String[] opts = m.group(5).split(",");
+			if (protocol.equals("seon")) {
+				for (String opt : opts) {
+					if(opt.equals("nt"))
+						return new SeonNatTraversalEndPoint(addr, udpPort, eonPort);
+					throw new RuntimeException("Unknown eon option "+opt);
+				}
+				return new SeonEndPoint(addr, udpPort, eonPort);
+			} else if (protocol.equals("deon"))
+				return new DeonEndPoint(addr, udpPort, eonPort);
+		} catch (Exception ignore) {
+		}
+		throw new RuntimeException("Invalid eon url " + url);
+	}
+
+	EonEndPoint() {
 	}
 
 	public boolean equals(Object obj) {
-		if(obj instanceof EonEndPoint)
+		if (obj instanceof EonEndPoint)
 			return hashCode() == obj.hashCode();
 		return false;
 	}
 
 	public int hashCode() {
-		return getClass().getName().hashCode() ^ udpPort ^ eonPort;
+		return getClass().getName().hashCode() ^ url.hashCode();
 	}
-	
+
 	public int getEonPort() {
 		return eonPort;
 	}
@@ -74,16 +71,16 @@ public class EonEndPoint {
 	public InetAddress getAddress() {
 		return address;
 	}
-	
+
 	public String getUrl() {
 		return url;
 	}
-	
+
 	@Override
 	public String toString() {
-		return getAddress().getHostAddress()+":"+getUdpPort()+":"+getEonPort();
+		return url;
 	}
-	
+
 	public EndPoint toMsg() {
 		return EndPoint.newBuilder().setUrl(url).build();
 	}

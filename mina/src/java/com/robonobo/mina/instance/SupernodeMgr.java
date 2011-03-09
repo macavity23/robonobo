@@ -1,9 +1,6 @@
 package com.robonobo.mina.instance;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.mina.message.MessageHolder;
@@ -13,6 +10,7 @@ import com.robonobo.mina.message.proto.MinaProtocol.UnAdvSource;
 import com.robonobo.mina.message.proto.MinaProtocol.WantSource;
 import com.robonobo.mina.util.StreamNodeMap;
 
+// TODO Set up sync priorities in this class
 public class SupernodeMgr {
 	MinaInstance mina;
 	StreamNodeMap sources;
@@ -31,7 +29,7 @@ public class SupernodeMgr {
 		WantSource ws = (WantSource) mh.getMessage();
 		Map<String, List<Node>> result = new HashMap<String, List<Node>>(); 
 		for (String streamId : ws.getStreamIdList()) {
-			searchers.addMapping(streamId, mh.getFromCC().getNodeDescriptor());
+			searchers.addMapping(streamId, mh.getFromCC().getNode());
 			result.put(streamId, sources.getNodes(streamId));
 		}
 		return result;
@@ -40,7 +38,7 @@ public class SupernodeMgr {
 	public synchronized void notifyDontWantSource(MessageHolder mh) {
 		DontWantSource dws = (DontWantSource) mh.getMessage();
 		for (String streamId : dws.getStreamIdList()) {
-			searchers.removeMapping(streamId, mh.getFromCC().getNodeDescriptor());
+			searchers.removeMapping(streamId, mh.getFromCC().getNode());
 		}
 	}
 
@@ -52,7 +50,7 @@ public class SupernodeMgr {
 		Map<String, List<Node>> result = new HashMap<String, List<Node>>();
 		for (String streamId : as.getStreamIdList()) {
 			// Don't pass on the local attr (if any)
-			Node sourceNode = Node.newBuilder().mergeFrom(mh.getFromCC().getNodeDescriptor()).setLocal(false).build();
+			Node sourceNode = Node.newBuilder().mergeFrom(mh.getFromCC().getNode()).setLocal(false).build();
 			sources.addMapping(streamId, sourceNode);
 			result.put(streamId, searchers.getNodes(streamId));
 		}
@@ -62,7 +60,7 @@ public class SupernodeMgr {
 	public synchronized void notifyUnAdvSource(MessageHolder mh) {
 		UnAdvSource uas = (UnAdvSource) mh.getMessage();
 		for (String streamId : uas.getStreamIdList()) {
-			sources.removeMapping(streamId, mh.getFromCC().getNodeDescriptor());
+			sources.removeMapping(streamId, mh.getFromCC().getNode());
 		}
 	}
 	
@@ -71,4 +69,16 @@ public class SupernodeMgr {
 		searchers.removeNode(node);
 	}
 
+	/**
+	 * @return a map of <streamid, list<node>>, the nodes who should be told about this source
+	 */
+	public synchronized Map<String, List<Node>> notifyDetailsChanged(Node node) {
+		sources.updateNodeDetails(node);
+		searchers.updateNodeDetails(node);
+		Map<String, List<Node>> result = new HashMap<String, List<Node>>();
+		for (String streamId : sources.getStreams(node.getId())) {
+			result.put(streamId, searchers.getNodes(streamId));
+		}
+		return result;
+	}
 }

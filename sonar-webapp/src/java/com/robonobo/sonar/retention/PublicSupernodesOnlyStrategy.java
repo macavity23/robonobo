@@ -14,7 +14,7 @@ public class PublicSupernodesOnlyStrategy implements RetentionStrategy {
 		boolean isPublic = false;
 		for (EndPoint ep : node.getEndPointList()) {
 			if (isEonUrl(ep.getUrl())) {
-				EonEndPoint eonEp = new EonEndPoint(ep.getUrl());
+				EonEndPoint eonEp = EonEndPoint.parse(ep.getUrl());
 				if (!eonEp.getAddress().isSiteLocalAddress()) {
 					isPublic = true;
 					break;

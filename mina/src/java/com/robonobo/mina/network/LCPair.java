@@ -64,7 +64,7 @@ public class LCPair extends ConnectionPair {
 				protected void onTimeout() {
 					log.error("Timeout attempting to set up connection to " + nodeId + " for stream "
 							+ sm.getStreamId());
-					mina.getSourceMgr().cachePossiblyDeadSource(cc.getNodeDescriptor(), sm.getStreamId());
+					mina.getSourceMgr().cachePossiblyDeadSource(cc.getNode(), sm.getStreamId());
 					die(false);
 				}
 			};
@@ -312,7 +312,7 @@ public class LCPair extends ConnectionPair {
 			usefulDataTimeout = mina.getExecutor().schedule(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					log.info(LCPair.this + " useful data timeout - closing (caching source)");
-					mina.getSourceMgr().cacheSourceUntilDataAvailable(cc.getNodeDescriptor(), sm.getStreamId());
+					mina.getSourceMgr().cacheSourceUntilDataAvailable(cc.getNode(), sm.getStreamId());
 					die();
 				}
 			}, mina.getConfig().getUsefulDataSourceTimeout(), TimeUnit.SECONDS);

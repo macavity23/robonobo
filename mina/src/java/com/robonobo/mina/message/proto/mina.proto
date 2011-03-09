@@ -113,6 +113,10 @@ message MinCharge {
 	required double amount = 1;
 }
 
+message MyDetailsChanged {
+	required coreapi.Node node = 1;
+}
+
 message NoBid {
 }
 
@@ -128,12 +132,20 @@ message Pong {
 	optional string ping_id = 1;
 }
 
+message PublicDetails {
+	repeated string url = 1;
+}
+
 message QueryEscrow {
 }
 
 message ReqConn {
 	required string to_node_id = 1;
 	required coreapi.Node from_node = 2;
+}
+
+message ReqPublicDetails {
+	required string from_node_id = 1;
 }
 
 message ReqPage {

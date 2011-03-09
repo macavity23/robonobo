@@ -336,4 +336,12 @@ public class TextUtil {
 	public static boolean isEmpty(String str) {
 		return (str == null) || (str.length() == 0);
 	}
+	
+	public static boolean arrContains(String[] arr, String str) {
+		for(int i=0;i<arr.length;i++) {
+			if(arr[i].equals(str))
+				return true;
+		}
+		return false;
+	}
 }

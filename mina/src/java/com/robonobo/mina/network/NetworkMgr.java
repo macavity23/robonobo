@@ -1,14 +1,8 @@
 package com.robonobo.mina.network;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.*;
+import java.util.*;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 
@@ -18,16 +12,12 @@ import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.mina.external.*;
 import com.robonobo.mina.instance.MinaInstance;
-import com.robonobo.mina.util.MinaConnectionException;
+import com.robonobo.mina.message.proto.MinaProtocol.MyDetailsChanged;
 
 public class NetworkMgr {
 	private final Log log;
 	private final MinaInstance mina;
 	private boolean listenerReady = false;
-	// TODO: holepunching
-	// private InetAddress firstFoundPublicAddr;
-	// private InetSocketAddress provPublicDetails;
-	// private boolean testedHolepunching = false;
 	private ScheduledFuture nodeLocatorTask;
 	private List<NodeLocator> nodeLocators = new ArrayList<NodeLocator>();
 	private List<EndPointMgr> endPointMgrs = new ArrayList<EndPointMgr>();
@@ -40,7 +30,7 @@ public class NetworkMgr {
 	private Node publicNodeDesc;
 	/** Node descriptor for local nodes */
 	private Node localNodeDesc;
-	private boolean publicallyReachable;
+	private boolean gotPublicEps;
 
 	public NetworkMgr(MinaInstance mina) {
 		this.mina = mina;
@@ -69,46 +59,14 @@ public class NetworkMgr {
 		nodeLocators.add(locator);
 	}
 
-	public void advisePublicIPDetails(InetSocketAddress details, InetAddress fromAddr) {
-		// if(testedHolepunching)
-		// return;
-		// if(!localAddrMgr.addrIsPublic(details.getAddress()))
-		// return;
-		// if(myPublicEp != null)
-		// return;
-		//
-		// // Assume our NAT device can do holepunching - test only!
-		// if(mina.getConfig().isAssumeNatHolepunch()) {
-		// log.warn("Assuming NAT holepunch, using external details "+details);
-		// EonHolePunchEndPoint tmpEp = new
-		// EonHolePunchEndPoint(details.getAddress(), details.getPort(),
-		// mina.getConfig().getLocalEonPort());
-		// myPublicNodeDesc.addEndPoint(tmpEp);
-		// myHolepunchEp = tmpEp;
-		// testedHolepunching = true;
-		// return;
-		// }
-		//
-		// // If our UDP port stays the same when talking to different IPs, our
-		// NAT device supports holepunching
-		// if(firstFoundPublicAddr == null) {
-		// firstFoundPublicAddr = fromAddr;
-		// provPublicDetails = details;
-		// }
-		// else if(!fromAddr.equals(firstFoundPublicAddr)) {
-		// if(details.equals(provPublicDetails)) {
-		// log.info("My NAT device DOES support holepunching, using external
-		// details " + details);
-		// EonHolePunchEndPoint tmpEp = new
-		// EonHolePunchEndPoint(details.getAddress(), details.getPort(),
-		// mina.getConfig().getLocalEonPort());
-		// myPublicNodeDesc.addEndPoint(tmpEp);
-		// myHolepunchEp = tmpEp;
-		// }
-		// else
-		// log.info("My NAT device DOES NOT support holepunching");
-		// testedHolepunching = true;
-		// }
+	/**
+	 * We've discovered we can do NAT traversal, and we should tell our supernodes and existing connections (other than locals, they don't need to know)
+	 * @syncpriority 140
+	 */
+	public void readvertiseEndpoints() {
+		buildMyNodeDescriptors();
+		MyDetailsChanged mdc = MyDetailsChanged.newBuilder().setNode(publicNodeDesc).build();
+		mina.getCCM().sendMessageToNonLocals("MyDetailsChanged", mdc);
 	}
 
 	private Node getNode(boolean isLocal, Collection<EndPoint> eps) {
@@ -116,9 +74,9 @@ public class NetworkMgr {
 		builder.setProtocolVersion(MinaInstance.MINA_PROTOCOL_VERSION);
 		builder.setId(myNodeId);
 		builder.setApplicationUri(myAppUri);
-		if(iAmSuper)
+		if (iAmSuper)
 			builder.setSupernode(true);
-		if(isLocal)
+		if (isLocal)
 			builder.setLocal(true);
 		builder.addAllEndPoint(eps);
 		return builder.build();
@@ -159,12 +117,17 @@ public class NetworkMgr {
 				throw new MinaException(e);
 			}
 		}
+		buildMyNodeDescriptors();
+		nodeLocatorTask = mina.getExecutor().scheduleAtFixedRate(new LocateNodesRunner(), 0,
+				mina.getConfig().getLocateNodesFreq(), TimeUnit.SECONDS);
+	}
 
-		publicallyReachable = false;
+	private void buildMyNodeDescriptors() {
+		gotPublicEps = false;
 		List<EndPoint> eps = new ArrayList<EndPoint>();
 		if (mina.getConfig().getSendPrivateAddrsToLocator()) {
 			// Debug only! Send private addresses to node locator
-			publicallyReachable = true;
+			gotPublicEps = true;
 			for (EndPointMgr epMgr : endPointMgrs) {
 				eps.add(epMgr.getLocalEndPoint());
 			}
@@ -173,7 +136,7 @@ public class NetworkMgr {
 			for (EndPointMgr epMgr : endPointMgrs) {
 				EndPoint ep = epMgr.getPublicEndPoint();
 				if (ep != null) {
-					publicallyReachable = true;
+					gotPublicEps = true;
 					eps.add(ep);
 				}
 			}
@@ -185,9 +148,6 @@ public class NetworkMgr {
 			eps.add(epMgr.getLocalEndPoint());
 		}
 		localNodeDesc = getNode(true, eps);
-
-		nodeLocatorTask = mina.getExecutor().scheduleAtFixedRate(new LocateNodesRunner(), 0,
-				mina.getConfig().getLocateNodesFreq(), TimeUnit.SECONDS);
 	}
 
 	public void stop() {
@@ -207,8 +167,8 @@ public class NetworkMgr {
 		return localNodeDesc;
 	}
 
-	public boolean amIPublicallyReachable() {
-		return publicallyReachable;
+	public boolean havePublicEndpoints() {
+		return gotPublicEps;
 	}
 
 	public boolean canConnectTo(Node node) {
@@ -223,25 +183,11 @@ public class NetworkMgr {
 		// TODO Support lower protocol versions (when we have more than one...)
 		if (mina.getCCM().haveRunningOrPendingCCTo(node.getId()))
 			return true;
-		if (amIPublicallyReachable())
-			return true;
 		for (EndPointMgr epMgr : endPointMgrs) {
 			if (epMgr.canConnectTo(node))
 				return true;
 		}
 		return false;
-	}
-
-	/**
-	 * Don't call this method directly, use CCMgr.makeCCTo(). This method may not return for 30+secs
-	 */
-	public ControlConnection makeCCTo(Node node, List<EndPoint> triedEps) {
-		for (EndPointMgr epMgr : endPointMgrs) {
-			ControlConnection cc = epMgr.connectTo(node, triedEps);
-			if (cc != null)
-				return cc;
-		}
-		return null;
 	}
 
 	public void addNodeFilter(NodeFilter nf) {
@@ -269,14 +215,14 @@ public class NetworkMgr {
 	}
 
 	private void connectToSupernode(List<Node> supernodes) {
-		if(supernodes.size() == 0)
+		if (supernodes.size() == 0)
 			return;
 		Node tryNode = supernodes.remove(0);
 		ConnectToSupernodeAttempt a = new ConnectToSupernodeAttempt(supernodes);
 		a.start();
 		mina.getCCM().makeCCTo(tryNode, a);
 	}
-	
+
 	private class LocateNodesRunner extends CatchingRunnable {
 		public void doRun() {
 			if (mina.getConfig().getLocateLocalNodes())
@@ -313,18 +259,18 @@ public class NetworkMgr {
 		private List<Node> remainingSupernodes;
 
 		public ConnectToSupernodeAttempt(List<Node> remainingSupernodes) {
-			super(mina.getExecutor(), mina.getConfig().getMessageTimeout()*1000, "ConnectToSupernodeAttempt");
+			super(mina.getExecutor(), mina.getConfig().getMessageTimeout() * 1000, "ConnectToSupernodeAttempt");
 			this.remainingSupernodes = remainingSupernodes;
 		}
-		
+
 		@Override
 		protected void onFail() {
-			if(remainingSupernodes.size() == 0)
+			if (remainingSupernodes.size() == 0)
 				log.error("Failed to connect to any supernodes... :-(");
 			else
 				connectToSupernode(remainingSupernodes);
 		}
-		
+
 		@Override
 		protected void onTimeout() {
 			onFail();
