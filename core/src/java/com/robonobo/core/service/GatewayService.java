@@ -44,7 +44,7 @@ public class GatewayService extends AbstractService {
 			else
 				log.info("Local IP address is public, assuming gateway not present");
 		} else
-			configurePortForwarding(Integer.parseInt(cfgMode));
+			configureGatewayFromConfig(Integer.parseInt(cfgMode));
 		getRobonobo().saveConfig();
 	}
 
@@ -124,37 +124,40 @@ public class GatewayService extends AbstractService {
 		log.info("Failed to create UPnP port mapping");
 	}
 
-	private void configurePortForwarding(int publicPort) {
-		// Manually-specified port - figure out what my public IP address is by
-		// pinging sonar
+	private void configureGatewayFromConfig(int publicPort) {
 		MinaConfig minaCfg = (MinaConfig) getRobonobo().getConfig("mina");
-		String ipDetectUrl = getRobonobo().getConfig().getSonarServerUrl() + "ipdetect";
-		GetMethod get = new GetMethod(ipDetectUrl);
-		HttpClient client = new HttpClient();
-		try {
-			int status = client.executeMethod(get);
-			if (status != HttpStatus.SC_OK) {
-				log.error("IP detect @ " + ipDetectUrl + " returned status " + status + " - port forwarding config failed");
-				minaCfg.setGatewayAddress(null);
-				return;
-			}
-			String myPublicIP = get.getResponseBodyAsString();
+		// Port is specified manually
+		minaCfg.setGatewayUdpPort(publicPort);
+		// If lookupGatewayIP is false, we just use whatever IP is in minaconfig.gatewayAddress
+		if(getRobonobo().getConfig().getLookupGatewayIP()) {
+			// Figure out public IP by pinging sonar
+			String ipDetectUrl = getRobonobo().getConfig().getSonarServerUrl() + "ipdetect";
+			GetMethod get = new GetMethod(ipDetectUrl);
+			HttpClient client = new HttpClient();
 			try {
-				InetAddress.getByName(myPublicIP);
+				int status = client.executeMethod(get);
+				if (status != HttpStatus.SC_OK) {
+					log.error("IP detect @ " + ipDetectUrl + " returned status " + status + " - port forwarding config failed");
+					minaCfg.setGatewayAddress(null);
+					return;
+				}
+				String myPublicIP = get.getResponseBodyAsString();
+				try {
+					InetAddress.getByName(myPublicIP);
+				} catch (Exception e) {
+					log.error("IP detect @ " + ipDetectUrl + " returned unparsable body '" + myPublicIP + "' - port forwarding config failed");
+					minaCfg.setGatewayAddress(null);
+					return;
+				}
+				log.info("IP detect @ " + ipDetectUrl + " returned public IP address " + myPublicIP);
+				minaCfg.setGatewayAddress(myPublicIP);
 			} catch (Exception e) {
-				log.error("IP detect @ " + ipDetectUrl + " returned unparsable body '" + myPublicIP + "' - port forwarding config failed");
+				log.error("Caught exception when querying sonar for port forwarding", e);
 				minaCfg.setGatewayAddress(null);
 				return;
+			} finally {
+				get.releaseConnection();
 			}
-			log.info("IP detect @ " + ipDetectUrl + " returned public IP address " + myPublicIP);
-			minaCfg.setGatewayAddress(myPublicIP);
-			minaCfg.setGatewayUdpPort(publicPort);
-		} catch (Exception e) {
-			log.error("Caught exception when querying sonar for port forwarding", e);
-			minaCfg.setGatewayAddress(null);
-			return;
-		} finally {
-			get.releaseConnection();
 		}
 	}
 

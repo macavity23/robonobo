@@ -30,6 +30,8 @@ public class RobonoboConfig implements Serializable {
 	boolean agoric = true;
 	/** "auto", "off", or a gateway port number (which means manual) */
 	String gatewayCfgMode = "auto";
+	/** If this is true we will ping sonar to find our public address - otherwise we will use whatever is in minacfg.gatewayAddress */
+	boolean lookupGatewayIP = true;
 	boolean agreedToEula = false;
 	boolean allowLoopbackAddress = false;
 	String playlistUrlBase = "http://rbnb.co/p/";
@@ -253,5 +255,13 @@ public class RobonoboConfig implements Serializable {
 
 	public void setUserAccountUrl(String userAccountUrl) {
 		this.userAccountUrl = userAccountUrl;
+	}
+
+	public boolean getLookupGatewayIP() {
+		return lookupGatewayIP;
+	}
+
+	public void setLookupGatewayIP(boolean lookupGatewayIP) {
+		this.lookupGatewayIP = lookupGatewayIP;
 	}
 }
