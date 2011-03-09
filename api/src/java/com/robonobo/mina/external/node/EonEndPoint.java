@@ -35,6 +35,8 @@ public abstract class EonEndPoint {
 			String[] opts = m.group(5).split(",");
 			if (protocol.equals("seon")) {
 				for (String opt : opts) {
+					if(opt.length() == 0)
+						continue;
 					if(opt.equals("nt"))
 						return new SeonNatTraversalEndPoint(addr, udpPort, eonPort);
 					throw new RuntimeException("Unknown eon option "+opt);
