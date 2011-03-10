@@ -100,7 +100,7 @@ public class StatusPanel extends JPanel implements RobonoboStatusListener, Trans
 						networkStatusIcon.setIcon(connFailImg);
 						break;
 					case NotConnected:
-						numConnsLbl.setText("No Connections");
+						numConnsLbl.setText("No connections");
 						networkStatusIcon.setIcon(connFailImg);
 						break;
 					case Connected:
@@ -109,7 +109,7 @@ public class StatusPanel extends JPanel implements RobonoboStatusListener, Trans
 							networkStatusIcon.setIcon(connOkImg);
 						else
 							networkStatusIcon.setIcon(connFailImg);
-						numConnsLbl.setText(TextUtil.numItems(nodes, "Connection"));
+						numConnsLbl.setText(TextUtil.numItems(nodes, "connection"));
 						break;
 					case Stopping:
 						numConnsLbl.setText("Stopping...");
