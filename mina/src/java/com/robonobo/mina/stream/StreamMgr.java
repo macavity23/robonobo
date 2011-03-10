@@ -21,6 +21,7 @@ import com.robonobo.mina.external.buffer.Page;
 import com.robonobo.mina.external.buffer.PageBuffer;
 import com.robonobo.mina.external.buffer.StreamPosition;
 import com.robonobo.mina.instance.MinaInstance;
+import com.robonobo.mina.instance.SMRegister;
 import com.robonobo.mina.message.proto.MinaProtocol.SourceStatus;
 import com.robonobo.mina.message.proto.MinaProtocol.StreamStatus;
 import com.robonobo.mina.message.proto.MinaProtocol.UnAdvSource;
@@ -491,6 +492,7 @@ public class StreamMgr {
 			receiving = true;
 			requestCachedSources();
 			mina.getSourceMgr().wantSources(streamId, tolerateDelay());
+			mina.getSmRegister().updateSmStatus(streamId, true);
 		}
 	}
 
@@ -568,6 +570,7 @@ public class StreamMgr {
 			}
 		}
 		streamConns.closeAllListenConns();
+		mina.getSmRegister().updateSmStatus(streamId, (streamConns.getNumBroadcastConns() > 0));
 	}
 
 	private void receptionCompleted() {

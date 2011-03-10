@@ -1,7 +1,6 @@
 package com.robonobo.mina.instance;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import com.robonobo.mina.external.buffer.PageBuffer;
 import com.robonobo.mina.stream.StreamMgr;
@@ -10,8 +9,9 @@ import com.robonobo.mina.stream.StreamMgr;
  * @syncpriority 25
  */
 public class SMRegister {
-	private final MinaInstance mina;
-	private final Map<String, StreamMgr> smsByStreamId = new HashMap<String, StreamMgr>();
+	private MinaInstance mina;
+	private Map<String, StreamMgr> smsByStreamId = new HashMap<String, StreamMgr>();
+	private Set<String> liveSms = new HashSet<String>();
 
 	public SMRegister(MinaInstance mina) {
 		this.mina = mina;
@@ -46,16 +46,33 @@ public class SMRegister {
 	/**
 	 * @syncpriority 25
 	 */
-	public synchronized StreamMgr[] getSMs() {
+	public synchronized StreamMgr[] getAllSMs() {
 		StreamMgr[] arr = new StreamMgr[smsByStreamId.size()];
 		smsByStreamId.values().toArray(arr);
 		return arr;
 	}
 
+	public synchronized StreamMgr[] getLiveSMs() {
+		StreamMgr[] arr = new StreamMgr[liveSms.size()];
+		int i=0;
+		for (String sid : liveSms) {
+			arr[i++] = smsByStreamId.get(sid);
+		}
+		return arr;
+	}
+	
+	public synchronized void updateSmStatus(String streamId, boolean alive) {
+		if(alive)
+			liveSms.add(streamId);
+		else
+			liveSms.remove(streamId);
+	}
+	
 	/**
 	 * @syncpriority 25
 	 */
 	public synchronized void unregisterSM(String streamId) {
 		smsByStreamId.remove(streamId);
+		liveSms.remove(streamId);
 	}	
 }

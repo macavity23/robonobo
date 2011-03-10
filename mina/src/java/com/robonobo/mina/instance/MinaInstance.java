@@ -95,7 +95,7 @@ public class MinaInstance implements MinaControl {
 	public void abort() {
 		log.fatal("Mina instance ABORTING!");
 		ccm.prepareForShutdown();
-		StreamMgr[] sms = smRegister.getSMs();
+		StreamMgr[] sms = smRegister.getAllSMs();
 		for (int i = 0; i < sms.length; i++) {
 			sms[i].abort();
 		}
@@ -280,7 +280,7 @@ public class MinaInstance implements MinaControl {
 	public void stop() throws MinaException {
 		log.fatal("Mina instance stopping");
 		ccm.prepareForShutdown();
-		StreamMgr[] sms = smRegister.getSMs();
+		StreamMgr[] sms = smRegister.getAllSMs();
 		for (int i = 0; i < sms.length; i++) {
 			sms[i].stop();
 		}
@@ -323,9 +323,7 @@ public class MinaInstance implements MinaControl {
 
 	public Map<String, TransferSpeed> getTransferSpeeds() {
 		Map<String, TransferSpeed> result = new HashMap<String, TransferSpeed>();
-		// TODO Need to refactor this! Say we're sharing 500 tracks, this is creating a 500-element array and copying
-		// the SMs into it every second - and then every SM makes a copy of its broadcast conns and adds that...
-		for (StreamMgr sm : smRegister.getSMs()) {
+		for (StreamMgr sm : smRegister.getLiveSMs()) {
 			int upload = sm.getBroadcastingFlowRate();
 			int download = sm.getListeningFlowRate();
 			if (upload > 0 || download > 0)
@@ -339,7 +337,7 @@ public class MinaInstance implements MinaControl {
 	}
 
 	public void clearStreamPriorities() {
-		for (StreamMgr sm : smRegister.getSMs()) {
+		for (StreamMgr sm : smRegister.getLiveSMs()) {
 			sm.setPriority(0);
 		}
 	}
@@ -367,7 +365,7 @@ public class MinaInstance implements MinaControl {
 	}
 
 	public void setAllStreamVelocitiesExcept(String streamId, StreamVelocity sv) {
-		StreamMgr[] sms = smRegister.getSMs();
+		StreamMgr[] sms = smRegister.getLiveSMs();
 		Set<String> rebidNodeIds = new HashSet<String>();
 		for (StreamMgr sm : sms) {
 			if (sm.isReceiving() && !sm.getStreamId().equals(streamId)) {

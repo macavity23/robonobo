@@ -472,7 +472,7 @@ public class CCMgr {
 			// If this is a supernode, tell them about our broadcasts, and get
 			// broadcasters for any streams we're receiving
 			if (cc.getNode().getSupernode()) {
-				StreamMgr[] sms = mina.getSmRegister().getSMs();
+				StreamMgr[] sms = mina.getSmRegister().getAllSMs();
 				// Batch up our stream adverts (there might be lots of them),
 				// but send out broadcaster searches individually (probably
 				// won't be many)

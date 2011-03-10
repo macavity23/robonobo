@@ -198,8 +198,8 @@ public class StreamConnsMgr {
 	 * @syncpriority 180
 	 */
 	public synchronized void makeBroadcastConnectionTo(ControlConnection cc, EndPoint listenEp, List<Long> pages) {
-		if(mina.getCCM().isShuttingDown()) {
-			log.debug("Not making broadcast connection to "+cc.getNodeId()+": shutting down");
+		if (mina.getCCM().isShuttingDown()) {
+			log.debug("Not making broadcast connection to " + cc.getNodeId() + ": shutting down");
 			return;
 		}
 		if (bcPairs.containsKey(cc.getNodeId())) {
@@ -207,6 +207,7 @@ public class StreamConnsMgr {
 			return;
 		}
 		bcPairs.put(cc.getNodeId(), new BCPair(mina, sm, cc, listenEp, pages));
+		mina.getSmRegister().updateSmStatus(sm.getStreamId(), true);
 	}
 
 	/**
@@ -215,22 +216,22 @@ public class StreamConnsMgr {
 	public void makeListenConnectionTo(final SourceStatus ss) throws MinaConnectionException {
 		Node node = ss.getFromNode();
 		final String nodeId = node.getId();
-		if(mina.getCCM().isShuttingDown()) {
-			log.debug("Not making listen connection to "+nodeId+": shutting down");
+		if (mina.getCCM().isShuttingDown()) {
+			log.debug("Not making listen connection to " + nodeId + ": shutting down");
 			return;
 		}
-		
+
 		// If we have no currency client, wait til we do
-		if(mina.getConfig().isAgoric() && !mina.getCurrencyClient().isReady()) {
-			log.debug("Not making lcpair to "+nodeId+" as currency client is not ready - waiting 5s");
+		if (mina.getConfig().isAgoric() && !mina.getCurrencyClient().isReady()) {
+			log.debug("Not making lcpair to " + nodeId + " as currency client is not ready - waiting 5s");
 			mina.getExecutor().schedule(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					makeListenConnectionTo(ss);
 				}
 			}, 5, TimeUnit.SECONDS);
-			return;			
+			return;
 		}
-		
+
 		ControlConnection cc = mina.getCCM().getCCWithId(nodeId);
 		if (cc == null) {
 			synchronized (this) {
@@ -272,8 +273,11 @@ public class StreamConnsMgr {
 		if (pair instanceof LCPair) {
 			pendingCons.remove(pair.getCC().getNodeId());
 			lcPairs.remove(pair.getCC().getNodeId());
-		} else if (pair instanceof BCPair)
+		} else if (pair instanceof BCPair) {
 			bcPairs.remove(pair.getCC().getNodeId());
+			if (!sm.isReceiving())
+				mina.getSmRegister().updateSmStatus(sm.getStreamId(), bcPairs.size() > 0);
+		}
 	}
 
 	/**
