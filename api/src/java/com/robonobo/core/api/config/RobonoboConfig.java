@@ -30,13 +30,15 @@ public class RobonoboConfig implements Serializable {
 	boolean agoric = true;
 	/** "auto", "off", or a gateway port number (which means manual) */
 	String gatewayCfgMode = "auto";
-	/** If this is true we will ping sonar to find our public address - otherwise we will use whatever is in minacfg.gatewayAddress */
+	/**
+	 * If this is true we will ping sonar to find our public address - otherwise we will use whatever is in
+	 * minacfg.gatewayAddress
+	 */
 	boolean lookupGatewayIP = true;
 	boolean agreedToEula = false;
 	boolean allowLoopbackAddress = false;
 	String playlistUrlBase = "http://rbnb.co/p/";
-	String updateCheckUrl = "http://robonobo.com/checkupdate";
-	String userAccountUrl = "http://robonobo.com/account";
+	String websiteUrlBase = "http://robonobo.com/";
 
 	public RobonoboConfig() {
 	}
@@ -241,27 +243,19 @@ public class RobonoboConfig implements Serializable {
 		this.playlistUrlBase = playlistUrlBase;
 	}
 
-	public String getUpdateCheckUrl() {
-		return updateCheckUrl;
-	}
-
-	public void setUpdateCheckUrl(String updateCheckUrl) {
-		this.updateCheckUrl = updateCheckUrl;
-	}
-
-	public String getUserAccountUrl() {
-		return userAccountUrl;
-	}
-
-	public void setUserAccountUrl(String userAccountUrl) {
-		this.userAccountUrl = userAccountUrl;
-	}
-
 	public boolean getLookupGatewayIP() {
 		return lookupGatewayIP;
 	}
 
 	public void setLookupGatewayIP(boolean lookupGatewayIP) {
 		this.lookupGatewayIP = lookupGatewayIP;
+	}
+
+	public String getWebsiteUrlBase() {
+		return websiteUrlBase;
+	}
+
+	public void setWebsiteUrlBase(String websiteUrlBase) {
+		this.websiteUrlBase = websiteUrlBase;
 	}
 }

@@ -101,7 +101,7 @@ public class MetadataService extends AbstractService {
 	 * @return The update message, or an empty string if there is no message
 	 */
 	public String getUpdateMessage() throws RobonoboException {
-		String checkUrl = rbnb.getConfig().getUpdateCheckUrl() + "?version="+rbnb.getVersion();
+		String checkUrl = rbnb.getConfig().getWebsiteUrlBase() + "checkupdate?version="+rbnb.getVersion();
 		UpdateMsg.Builder ub = UpdateMsg.newBuilder();
 		try {
 			rbnb.getSerializationManager().getObjectFromUrl(ub, checkUrl);
