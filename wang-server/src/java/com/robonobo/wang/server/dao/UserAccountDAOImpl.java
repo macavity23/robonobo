@@ -37,6 +37,9 @@ public class UserAccountDAOImpl implements UserAccountDao {
 	 */
 	@Override
 	public void createUserAccount(String friendlyName, String email, String password) throws DAOException {
+		UserAccount ua = getUserAccount(email);
+		if(ua != null)
+			throw new DAOException("Account for "+email+" already exists");
 		try {
 			db.update(CREATE_UA_SQL, friendlyName, email, password);
 		} catch (DataAccessException e) {
