@@ -123,7 +123,9 @@ public class EonEndPointMgr implements EndPointMgr {
 							// We're traversing NATs at both ends, and we are the initiating node, so we send a 'NAT
 							// seed'. These packets contain no data, but open up the port on our NAT so that when their
 							// connection arrives, it's allowed through
-							eonMgr.sendNATSeed(new InetSocketAddress(theirEp.getAddress(), theirEp.getUdpPort()));
+							InetSocketAddress natSeedEp = new InetSocketAddress(theirEp.getAddress(), theirEp.getUdpPort());
+							log.debug("Sending NAT seed to "+natSeedEp);
+							eonMgr.sendNATSeed(natSeedEp);
 							// Now we just return null - CCMgr.makeCCTo will then send a ReqConn, which should get
 							// through our NAT
 							return null;
