@@ -17,8 +17,10 @@ public class PublicDetailsHandler extends AbstractMessageHandler {
 		for (EndPointMgr epMgr : mina.getNetMgr().getEndPointMgrs()) {
 			newEndpoint |= epMgr.advisePublicDetails(pd, mh.getFromCC().getTheirEp());
 		}
-		if(newEndpoint)
+		if(newEndpoint) {
 			mina.getNetMgr().readvertiseEndpoints();
+			mina.getSourceMgr().networkDetailsChanged();
+		}
 	}
 
 	@Override
