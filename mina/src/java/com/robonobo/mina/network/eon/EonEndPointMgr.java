@@ -173,11 +173,7 @@ public class EonEndPointMgr implements EndPointMgr {
 	public EndPoint getEndPointForTalkingTo(Node node) {
 		if (node.getLocal())
 			return myListenEp.toMsg();
-		if (gatewayEp != null)
-			return gatewayEp.toMsg();
-		if (localAddrIsPublic())
-			return myListenEp.toMsg();
-		return null;
+		return getPublicEndPoint();
 	}
 
 	public void setMina(MinaInstance mina) {
