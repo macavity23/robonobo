@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
 
@@ -119,6 +120,12 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 					progBar.setString(pcnt + "%");
 					if (pcnt == 100) {
 						cancelBtn.setText("Clear");
+						// Start a timer to nuke this task
+						frame.getController().getExecutor().schedule(new CatchingRunnable() {
+							public void doRun() throws Exception {
+								removeTask(t);
+							}
+						}, frame.getGuiConfig().getZombieTaskLifetime(), TimeUnit.SECONDS);
 					}									
 				}
 			});

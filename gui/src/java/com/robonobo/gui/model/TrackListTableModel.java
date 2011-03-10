@@ -2,6 +2,7 @@ package com.robonobo.gui.model;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -92,6 +93,9 @@ public abstract class TrackListTableModel extends AbstractTableModel {
 			}
 			return FileUtil.humanReadableSize(rate)+"/s";
 		case 11:
+			Date addDate = t.getDateAdded();
+			if(addDate == null)
+				return null;
 			return df.format(t.getDateAdded());
 		case 12:
 			return s.getStreamId();
@@ -109,7 +113,7 @@ public abstract class TrackListTableModel extends AbstractTableModel {
 		return Integer.parseInt(m.group(1));
 	}
 
-	// By default we just hide the stream id, subclasses hide more
+	// By default we hide the track num and stream id
 	public int[] hiddenCols() {
 		return new int[] { 4, 12 };
 	}
