@@ -92,8 +92,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 				public void doRun() throws Exception {
 					UserConfig freshUc = frame.getController().refreshMyUserConfig();
 					if (freshUc == null || freshUc.getItem("facebookId") == null) {
-						// They haven't associated their facebook account with their rbnb one... bounce them to
-						// their account page so they can do so
+						// They haven't associated their facebook account with their rbnb one... open a browser window on the page to do so
 						NetUtil.browse(frame.getController().getConfig().getWebsiteUrlBase()+"before-facebook-attach");
 					} else {
 						SwingUtilities.invokeLater(new CatchingRunnable() {
@@ -118,9 +117,8 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 				public void doRun() throws Exception {
 					UserConfig freshUc = frame.getController().refreshMyUserConfig();
 					if (freshUc == null || freshUc.getItem("twitterId") == null) {
-						// They haven't associated their twitter account with their rbnb one... bounce them to
-						// their account page so they can do so
-						NetUtil.browse(frame.getController().getConfig().getWebsiteUrlBase()+"account");
+						// They haven't associated their twitter account with their rbnb one...open a browser window on the page to do so
+						NetUtil.browse(frame.getController().getConfig().getWebsiteUrlBase()+"before-twitter-attach");
 					} else {
 						SwingUtilities.invokeLater(new CatchingRunnable() {
 							public void doRun() throws Exception {
