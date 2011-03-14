@@ -56,6 +56,7 @@
 		</dict>
 		<key>VMOptions</key>
 		<array>
+			<string>-splash:../rbnb-splash.png</string>
 			<string>-client</string>
 			<string>-Xmx90M</string>
 		</array>
