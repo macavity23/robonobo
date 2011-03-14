@@ -25,10 +25,12 @@ import com.robonobo.common.util.ByteUtil;
  * @author macavity
  */
 public class RoboFont {
-	private static final String BOLD_FONT_PATH = "/VeraBd.ttf";
-	private static final String REG_FONT_PATH = "/Vera.ttf";
-	static final String FONT_NAME = "Bitstream Vera Sans";
-	// static final String FONT_NAME = "Ubuntu";
+	private static final String BOLD_FONT_PATH = "/Ubuntu-B.ttf";
+	private static final String REG_FONT_PATH = "/Ubuntu-R.ttf";
+	static final String FONT_NAME = "Ubuntu";
+//	private static final String BOLD_FONT_PATH = "/VeraBd.ttf";
+//	private static final String REG_FONT_PATH = "/Vera.ttf";
+//	static final String FONT_NAME = "Bitstream Vera Sans";
 	static Log log = LogFactory.getLog(RoboFont.class);
 	static Font basePlainFont;
 	static Font baseBoldFont;
@@ -53,7 +55,7 @@ public class RoboFont {
 	}
 
 	private static void getFontFromSystem() {
-		log.info("Loading font '"+FONT_NAME+"' from system");
+		log.info("Loading font '" + FONT_NAME + "' from system");
 		basePlainFont = new Font(FONT_NAME, Font.PLAIN, 12);
 		baseBoldFont = new Font(FONT_NAME, Font.BOLD, 12);
 		derivedPlainFonts.put(12, basePlainFont);
@@ -61,7 +63,7 @@ public class RoboFont {
 	}
 
 	private static void getFontFromIncludedTtf() {
-		log.info("Loading font '"+FONT_NAME+"' from bundled ttf file");
+		log.info("Loading font '" + FONT_NAME + "' from bundled ttf file");
 		// There seems to be a weird bug in some versions of java 5 that throws a FontFormatException when we load
 		// direct from an inputstream, but works fine if we pass it a file... strange, but whatever, we just copy it out
 		try {

@@ -8,11 +8,6 @@
 	<typedef name="fatjar.jarsource" classname="net.sf.fjep.anttask.FJJarSourceType" classpathref="fjepPath" />
 	<typedef name="fatjar.filesource" classname="net.sf.fjep.anttask.FJFileSourceType" classpathref="fjepPath" />
 	<typedef name="yguard" classname="com.yworks.yguard.YGuardTask" classpath="../core/buildlib/yguard.jar" />
-	<typedef resource="org/unintelligible/antjnlpwar/antjnlpwar.xml" format="xml" uri="org.unintelligible.antjnlpwar">
-		<classpath>
-			<pathelement location="../core/buildlib/ant-jnlp-war-0.9_deps.jar" />
-		</classpath>
-	</typedef>
 
 	<property name="dist.dir" location="target/dist/" />
 	<property name="tmp.dir" location="target/tmp" />
@@ -61,6 +56,10 @@
 		</propertyfile>
 	</target>
 
+	<target name="genkey">
+		<genkey alias="robo-jnlp" storepass="password" dname="CN=Robonobo Dev Key, O=robonobo.com, C=UK" />
+	</target>
+
 	<target name="fatjar" depends="build">
 		<fatjar.build output="${dist.dir}/robonobo-${version}.jar">
 			<fatjar.manifest manifestfile="${basedir}/fatjar.manifest" mergemanifests="false" />
@@ -99,6 +98,7 @@
 			<fatjar.jarsource file="../common/lib/twmacinta-fastmd5.jar" relpath="." />
 			<fatjar.jarsource file="../common/lib/hsqldb.jar" relpath="." />
 		</fatjar.build>
+		<signjar jar="${dist.dir}/robonobo-${version}.jar" alias="robo-jnlp" storepass="password"/>
 	</target>
 
 	<target name="shrink" depends="fatjar">
@@ -190,18 +190,6 @@
 				</keep>
 			</shrink>
 		</yguard>
-	</target>
-
-	<target name="genkey">
-		<genkey alias="robo-jnlp" storepass="password" dname="CN=Robonobo Dev Key, O=robonobo.com, C=UK" />
-	</target>
-
-	<target name="jnlp" depends="fatjar">
-		<jw:jnlpwar tofile="${dist.dir}/robonobo-launch-${version}.war" codebase="http://robonobo.com/robonobo-launch-${version}" title="robonobo" vendor="The robonobo project" homepage="http://robonobo.com" pack200="false" signStorepass="password" signAlias="robo-jnlp">
-			<jw:application jar="${dist.dir}/robonobo-${version}.jar" mainclass="com.robonobo.Robonobo" />
-			<jw:description>robonobo is a music-sharing application</jw:description>
-			<jw:j2se minVersion="1.5" />
-		</jw:jnlpwar>
 	</target>
 
 	<target name="clean">
