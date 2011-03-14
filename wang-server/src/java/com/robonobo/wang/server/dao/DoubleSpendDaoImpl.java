@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository("doubleSpendDao")
-public class DoubleSpendDAOImpl implements DoubleSpendDao {
+public class DoubleSpendDaoImpl implements DoubleSpendDao {
 	private static final String CHECK_SQL = "SELECT count(*) FROM doublespend WHERE coin_hash = ?";
 	private static final String ADD_SQL = "INSERT INTO doublespend (coin_hash) VALUES (?)";
 

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Repository;
 import com.robonobo.wang.server.UserAccount;
 
 @Repository("userAccountDao")
-public class UserAccountDAOImpl implements UserAccountDao {
+public class UserAccountDaoImpl implements UserAccountDao {
 	private static final String CREATE_UA_SQL = "INSERT INTO user_account (friendly_name, email, password, balance) values (?, ?, ?, 0)";
 	private static final String GET_UA_SQL = "SELECT * FROM user_account WHERE email = ?";
 	private static final String LOCK_UA_SQL = GET_UA_SQL + " FOR UPDATE";

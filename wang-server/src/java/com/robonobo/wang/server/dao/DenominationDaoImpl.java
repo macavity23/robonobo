@@ -19,7 +19,7 @@ import com.robonobo.wang.beans.DenominationPrivate;
 import com.robonobo.wang.beans.DenominationPublic;
 
 @Repository("denominationDao")
-public class DenominationDAOImpl implements DenominationDao {
+public class DenominationDaoImpl implements DenominationDao {
 	private static final String GET_DENOMS_SQL = "SELECT * FROM denomination";
 	static final String DELETE_DENOMS_SQL = "DELETE FROM denomination";
 	static final String INSERT_DENOM_SQL = "INSERT INTO denomination (id, denom, generator, prime, public_key, private_key) VALUES (?, ?, ?, ?, ?, ?)";
