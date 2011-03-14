@@ -190,6 +190,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		Pattern uriPat = Pattern.compile("^rbnb:(\\w+):(.*)$");
 		Matcher m = uriPat.matcher(uri);
 		if (m.matches()) {
+			log.info("Opening URI "+uri);
 			String objType = m.group(1);
 			String objId = m.group(2);
 			if (objType.equalsIgnoreCase("focus")) {
@@ -201,8 +202,8 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				leftSidebar.showPlaylist(pId);
 				return;
 			}
-		}
-		log.error("Received invalid rbnb uri: " + uri);
+		} else 
+			log.error("Received invalid rbnb uri: " + uri);
 	}
 
 	public void showWelcome(boolean forceShow) {

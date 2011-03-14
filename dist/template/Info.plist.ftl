@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>JavaApplicationStub</string>
 	<key>CFBundleIconFile</key>
-	<string>robonobo.icns</string>
+	<string>robonobo-icon.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.robonobo</string>
 	<key>CFBundleInfoDictionaryVersion</key>
