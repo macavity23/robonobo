@@ -11,10 +11,6 @@
 	</versionInfo>
 	
 	<customProcName>true</customProcName>
-	<singleInstance>
-		<mutexName>robo-instance-mutex</mutexName>
-		<windowTitle>robonobo</windowTitle>
-	</singleInstance>
 	<jre>
 		<minVersion>1.6.0</minVersion>
 	</jre>
@@ -25,7 +21,8 @@
 	</messages>
 	<!-- 
 	<splash>
-		<file>img/splash.bmp</file>
+		<file>img/rbnb-splash.bmp</file>
+		<timeout>60</timeout>
 	</splash>
 	 -->
 </launch4jConfig>

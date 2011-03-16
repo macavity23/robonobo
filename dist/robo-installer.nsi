@@ -26,6 +26,10 @@ CreateShortCut "$SMPROGRAMS\robonobo.lnk" "$INSTDIR\robonobo-${VERSION}.exe"
 WriteUninstaller $INSTDIR\uninstall.exe
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\robonobo" "DisplayName" "robonobo - a music sharing application"
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\robonobo" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
+WriteRegStr HKCR "rbnb" "URL Protocol" ""
+WriteRegStr HKCR "rbnb" "(Default)" "URL: robonobo playlist or action"
+WriteRegStr HKCR "rbnb\DefaultIcon" "(Default)" "$INSTDIR\robonobo-${VERSION}.exe,1"
+WriteRegStr HKCR "rbnb\shell\open\command" "(Default)" "$INSTDIR\robonobo-${VERSION}.exe %1"
 SectionEnd
 
 Section "uninstall"
@@ -34,6 +38,7 @@ Delete $INSTDIR\robonobo-${VERSION}.exe
 Delete "$SMPROGRAMS\robonobo.lnk"
 RMDir $INSTDIR
 DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\robonobo"
+DeleteRegKey HKCR "rbnb"
 SectionEnd
 
 ;  JRE stuff taken from http://nsis.sourceforge.net/Java_Launcher_with_automatic_JRE_installation 
