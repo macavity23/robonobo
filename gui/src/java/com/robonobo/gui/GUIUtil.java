@@ -1,7 +1,10 @@
 package com.robonobo.gui;
 
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Window;
 import java.io.IOException;
 import java.net.URL;
@@ -11,25 +14,25 @@ import javax.swing.ImageIcon;
 
 import com.robonobo.common.exceptions.SeekInnerCalmException;
 
-public class GUIUtils {
+public class GUIUtil {
 	public static final int DEFAULT_NUM_SHAKES = 10;
 	public static final int DEFAULT_SHAKE_FORCE = 5;
 
 	public static ImageIcon createImageIcon(String path, String description) {
-		URL imgUrl = GUIUtils.class.getResource(path);
+		URL imgUrl = GUIUtil.class.getResource(path);
 		if (imgUrl == null)
 			return null;
 		return new ImageIcon(imgUrl, description);
 	}
 
 	public static Image getImage(String path) {
-        try {
-            return ImageIO.read(GUIUtils.class.getResource(path));
-        } catch (IOException e) {
-        	throw new SeekInnerCalmException(e);
-        }
+		try {
+			return ImageIO.read(GUIUtil.class.getResource(path));
+		} catch (IOException e) {
+			throw new SeekInnerCalmException(e);
+		}
 	}
-	
+
 	public static void shakeWindow(final Window win, int numShakes, int shakeForce) {
 		final Rectangle origRect = win.getBounds();
 		for (int i = 0; i < numShakes; i++) {
@@ -48,6 +51,14 @@ public class GUIUtils {
 	}
 
 	public static void shakeWindow(Window win) {
-		GUIUtils.shakeWindow(win, DEFAULT_NUM_SHAKES, DEFAULT_SHAKE_FORCE);
+		GUIUtil.shakeWindow(win, DEFAULT_NUM_SHAKES, DEFAULT_SHAKE_FORCE);
+	}
+
+	/** In MS windows, if we don't call this in paintComponent(), text looks like poop */
+	public static void makeTextLookLessRubbish(Graphics gr) {
+		Graphics2D g = (Graphics2D) gr;
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 	}
 }

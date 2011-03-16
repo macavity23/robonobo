@@ -35,7 +35,7 @@ public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarC
 		setPreferredSize(new Dimension(185, 19));
 		setMinimumSize(new Dimension(185, 19));
 		setMaximumSize(new Dimension(185, 19));
-		lbl = (lblBold) ? new RLabel11B(label, icon, JLabel.LEFT) : new RLabel11(label, icon, JLabel.LEFT);
+		lbl = (lblBold) ? new RLabel13B(label, icon, JLabel.LEFT) : new RLabel13(label, icon, JLabel.LEFT);
 		lbl.setOpaque(false);
 		add(lbl);
 		addMouseListener(new MouseListener());

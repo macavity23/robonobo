@@ -1,6 +1,6 @@
 package com.robonobo.gui.components;
 
-import static com.robonobo.gui.GUIUtils.*;
+import static com.robonobo.gui.GUIUtil.*;
 import static com.robonobo.gui.RoboColor.*;
 import static javax.swing.SwingUtilities.*;
 
@@ -20,6 +20,7 @@ import com.robonobo.core.Platform;
 import com.robonobo.core.api.UserPlaylistListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.RoboFont;
+import com.robonobo.gui.components.base.RLabel13;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.PlaylistListModel;
 import com.robonobo.gui.model.StreamTransfer;
@@ -143,17 +144,17 @@ public class PlaylistList extends LeftSidebarList implements UserPlaylistListene
 		frame.getMainPanel().selectContentPanel("playlist/" + p.getPlaylistId());
 	}
 
-	class CellRenderer extends DefaultListRenderer {
-		JLabel lbl = new JLabel();
-
-		public CellRenderer() {
-			lbl = new JLabel();
-			lbl.setOpaque(true);
-			lbl.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
-			lbl.setFont(RoboFont.getFont(11, false));
-			lbl.setMaximumSize(new Dimension(MAX_LBL_WIDTH, 65535));
-			lbl.setPreferredSize(new Dimension(MAX_LBL_WIDTH, 65535));
+	class ItemLbl extends RLabel13 {
+		public ItemLbl() {
+			setOpaque(true);
+			setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+			setMaximumSize(new Dimension(MAX_LBL_WIDTH, 65535));
+			setPreferredSize(new Dimension(MAX_LBL_WIDTH, 65535));
 		}
+	}
+
+	class CellRenderer extends DefaultListRenderer {
+		JLabel lbl = new ItemLbl();
 
 		@Override
 		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,

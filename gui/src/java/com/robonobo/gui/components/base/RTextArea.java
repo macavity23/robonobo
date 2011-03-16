@@ -5,6 +5,7 @@ import java.awt.*;
 import javax.swing.JTextArea;
 import javax.swing.text.Document;
 
+import com.robonobo.gui.GUIUtil;
 import com.robonobo.gui.RoboFont;
 
 public class RTextArea extends JTextArea {
@@ -56,6 +57,7 @@ public class RTextArea extends JTextArea {
 
 	@Override
 	protected void paintComponent(Graphics g) {
+		GUIUtil.makeTextLookLessRubbish(g);
 		if (bgColor != null) {
 			g.setColor(bgColor);
 			g.fillRect(0, 0, getWidth(), getHeight());

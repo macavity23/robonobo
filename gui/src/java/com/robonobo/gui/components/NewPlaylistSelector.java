@@ -1,6 +1,6 @@
 package com.robonobo.gui.components;
 
-import static com.robonobo.gui.GUIUtils.*;
+import static com.robonobo.gui.GUIUtil.*;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;

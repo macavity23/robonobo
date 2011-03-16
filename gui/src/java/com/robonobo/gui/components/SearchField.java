@@ -25,7 +25,7 @@ public class SearchField extends JPanel {
 		setMaximumSize(new Dimension(185, 30));
 		setAlignmentX(0f);
 		searchField = new RTextField("Search...");
-		searchField.setFont(RoboFont.getFont(11, false));
+		searchField.setFont(RoboFont.getFont(13, false));
 		searchField.setName("robonobo.search.textfield");
 		searchField.setPreferredSize(new Dimension(170, 25));
 		searchField.setMinimumSize(new Dimension(170, 25));

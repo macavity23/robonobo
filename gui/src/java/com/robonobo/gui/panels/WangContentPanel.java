@@ -1,7 +1,7 @@
 package com.robonobo.gui.panels;
 
 import static com.robonobo.common.util.TimeUtil.*;
-import static com.robonobo.gui.GUIUtils.*;
+import static com.robonobo.gui.GUIUtil.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.Color;
@@ -24,7 +24,7 @@ import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.UserPlaylistListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.wang.WangListener;
-import com.robonobo.gui.GUIUtils;
+import com.robonobo.gui.GUIUtil;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;

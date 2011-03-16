@@ -1,8 +1,11 @@
 package com.robonobo.gui.components.base;
 
 import java.awt.Font;
+import java.awt.Graphics;
 
 import javax.swing.*;
+
+import com.robonobo.gui.GUIUtil;
 
 public abstract class RButton extends JButton {
 
@@ -35,6 +38,12 @@ public abstract class RButton extends JButton {
 		Font font = getRFont();
 		if(font != null)
 			setFont(font);
+	}
+	
+	@Override
+	protected void paintComponent(Graphics g) {
+		GUIUtil.makeTextLookLessRubbish(g);
+		super.paintComponent(g);
 	}
 	
 	protected abstract Font getRFont();

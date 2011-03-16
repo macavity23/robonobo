@@ -1,6 +1,6 @@
 package com.robonobo.gui.components;
 
-import static com.robonobo.gui.GUIUtils.*;
+import static com.robonobo.gui.GUIUtil.*;
 import static com.robonobo.gui.RoboColor.*;
 
 import java.awt.Component;
@@ -14,6 +14,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 
 import com.robonobo.core.api.model.User;
+import com.robonobo.gui.GUIUtil;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.*;
@@ -33,8 +34,8 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 		super(new FriendTreeModel(frame), frame);
 		this.sideBar = sb;
 
-		normalFont = RoboFont.getFont(11, false);
-		boldFont = RoboFont.getFont(11, true);
+		normalFont = RoboFont.getFont(13, false);
+		boldFont = RoboFont.getFont(13, true);
 		setName("robonobo.playlist.tree");
 		setAlignmentX(0.0f);
 		setRootVisible(true);
@@ -144,6 +145,12 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 			paintComponent(g);
 		}
 
+		@Override
+		protected void paintComponent(Graphics g) {
+			GUIUtil.makeTextLookLessRubbish(g);
+			super.paintComponent(g);
+		}
+		
 		int getTotalUnseen(TreeNode n) {
 			int unseen = 0;
 			for (int i = 0; i < n.getChildCount(); i++) {

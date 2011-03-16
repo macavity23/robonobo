@@ -39,9 +39,9 @@ public class TrackList extends JPanel implements SearchExecutor {
 	JXTable table;
 	TrackListTableModel model;
 	Icon startingIcon = new SpinnerIcon(16, RoboColor.DARKISH_GRAY);
-	Icon playingIcon = GUIUtils.createImageIcon("/table/play.png", null);
-	Icon pausedIcon = GUIUtils.createImageIcon("/table/pause.png", null);
-	Icon downloadingIcon = GUIUtils.createImageIcon("/table/download.png", null);
+	Icon playingIcon = GUIUtil.createImageIcon("/table/play.png", null);
+	Icon pausedIcon = GUIUtil.createImageIcon("/table/pause.png", null);
+	Icon downloadingIcon = GUIUtil.createImageIcon("/table/download.png", null);
 	Log log;
 	RobonoboFrame frame;
 
@@ -90,8 +90,8 @@ public class TrackList extends JPanel implements SearchExecutor {
 		// java5 users don't see the sorting arrow, but it's better than a white header
 		if (javaMajorVersion() >= 6) {
 			table.getTableHeader().setDefaultRenderer(new DefaultTableCellRenderer() {
-				ImageIcon ascSortIcon = GUIUtils.createImageIcon("/icon/arrow_up.png", null);
-				ImageIcon descSortIcon = GUIUtils.createImageIcon("/icon/arrow_down.png", null);
+				ImageIcon ascSortIcon = GUIUtil.createImageIcon("/icon/arrow_up.png", null);
+				ImageIcon descSortIcon = GUIUtil.createImageIcon("/icon/arrow_down.png", null);
 
 				public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
 						boolean hasFocus, int row, int column) {
@@ -247,8 +247,8 @@ public class TrackList extends JPanel implements SearchExecutor {
 	}
 
 	class TextRenderer extends DefaultTableCellRenderer {
-		Font plainFont = RoboFont.getFont(12, false);
-		Font boldFont = RoboFont.getFont(12, true);
+		Font plainFont = RoboFont.getFont(13, false);
+		Font boldFont = RoboFont.getFont(13, true);
 
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
 				boolean hasFocus, int row, int column) {
@@ -259,6 +259,12 @@ public class TrackList extends JPanel implements SearchExecutor {
 			else
 				result.setFont(plainFont);
 			return result;
+		}
+		
+		@Override
+		protected void paintComponent(Graphics g) {
+			GUIUtil.makeTextLookLessRubbish(g);
+			super.paintComponent(g);
 		}
 	}
 

@@ -1,9 +1,12 @@
 package com.robonobo.gui.components.base;
 
 import java.awt.Font;
+import java.awt.Graphics;
 
 import javax.swing.Icon;
 import javax.swing.JLabel;
+
+import com.robonobo.gui.GUIUtil;
 
 public abstract class RLabel extends JLabel {
 
@@ -44,4 +47,10 @@ public abstract class RLabel extends JLabel {
 	}
 	
 	protected abstract Font getRFont();
+	
+	@Override
+	protected void paintComponent(Graphics g) {
+		GUIUtil.makeTextLookLessRubbish(g);
+		super.paintComponent(g);
+	}
 }

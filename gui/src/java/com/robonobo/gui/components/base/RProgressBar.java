@@ -1,10 +1,12 @@
 package com.robonobo.gui.components.base;
 
 import java.awt.Font;
+import java.awt.Graphics;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.JProgressBar;
 
+import com.robonobo.gui.GUIUtil;
 import com.robonobo.gui.RoboFont;
 
 public class RProgressBar extends JProgressBar {
@@ -39,6 +41,11 @@ public class RProgressBar extends JProgressBar {
 			setFont(font);
 	}
 
+	@Override
+	protected void paintComponent(Graphics g) {
+		GUIUtil.makeTextLookLessRubbish(g);
+		super.paintComponent(g);
+	}
 	protected Font getRFont() {
 		return RoboFont.getFont(11, false);
 	}

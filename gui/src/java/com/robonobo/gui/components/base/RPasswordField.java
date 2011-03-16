@@ -1,10 +1,12 @@
 package com.robonobo.gui.components.base;
 
 import java.awt.Font;
+import java.awt.Graphics;
 
 import javax.swing.JPasswordField;
 import javax.swing.text.Document;
 
+import com.robonobo.gui.GUIUtil;
 import com.robonobo.gui.RoboFont;
 
 public class RPasswordField extends JPasswordField {
@@ -40,6 +42,12 @@ public class RPasswordField extends JPasswordField {
 			setFont(font);
 	}
 
+	@Override
+	protected void paintComponent(Graphics g) {
+		GUIUtil.makeTextLookLessRubbish(g);
+		super.paintComponent(g);
+	}
+	
 	protected Font getRFont() {
 		return RoboFont.getFont(11, false);
 	}
