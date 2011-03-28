@@ -3,7 +3,7 @@ Section: sound
 Priority: optional
 Maintainer: Will Morton <macavity@well.com>
 Build-Depends: debhelper (>> 7), javahelper (>= 0.24)
-Build-Depends-Indep: openjdk-6-jdk, ant, libhsqldb-java, libcommons-codec-java, libcommons-httpclient-java, libcommons-logging-java, liblog4j1.2-java, libprotobuf-java, libfast-md5-java, libcommons-cli-java, libcommons-jxpath-java, libtablelayout-java, libjlayer-java, libbasicplayer-java
+Build-Depends-Indep: openjdk-6-jdk, ant, libhsqldb-java, libcommons-codec-java, libcommons-httpclient-java, libcommons-logging-java, liblog4j1.2-java, libprotobuf-java, libfast-md5-java, libcommons-cli-java, libcommons-jxpath-java, libjlayer-java, libbasicplayer-java, bsh
 Standards-Version: 3.8.4
 Homepage: http://robonobo.com/
 

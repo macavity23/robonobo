@@ -5,8 +5,10 @@
 	<property name="nsis.path" location="F:/NSIS/" />
 	<taskdef name="envgen" classname="com.basilv.envgen.EnvGenTask" classpath="buildlib/EnvGen-with-dependencies.jar"/>
 
+	<!--
 	<property name="launch4j.dir" location="F:/Launch4J" />
 	<taskdef name="launch4j" classname="net.sf.launch4j.ant.Launch4jTask" classpath="${launch4j.dir}/launch4j.jar:${launch4j.dir}/lib/xstream.jar" />
+	-->
 	
 	<property name="out" location="target/dist"/>
 	<property name="dist.dir" location="target/dist/" />
@@ -117,7 +119,7 @@
 				<include name="com/**/*"/>
 			</fileset>
 			<fileset dir="../common/src/java">
-				<include name="com/**/*"/>
+				<include name="**/*"/>
 			</fileset>
 			<fileset dir="../console/src/java">
 				<include name="com/**/*"/>
@@ -142,13 +144,16 @@
 			</fileset>
 		</copy>
 		<mkdir dir="${src.dir}/lib"/>
-		<!-- Even though debian has mp3spi/tritonus packages, robonobo doesn't work when uses them, so
-		     package in our own, and investigate this in our copious free time... -->
 		<copy todir="${src.dir}/lib">
+			<fileset file="../gui/lib/robolaf.jar"/>
 			<fileset file="../common/lib/jug-1.1.2.jar"/>
 			<fileset file="../core/lib/sbbi-jmx-1.0.jar"/>
 			<fileset file="../core/lib/sbbi-upnplib-1.0.3.jar"/>
 			<fileset file="../gui/lib/swingx-0.9.7.jar"/>
+		<!-- debian has a libtablelayout-java package, but it uses a different java package name for some reason, so we just use our own -->
+			<fileset file="../common/lib/tablelayout.jar"/>
+		<!-- Even though debian has mp3spi/tritonus packages, robonobo doesn't work when uses them, so
+		     package in our own, and investigate this in our copious free time... -->
 			<fileset file="../plugin-mp3/lib/mp3spi-robo.jar"/>
 		</copy>
 	</target>
@@ -160,7 +165,12 @@
 				<include name="**/*"/>
 			</fileset>
 		</copy>
-		<echo message="NOW UPDATE THE DEBIAN CHANGELOG!"/>
+		<echo message="Now do the following:"/>
+		<echo message="$ cd target/tmp/robonobo-${version}"/>
+		<echo message="$ vi debian/changelog # Edit as necessary"/>
+		<echo message="$ sudo dpkg-buildpackage"/>
+		<echo message="This will build the .deb in target/tmp"/>
+
 	</target>
 		
 	<target name="clean">
