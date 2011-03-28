@@ -1,0 +1,9 @@
+# To build on OSX - builds a dmg with the app bundle inside
+$ ant dist-osx
+
+# To build on windows - first edit build.xml and uncomment the launch4j parameters, and make sure nsis.path and launch4j.dir are correct - builds an installer exe
+$ ant dist-win
+
+# To build the debian source tree
+$ ant dist-debian
+# This will output some helpful messages that tell you how to build the .deb package
