@@ -114,6 +114,7 @@
 		<mkdir dir="${tmp.dir}"/>
 		<property name="src.dir" value="${tmp.dir}/robonobo-${version}"/>
 		<mkdir dir="${src.dir}"/>
+      <!-- Copy java source -->
 		<copy todir="${src.dir}/src">
 			<fileset dir="../api/src/java">
 				<include name="com/**/*"/>
@@ -143,6 +144,23 @@
 				<include name="**/*"/>
 			</fileset>
 		</copy>
+      <!-- Copy text/props files, images, fonts -->
+      <copy todir="${src.dir}/src">
+			<fileset dir="../gui/src/text">
+				<include name="**/*"/>
+			</fileset>
+			<fileset dir="../gui/src/font">
+				<include name="**/*"/>
+			</fileset>
+			<fileset dir="../gui/src/img">
+				<include name="**/*"/>
+			</fileset>
+      </copy>
+		<!-- Make build.properties -->
+		<propertyfile file="${src.dir}/src/robonobo-build.properties">
+			<entry key="version" value="${version}" />
+		</propertyfile>
+      <!-- Copy libs -->
 		<mkdir dir="${src.dir}/lib"/>
 		<copy todir="${src.dir}/lib">
 			<fileset file="../gui/lib/robolaf.jar"/>
