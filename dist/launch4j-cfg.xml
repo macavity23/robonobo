@@ -19,6 +19,7 @@
 		<jreVersionErr>The version of Java you have is too old - but a newer one should have been installed by robonobo! Please file a bug report at http://robonobo.com/ and we will fix it ASAP.</jreVersionErr>
 		<launcherErr>robonobo encountered an error while launching. We are sorry :-( Please file a bug report at http://robonobo.com/ and we will fix it ASAP.</launcherErr>
 	</messages>
+	<icon>img/rbnb.ico</icon>
 	<!-- 
 	<splash>
 		<file>img/rbnb-splash.bmp</file>
