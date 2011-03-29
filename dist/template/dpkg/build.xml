@@ -2,6 +2,7 @@
 	<description>robonobo build file for debian</description>
 
 	<!-- Properties -->
+
 	<property name="src" location="src" />
 	<property name="build" location="build" />
 	<property name="lib" location="lib" />
@@ -23,7 +24,7 @@
 			</classpath>
 		</javac>
 		<copy todir="${build}">
-			<fileset dir="${src}" includes="**/*.properties,**/*.xml,**/*.png,**/*.js,**/*.wsf, **/*.html,**/*.txt" />
+			<fileset dir="${src}" includes="**/*.properties,**/*.xml,**/*.png,**/*.js,**/*.wsf, **/*.html,**/*.txt,**/*.ttf,**/*.skel" />
 		</copy>
 		<jar destfile="${jar}" level="9">
 			<fileset dir="${build}">
