@@ -35,7 +35,7 @@ public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarC
 		setPreferredSize(new Dimension(185, 19));
 		setMinimumSize(new Dimension(185, 19));
 		setMaximumSize(new Dimension(185, 19));
-		lbl = (lblBold) ? new RLabel13B(label, icon, JLabel.LEFT) : new RLabel13(label, icon, JLabel.LEFT);
+		lbl = (lblBold) ? new RLabel12B(label, icon, JLabel.LEFT) : new RLabel12(label, icon, JLabel.LEFT);
 		lbl.setOpaque(false);
 		add(lbl);
 		addMouseListener(new MouseListener());
@@ -63,7 +63,7 @@ public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarC
 	}
 	
 	public void setBold(boolean bold) {
-		lbl.setFont(RoboFont.getFont(11, bold));
+		lbl.setFont(RoboFont.getFont(12, bold));
 	}
 	
 	public void setText(String text) {

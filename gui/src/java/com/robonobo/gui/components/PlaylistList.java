@@ -19,8 +19,7 @@ import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.UserPlaylistListener;
 import com.robonobo.core.api.model.*;
-import com.robonobo.gui.RoboFont;
-import com.robonobo.gui.components.base.RLabel13;
+import com.robonobo.gui.components.base.RLabel12;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.PlaylistListModel;
 import com.robonobo.gui.model.StreamTransfer;
@@ -144,7 +143,7 @@ public class PlaylistList extends LeftSidebarList implements UserPlaylistListene
 		frame.getMainPanel().selectContentPanel("playlist/" + p.getPlaylistId());
 	}
 
-	class ItemLbl extends RLabel13 {
+	class ItemLbl extends RLabel12 {
 		public ItemLbl() {
 			setOpaque(true);
 			setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));

@@ -44,6 +44,6 @@ public class RComboBox extends JComboBox {
 		super.paintComponent(g);
 	}
 	protected Font getRFont() {
-		return RoboFont.getFont(11, false);
+		return RoboFont.getFont(12, false);
 	}
 }

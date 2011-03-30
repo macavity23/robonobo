@@ -83,7 +83,7 @@ public class ActiveSearchList extends LeftSidebarList {
 		ImageIcon closeIconSel;
 
 		public CellRenderer() {
-			textLbl = new RLabel11();
+			textLbl = new RLabel12();
 			textLbl.setOpaque(false);
 			textLbl.setIcon(new ImageIcon(ActiveSearchList.class.getResource("/icon/magnifier_small.png")));
 			textLbl.setMaximumSize(new Dimension(MAX_LBL_WIDTH, 65535));

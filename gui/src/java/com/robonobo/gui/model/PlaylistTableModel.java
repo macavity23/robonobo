@@ -66,7 +66,7 @@ public class PlaylistTableModel extends TrackListTableModel implements TrackList
 		}
 	}
 
-	public synchronized void nuke() {
+	public void nuke() {
 		controller.removeTrackListener(this);
 		for (String streamId : p.getStreamIds()) {
 			controller.stopFindingSources(streamId, this);
@@ -187,10 +187,6 @@ public class PlaylistTableModel extends TrackListTableModel implements TrackList
 		return p;
 	}
 
-	public void setPlaylist(Playlist p) {
-		this.p = p;
-	}
-	
 	@Override
 	public boolean allowDelete() {
 		// Allow deletions only from my playlists

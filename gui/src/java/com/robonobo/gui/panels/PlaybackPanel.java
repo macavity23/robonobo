@@ -86,18 +86,18 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 			}
 		});
 		add(titlesPanel, BorderLayout.CENTER);
-		titleLbl = new RLabel24("");
-		titleLbl.setPreferredSize(new Dimension(450, 38));
-		titleLbl.setMinimumSize(new Dimension(450, 38));
-		titleLbl.setMaximumSize(new Dimension(450, 38));
-		titleLbl.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 0));
+		titleLbl = new RLabel26("");
+		titleLbl.setPreferredSize(new Dimension(450, 35));
+		titleLbl.setMinimumSize(new Dimension(450, 35));
+		titleLbl.setMaximumSize(new Dimension(450, 35));
+		titleLbl.setBorder(BorderFactory.createEmptyBorder(5, 10, 0, 0));
 		titleLbl.setForeground(BLUE_GRAY);
 		titlesPanel.add(titleLbl);
-		artistLbl = new RLabel18B("");
+		artistLbl = new RLabel20B("");
 		artistLbl.setPreferredSize(new Dimension(450, 20));
 		artistLbl.setBorder(BorderFactory.createEmptyBorder(1, 10, 0, 0));
 		titlesPanel.add(artistLbl);
-		albumLbl = new RLabel16("");
+		albumLbl = new RLabel18("");
 		albumLbl.setPreferredSize(new Dimension(450, 20));
 		albumLbl.setBorder(BorderFactory.createEmptyBorder(2, 10, 0, 0));
 		titlesPanel.add(albumLbl);

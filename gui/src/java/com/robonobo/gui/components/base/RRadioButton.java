@@ -61,7 +61,7 @@ public class RRadioButton extends JRadioButton {
 		super.paintComponent(g);
 	}
 	protected Font getRFont() {
-		return RoboFont.getFont(12, true);
+		return RoboFont.getFont(13, true);
 	}
 
 }

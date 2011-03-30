@@ -18,12 +18,12 @@ public class BoolPrefPanel extends PrefPanel {
 	public BoolPrefPanel(RobonoboFrame frame, String propName, String description) {
 		super(frame);
 		this.propName = propName;
-		double[][] cellSizen = { { 5, TableLayout.FILL, 140, 50, 5, 50, 5 }, { 25 } };
+		double[][] cellSizen = { { 5, TableLayout.FILL, 140, 70, 5, 70, 5 }, { 25 } };
 		setLayout(new TableLayout(cellSizen));
 		RLabel descLbl = new RLabel12(description);
 		add(descLbl, "1,0");
-		trueBut = new RRadioButton11B("Yes");
-		falseBut = new RRadioButton11B("No");
+		trueBut = new RRadioButton("Yes");
+		falseBut = new RRadioButton("No");
 		ButtonGroup butGr = new ButtonGroup();
 		butGr.add(trueBut);
 		butGr.add(falseBut);

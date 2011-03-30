@@ -34,8 +34,8 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 		super(new FriendTreeModel(frame), frame);
 		this.sideBar = sb;
 
-		normalFont = RoboFont.getFont(13, false);
-		boldFont = RoboFont.getFont(13, true);
+		normalFont = RoboFont.getFont(12, false);
+		boldFont = RoboFont.getFont(12, true);
 		setName("robonobo.playlist.tree");
 		setAlignmentX(0.0f);
 		setRootVisible(true);

@@ -37,7 +37,7 @@ public class RSmallRoundButton extends RButton {
 	@Override
 	protected Font getRFont() {
 		setName("robonobo.small.round.button");
-		return RoboFont.getFont(11, false);
+		return RoboFont.getFont(12, false);
 	}
 
 }

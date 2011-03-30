@@ -34,7 +34,7 @@ public class UploadLimitPrefPanel extends PrefPanel {
 		};
 		add(new RLabel12("Upload speed"), "1,0");
 		ButtonGroup bg = new ButtonGroup();
-		unlimBtn = new RRadioButton11B("Unlimited");
+		unlimBtn = new RRadioButton("Unlimited");
 		unlimBtn.addActionListener(as);
 		bg.add(unlimBtn);
 		add(unlimBtn, "2,0");
@@ -44,7 +44,7 @@ public class UploadLimitPrefPanel extends PrefPanel {
 		add(limBtn, "3,0");
 		limField = new RIntegerTextField(null, false);
 		add(limField, "4,0");
-		add(new RLabel11B("KB/s"), "5,0");
+		add(new RLabel13B("KB/s"), "5,0");
 		resetValue();
 	}
 

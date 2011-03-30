@@ -52,7 +52,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 		setLayout(new GridLayout(1, 0));
 		setBorder(BorderFactory.createEmptyBorder(0, 1, 0, 1));
 		table = new JXTable(model);
-		table.setFont(RoboFont.getFont(12, false));
+		table.setFont(RoboFont.getFont(13, false));
 		table.setRowHeight(21);
 		table.setColumnControlVisible(true);
 		table.setHorizontalScrollEnabled(true);
@@ -347,6 +347,12 @@ public class TrackList extends JPanel implements SearchExecutor {
 				lbl.setBorder(lblBorder);
 				return lbl;
 			}
+		}
+		
+		@Override
+		protected void paintComponent(Graphics g) {
+			GUIUtil.makeTextLookLessRubbish(g);
+			super.paintComponent(g);
 		}
 	}
 

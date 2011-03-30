@@ -98,7 +98,10 @@
 			<fatjar.jarsource file="../common/lib/twmacinta-fastmd5.jar" relpath="." />
 			<fatjar.jarsource file="../common/lib/hsqldb.jar" relpath="." />
 		</fatjar.build>
+		<!-- If you are building for the jnlp, uncomment this! -->
+		<!--
 		<signjar jar="${dist.dir}/robonobo-${version}.jar" alias="robo-jnlp" storepass="password"/>
+		-->
 	</target>
 
 	<target name="shrink" depends="fatjar">

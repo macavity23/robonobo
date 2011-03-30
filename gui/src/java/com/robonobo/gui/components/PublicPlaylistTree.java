@@ -29,7 +29,7 @@ public class  PublicPlaylistTree extends LeftSidebarTree {
 		setName("robonobo.playlist.tree");
 		setAlignmentX(0.0f);
 		setRootVisible(true);
-		font = RoboFont.getFont(13, false);
+		font = RoboFont.getFont(12, false);
 		rootIcon = createImageIcon("/icon/world.png", null);
 		playlistIcon = createImageIcon("/icon/playlist.png", null);
 		setCellRenderer(new CellRenderer());

@@ -132,7 +132,6 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements User
 	@Override
 	public void playlistChanged(Playlist p) {
 		if (p.equals(getModel().getPlaylist())) {
-			getModel().setPlaylist(p);
 			titleField.setText(p.getTitle());
 			descField.setText(p.getDescription());
 			String vis = p.getVisibility();
@@ -144,8 +143,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements User
 				visMeBtn.setSelected(true);
 			else
 				throw new SeekInnerCalmException("invalid visibility " + vis);
-			PlaylistTableModel ptm = (PlaylistTableModel) trackList.getModel();
-			ptm.update(p, true);
+			getModel().update(p, true);
 		}
 	}
 
@@ -261,7 +259,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements User
 				}
 			};
 
-			RLabel visLbl = new RLabel12B("Show playlist to:");
+			RLabel visLbl = new RLabel13B("Show playlist to:");
 			add(visLbl);
 			add(Box.createVerticalStrut(5));
 			ButtonGroup bg = new ButtonGroup();

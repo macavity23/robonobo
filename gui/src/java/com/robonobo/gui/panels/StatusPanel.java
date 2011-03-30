@@ -56,13 +56,11 @@ public class StatusPanel extends JPanel implements RobonoboStatusListener, Trans
 		networkStatusIcon = new RIconLabel(connFailImg);
 		add(networkStatusIcon, "2,3,2,5");
 		
-		numConnsLbl = new RLabel9("Starting...");
-		numConnsLbl.setFont(RoboFont.getFont(9, false));
+		numConnsLbl = new RLabel11("Starting...");
 		numConnsLbl.setForeground(Color.WHITE);
 		add(numConnsLbl, "4,3,5,3,LEFT,BOTTOM");
 
-		bandwidthLbl = new RLabel9("");
-		bandwidthLbl.setFont(RoboFont.getFont(9, false));
+		bandwidthLbl = new RLabel11("");
 		bandwidthLbl.setForeground(Color.WHITE);
 		add(bandwidthLbl, "4,4,5,4,LEFT,BOTTOM");
 

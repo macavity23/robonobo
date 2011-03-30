@@ -42,7 +42,7 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 							descField.setText("");
 							if(iTunesCB != null)
 								iTunesCB.setSelected(false);
-							getModel().setPlaylist(newP);
+							getModel().update(newP, true);
 						}
 					});
 					control.checkPlaylistUpdate(updatedP.getPlaylistId());

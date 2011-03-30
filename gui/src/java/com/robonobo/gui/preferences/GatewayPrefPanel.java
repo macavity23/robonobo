@@ -34,17 +34,17 @@ public class GatewayPrefPanel extends PrefPanel {
 			}
 		};
 		
-		autoBut = new RRadioButton11B("Automatically detect");
+		autoBut = new RRadioButton("Automatically detect");
 		autoBut.addActionListener(radLis);
 		butGr.add(autoBut);
 		add(autoBut, "3,0,5,0");
 		
-		neverBut = new RRadioButton11B("Disable (reduces performance)");
+		neverBut = new RRadioButton("Disable (reduces performance)");
 		neverBut.addActionListener(radLis);
 		butGr.add(neverBut);
 		add(neverBut, "3,2,5,2");
 		
-		manualBut = new RRadioButton11B("Manual: use router port");
+		manualBut = new RRadioButton("Manual: use router port");
 		manualBut.addActionListener(radLis);
 		butGr.add(manualBut);
 		add(manualBut, "3,4");

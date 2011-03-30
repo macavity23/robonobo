@@ -1,5 +1,6 @@
 package com.robonobo.gui.sheets;
 
+import static com.robonobo.gui.GUIUtil.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.Dimension;
@@ -11,6 +12,7 @@ import javax.swing.*;
 
 import com.robonobo.core.Platform;
 import com.robonobo.core.itunes.ITunesService;
+import com.robonobo.gui.GUIUtil;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -23,35 +25,33 @@ public class WelcomeSheet extends Sheet {
 	public WelcomeSheet(RobonoboFrame rFrame) {
 		super(rFrame);
 		boolean haveITunes = Platform.getPlatform().iTunesAvailable();
-		Dimension size = new Dimension(600, (haveITunes ? 510 : 410));
+		Dimension size = new Dimension(600, (haveITunes ? 500: 400));
 		setPreferredSize(size);
 		setSize(size);
 		double[][] cellSizen = {
 				{ 20, TableLayout.FILL, 20 },
-				{ 20 /* sp */, 30 /* logo */, 30 /* title */, 10 /* sp */, 20 /* blurb */, 10 /* sp */,
-						25 /* filechoose */, 10 /* sp */, 50 /* blurb */, 10 /* sp */, (haveITunes ? 30 : 0) /* title */, (haveITunes ? 10 : 0) /* sp */,
-						(haveITunes ? 30 : 0) /* btn */, (haveITunes ? 30 : 0) /* sp */, 30 /* title */, 10 /* sp */, 30 /* btn */, 40 /* sp */, 1 /* sep */,
+				{ 20 /* sp */, 55 /* logo */, 25 /* title */, 5 /* sp */, 20 /* blurb */, 10 /* sp */,
+						25 /* filechoose */, 10 /* sp */, 50 /* blurb */, 0 /* sp */, (haveITunes ? 30 : 0) /* title */, (haveITunes ? 10 : 0) /* sp */,
+						(haveITunes ? 30 : 0) /* btn */, (haveITunes ? 30 : 0) /* sp */, 30 /* title */, 10 /* sp */, 30 /* btn */, 20 /* sp */, 1 /* sep */,
 						10 /* sp */, 30 /* btn */, 5 /* sp */, 30 /* cb */, 10 /* sp */} };
 		setLayout(new TableLayout(cellSizen));
 		setName("playback.background.panel");
 
-		RLabel titleLbl = new RLabel24B("welcome to robonobo");
+		RLabel imgLbl = new RIconLabel(createImageIcon("/rbnb-logo_mid-grey-bg.png", null));
+		add(imgLbl, "1,1,l,t");
+		RLabel titleLbl = new RLabel24B("Welcome");
 		add(titleLbl, "1,2");
-
 		RLabel dloadBlurb = new RLabel12("<html><p>" + "robonobo will store your downloaded music in this folder:"
 				+ "</p></html>");
 		add(dloadBlurb, "1,4");
-
 		FileChoosePanel filePanel = new FileChoosePanel();
 		add(filePanel, "1,6");
-
 		RLabel shareBlurb = new RLabel12(
 				"<html><p>"
 						+ "Before you can share your music and playlists with your friends, you must add tracks to your robonobo music library. "
 						+ (haveITunes ? "You can add tracks from iTunes, or else you can add them from MP3 files on your computer."
 								: "You can add tracks from MP3 files on your computer.") + "</p></html>");
 		add(shareBlurb, "1,8,l,t");
-
 		if (haveITunes) {
 			RLabel iTunesTitle = new RLabel18B("Share Tracks/Playlists from iTunes");
 			add(iTunesTitle, "1,10");
@@ -65,10 +65,8 @@ public class WelcomeSheet extends Sheet {
 			});
 			addButton(iTunesBtn, "1,12");
 		}
-
 		RLabel fileTitle = new RLabel18B("Share Tracks from Files");
 		add(fileTitle, "1,14");
-
 		RButton fileBtn = new RGlassButton("Share from files...");
 		fileBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -77,9 +75,7 @@ public class WelcomeSheet extends Sheet {
 			}
 		});
 		addButton(fileBtn, "1,16");
-
 		add(new Sep(), "1,18");
-
 		feckOffBtn = new RGlassButton("Don't share anything");
 		feckOffBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -91,7 +87,6 @@ public class WelcomeSheet extends Sheet {
 			}
 		});
 		addButton(feckOffBtn, "1,20");
-
 		shutUpCB = new RCheckBox("Don't show this screen on startup");
 		shutUpCB.setSelected(!frame.getGuiConfig().getShowWelcomePanel());
 		add(shutUpCB, "1,22");

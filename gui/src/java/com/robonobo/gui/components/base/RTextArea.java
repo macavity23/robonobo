@@ -52,7 +52,7 @@ public class RTextArea extends JTextArea {
 	}
 
 	protected Font getRFont() {
-		return RoboFont.getFont(11, false);
+		return RoboFont.getFont(12, false);
 	}
 
 	@Override
