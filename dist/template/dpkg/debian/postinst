@@ -16,7 +16,7 @@ fi
 if [[ -d /usr/share/kde4 ]]
 then
     echo "Installing rbnb protocol handler into kde"
-    cat >/usr/share/kde4/services/rbnb <<EOF
+    cat >/usr/share/kde4/services/rbnb.protocol <<EOF
 [Protocol]
 exec=/usr/bin/robonobo '%u'
 protocol=rbnb
