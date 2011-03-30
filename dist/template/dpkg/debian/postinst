@@ -1,16 +1,40 @@
 #!/bin/bash
 
 # Post-installation script for robonobo
+addedHandler=0
 # First, try gnome
-which gconftool-2 >/dev/null
+which gconftool >/dev/null
 if [[ $? == 0 ]]
 then
 	echo "Installing rbnb protocol handler into gnome"
 	gconftool -s /desktop/gnome/url-handlers/rbnb/enabled --type bool true
 	gconftool -s /desktop/gnome/url-handlers/rbnb/command --type string "/usr/bin/robonobo %s"
 	gconftool -s /desktop/gnome/url-handlers/rbnb/needs_terminal --type bool false
-else
-	echo "Not installing rbnb protocol handler"
+   addedHandler=1
 fi
-# TODO: KDE
+# Now, KDE
+if [[ -d /usr/share/kde4 ]]
+then
+    echo "Installing rbnb protocol handler into kde"
+    cat >/usr/share/kde4/services/rbnb <<EOF
+[Protocol]
+exec=/usr/bin/robonobo '%u'
+protocol=rbnb
+input=none
+output=none
+helper=true
+listing=false
+reading=false
+writing=false
+makedir=false
+deleting=false
+icon=package
+Description=robonobo
+EOF
+    addedHandler=1
+fi
+if [[ ! $addedHandler ]]
+then
+    	echo "Not installing rbnb protocol handler"
+fi
 

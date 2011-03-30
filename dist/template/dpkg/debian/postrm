@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Post-removal script for robonobo
+# Remove 
+which gconftool >/dev/null
+if [[ $? == 0 ]]
+then
+	echo "Removing rbnb protocol handler from gnome"
+	gconftool -u /desktop/gnome/url-handlers/rbnb
+fi
+
+if [[ -f /usr/share/kde4/services/rbnb.protocol ]]
+then
+   echo "Removing rbnb protocol handler from kde"
+   rm /usr/share/kde4/services/rbnb.protocol
+fi
+
