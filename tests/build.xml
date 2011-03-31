@@ -12,6 +12,7 @@
 				<pathelement path="../core/target/classes"/>
 				<pathelement path="../mina/target/classes"/>
 				<pathelement path="../console/target/classes"/>
+				<pathelement path="../wang-client/target/classes"/>
 				<fileset dir="../common/lib">
 					<include name="**/*.jar"/>
 				</fileset>
@@ -21,7 +22,7 @@
 	
 	<target name="build" depends="compile-all">
 		<mkdir dir="${out}" />
-		<jar destfile="${out}/robotest.jar" manifest="MANIFEST.MF">
+		<jar destfile="${out}/robotest.jar">
 			<fileset dir="target/classes"/>
 		</jar>
 	</target>
