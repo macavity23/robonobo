@@ -11,9 +11,9 @@ public class MidasDataLoader {
 
 	static final String USER_SQL = "insert into users (userid, email, friendlyname, password, verified, updated, invitesleft, imgurl) values(?, ?, ?, ?, ?, ?, ?, ?)";
 	static final String PLAYLIST_SQL = "insert into playlists (playlistid, title, description, updated, visibility) values (?, ?, ?, ?, ?)";
-	static final String UP_SQL = "insert into playlistidsinuser (userid, playlistid) values (?, ?)";
-	static final String PU_SQL = "insert into owneridsinplaylist (playlistid, ownerid) values (?, ?)";
-	static final String STREAM_SQL = "insert into streamidsinplaylist (playlistid, streamid, listindex) values (?, ?, ?)";
+	static final String UP_SQL = "insert into playlistIdsInUser (userid, playlistid) values (?, ?)";
+	static final String PU_SQL = "insert into ownerIdsInPlaylist (playlistid, ownerid) values (?, ?)";
+	static final String STREAM_SQL = "insert into streamIdsInPlaylist (playlistid, streamid, listindex) values (?, ?, ?)";
 
 	String dbUrl;
 	String dbUser;
@@ -59,53 +59,58 @@ public class MidasDataLoader {
 
 	public void run() throws SQLException {
 		Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPwd);
-		for (int userNum = 0; userNum < NUM_USERS; userNum++) {
-			PreparedStatement userSt = conn.prepareStatement(USER_SQL);
-			int userId = 1000000 + userNum;
-			userSt.setLong(1, userId);
-			userSt.setString(2, "testuser-" + userNum + "@robonobo.com");
-			userSt.setString(3, "test user " + userNum);
-			userSt.setString(4, "password");
-			userSt.setBoolean(5, true);
-			userSt.setTimestamp(6, new Timestamp(System.currentTimeMillis()));
-			userSt.setInt(7, 100);
-			userSt.setString(8, "http://robonobo.com");
-			userSt.executeUpdate();
-			userSt.close();
-			for (int plNum = 0; plNum < PLAYLISTS_PER_USER; plNum++) {
-				PreparedStatement plSt = conn.prepareStatement(PLAYLIST_SQL);
-				long plId = 1000000 + (userId * 1000) + plNum;
-				plSt.setLong(1, plId);
-				plSt.setString(2, "Test Playlist " + plNum);
-				plSt.setString(3, "flarp");
-				plSt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
-				plSt.setString(5, "all");
-				plSt.executeUpdate();
-				plSt.close();
-				PreparedStatement upSt = conn.prepareStatement(UP_SQL);
-				upSt.setLong(1, userId);
-				upSt.setLong(2, plId);
-				upSt.executeUpdate();
-				upSt.close();
-				PreparedStatement puSt = conn.prepareStatement(PU_SQL);
-				puSt.setLong(1, plId);
-				puSt.setLong(2, userId);
-				puSt.executeUpdate();
-				puSt.close();
-				Set<String> playlistSids = new HashSet<String>();
-				while (playlistSids.size() < STREAMS_PER_PLAYLIST) {
-					playlistSids.add(sids.get(rand.nextInt(sids.size())));
-				}
-				int trackNum = 0;
-				for (String sid : playlistSids) {
-					PreparedStatement trSt = conn.prepareStatement(STREAM_SQL);
-					trSt.setLong(1, plId);
-					trSt.setString(2, sid);
-					trSt.setInt(3, trackNum++);
-					trSt.executeUpdate();
-					trSt.close();
+		try {
+			for (int userNum = 0; userNum < NUM_USERS; userNum++) {
+				PreparedStatement userSt = conn.prepareStatement(USER_SQL);
+				int userId = 1000000 + userNum;
+				userSt.setLong(1, userId);
+				userSt.setString(2, "testuser-" + userNum + "@robonobo.com");
+				userSt.setString(3, "test user " + userNum);
+				userSt.setString(4, "password");
+				userSt.setBoolean(5, true);
+				userSt.setTimestamp(6, new Timestamp(System.currentTimeMillis()));
+				userSt.setInt(7, 100);
+				userSt.setString(8, "http://robonobo.com");
+				userSt.executeUpdate();
+				userSt.close();
+				for (int plNum = 0; plNum < PLAYLISTS_PER_USER; plNum++) {
+					PreparedStatement plSt = conn.prepareStatement(PLAYLIST_SQL);
+					long plId = 1000000 + (userId * 1000) + plNum;
+					plSt.setLong(1, plId);
+					plSt.setString(2, "Test Playlist " + plNum);
+					plSt.setString(3, "flarp");
+					plSt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+					plSt.setString(5, "all");
+					plSt.executeUpdate();
+					plSt.close();
+					PreparedStatement upSt = conn.prepareStatement(UP_SQL);
+					upSt.setLong(1, userId);
+					upSt.setLong(2, plId);
+					upSt.executeUpdate();
+					upSt.close();
+					PreparedStatement puSt = conn.prepareStatement(PU_SQL);
+					puSt.setLong(1, plId);
+					puSt.setLong(2, userId);
+					puSt.executeUpdate();
+					puSt.close();
+					Set<String> playlistSids = new HashSet<String>();
+					while (playlistSids.size() < STREAMS_PER_PLAYLIST) {
+						playlistSids.add(sids.get(rand.nextInt(sids.size())));
+					}
+					int trackNum = 0;
+					for (String sid : playlistSids) {
+						PreparedStatement trSt = conn.prepareStatement(STREAM_SQL);
+						trSt.setLong(1, plId);
+						trSt.setString(2, sid);
+						trSt.setInt(3, trackNum++);
+						trSt.executeUpdate();
+						trSt.close();
+					}
 				}
 			}
+		} catch (Exception e) {
+			conn.rollback();
+			throw new RuntimeException(e);
 		}
 		conn.close();
 		System.out.println("Done.");

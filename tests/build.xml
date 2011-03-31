@@ -21,7 +21,7 @@
 	
 	<target name="build" depends="compile-all">
 		<mkdir dir="${out}" />
-		<jar destfile="${out}/plugin-robotest.jar" manifest="MANIFEST.MF">
+		<jar destfile="${out}/robotest.jar" manifest="MANIFEST.MF">
 			<fileset dir="target/classes"/>
 		</jar>
 	</target>
