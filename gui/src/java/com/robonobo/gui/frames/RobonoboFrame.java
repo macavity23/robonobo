@@ -23,7 +23,7 @@ import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.*;
-import com.robonobo.gui.GUIUtil;
+import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.GuiConfig;
 import com.robonobo.gui.panels.*;
 import com.robonobo.gui.preferences.PrefDialog;
@@ -50,7 +50,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		this.cmdLineArgs = args;
 
 		setTitle("robonobo");
-		setIconImage(GUIUtil.getImage("/rbnb-icon-128x128.png"));
+		setIconImage(GuiUtil.getImage("/rbnb-icon-128x128.png"));
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new CloseListener());
 
@@ -325,7 +325,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	public static Image getRobonoboIconImage() {
-		return GUIUtil.getImage("/icon/robonobo-64x64.png");
+		return GuiUtil.getImage("/icon/robonobo-64x64.png");
 	}
 
 	public void shutdown() {

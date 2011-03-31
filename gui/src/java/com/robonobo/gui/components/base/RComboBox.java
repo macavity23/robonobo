@@ -7,7 +7,7 @@ import java.util.Vector;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 
-import com.robonobo.gui.GUIUtil;
+import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.RoboFont;
 
 public class RComboBox extends JComboBox {
@@ -40,7 +40,7 @@ public class RComboBox extends JComboBox {
 
 	@Override
 	protected void paintComponent(Graphics g) {
-		GUIUtil.makeTextLookLessRubbish(g);
+		GuiUtil.makeTextLookLessRubbish(g);
 		super.paintComponent(g);
 	}
 	protected Font getRFont() {

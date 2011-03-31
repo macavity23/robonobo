@@ -5,7 +5,7 @@ import java.awt.Graphics;
 
 import javax.swing.*;
 
-import com.robonobo.gui.GUIUtil;
+import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.RoboFont;
 
 public class RCheckBox extends JCheckBox {
@@ -58,7 +58,7 @@ public class RCheckBox extends JCheckBox {
 
 	@Override
 	protected void paintComponent(Graphics g) {
-		GUIUtil.makeTextLookLessRubbish(g);
+		GuiUtil.makeTextLookLessRubbish(g);
 		super.paintComponent(g);
 	}
 	protected Font getRFont() {

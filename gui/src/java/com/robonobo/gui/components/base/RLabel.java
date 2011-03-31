@@ -6,7 +6,7 @@ import java.awt.Graphics;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 
-import com.robonobo.gui.GUIUtil;
+import com.robonobo.gui.GuiUtil;
 
 public abstract class RLabel extends JLabel {
 
@@ -50,7 +50,7 @@ public abstract class RLabel extends JLabel {
 	
 	@Override
 	protected void paintComponent(Graphics g) {
-		GUIUtil.makeTextLookLessRubbish(g);
+		GuiUtil.makeTextLookLessRubbish(g);
 		super.paintComponent(g);
 	}
 }

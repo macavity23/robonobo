@@ -39,9 +39,9 @@ public class TrackList extends JPanel implements SearchExecutor {
 	JXTable table;
 	TrackListTableModel model;
 	Icon startingIcon = new SpinnerIcon(16, RoboColor.DARKISH_GRAY);
-	Icon playingIcon = GUIUtil.createImageIcon("/table/play.png", null);
-	Icon pausedIcon = GUIUtil.createImageIcon("/table/pause.png", null);
-	Icon downloadingIcon = GUIUtil.createImageIcon("/table/download.png", null);
+	Icon playingIcon = GuiUtil.createImageIcon("/table/play.png", null);
+	Icon pausedIcon = GuiUtil.createImageIcon("/table/pause.png", null);
+	Icon downloadingIcon = GuiUtil.createImageIcon("/table/download.png", null);
 	Log log;
 	RobonoboFrame frame;
 
@@ -90,8 +90,8 @@ public class TrackList extends JPanel implements SearchExecutor {
 		// java5 users don't see the sorting arrow, but it's better than a white header
 		if (javaMajorVersion() >= 6) {
 			table.getTableHeader().setDefaultRenderer(new DefaultTableCellRenderer() {
-				ImageIcon ascSortIcon = GUIUtil.createImageIcon("/icon/arrow_up.png", null);
-				ImageIcon descSortIcon = GUIUtil.createImageIcon("/icon/arrow_down.png", null);
+				ImageIcon ascSortIcon = GuiUtil.createImageIcon("/icon/arrow_up.png", null);
+				ImageIcon descSortIcon = GuiUtil.createImageIcon("/icon/arrow_down.png", null);
 
 				public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
 						boolean hasFocus, int row, int column) {
@@ -263,7 +263,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 		
 		@Override
 		protected void paintComponent(Graphics g) {
-			GUIUtil.makeTextLookLessRubbish(g);
+			GuiUtil.makeTextLookLessRubbish(g);
 			super.paintComponent(g);
 		}
 	}
@@ -351,7 +351,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 		
 		@Override
 		protected void paintComponent(Graphics g) {
-			GUIUtil.makeTextLookLessRubbish(g);
+			GuiUtil.makeTextLookLessRubbish(g);
 			super.paintComponent(g);
 		}
 	}

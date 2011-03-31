@@ -1,6 +1,6 @@
 package com.robonobo.gui.sheets;
 
-import static com.robonobo.gui.GUIUtil.*;
+import static com.robonobo.gui.GuiUtil.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.Dimension;
@@ -12,7 +12,7 @@ import javax.swing.*;
 
 import com.robonobo.core.Platform;
 import com.robonobo.core.itunes.ITunesService;
-import com.robonobo.gui.GUIUtil;
+import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;

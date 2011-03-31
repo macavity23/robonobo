@@ -15,7 +15,11 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 
 	public NewPlaylistContentPanel(RobonoboFrame frame) {
 		super(frame, new Playlist(), new PlaylistConfig(), new NewPlaylistTableModel(frame.getController()));
-		showMessage("How do I add tracks?", "<html>Drag tracks from your library, or a friend's library, or any other playlist, and drop them on the highlighted 'New Playlist' entry on the left, or on the track list below.<br>You can also drag files directly from your computer.</html>");
+		SwingUtilities.invokeLater(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				showMessage("How do I add tracks?", "<html>Drag tracks from your library, or a friend's library, or any other playlist, and drop them on the highlighted 'New Playlist' entry on the left, or on the track list below.<br>You can also drag files directly from your computer.</html>");
+			}
+		});
 	}
 
 	@Override

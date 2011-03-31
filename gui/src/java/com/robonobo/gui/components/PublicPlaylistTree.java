@@ -1,6 +1,6 @@
 package com.robonobo.gui.components;
 
-import static com.robonobo.gui.GUIUtil.*;
+import static com.robonobo.gui.GuiUtil.*;
 import static com.robonobo.gui.RoboColor.*;
 
 import java.awt.*;
@@ -10,7 +10,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 
-import com.robonobo.gui.GUIUtil;
+import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.*;
@@ -89,7 +89,7 @@ public class  PublicPlaylistTree extends LeftSidebarTree {
 		
 		@Override
 		protected void paintComponent(Graphics g) {
-			GUIUtil.makeTextLookLessRubbish(g);
+			GuiUtil.makeTextLookLessRubbish(g);
 			super.paintComponent(g);
 		}
 	}

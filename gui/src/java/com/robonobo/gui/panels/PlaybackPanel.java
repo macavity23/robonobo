@@ -1,6 +1,6 @@
 package com.robonobo.gui.panels;
 
-import static com.robonobo.gui.GUIUtil.*;
+import static com.robonobo.gui.GuiUtil.*;
 import static com.robonobo.gui.RoboColor.*;
 
 import java.awt.*;

@@ -1,6 +1,6 @@
 package com.robonobo.gui.panels;
 
-import static com.robonobo.gui.GUIUtil.*;
+import static com.robonobo.gui.GuiUtil.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.Toolkit;
@@ -13,7 +13,7 @@ import javax.swing.*;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.util.NetUtil;
 import com.robonobo.core.api.model.*;
-import com.robonobo.gui.GUIUtil;
+import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.PlaylistTableModel;

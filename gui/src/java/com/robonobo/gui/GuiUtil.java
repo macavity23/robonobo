@@ -14,12 +14,12 @@ import javax.swing.ImageIcon;
 
 import com.robonobo.common.exceptions.SeekInnerCalmException;
 
-public class GUIUtil {
+public class GuiUtil {
 	public static final int DEFAULT_NUM_SHAKES = 10;
 	public static final int DEFAULT_SHAKE_FORCE = 5;
 
 	public static ImageIcon createImageIcon(String path, String description) {
-		URL imgUrl = GUIUtil.class.getResource(path);
+		URL imgUrl = GuiUtil.class.getResource(path);
 		if (imgUrl == null)
 			return null;
 		return new ImageIcon(imgUrl, description);
@@ -27,7 +27,7 @@ public class GUIUtil {
 
 	public static Image getImage(String path) {
 		try {
-			return ImageIO.read(GUIUtil.class.getResource(path));
+			return ImageIO.read(GuiUtil.class.getResource(path));
 		} catch (IOException e) {
 			throw new SeekInnerCalmException(e);
 		}
@@ -51,7 +51,7 @@ public class GUIUtil {
 	}
 
 	public static void shakeWindow(Window win) {
-		GUIUtil.shakeWindow(win, DEFAULT_NUM_SHAKES, DEFAULT_SHAKE_FORCE);
+		GuiUtil.shakeWindow(win, DEFAULT_NUM_SHAKES, DEFAULT_SHAKE_FORCE);
 	}
 
 	/** In MS windows, if we don't call this in paintComponent(), text looks like poop */
