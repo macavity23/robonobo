@@ -60,6 +60,7 @@ public class SheetableFrame extends JFrame {
 		getRootPane().setDefaultButton(s.defaultButton());
 		
 	}
+	
 	public synchronized void discardTopSheet() {
 		Sheet oldSheet = null;
 		sheetLock.lock();
@@ -98,6 +99,17 @@ public class SheetableFrame extends JFrame {
 		}
 	}
 
+	protected Sheet getTopSheet() {
+		sheetLock.lock();
+		try {
+			if(sheetStack.size() == 0)
+				return null;
+			return sheetStack.getFirst();
+		} finally {
+			sheetLock.unlock();
+		}
+	}
+	
 	class SheetContainer extends JPanel {
 		public SheetContainer(JComponent sheet) {
 			// Make a 1px grey border and a 5px white background around the sheet

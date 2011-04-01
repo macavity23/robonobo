@@ -97,12 +97,12 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 						showWelcome(false);
 				}
 			};
-			final LoginSheet lp = new LoginSheet(RobonoboFrame.this, onLogin);
-			showSheet(lp);
-			if (isNonEmpty(lp.getEmailField().getText())) {
+			final LoginSheet ls = new LoginSheet(RobonoboFrame.this, false, onLogin);
+			showSheet(ls);
+			if (isNonEmpty(ls.getEmailField().getText())) {
 				invokeLater(new CatchingRunnable() {
 					public void doRun() throws Exception {
-						lp.tryLogin();
+						ls.tryLogin();
 					}
 				});
 			}
@@ -292,7 +292,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	public void showLogin(final Runnable onLogin) {
 		SwingUtilities.invokeLater(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				LoginSheet lp = new LoginSheet(RobonoboFrame.this, onLogin);
+				LoginSheet lp = new LoginSheet(RobonoboFrame.this, true, onLogin);
 				showSheet(lp);
 			}
 		});
@@ -413,6 +413,13 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 			int modifiers = e.getModifiers();
 			if (code == KeyEvent.VK_ESCAPE) {
 				if (isShowingSheet()) {
+					// If this is the initial login sheet, don't let them escape it
+					Sheet sh = getTopSheet();
+					if(sh instanceof LoginSheet) {
+						LoginSheet lsh = (LoginSheet) sh;
+						if(!lsh.getCancelAllowed())
+							return false;
+					}
 					discardTopSheet();
 					return true;
 				}
