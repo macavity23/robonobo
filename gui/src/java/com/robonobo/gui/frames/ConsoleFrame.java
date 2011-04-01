@@ -22,7 +22,7 @@ public class ConsoleFrame extends JFrame {
 		this.frame = frame;
 		if(Platform.getPlatform().shouldSetMenuBarOnDialogs())
 			setJMenuBar(Platform.getPlatform().getMenuBar(frame));
-		setTitle("Robonobo Console");
+		setTitle("robonobo console");
 		setIconImage(RobonoboFrame.getRobonoboIconImage());
 		Shell shell = new Shell(null, new ConsoleShellPlugin(frame), 20, 150);
 		getContentPane().add(shell, BorderLayout.CENTER);

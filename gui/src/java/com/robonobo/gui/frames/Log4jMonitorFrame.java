@@ -29,7 +29,7 @@ public class Log4jMonitorFrame extends JFrame {
 	TextAreaAppender appender;
 
 	public Log4jMonitorFrame(RobonoboFrame frame) {
-		setTitle("robonobo Log");
+		setTitle("robonobo log");
 		setIconImage(RobonoboFrame.getRobonoboIconImage());
 		if(Platform.getPlatform().shouldSetMenuBarOnDialogs())
 			setJMenuBar(Platform.getPlatform().getMenuBar(frame));

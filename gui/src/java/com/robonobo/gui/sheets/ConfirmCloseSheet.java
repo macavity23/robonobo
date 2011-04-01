@@ -22,7 +22,7 @@ public class ConfirmCloseSheet extends Sheet {
 		RLabel title = new RLabel14B("Please confirm exit");
 		add(title, "1,1,4,1,CENTER,CENTER");
 		
-		RLabel blurb = new RLabel12("<html><center><p>Your friends may not be able to download the tracks on your playlists if nobody is sharing them.</p><p>Are you sure you want to close robonobo?</p></center></html>");
+		RLabel blurb = new RLabel12("<html><center><p>Your friends will not be able to download the tracks on your playlists if nobody is sharing them.</p><p>Are you sure you want to close robonobo?</p></center></html>");
 		add(blurb, "1,3,4,3");
 		
 		final RCheckBox feckOffCB = new RCheckBox("Don't show this screen on exit");

@@ -50,7 +50,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		this.cmdLineArgs = args;
 
 		setTitle("robonobo");
-		setIconImage(GuiUtil.getImage("/rbnb-icon-128x128.png"));
+		setIconImage(getRobonoboIconImage());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new CloseListener());
 
@@ -325,7 +325,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	public static Image getRobonoboIconImage() {
-		return GuiUtil.getImage("/icon/robonobo-64x64.png");
+		return GuiUtil.getImage("/rbnb-icon-128x128.png");
 	}
 
 	public void shutdown() {
