@@ -418,7 +418,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				}
 			}
 			if (code == KeyEvent.VK_Q && modifiers == Platform.getPlatform().getCommandModifierMask()) {
-				shutdown();
+				confirmThenShutdown();
 				return true;
 			}
 			return false;
