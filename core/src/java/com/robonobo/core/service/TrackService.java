@@ -10,6 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.AudioPlayer.Status;
 import com.robonobo.core.api.model.*;
@@ -37,6 +38,7 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 	protected Map<String, TransferSpeed> transferSpeeds = null;
 	private String currentPlayingStreamId = null;
 	private boolean allSharesStarted;
+	private boolean started = false;
 
 	public TrackService() {
 		addHardDependency("core.shares");
@@ -71,6 +73,7 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 			}
 		});
 		event.addTransferSpeedListener(this);
+		started  = true;
 	}
 
 	@Override
@@ -98,6 +101,15 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 	 * then become DownloadingTracks, then SharedTracks, plus they get played, then stopped, etc)
 	 */
 	public Track getTrack(String streamId) {
+		// If we haven't started yet, just wait til we have
+		while(!started) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				throw new SeekInnerCalmException(e);
+			}
+		}
+			
 		Track t;
 		// Are we sharing this track?
 		t = share.getShare(streamId);

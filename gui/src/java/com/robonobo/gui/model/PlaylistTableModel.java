@@ -51,8 +51,13 @@ public class PlaylistTableModel extends TrackListTableModel implements TrackList
 		synchronized (this) {
 			updateStreamIndices();
 		}
-		if(myPlaylist || activated)
-			activate();
+		if(myPlaylist || activated) {
+			controller.getExecutor().execute(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					activate();					
+				}
+			});
+		}
 		if (fireChangedEvent)
 			fireTableDataChanged();
 	}
