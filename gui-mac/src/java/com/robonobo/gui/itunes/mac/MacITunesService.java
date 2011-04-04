@@ -211,7 +211,7 @@ public class MacITunesService extends ITunesService {
 	}
 
 	private String getFolderName(User u) {
-		return u.getFriendlyName() + " (" + u.getEmail() + ")";
+		return u.getFriendlyName();
 	}
 
 	public String getName() {

@@ -228,7 +228,7 @@ public class WindowsITunesService extends ITunesService {
 	}
 
 	private String getFolderName(User u) {
-		return u.getFriendlyName() + " (" + u.getEmail() + ")";
+		return u.getFriendlyName();
 	}
 
 	class LogReader extends CatchingRunnable {
