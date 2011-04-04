@@ -49,7 +49,7 @@ public class WangContentPanel extends ContentPanel implements WangListener, User
 		RLabel balanceTitle = new RLabel22B("Current balance: ");
 		add(balanceTitle, "1,1");
 		
-		balanceLbl = new RLabel22(createImageIcon("/icon/wang_symbol.png", null));
+		balanceLbl = new RLabel22(createImageIcon("/wang-black-on-trans.png", null));
 		add(balanceLbl, "2,1,LEFT,CENTER");
 		balanceFmt = NumberFormat.getInstance();
 		balanceFmt.setMinimumFractionDigits(4);

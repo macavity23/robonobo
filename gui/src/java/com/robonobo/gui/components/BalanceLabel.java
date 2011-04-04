@@ -3,6 +3,7 @@ package com.robonobo.gui.components;
 import static com.robonobo.gui.GuiUtil.*;
 import info.clearthought.layout.TableLayout;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -25,7 +26,7 @@ public class BalanceLabel extends JPanel implements LeftSidebarComponent, WangLi
 		this.frame = frame;
 		double[][] cellSizen = { { TableLayout.FILL }, { TableLayout.FILL } };
 		setLayout(new TableLayout(cellSizen));
-		lbl = new JLabel(createImageIcon("/icon/wang_symbol.png", null));
+		lbl = new JLabel(createImageIcon("/wang-orange-on-trans.png", null));
 		lbl.setForeground(RoboColor.ORANGE);
 		lbl.setFont(RoboFont.getFont(22, false));
 		add(lbl, "0,0,CENTER,CENTER");
