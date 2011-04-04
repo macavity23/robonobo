@@ -26,6 +26,9 @@
 	<target name="build" depends="compile-all">
 		<jar jarfile="dist/gui-mac.jar">
 			<fileset dir="target/classes"/>
+			<fileset dir="src/java">
+				<include name="**/*.scpt"/>
+			</fileset>
 		</jar>
 	</target>
 				
