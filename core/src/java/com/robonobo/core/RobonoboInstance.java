@@ -32,6 +32,7 @@ import com.robonobo.core.search.SearchService;
 import com.robonobo.core.service.*;
 import com.robonobo.core.storage.StorageService;
 import com.robonobo.core.update.Updater;
+import com.robonobo.core.wang.RobonoboWangConfig;
 import com.robonobo.core.wang.WangService;
 import com.robonobo.mina.external.Application;
 import com.robonobo.mina.external.MinaControl;
@@ -63,10 +64,30 @@ public class RobonoboInstance implements Robonobo {
 		loadApplicationDetails();
 		initSerializers();
 		loadConfig();
+		if(isDevVersion())
+			applyDevConfig();
 		overrideConfigWithEnv();
 		registerServices();
 		startExecutor();
 		Platform.getPlatform().initRobonobo(this);
+	}
+
+	private void applyDevConfig() {
+		// If we are a dev version, apply different config
+		// TODO this is a hack! Use a templated file instead
+		log.debug("Applying dev config");
+		RobonoboConfig defaultCfg = new RobonoboConfig();
+		RobonoboConfig cfg = getConfig();
+		if(cfg.getMetadataServerUrl().equals(defaultCfg.getMetadataServerUrl()))
+			cfg.setMetadataServerUrl("http://dev.robonobo.com/midas/");
+		if(cfg.getSonarServerUrl().equals(defaultCfg.getSonarServerUrl()))
+			cfg.setSonarServerUrl("http://dev.robonobo.com/sonar/");
+		if(cfg.getWebsiteUrlBase().equals(defaultCfg.getWebsiteUrlBase()))
+			cfg.setWebsiteUrlBase("http://dev.robonobo.com/website/");
+		RobonoboWangConfig defWangCfg = new RobonoboWangConfig();
+		RobonoboWangConfig wangCfg = (RobonoboWangConfig) getConfig("wang");
+		if(wangCfg.getBankUrl().equals(defWangCfg.getBankUrl()))
+			wangCfg.setBankUrl("http://dev.robonobo.com/wang/");
 	}
 
 	public void start() throws RobonoboException {
@@ -189,13 +210,17 @@ public class RobonoboInstance implements Robonobo {
 		saveConfig();
 	}
 
+	public boolean isDevVersion() {
+		return version.toLowerCase().startsWith("dev");
+	}
+	
 	private void setHomeDir() {
 		if (System.getenv().containsKey("ROBOHOME"))
 			homeDir = new File(System.getenv("ROBOHOME"));
 		else {
 			homeDir = Platform.getPlatform().getDefaultHomeDirectory();
 			// Use a different homedir for development versions, try to avoid fucking things up too badly
-			if(version.toLowerCase().startsWith("dev")) {
+			if(isDevVersion()) {
 				String dirName = homeDir.getName() + "-dev";
 				homeDir = new File(homeDir.getParentFile(), dirName);
 			}
