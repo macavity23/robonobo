@@ -1,22 +1,13 @@
 package com.robonobo.plugin.mp3;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import javazoom.jlgui.basicplayer.BasicController;
-import javazoom.jlgui.basicplayer.BasicPlayer;
-import javazoom.jlgui.basicplayer.BasicPlayerEvent;
-import javazoom.jlgui.basicplayer.BasicPlayerException;
-import javazoom.jlgui.basicplayer.BasicPlayerListener;
+import javazoom.jlgui.basicplayer.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,12 +15,9 @@ import org.apache.log4j.PropertyConfigurator;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.concurrent.SafetyNet;
-import com.robonobo.common.pageio.buffer.FilePageBuffer;
-import com.robonobo.common.pageio.buffer.PageBufferInputStream;
-import com.robonobo.common.pageio.buffer.SimplePageInfoStore;
-import com.robonobo.common.pageio.paginator.EqualSizeFilePaginator;
+import com.robonobo.common.pageio.buffer.*;
 import com.robonobo.common.pageio.paginator.Paginator;
-import com.robonobo.common.util.CodeUtil;
+import com.robonobo.common.pageio.paginator.QuickStartFilePaginator;
 import com.robonobo.common.util.ExceptionEvent;
 import com.robonobo.common.util.ExceptionListener;
 import com.robonobo.core.api.AudioPlayer;
@@ -205,7 +193,7 @@ public class Mp3AudioPlayer implements AudioPlayer {
 		SimplePageInfoStore srcPis = new SimplePageInfoStore();
 		srcPis.init(s.getStreamId());
 		final FilePageBuffer srcPb = new FilePageBuffer(s.getStreamId(), f, srcPis);
-		Paginator p = new EqualSizeFilePaginator(32 * 1024, f.length(), 0);
+		Paginator p = new QuickStartFilePaginator(32 * 1024, f.length(), 0);
 		p.paginate(fc, srcPb);
 		fc.close();
 		// Now create a dest pb, and spawn a thread to put pages into it

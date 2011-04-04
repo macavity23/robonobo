@@ -26,7 +26,7 @@ import com.robonobo.spi.FormatSupportProvider;
 
 
 public class Mp3FormatSupportProvider implements FormatSupportProvider {
-	private static final int PAGE_SIZE = 128*1024;
+	private static final int PAGE_SIZE = 32*1024;
 	Robonobo robonobo;
 	
 	public void init(Robonobo r) {

@@ -14,10 +14,10 @@ import com.robonobo.mina.external.buffer.PageInfo;
  * Bogus, but very fast.
  */
 public class EqualSizeFilePaginator implements Paginator {
-	private long totalSz;
-	private int pageSz;
+	protected long totalSz;
+	protected int pageSz;
 	/** secs */
-	private int totalTime;
+	protected int totalTime;
 	
 	public EqualSizeFilePaginator(int pageSize, long totalSize, int totalTime) {
 		this.pageSz = pageSize;

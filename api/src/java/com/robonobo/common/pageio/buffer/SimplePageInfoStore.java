@@ -80,6 +80,10 @@ public class SimplePageInfoStore implements PageInfoStore {
 		totalPages.put(streamId, tp);
 	}
 
+	public Map<Long, PageInfo> getAllPageInfo(String sid) {
+		return piMap.get(sid);
+	}
+	
 	public void putAllPageInfo(String streamId, List<PageInfo> pis) throws IOException {
 		for (PageInfo pi : pis) {
 			putPageInfo(streamId, pi);
