@@ -134,23 +134,15 @@ public class ShareService extends AbstractService {
 			throw new SeekInnerCalmException();
 		}
 		File curFile = d.getFile();
-		boolean delFile = false;
 		File shareFile = fileForFinishedDownload(s);
-		// If we are playing the file now, copy it rather than move, as windoze won't allow us to move it while we're
+		// Copy the file rather than move, as windoze won't allow us to move it while we're
 		// accessing it (unix does it just fine *while* allowing us to keep reading from the file descriptor...)
-		if(s.getStreamId().equals(rbnb.getPlaybackService().getCurrentStreamId())) {
-			try {
-				FileUtil.copyFile(curFile, shareFile);
-			} catch (IOException e) {
-				throw new RobonoboException(e);
-			}
-			// Only actually delete the file at the end of this method, in case something goes wrong betwixt here and there
-			delFile = true;
-		} else {
-			boolean ok = d.getFile().renameTo(shareFile);
-			if(!ok)
-				throw new RobonoboException("Could not move file for completed download "+s.getStreamId()+" from "+curFile.getAbsolutePath()+" to "+shareFile.getAbsolutePath());
+		try {
+			FileUtil.copyFile(curFile, shareFile);
+		} catch (IOException e) {
+			throw new RobonoboException(e);
 		}
+		curFile.deleteOnExit();
 		SharedTrack sh = new SharedTrack(s, shareFile, ShareStatus.Sharing);
 		sh.setDateAdded(now());
 		db.putShare(sh);
@@ -166,8 +158,6 @@ public class ShareService extends AbstractService {
 		startShare(s.getStreamId(), pb);
 		event.fireTrackUpdated(s.getStreamId());
 		users.checkPlaylistsForNewShare(sh);
-		if(delFile)
-			curFile.deleteOnExit();
 	}
 
 	public void deleteShare(String streamId) {
