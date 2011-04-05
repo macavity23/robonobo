@@ -4,16 +4,17 @@ import static com.robonobo.core.Platform.*;
 
 import java.awt.event.*;
 
-import javax.swing.*;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.util.NetUtil;
-import com.robonobo.core.Platform;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.RoboFont;
+import com.robonobo.gui.components.base.RMenuItem;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.sheets.OpenURISheet;
 
@@ -29,7 +30,7 @@ public class MenuBar extends JMenuBar {
 		JMenu fileMenu = new JMenu("File");
 		add(fileMenu);
 
-		JMenuItem login = new JMenuItem("Login...", KeyEvent.VK_L);
+		RMenuItem login = new RMenuItem("Login...", KeyEvent.VK_L);
 		login.setAccelerator(getPlatform().getAccelKeystroke(KeyEvent.VK_L));
 		login.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -38,7 +39,7 @@ public class MenuBar extends JMenuBar {
 		});
 		fileMenu.add(login);
 
-		JMenuItem showWelcome = new JMenuItem("Show welcome page...");
+		RMenuItem showWelcome = new RMenuItem("Show welcome page...");
 		showWelcome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				frame.showWelcome(true);
@@ -46,7 +47,7 @@ public class MenuBar extends JMenuBar {
 		});
 		fileMenu.add(showWelcome);
 		
-		JMenuItem shareFiles = new JMenuItem("Share files...", KeyEvent.VK_O);
+		RMenuItem shareFiles = new RMenuItem("Share files...", KeyEvent.VK_O);
 		shareFiles.setAccelerator(getPlatform().getAccelKeystroke(KeyEvent.VK_O));
 		shareFiles.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -56,7 +57,7 @@ public class MenuBar extends JMenuBar {
 		fileMenu.add(shareFiles);
 
 		if (getPlatform().iTunesAvailable()) {
-			JMenuItem iTunesImport = new JMenuItem("Share tracks/playlists from iTunes...", KeyEvent.VK_I);
+			RMenuItem iTunesImport = new RMenuItem("Share tracks/playlists from iTunes...", KeyEvent.VK_I);
 			iTunesImport.setAccelerator(getPlatform().getAccelKeystroke(KeyEvent.VK_I));
 			iTunesImport.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -71,7 +72,7 @@ public class MenuBar extends JMenuBar {
 			fileMenu.add(iTunesImport);
 		}
 
-		JMenuItem openUrl = new JMenuItem("Open 'rbnb:' URI...");
+		RMenuItem openUrl = new RMenuItem("Open 'rbnb:' URI...");
 		openUrl.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				frame.showSheet(new OpenURISheet(frame));
@@ -80,7 +81,7 @@ public class MenuBar extends JMenuBar {
 		fileMenu.add(openUrl);
 		
 		if (getPlatform().shouldShowQuitInFileMenu()) {
-			JMenuItem quit = new JMenuItem("Quit", KeyEvent.VK_Q);
+			RMenuItem quit = new RMenuItem("Quit", KeyEvent.VK_Q);
 			quit.setAccelerator(getPlatform().getAccelKeystroke(KeyEvent.VK_Q));
 			quit.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -92,7 +93,7 @@ public class MenuBar extends JMenuBar {
 
 		JMenu networkMenu = new JMenu("Network");
 		add(networkMenu);
-		JMenuItem updateUsers = new JMenuItem("Update friends & playlists");
+		RMenuItem updateUsers = new RMenuItem("Update friends & playlists");
 		updateUsers.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				frame.getController().checkUsersUpdate();
@@ -103,7 +104,7 @@ public class MenuBar extends JMenuBar {
 		if (getPlatform().shouldShowOptionsMenu()) {
 			JMenu optionsMenu = new JMenu("Options");
 			add(optionsMenu);
-			JMenuItem showPrefs = new JMenuItem("Preferences...");
+			RMenuItem showPrefs = new RMenuItem("Preferences...");
 			showPrefs.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					frame.showPreferences();
@@ -114,14 +115,14 @@ public class MenuBar extends JMenuBar {
 
 		JMenu debugMenu = new JMenu("Debug");
 		add(debugMenu);
-		JMenuItem openConsole = new JMenuItem("Open Console");
+		RMenuItem openConsole = new RMenuItem("Open Console");
 		openConsole.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				frame.showConsole();
 			}
 		});
 		debugMenu.add(openConsole);
-		JMenuItem showLog = new JMenuItem("Show Log Window");
+		RMenuItem showLog = new RMenuItem("Show Log Window");
 		showLog.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				frame.showLogFrame();
@@ -132,7 +133,7 @@ public class MenuBar extends JMenuBar {
 		JMenu helpMenu = new JMenu("Help");
 		add(helpMenu);
 		if (getPlatform().shouldShowAboutInHelpMenu()) {
-			JMenuItem showAbout = new JMenuItem("About robonobo");
+			RMenuItem showAbout = new RMenuItem("About robonobo");
 			showAbout.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					frame.showAbout();
@@ -140,21 +141,21 @@ public class MenuBar extends JMenuBar {
 			});
 			helpMenu.add(showAbout);
 		}
-		JMenuItem showHelpPage = new JMenuItem("Go to online help...");
+		RMenuItem showHelpPage = new RMenuItem("Go to online help...");
 		showHelpPage.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				openUrl(frame.getController().getConfig().getHelpUrl());
 			}
 		});
 		helpMenu.add(showHelpPage);
-		JMenuItem showWiki = new JMenuItem("Go to developer wiki...");
+		RMenuItem showWiki = new RMenuItem("Go to developer wiki...");
 		showWiki.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				openUrl(frame.getController().getConfig().getWikiUrl());
 			}
 		});
 		helpMenu.add(showWiki);
-		JMenuItem submitBugReport = new JMenuItem("Submit bug report...");
+		RMenuItem submitBugReport = new RMenuItem("Submit bug report...");
 		submitBugReport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				openUrl(frame.getController().getConfig().getBugReportUrl());

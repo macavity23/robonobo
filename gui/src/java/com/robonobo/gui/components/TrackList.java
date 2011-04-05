@@ -3,8 +3,7 @@ package com.robonobo.gui.components;
 import static com.robonobo.common.util.CodeUtil.*;
 
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -24,14 +23,18 @@ import org.jdesktop.swingx.decorator.SortOrder;
 import org.jdesktop.swingx.table.TableColumnExt;
 import org.jdesktop.swingx.table.TableColumnModelExt;
 
-import com.robonobo.common.util.CodeUtil;
+import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.SearchExecutor;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
 import com.robonobo.core.api.model.Track.PlaybackStatus;
 import com.robonobo.gui.*;
+import com.robonobo.gui.components.base.RBoldMenuItem;
+import com.robonobo.gui.components.base.RMenuItem;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.TrackListTableModel;
+import com.robonobo.gui.panels.MyPlaylistContentPanel;
 
 @SuppressWarnings("serial")
 public class TrackList extends JPanel implements SearchExecutor {
@@ -44,6 +47,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 	Icon downloadingIcon = GuiUtil.createImageIcon("/table/download.png", null);
 	Log log;
 	RobonoboFrame frame;
+	PopupMenu popupMenu = new PopupMenu();
 
 	public TrackList(final RobonoboFrame frame, TrackListTableModel model) {
 		this.model = model;
@@ -141,6 +145,23 @@ public class TrackList extends JPanel implements SearchExecutor {
 					frame.getPlaybackPanel().play();
 					e.consume();
 				}
+			}
+
+			public void mousePressed(MouseEvent e) {
+				maybeShowPopup(e);
+			}
+
+			public void mouseReleased(MouseEvent e) {
+				maybeShowPopup(e);
+			}
+
+			private void maybeShowPopup(MouseEvent e) {
+				if (!e.isPopupTrigger())
+					return;
+				if (!anyStreamsSelected())
+					return;
+				popupMenu.refresh();
+				popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
 		});
 
@@ -246,6 +267,98 @@ public class TrackList extends JPanel implements SearchExecutor {
 		return modelRows;
 	}
 
+	public void deleteSelectedTracks() {
+		if (model.allowDelete()) {
+			SwingUtilities.invokeLater(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					final List<String> selSids = getSelectedStreamIds();
+					if (selSids.size() > 0) {
+						frame.getController().getExecutor().execute(new CatchingRunnable() {
+							public void doRun() throws Exception {
+								model.deleteTracks(selSids);
+							}
+						});
+					}
+				}
+			});
+		}
+	}
+
+	class PopupMenu extends JPopupMenu implements ActionListener {
+		public PopupMenu() {
+		}
+
+		void refresh() {
+			removeAll();
+			RMenuItem play = new RBoldMenuItem("Play");
+			play.setActionCommand("play");
+			play.addActionListener(this);
+			add(play);
+			boolean needDownload = false;
+			for (Track track : getSelectedTracks()) {
+				if (track instanceof CloudTrack) {
+					needDownload = true;
+					break;
+				}
+			}
+			if (needDownload) {
+				RMenuItem dl = new RMenuItem("Download");
+				dl.setActionCommand("download");
+				dl.addActionListener(this);
+				add(dl);
+			}
+			JMenu plMenu = new JMenu("Add to playlist");
+			RMenuItem newPl = new RMenuItem("New Playlist");
+			newPl.setActionCommand("newpl");
+			newPl.addActionListener(this);
+			plMenu.add(newPl);
+			for (long plId : frame.getController().getMyUser().getPlaylistIds()) {
+				Playlist p = frame.getController().getPlaylist(plId);
+				RMenuItem pmi = new RMenuItem(p.getTitle());
+				pmi.setActionCommand("pl-" + p.getPlaylistId());
+				pmi.addActionListener(this);
+				plMenu.add(pmi);
+			}
+			add(plMenu);
+			if(model.allowDelete()) {
+				RMenuItem del = new RMenuItem("Delete");
+				del.setActionCommand("delete");
+				del.addActionListener(this);
+				add(del);
+			}
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String action = e.getActionCommand();
+			if (action.equals("play"))
+				frame.getPlaybackPanel().play();
+			else if (action.equals("download")) {
+				for (Track t : getSelectedTracks()) {
+					if (t instanceof CloudTrack) {
+						try {
+							frame.getController().addDownload(t.getStream().getStreamId());
+						} catch (RobonoboException ex) {
+							log.error("Caught exception adding download from popup menu", ex);
+						}
+					}
+				}
+			} else if (action.equals("newpl")) {
+				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel()
+						.getContentPanel("newplaylist");
+				cp.addTracks(getSelectedStreamIds());
+			} else if (action.startsWith("pl-")) {
+				long plId = Long.parseLong(action.substring(3));
+				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel().getContentPanel(
+						"playlist/" + plId);
+				cp.addTracks(getSelectedStreamIds());
+			} else if(action.equals("delete")) {
+				frame.getMainPanel().currentContentPanel().getTrackList().deleteSelectedTracks();
+			} else
+				log.error("PopupMenu generated unknown action: " + action);
+		}
+	}
+
 	class TextRenderer extends DefaultTableCellRenderer {
 		Font plainFont = RoboFont.getFont(13, false);
 		Font boldFont = RoboFont.getFont(13, true);
@@ -260,7 +373,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 				result.setFont(plainFont);
 			return result;
 		}
-		
+
 		@Override
 		protected void paintComponent(Graphics g) {
 			GuiUtil.makeTextLookLessRubbish(g);
@@ -348,7 +461,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 				return lbl;
 			}
 		}
-		
+
 		@Override
 		protected void paintComponent(Graphics g) {
 			GuiUtil.makeTextLookLessRubbish(g);

@@ -175,15 +175,9 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		delBtn.setPreferredSize(new Dimension(40, 40));
 		delBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				final TrackList tl = frame.getMainPanel().currentContentPanel().getTrackList();
-				if (tl != null) {
-					final List<String> selSids = tl.getSelectedStreamIds();
-					control.getExecutor().execute(new CatchingRunnable() {
-						public void doRun() throws Exception {
-							tl.getModel().deleteTracks(selSids);
-						}
-					});
-				}
+				TrackList tl = frame.getMainPanel().currentContentPanel().getTrackList();
+				if(tl != null)
+					tl.deleteSelectedTracks();
 			}
 		});
 		buttonsPanel.add(delBtn);
@@ -373,29 +367,22 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 
 	private void checkButtonsEnabled() {
 		boolean tracksSelected = false;
-		boolean allowDelete = false;
 		boolean allowDownload = false;
+		boolean allowDel = false;
 		if (frame.getMainPanel() != null && frame.getMainPanel().currentContentPanel() != null) {
 			TrackList tl = frame.getMainPanel().currentContentPanel().getTrackList();
 			if (tl != null) {
 				List<String> selSids = tl.getSelectedStreamIds();
 				tracksSelected = (selSids.size() > 0);
 				// Only allow download if at least one of the selected tracks is a cloud track
-				// Only allow delete if at least one of the selected tracks is a download/sharing track
-				boolean modelAllowsDelete = tl.getModel().allowDelete();
 				for (String sid : selSids) {
 					Track t = control.getTrack(sid);
 					if (t instanceof CloudTrack) {
 						allowDownload = true;
-						if(allowDelete || !modelAllowsDelete)
-							break;
-					}
-					if (modelAllowsDelete && ((t instanceof DownloadingTrack) || (t instanceof SharedTrack))) {
-						allowDelete = true;
-						if(allowDownload)
 							break;
 					}
 				}
+				allowDel = tl.getModel().allowDelete() && tracksSelected;
 			}
 		}
 		synchronized (this) {
@@ -408,7 +395,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 				prevBtn.setEnabled(playingTrackList.getPrevStreamId(playingStream.getStreamId()) != null);
 			}
 			dloadBtn.setEnabled(allowDownload);
-			delBtn.setEnabled(allowDelete);
+			delBtn.setEnabled(allowDel);
 			// Enable play/pause button unless we are stopped and there are no tracks selected
 			boolean ppEnabled = !(state == PlayState.Stopped && !tracksSelected);
 			playPauseBtn.setEnabled(ppEnabled);

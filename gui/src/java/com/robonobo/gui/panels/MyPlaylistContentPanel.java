@@ -202,6 +202,11 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements User
 		}
 	}
 
+	public void addTracks(List<String> streamIds) {
+		PlaylistTableModel tm = (PlaylistTableModel) trackList.getModel();
+		tm.addStreams(streamIds, tm.getRowCount());
+	}
+	
 	class PlaylistImportTask extends ImportFilesTask {
 		int insertRow;
 

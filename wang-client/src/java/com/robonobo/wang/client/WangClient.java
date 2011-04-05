@@ -63,8 +63,9 @@ public class WangClient {
 	}
 
 	public void start() throws WangException {
-		log.info("Wang client starting");
-		coinStore = new CoinStore(new File(config.getCoinStoreDir()), config.getAccountPwd());
+		File coinStoreDir = new File(config.getCoinStoreDir());
+		log.info("Wang client starting with bank url "+config.getBankUrl()+" and coin store dir "+coinStoreDir.getAbsolutePath());
+		coinStore = new CoinStore(coinStoreDir, config.getAccountPwd());
 		// Fetch our set of denominations
 		DenominationListMsg list = bank.getDenominations();
 		smallestDenom = Integer.MAX_VALUE;
