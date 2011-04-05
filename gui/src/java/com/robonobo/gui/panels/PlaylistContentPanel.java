@@ -55,7 +55,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			fbBtn.setToolTipText("Post playlist update to facebook");
 			fbBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					fbUpdateBtnPressed();
+					frame.postToFacebook(p);
 				}
 			});
 			fbBtn.setEnabled(p.getPlaylistId() > 0);
@@ -64,7 +64,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			twitBtn.setToolTipText("Post playlist update to twitter");
 			twitBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					twitUpdateBtnPressed();
+					frame.postToTwitter(p);
 				}
 			});
 			twitBtn.setEnabled(p.getPlaylistId() > 0);
@@ -83,56 +83,6 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 		}
 	}
 	
-	private void fbUpdateBtnPressed() {
-		UserConfig uc = frame.getController().getMyUserConfig();
-		if (uc == null || uc.getItem("facebookId") == null) {
-			// We don't seem to be registered for facebook - fetch a fresh copy of the usercfg from midas in
-			// case they've recently added themselves to fb, but GTFOTUT
-			frame.getController().getExecutor().execute(new CatchingRunnable() {
-				public void doRun() throws Exception {
-					UserConfig freshUc = frame.getController().refreshMyUserConfig();
-					if (freshUc == null || freshUc.getItem("facebookId") == null) {
-						// They haven't associated their facebook account with their rbnb one... open a browser window on the page to do so
-						NetUtil.browse(frame.getController().getConfig().getWebsiteUrlBase()+"before-facebook-attach");
-					} else {
-						SwingUtilities.invokeLater(new CatchingRunnable() {
-							public void doRun() throws Exception {
-								frame.showSheet(new PostToFacebookSheet(frame, p));
-							}
-						});
-					}
-				}
-			});
-		} else {
-			frame.showSheet(new PostToFacebookSheet(frame, p));
-		}
-	}
-	
-	private void twitUpdateBtnPressed() {
-		UserConfig uc = frame.getController().getMyUserConfig();
-		if (uc == null || uc.getItem("twitterId") == null) {
-			// We don't seem to be registered for twitter - fetch a fresh copy of the usercfg from midas in
-			// case they've recently added themselves, but GTFOTUT
-			frame.getController().getExecutor().execute(new CatchingRunnable() {
-				public void doRun() throws Exception {
-					UserConfig freshUc = frame.getController().refreshMyUserConfig();
-					if (freshUc == null || freshUc.getItem("twitterId") == null) {
-						// They haven't associated their twitter account with their rbnb one...open a browser window on the page to do so
-						NetUtil.browse(frame.getController().getConfig().getWebsiteUrlBase()+"before-twitter-attach");
-					} else {
-						SwingUtilities.invokeLater(new CatchingRunnable() {
-							public void doRun() throws Exception {
-								frame.showSheet(new PostToTwitterSheet(frame, p));
-							}
-						});
-					}
-				}
-			});
-		} else {
-			frame.showSheet(new PostToTwitterSheet(frame, p));
-		}			
-	}
-
 	@Override
 	public void lostOwnership(Clipboard clipboard, Transferable contents) {
 		// Do nothing

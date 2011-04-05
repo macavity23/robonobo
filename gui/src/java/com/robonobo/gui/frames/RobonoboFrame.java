@@ -19,10 +19,14 @@ import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.Robonobo;
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.FileUtil;
+import com.robonobo.common.util.NetUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.*;
+import com.robonobo.core.api.model.Playlist;
+import com.robonobo.core.api.model.UserConfig;
 import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.GuiConfig;
 import com.robonobo.gui.panels.*;
@@ -324,6 +328,62 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		logFrame.setVisible(true);
 	}
 
+	// TODO Generalise fb/twitter into SocialNetwork or something
+	/**
+	 * Call only from UI thread
+	 */
+	public void postToFacebook(final Playlist p) {
+		if(!SwingUtilities.isEventDispatchThread())
+			throw new SeekInnerCalmException();
+		UserConfig uc = control.getMyUserConfig();
+		if (uc == null || uc.getItem("facebookId") == null) {
+			// We don't seem to be registered for facebook - fetch a fresh copy of the usercfg from midas in
+			// case they've recently added themselves to fb, but GTFOTUT
+			control.getExecutor().execute(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					UserConfig freshUc = control.refreshMyUserConfig();
+					if (freshUc == null || freshUc.getItem("facebookId") == null) {
+						// They haven't associated their facebook account with their rbnb one... open a browser window on the page to do so
+						NetUtil.browse(control.getConfig().getWebsiteUrlBase()+"before-facebook-attach");
+					} else {
+						SwingUtilities.invokeLater(new CatchingRunnable() {
+							public void doRun() throws Exception {
+								showSheet(new PostToFacebookSheet(RobonoboFrame.this, p));
+							}
+						});
+					}
+				}
+			});
+		} else
+			showSheet(new PostToFacebookSheet(this, p));
+	}
+	
+	public void postToTwitter(final Playlist p) {
+		if(!SwingUtilities.isEventDispatchThread())
+			throw new SeekInnerCalmException();
+		UserConfig uc = control.getMyUserConfig();
+		if (uc == null || uc.getItem("twitterId") == null) {
+			// We don't seem to be registered for twitter - fetch a fresh copy of the usercfg from midas in
+			// case they've recently added themselves, but GTFOTUT
+			control.getExecutor().execute(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					UserConfig freshUc = control.refreshMyUserConfig();
+					if (freshUc == null || freshUc.getItem("twitterId") == null) {
+						// They haven't associated their twitter account with their rbnb one...open a browser window on the page to do so
+						NetUtil.browse(control.getConfig().getWebsiteUrlBase()+"before-twitter-attach");
+					} else {
+						SwingUtilities.invokeLater(new CatchingRunnable() {
+							public void doRun() throws Exception {
+								showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));
+							}
+						});
+					}
+				}
+			});
+		} else
+			showSheet(new PostToTwitterSheet(this, p));
+	}
+	
 	public static Image getRobonoboIconImage() {
 		return GuiUtil.getImage("/rbnb-icon-128x128.png");
 	}

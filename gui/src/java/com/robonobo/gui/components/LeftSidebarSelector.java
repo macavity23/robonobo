@@ -70,11 +70,29 @@ public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarC
 		lbl.setText(text);
 	}
 	
+	protected JPopupMenu getPopupMenu() {
+		return null;
+	}
+	
 	class MouseListener extends MouseAdapter {
 		@Override
 		public void mousePressed(MouseEvent e) {
 			setSelected(true);
+			maybeShowPopup(e);
 			e.consume();
 		}
+		
+		public void mouseReleased(MouseEvent e) {
+			maybeShowPopup(e);
+		}
+
+		private void maybeShowPopup(MouseEvent e) {
+			if (!e.isPopupTrigger())
+				return;
+			JPopupMenu popup = getPopupMenu();
+			if(popup != null)
+				popup.show(e.getComponent(), e.getX(), e.getY());
+		}
+
 	}
 }

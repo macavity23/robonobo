@@ -8,6 +8,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,21 +17,26 @@ import javax.swing.*;
 import org.jdesktop.swingx.renderer.DefaultListRenderer;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.UserPlaylistListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.components.base.RLabel12;
+import com.robonobo.gui.components.base.RMenuItem;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.PlaylistListModel;
 import com.robonobo.gui.model.StreamTransfer;
 import com.robonobo.gui.panels.ContentPanel;
 import com.robonobo.gui.panels.LeftSidebar;
+import com.robonobo.gui.sheets.DeletePlaylistSheet;
+import com.robonobo.gui.sheets.SharePlaylistSheet;
 
 @SuppressWarnings("serial")
 public class PlaylistList extends LeftSidebarList implements UserPlaylistListener {
 	private static final int MAX_LBL_WIDTH = 170;
 
 	ImageIcon playlistIcon;
+	PopupMenu popup = new PopupMenu();
 
 	public PlaylistList(LeftSidebar sideBar, RobonoboFrame frame) {
 		super(sideBar, frame, new PlaylistListModel(frame.getController()));
@@ -42,6 +48,25 @@ public class PlaylistList extends LeftSidebarList implements UserPlaylistListene
 		// We do the listener stuff here rather than in the model as we may need to reselect or resize as a consequence
 		frame.getController().addUserPlaylistListener(this);
 		setTransferHandler(new DnDHandler());
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				maybeShowPopup(e);
+			}
+
+			public void mouseReleased(MouseEvent e) {
+				maybeShowPopup(e);
+			}
+
+			private void maybeShowPopup(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					int idx = locationToIndex(e.getPoint());
+					if(idx != getSelectedIndex())
+						setSelectedIndex(idx);
+					popup.show(e.getComponent(), e.getX(), e.getY());
+				}
+			}
+		});
 	}
 
 	public PlaylistListModel getModel() {
@@ -68,9 +93,9 @@ public class PlaylistList extends LeftSidebarList implements UserPlaylistListene
 	@Override
 	public void allUsersAndPlaylistsUpdated() {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
 	@Override
 	public void userChanged(final User u) {
 		invokeLater(new CatchingRunnable() {
@@ -138,9 +163,42 @@ public class PlaylistList extends LeftSidebarList implements UserPlaylistListene
 
 	@Override
 	protected void itemSelected(int index) {
-		PlaylistListModel m = (PlaylistListModel) getModel();
-		Playlist p = m.getPlaylistAt(index);
-		frame.getMainPanel().selectContentPanel("playlist/" + p.getPlaylistId());
+		frame.getMainPanel().selectContentPanel("playlist/" + getModel().getPlaylistAt(index).getPlaylistId());
+	}
+
+	class PopupMenu extends JPopupMenu implements ActionListener {
+		public PopupMenu() {
+			addItem("Post to facebook...", "fb");
+			addItem("Post to twitter...", "twit");
+			addItem("Share...", "share");
+			addItem("Delete", "del");
+		}
+
+		private void addItem(String text, String cmd) {
+			RMenuItem rmi = new RMenuItem(text);
+			rmi.setActionCommand(cmd);
+			rmi.addActionListener(this);
+			add(rmi);
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			int selIdx = getSelectedIndex();
+			if (selIdx < 0)
+				return;
+			Playlist p = getModel().getPlaylistAt(selIdx);
+			String action = e.getActionCommand();
+			if (action.equals("fb"))
+				frame.postToFacebook(p);
+			else if (action.equals("twit"))
+				frame.postToTwitter(p);
+			else if (action.equals("share")) {
+				SharePlaylistSheet sps = new SharePlaylistSheet(frame, p);
+				frame.showSheet(sps);
+			} else if (action.equals("del")) {
+				DeletePlaylistSheet dps = new DeletePlaylistSheet(frame, p);
+				frame.showSheet(dps);
+			}
+		}
 	}
 
 	class ItemLbl extends RLabel12 {

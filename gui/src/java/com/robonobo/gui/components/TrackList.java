@@ -158,8 +158,16 @@ public class TrackList extends JPanel implements SearchExecutor {
 			private void maybeShowPopup(MouseEvent e) {
 				if (!e.isPopupTrigger())
 					return;
-				if (!anyStreamsSelected())
-					return;
+				int mouseRow = table.rowAtPoint(e.getPoint());
+				boolean alreadySel = false;
+				for (int selRow : table.getSelectedRows()) {
+					if(selRow == mouseRow) {
+						alreadySel = true;
+						break;
+					}
+				}
+				if(!alreadySel)
+					table.getSelectionModel().addSelectionInterval(mouseRow, mouseRow); 
 				popupMenu.refresh();
 				popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
