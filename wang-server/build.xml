@@ -49,6 +49,31 @@
 		</war>
 	</target>
 
+   <target name="denom-creator" depends="compile-all">
+		<mkdir dir="${out}" />
+		<jar destfile="${out}/denom-creator.jar">
+         <fileset dir="utils">
+           <include name="appContext.xml"/>
+         </fileset>
+			<fileset dir="target/classes"/>
+			<fileset dir="../api/target/classes"/>
+			<fileset dir="../wang-client/target/classes"/>
+			<fileset dir="../common/target/classes"/>
+			<fileset dir="../common-webapps/target/classes"/>
+         <!-- Annoyingly the spring jars contain metadata files which conflict if they get smooshed into one jar, so we have to copy them over manually -->
+         <zipfileset src="WebContent/WEB-INF/lib/jboss-remoting-core.jar"/>
+         <zipfileset src="WebContent/WEB-INF/lib/jboss-remoting-socket.jar"/>
+         <zipfileset src="WebContent/WEB-INF/lib/protobuf-java-2.3.0.jar"/>
+			<zipfileset src="../common-webapps/lib/mysql-connector-java-5.0.8-bin.jar"/>
+			<zipfileset src="../common-webapps/lib/postgresql-8.3-603.jdbc3.jar"/>
+			<zipfileset src="../common-webapps/lib/log4j-1.2.15.jar"/>
+			<zipfileset src="../common-webapps/lib/commons-logging-1.0.4.jar"/>
+         <zipfileset src="../common-webapps/lib/cglib-2.2.jar"/>
+         <zipfileset src="../common-webapps/lib/asm-3.2.jar"/>
+         <zipfileset src="../common-webapps/lib/servlet-api.jar"/>
+		</jar>
+   </target>
+
 	<target name="clean">
 		<delete dir="target/classes"/>
 		<delete dir="${out}"/>

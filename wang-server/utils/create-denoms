@@ -1,0 +1,28 @@
+#!/bin/bash
+
+my_jar=denom-creator.jar
+
+if [[ ! -f $my_jar ]]
+then
+    echo "Could not find jar at $my_jar - aborting" >&2
+    exit 1
+fi
+
+CLASSPATH=$my_jar
+
+if [[ $1 == "-g" ]]
+then
+    unzip $my_jar appContext.xml
+    echo "Created appContext.xml" >&2
+    exit 0
+fi
+
+if [[ ! -f appContext.xml ]]
+then
+    echo "You need an appContext.xml file in your current directory. To generate a template, run create-denoms -g (no other args)" >&2
+    exit 1
+fi
+
+#DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,address=7000,server=y,suspend=y"
+java $DEBUG -cp $CLASSPATH com.robonobo.wang.server.utils.CreateDenoms $*
+
