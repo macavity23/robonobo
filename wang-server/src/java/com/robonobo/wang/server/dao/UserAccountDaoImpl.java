@@ -19,6 +19,7 @@ import com.robonobo.wang.server.UserAccount;
 public class UserAccountDaoImpl implements UserAccountDao {
 	private static final String CREATE_UA_SQL = "INSERT INTO user_account (friendly_name, email, password, balance) values (?, ?, ?, 0)";
 	private static final String GET_UA_SQL = "SELECT * FROM user_account WHERE email = ?";
+	private static final String CHECK_UA_SQL = "SELECT count(*) FROM user_account WHERE email = ?";
 	private static final String LOCK_UA_SQL = GET_UA_SQL + " FOR UPDATE";
 	private static final String PUT_UA_SQL = "UPDATE user_account SET friendly_name = ?, password = ?, balance = ? WHERE email = ?";
 	private static final String COUNT_SQL = "SELECT count(*) FROM user_account";
@@ -37,14 +38,17 @@ public class UserAccountDaoImpl implements UserAccountDao {
 	 */
 	@Override
 	public void createUserAccount(String friendlyName, String email, String password) throws DAOException {
-		UserAccount ua = getUserAccount(email);
-		if(ua != null)
+		if(accountExists(email))
 			throw new DAOException("Account for "+email+" already exists");
 		try {
 			db.update(CREATE_UA_SQL, friendlyName, email, password);
 		} catch (DataAccessException e) {
 			throw new DAOException(e);
 		}
+	}
+	
+	public boolean accountExists(String email) throws DAOException {
+		return (db.queryForInt(CHECK_UA_SQL, email) > 0);
 	}
 	
 	/* (non-Javadoc)
@@ -55,6 +59,9 @@ public class UserAccountDaoImpl implements UserAccountDao {
 		try {
 			return db.queryForObject(GET_UA_SQL, uaMapper, email);
 		} catch (DataAccessException e) {
+			// jdbctemplate.queryforobject throws an exception if the row isn't there, which is a bit annoying, returning null would seem a better choice
+			if(!accountExists(email))
+				return null;
 			throw new DAOException(e);
 		}
 	}

@@ -30,7 +30,7 @@ public class AppConfig implements ServletContextAware, InitializingBean {
 	@Bean
 	public MailService mail() {
 		String smtpServer = sc.getInitParameter("smtpServer");
-		return new MailServiceImpl(smtpServer);
+		return new MailServiceImpl(smtpServer, "robonobo.com");
 	}
 
 	public String getInitParam(String name) {

@@ -19,11 +19,13 @@ public class MailServiceImpl implements MailService {
 	Log log = LogFactory.getLog(getClass());
 	private boolean configured;
 
-	public MailServiceImpl(String smtpServer) {
+	public MailServiceImpl(String smtpServer, String myDomain) {
 		configured = (smtpServer != null);
 		if (configured) {
 			Properties props = System.getProperties();
 			props.put("mail.smtp.host", smtpServer);
+			// Set the domain we send our HELO from
+			props.put("mail.smtp.localhost", myDomain);
 			session = Session.getDefaultInstance(props, null);
 		} else
 			log.error("SMTP server not configured... no mails will be sent!");
