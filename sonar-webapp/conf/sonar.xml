@@ -20,6 +20,13 @@
             maxActive="8"
             maxIdle="5"
             maxWait="60000"
+            validationQuery="SELECT 1"
+            testOnBorrow="true"
+            testOnReturn="true"
+            testWhileIdle="true"
+            minEvictableIdleTimeMillis="1800000"
+            timeBetweenEvictionRunsMillis="1800000"
+            numTestsPerEvictionRun="3"
             />
   <Parameter name="maxNodeAgeMs" value="300000" override="true"/>
 </Context>

@@ -3,7 +3,7 @@ package com.robonobo.core.wang;
 import com.robonobo.wang.client.WangConfig;
 
 public class RobonoboWangConfig extends WangConfig {
-	private String currencyUrl = "http://acceptwang.com";
+	private String currencyUrl = "http://wang.mu";
 
 	/** These are all as powers of 2 */
 	private int bidIncrement = -11;
@@ -18,7 +18,7 @@ public class RobonoboWangConfig extends WangConfig {
 	// The below all extend wangconfig
 	private String accountEmail;
 	private String accountPwd;
-	private String bankUrl = "http://robonobo.com/wang/";
+	private String bankUrl = "http://wang.robonobo.com";
 	/**
 	 * The number of coins to keep on hand: <coin
 	 * exponent>:<number>[,<exponent>:<num>...]

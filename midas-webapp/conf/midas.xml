@@ -22,6 +22,13 @@
             maxActive="100"
             maxIdle="5"
             maxWait="60000"
+            validationQuery="SELECT 1"
+            testOnBorrow="true"
+            testOnReturn="true"
+            testWhileIdle="true"
+            minEvictableIdleTimeMillis="1800000"
+            timeBetweenEvictionRunsMillis="1800000"
+            numTestsPerEvictionRun="3"
             />
 
   <!-- Remoting Details so other webapps can talk to us -->
