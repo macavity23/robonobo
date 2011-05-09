@@ -10,8 +10,16 @@
 
 	<!-- Wang DB details -->
 	<Resource name="jdbc/wang" auth="Container" type="javax.sql.DataSource"
-		driverClassName="org.postgresql.Driver" url="jdbc:postgresql://localhost/wang"
-		username="wang_admin" password="" maxActive="100" maxIdle="5" maxWait="60000" />
+             driverClassName="com.mysql.jdbc.Driver" url="jdbc:mysql://localhost/wang"
+             username="" password="" maxActive="100" maxIdle="5" maxWait="60000" 
+             validationQuery="SELECT 1"
+             testOnBorrow="true"
+             testOnReturn="true"
+             testWhileIdle="true"
+             minEvictableIdleTimeMillis="1800000"
+             timeBetweenEvictionRunsMillis="1800000"
+             numTestsPerEvictionRun="3"
+             />
 
 
 	<!-- Remoting Details so other webapps can talk to us -->

@@ -118,6 +118,7 @@ public class RemoteWangService implements ServerInvocationHandler, InitializingB
 	}
 
 	private void createUser(String email, String friendlyName, String password) throws Exception {
+		log.info("Creating user account for "+email);
 		uaDao.createUserAccount(friendlyName, email, password);
 	}
 	

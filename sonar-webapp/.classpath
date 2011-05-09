@@ -11,5 +11,6 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="/common/lib/protobuf-java-2.3.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/common-webapps"/>
+	<classpathentry kind="lib" path="/common-webapps/lib/mysql-connector-java-5.0.8-bin.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

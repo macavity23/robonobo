@@ -7,22 +7,10 @@
         <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common/lib/commons-httpclient-3.0.jar">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-webapps/lib/dom4j-1.6.1.jar">
-            <dependency-type>uses</dependency-type>
-        </dependent-module>
-        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-webapps/lib/postgresql-8.3-603.jdbc3.jar">
-            <dependency-type>uses</dependency-type>
-        </dependent-module>
         <dependent-module archiveName="api.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/api/api">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <dependent-module archiveName="common.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/common/common">
-            <dependency-type>uses</dependency-type>
-        </dependent-module>
-        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-webapps/lib/log4j-1.2.15.jar">
-            <dependency-type>uses</dependency-type>
-        </dependent-module>
-        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-webapps/lib/slf4j-log4j12-1.5.8.jar">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common/lib/protobuf-java-2.2.0.jar">
@@ -209,6 +197,9 @@
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <dependent-module archiveName="aopalliance.jar" deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-webapps/lib/aopalliance.jar">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="mysql-connector-java-5.0.8-bin.jar" deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-webapps/lib/mysql-connector-java-5.0.8-bin.jar">
             <dependency-type>uses</dependency-type>
         </dependent-module>
 <property name="java-output-path" value="build/classes"/>

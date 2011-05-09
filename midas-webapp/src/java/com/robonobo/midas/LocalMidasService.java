@@ -62,6 +62,7 @@ public class LocalMidasService implements MidasService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public MidasUser createUser(MidasUser user) {
+		log.info("Creating user "+user.getEmail());
 		user.setVerified(true);
 		user.setUpdated(now());
 		return userDao.create(user);

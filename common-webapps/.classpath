@@ -300,6 +300,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/jackson-core-lgpl-1.6.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-mapper-lgpl-1.6.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/scribe-1.0.8.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/mysql-connector-java-5.0.8-bin.jar"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/common"/>
 	<classpathentry exported="true" kind="lib" path="lib/servlet-api.jar">
 		<attributes>
