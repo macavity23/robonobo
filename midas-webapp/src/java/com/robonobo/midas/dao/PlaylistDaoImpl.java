@@ -1,11 +1,16 @@
 package com.robonobo.midas.dao;
 
 import static com.robonobo.common.util.TextUtil.*;
+import static com.robonobo.common.util.TimeUtil.*;
 
+import java.util.Date;
 import java.util.List;
 
+import org.hibernate.Hibernate;
+import org.hibernate.Query;
 import org.springframework.stereotype.Repository;
 
+import com.robonobo.common.util.TimeUtil;
 import com.robonobo.midas.model.MidasPlaylist;
 
 @Repository("playlistDao")
@@ -45,6 +50,16 @@ public class PlaylistDaoImpl extends MidasDao implements PlaylistDao {
 	public void savePlaylist(MidasPlaylist playlist) {
 		sanitizePlaylist(playlist);
 		getSession().saveOrUpdate(playlist);
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<MidasPlaylist> getRecentPlaylists(long maxAgeMs) {
+		Date maxAge = timeInPast(maxAgeMs);
+		String hql = "from MidasPlaylist where updated > :maxAge";
+		Query q = getSession().createQuery(hql);
+		q.setParameter("maxAge", maxAge, Hibernate.DATE);
+		return q.list();
 	}
 	
 	private void sanitizePlaylist(MidasPlaylist p) {

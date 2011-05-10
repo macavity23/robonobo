@@ -130,6 +130,11 @@ public class LocalMidasService implements MidasService {
 		return playlistDao.loadPlaylist(playlistId);
 	}
 
+	@Override
+	public List<MidasPlaylist> getRecentPlaylists(long maxAgeMs) {
+		return playlistDao.getRecentPlaylists(maxAgeMs);
+	}
+	
 	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public MidasPlaylist newPlaylist(MidasPlaylist playlist) {

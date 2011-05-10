@@ -240,4 +240,8 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 		return new MidasFriendRequest(msg);
 	}
 
+	public List<MidasPlaylist> getRecentPlaylists(long maxAgeMs) {
+		return null;
+	}
+
 }

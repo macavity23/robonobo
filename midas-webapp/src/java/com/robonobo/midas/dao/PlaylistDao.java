@@ -1,5 +1,7 @@
 package com.robonobo.midas.dao;
 
+import java.util.List;
+
 import com.robonobo.midas.model.MidasPlaylist;
 
 public interface PlaylistDao {
@@ -14,5 +16,7 @@ public interface PlaylistDao {
 	public abstract MidasPlaylist loadPlaylist(long playlistId);
 
 	public abstract void savePlaylist(MidasPlaylist playlist);
+
+	public abstract List<MidasPlaylist> getRecentPlaylists(long maxAgeMs);
 
 }

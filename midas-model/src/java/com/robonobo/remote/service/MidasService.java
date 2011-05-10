@@ -75,4 +75,6 @@ public interface MidasService {
 	public MidasUserConfig getUserConfig(MidasUser u);
 	
 	public void putUserConfig(MidasUserConfig config);
+
+	public List<MidasPlaylist> getRecentPlaylists(long maxAgeMs);
 }
