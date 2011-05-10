@@ -18,7 +18,7 @@ public class RobonoboWangConfig extends WangConfig {
 	// The below all extend wangconfig
 	private String accountEmail;
 	private String accountPwd;
-	private String bankUrl = "http://wang.robonobo.com";
+	private String bankUrl = "http://wang.robonobo.com/";
 	/**
 	 * The number of coins to keep on hand: <coin
 	 * exponent>:<number>[,<exponent>:<num>...]
