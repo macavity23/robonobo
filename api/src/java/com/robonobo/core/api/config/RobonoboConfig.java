@@ -19,7 +19,7 @@ public class RobonoboConfig implements Serializable {
 	String metadataServerPassword;
 	String bugReportUrl = "http://developer.berlios.de/bugs/?group_id=11593";
 	String helpUrl = "http://getsatisfaction.com/robonobo";
-	String wikiUrl = "http://openfacts2.berlios.de/wikien/index.php/BerliosProject:Robonobo";
+	String developerUrl = "https://github.com/macavity23/robonobo";
 	String finishedDownloadsDirectory = null;
 	int bufferAutoSaveFreq = 60; // Secs
 	int maxRunningDownloads = 4;
@@ -211,12 +211,12 @@ public class RobonoboConfig implements Serializable {
 		this.helpUrl = helpUrl;
 	}
 
-	public String getWikiUrl() {
-		return wikiUrl;
+	public String getDeveloperUrl() {
+		return developerUrl;
 	}
 
-	public void setWikiUrl(String wikiUrl) {
-		this.wikiUrl = wikiUrl;
+	public void setDeveloperUrl(String wikiUrl) {
+		this.developerUrl = wikiUrl;
 	}
 
 	public boolean getAgreedToEula() {

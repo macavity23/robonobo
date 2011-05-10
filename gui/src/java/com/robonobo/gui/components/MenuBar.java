@@ -148,10 +148,10 @@ public class MenuBar extends JMenuBar {
 			}
 		});
 		helpMenu.add(showHelpPage);
-		RMenuItem showWiki = new RMenuItem("Go to developer wiki...");
+		RMenuItem showWiki = new RMenuItem("Go to developer webpage...");
 		showWiki.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				openUrl(frame.getController().getConfig().getWikiUrl());
+				openUrl(frame.getController().getConfig().getDeveloperUrl());
 			}
 		});
 		helpMenu.add(showWiki);

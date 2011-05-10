@@ -3,7 +3,6 @@ package com.robonobo.gui.components;
 import static com.robonobo.gui.GuiUtil.*;
 import info.clearthought.layout.TableLayout;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -13,22 +12,23 @@ import javax.swing.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.wang.WangListener;
-import com.robonobo.gui.*;
+import com.robonobo.gui.RoboColor;
+import com.robonobo.gui.components.base.RLabel;
+import com.robonobo.gui.components.base.RLabel22;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 @SuppressWarnings("serial")
 public class BalanceLabel extends JPanel implements LeftSidebarComponent, WangListener {
 	RobonoboFrame frame;
-	JLabel lbl;
+	RLabel lbl;
 	NumberFormat balanceFormat;
 
 	public BalanceLabel(RobonoboFrame frame) {
 		this.frame = frame;
 		double[][] cellSizen = { { TableLayout.FILL }, { TableLayout.FILL } };
 		setLayout(new TableLayout(cellSizen));
-		lbl = new JLabel(createImageIcon("/wang-orange-on-trans.png", null));
+		lbl = new RLabel22(createImageIcon("/wang-orange-on-trans.png", null));
 		lbl.setForeground(RoboColor.ORANGE);
-		lbl.setFont(RoboFont.getFont(22, false));
 		add(lbl, "0,0,CENTER,CENTER");
 		balanceFormat = NumberFormat.getInstance();
 		balanceFormat.setMaximumFractionDigits(2);
