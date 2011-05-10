@@ -161,12 +161,13 @@ E playlist is there
 D login as user A
 
 D register as user C through rbnb site
-D open robonobo as user A, share playlist with user C
-E user C receives friendship request
-D user C accepts friendship request
+D open robonobo, log in as user C
+D create playlist, share with user A
+E user A receives friendship request
+D as user A, accept friendship request
 E friendship created
-D log in as user C
-E friendship, playlist created
+D wait for robonobo to fetch updated friends
+E new friend & playlists appear in sidebar
 
 D create playlist, visible to friends only
 D click 'post to facebook' button
