@@ -3,51 +3,62 @@ E=Expect
 
 Run this whole script on windows (ie), mac (safari) & ubuntu (ff)
 
-
-Adminsite
-=========
-D Go to admin url
-E login page
-D log in with admin creds
-E admin home page
-
-D delete test user if exists
-E user deleted, including friendships
-
-D create test user - check 'send welcome email'
-E test user created with default balance and invites, welcome email received
-D top up test user account
-E account balance credited
-D edit user name and invites left
-E user updated ok
-D add user as friend to test user
-E friendship created (from both sides)
-D delete test user
-E user deleted
+Prereqs:
+* 3 test facebook accts (users A, B and C) with friendships A<->B but no others
+* 1 test twitter acct (user D)
+* delete test rbnb accts
+* 4 small (56kb) test mp3 files
 
 Website
 =======
-D Go to http://robonobo.com
-E login page
-D click 'forgot password', enter email, click submit
-E receive password reminder email
+D go to http://robonobo.com
+E home page
+D select registration from nav
+E reg page
+D fill out standard registration
+E download page
+E receive registration email
 
-D Enter email, password, click login
-E news page, including rss feed
-D delete session cookies, visit http://robonobo.com/website/home
-E login page
+D logout from nav
+E home page
+D go back to reg page, click 'register with facebook'
+E facebook reg page
+D fill out facebook reg, continue
+E get bounced to facebook
+D log in, click approve
+E get bounced back to robonobo.com download page
 
-D Enter email, password, check 'remember me', click login
-E news page
-D delete session cookies, visit http://robonobo.com/website/home
-E news page
+D logout from nav
+E home page
+D go back to reg page, click 'register with twitter'
+E twitter reg page
+D continue to twitter, login, approve
+E get bounced back to rbnb download page
+
+D logout from nav
+E home page
+D select login from nav
+E login page
+D click forgot password, enter email, submit
+E login page
+E password reminder email
+
+D Enter email, password, untick 'remember me', click login
+E logged in home page
+D delete session cookies, reload homepage
+E logged out home page
+
+D Enter email, password, tick 'remember me', click login
+E logged in home page
+D delete session cookies, reload home page
+E logged in home page
 D Click logout
 E login page
 
 D click help
 E go to getsatisfaction.com page
 D back, click developers
-E go to berlios page
+E go to github page
 D back, click contact
 E go to contact page
 
@@ -58,30 +69,28 @@ E topup request email sent
 D change name, enter current pwd, click save
 E name changes
 
-D shutdown tomcat, visit http://robonobo.com/website/home
-E error page
-D wait 10 mins
-E receive monitoring alert
-D start tomcat again
-E verify that supernode has checked in with sonar
-
 
 App Login
 =========
-D Delete robonobo home dir
-D login to website, click launch
-E launch page, inc instructions
-E jnlp file pops up
-D allow jnlp to run
+D rm robonobo home dirs - dev and prod
+D go to website download page, download latest app, install
+E installs ok
+D launch rbnb
 E eula page
+D check home dir creation
+E correct home dir created
 D cancel eula
 E robonobo quits
 D relaunch robonobo, accept eula
 E robonobo pops up, asks for login
+D click link from login page
+E browser opens, shows robonobo registration page
 D enter login details with incorrect password
-E shakey login window
-D enter correct login details
-E login successful, robonobo connected, can see friends and playlists
+E login failed window
+D enter correct user A login details
+E login successful, rbnb connected
+E welcome page
+E can see balance
 
 D quit app
 D login to website, go to account page
@@ -91,73 +100,106 @@ D relaunch app
 E get login dialog
 D log into application with new details
 E login successful
+E welcome page
 
 
-Sharing and Mirroring
+Sharing
 =====================
-D add tracks via File->Share Files
-E tracks added
+D if mirror is running, delete test files
+D from welcome page, select 'add files'
+E add files dialog
+D select 2 test files
+E files get added
+D remove tracks using button
+E tracks removed
 D add tracks via dnd
 E tracks added
-D watch dir, add tracks to dir, wait 30 secs
-E tracks added
+D remove tracks using right-click
+E tracks removed
 
-D Check new tracks aren't already shared by mirror
 D create new playlist, save
 E playlist created
-D add 2 tracks via dnd from my music, wait 30s
+D add 2 test tracks via dnd from my music, wait 30s
 E tracks start to upload to mirror
 D wait for tracks to upload
-D drag 3 more tracks directly in from os, wait 30s
+D drag 2 more tracks directly in from os, wait 30s
 E tracks start to upload
-D wait for track to upload
+D add tracks to playlist via right-click from library
+E tracks added
 
 D (mac/win) select 'import from itunes' from menu
 E tracks and playlists imported
 
-D share playlist with test user
-E test user receives invite email
-D accept invite, put in details
-E test user created, receives welcome email
-D login as test user
-E friend is there, playlist is there
-D add track to playlist as test user
-D login as orig user
+
+Search
+======
+D once tracks are mirrored, remove tracks from library
+D search for tracks
+E find mirrored tracks
+D download track
+E track downloads
+D play different track
+E track plays
+
+Friends/Facebook/Twitter
+=====================
+D share playlist with user B
+E user B receives invite email
+D accept invite, register via facebook
+E user B created, receives welcome email
+D login as user B
+E friend A is there, playlist is there
+D add track to playlist as user B
+D login as user A
 E playlist is updated
 
 D make new playlist, add same tracks
-D share playlist with test user
-E test user receives email
-D login as test user
+D share playlist with user B
+E user B receives email
+D login as user B
 E playlist is there
-D login as orig user
+D login as user A
 
-D go to admin site, delete friendships for test user
-E friendships deleted
-
-D log in as orig user, share playlist with test user
-E test user receives friendship request
-D test user accepts friendship request
+D register as user C through rbnb site
+D open robonobo as user A, share playlist with user C
+E user C receives friendship request
+D user C accepts friendship request
 E friendship created
-D log in as test user
+D log in as user C
 E friendship, playlist created
 
-D go to admin site, look at orig user
-E invites have decremented
+D create playlist, visible to friends only
+D click 'post to facebook' button
+E browser opens, asks for login then starts facebook attach process
+D go through facebook attach
+D go back to app, click 'post to facebook' button again
+E post to facebook sheet appears
+D fill out sheet with test message, submit
+E facebook wall message is posted
+D click 'post to twitter' button
+E browser opens, starts twitter attach process
+D go through twitter attach
+D go back to app, click 'post to twitter' button again
+E post to twitter sheet appears
+D fill out sheet with test message, submit
+E tweet is tweeted
 
-D Open preferences
-D Disable uPnP
-D Restart robo, check console and ensure uPnP not started
+D log into rbnb app as user A
+D go to twitter page containing rbnb tweet, click on link
+E playlist opens in rbnb under user C
+D log into rbnb app as user B
+D go to twitter page containing rbnb tweet, click on link
+E playlist won't open, displays helpful non-public message
+D log into rbnb app as user C
+D change playlist to publically visible
+D log into rbnb app as user B
+D go to twitter page containing rbnb tweet, click on link
+E playlist opens in rbnb under public playlists
 
-D make new playlist, add same tracks
-D add two new tracks, wait 30s
-E tracks get mirrored
-D let them be mirrored, uncheck playlist public, save playlist
-D login as test user
-E can't see playlist
-D login as orig user
-
-D Re-enable uPnP, restart robonobo
+D user C makes friends with user B on facebook
+E facebook api receives friendship update
+D log in to app as user C, user B
+E friendship created on both sides
 
 
 Downloading and Playing
@@ -167,7 +209,7 @@ E tracks deleted
 D delete rest of tracks using del key
 E tracks deleted
 D look at playlists
-E Found 1+ sources
+E Found 1+ sources for mirrored tracks
 D delete all playlists
 E playlists deleted
 D quit app
@@ -195,3 +237,9 @@ Misc
 ====
 D help->about
 E displays correct version
+D help->online help
+E browser opens with online help page
+D help->developer page
+E browser opens with github page
+D help->file bug report
+E bug report page opens
