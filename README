@@ -17,6 +17,9 @@ For the currency, look in wang-client for the client end, and wang-server for th
 For the centralised web-based bits that bootstrap the rbnb network and provide stream metadata, see sonar-webapp and midas-webapp
 For os-specific stuff, creating installers and packages, etc, look in dist
 
+For more in-depth info, see the developer wiki at https://github.com/macavity23/robonobo/wiki
+
 All queries to info@robonobo.com
 
 Created: 2011/03/02
+Last Updated: 2011/05/10

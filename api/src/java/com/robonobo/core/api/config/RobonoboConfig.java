@@ -17,7 +17,7 @@ public class RobonoboConfig implements Serializable {
 	String metadataServerUrl = "http://midas.robonobo.com/";
 	String metadataServerUsername;
 	String metadataServerPassword;
-	String bugReportUrl = "http://developer.berlios.de/bugs/?group_id=11593";
+   String bugReportUrl = "https://github.com/macavity23/robonobo/issues";
 	String helpUrl = "http://getsatisfaction.com/robonobo";
 	String developerUrl = "https://github.com/macavity23/robonobo";
 	String finishedDownloadsDirectory = null;
