@@ -39,5 +39,6 @@ public class RecentActivityController extends BaseController {
 		for (String sid : streamIds) {
 			out.println(sid);
 		}
+		out.close();
 	}
 }
