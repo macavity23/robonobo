@@ -82,12 +82,14 @@ public class SharePlaylistController extends BaseController {
 			}
 		}
 		// Check we have enough invites
+		// TODO rem'd this out as we're not using invites for the moment
 		if (inviteEmails.size() > 0) {
-			// Client should have checked this already, so just chuck an error
-			log.error("User " + authUser.getEmail() + " tried to share playlist " + p.getTitle()
-					+ ", but has insufficient invites");
-			if (inviteEmails.size() > authUser.getInvitesLeft())
+			if (inviteEmails.size() > authUser.getInvitesLeft()) {
+				// Client should have checked this already, so just chuck an error
+				log.error("User " + authUser.getEmail() + " tried to share playlist " + p.getTitle()
+						+ ", but has insufficient invites");
 				throw new IOException("Not enough invites left!");
+			}
 			authUser.setInvitesLeft(authUser.getInvitesLeft() - inviteEmails.size());
 			midas.saveUser(authUser);
 		}
