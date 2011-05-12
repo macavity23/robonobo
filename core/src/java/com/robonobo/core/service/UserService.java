@@ -142,7 +142,7 @@ public class UserService extends AbstractService {
 					rbnb.getTaskService().runTask(new InitialFetchTask());
 				}
 			});
-			if (rbnb.getMina() != null & rbnb.getMina().isConnectedToSupernode()) {
+			if (rbnb.getMina() != null && rbnb.getMina().isConnectedToSupernode()) {
 				rbnb.setStatus(RobonoboStatus.Connected);
 				rbnb.getEventService().fireStatusChanged();
 			}
