@@ -4,8 +4,9 @@ E=Expect
 Run this whole script on windows (ie), mac (safari) & ubuntu (ff)
 
 Prereqs:
-* 3 test facebook accts (users A, B and C) with friendships A<->B but no others
-* 1 test twitter acct (user D)
+* 3 test facebook accts (users A, B and C) with friendships A<->B but no others, user A has profile pic
+* 1 test twitter acct (user D) with profile pic
+* 1 standalone acct (user E)
 * delete test rbnb accts
 * 4 small (56kb) test mp3 files
 
@@ -15,45 +16,53 @@ D go to http://robonobo.com
 E home page
 D select registration from nav
 E reg page
-D fill out standard registration
+D fill out standard registration as user E
 E download page
 E receive registration email
 
 D logout from nav
 E home page
 D go back to reg page, click 'register with facebook'
-E facebook reg page
-D fill out facebook reg, continue
+E facebook warning page
+D click continue
 E get bounced to facebook
-D log in, click approve
-E get bounced back to robonobo.com download page
+D log in as user A, click allow
+E get bounced back to robonobo.com facebook reg page
+D fill out facebook reg, continue
+E download page
+E rbnb acct has picture from fb
 
 D logout from nav
 E home page
 D go back to reg page, click 'register with twitter'
+E twitter warning page
+D continue to twitter, login as user D, approve
 E twitter reg page
-D continue to twitter, login, approve
-E get bounced back to rbnb download page
-
+D complete twitter reg
+E download page
+E rbnb acct has picture from twitter
 D logout from nav
+
 E home page
 D select login from nav
 E login page
-D click forgot password, enter email, submit
+D click forgot password
+E forgot password page
+D enter email for user A, submit
 E login page
 E password reminder email
 
-D Enter email, password, untick 'remember me', click login
+D go to login page
+D As user A, Enter email, password, untick 'remember me', click login
 E logged in home page
 D delete session cookies, reload homepage
 E logged out home page
 
-D Enter email, password, tick 'remember me', click login
+D go to login page
+D as user A, enter email, password, tick 'remember me', click login
 E logged in home page
 D delete session cookies, reload home page
 E logged in home page
-D Click logout
-E login page
 
 D click help
 E go to getsatisfaction.com page
@@ -64,17 +73,16 @@ E go to contact page
 
 D click account
 E account page up, including current balance
-D click request topup
-E topup request email sent
+D change name, click save
+E error msg demanding password
 D change name, enter current pwd, click save
 E name changes
 
 
 App Login
 =========
-D rm robonobo home dirs - dev and prod
-D go to website download page, download latest app, install
-E installs ok
+D rm rbnb home dirs - dev and prod
+D rm rbnb fonts from system
 D launch rbnb
 E eula page
 D check home dir creation
@@ -85,8 +93,9 @@ D relaunch robonobo, accept eula
 E robonobo pops up, asks for login
 D click link from login page
 E browser opens, shows robonobo registration page
+D close browser window, return to app
 D enter login details with incorrect password
-E login failed window
+E login failed msg
 D enter correct user A login details
 E login successful, rbnb connected
 E welcome page
@@ -94,8 +103,8 @@ E can see balance
 
 D quit app
 D login to website, go to account page
-D enter current pwd, enter new pwd twice, save, logout, login with new details
-E get home page
+D enter current pwd, enter new pwd twice, save
+E account page, details saved
 D relaunch app
 E get login dialog
 D log into application with new details
@@ -106,7 +115,7 @@ E welcome page
 Sharing
 =====================
 D if mirror is running, delete test files
-D from welcome page, select 'add files'
+D from welcome page, select 'share from files'
 E add files dialog
 D select 2 test files
 E files get added
@@ -116,18 +125,21 @@ D add tracks via dnd
 E tracks added
 D remove tracks using right-click
 E tracks removed
+A add 2 tracks using File->Share tracks
+E tracks added
 
 D create new playlist, save
 E playlist created
-D add 2 test tracks via dnd from my music, wait 30s
-E tracks start to upload to mirror
+D add 2 test tracks via dnd from my music, wait 60s
+E tracks start to upload to mirror, reflected in gui
 D wait for tracks to upload
-D drag 2 more tracks directly in from os, wait 30s
+D drag 2 more tracks directly in from os, wait 60s
 E tracks start to upload
 D add tracks to playlist via right-click from library
 E tracks added
 
-D (mac/win) select 'import from itunes' from menu
+D (mac/win) delete robonobo folders from itunes
+D (mac/win) select 'import from itunes' from button in my library
 E tracks and playlists imported
 
 
@@ -145,23 +157,22 @@ Friends/Facebook/Twitter
 =====================
 D share playlist with user B
 E user B receives invite email
-D accept invite, register via facebook
+D as user B, accept invite, register via facebook
 E user B created, receives welcome email
-D login as user B
+D login to app as user B
 E friend A is there, playlist is there
 D add track to playlist as user B
-D login as user A
-E playlist is updated
+D login to app as user A, restart app
+E playlist is updated, friend/playlist is there
 
 D make new playlist, add same tracks
 D share playlist with user B
 E user B receives email
 D login as user B
 E playlist is there
-D login as user A
 
 D register as user C through rbnb site
-D open robonobo, log in as user C
+D log into app as user C, restart app
 D create playlist, share with user A
 E user A receives friendship request
 D as user A, accept friendship request
@@ -169,7 +180,7 @@ E friendship created
 D wait for robonobo to fetch updated friends
 E new friend & playlists appear in sidebar
 
-D create playlist, visible to friends only
+D (still as user C) create playlist, visible to friends only
 D click 'post to facebook' button
 E browser opens, asks for login then starts facebook attach process
 D go through facebook attach
@@ -186,15 +197,23 @@ D fill out sheet with test message, submit
 E tweet is tweeted
 
 D log into rbnb app as user A
+D log out of rbnb site
 D go to twitter page containing rbnb tweet, click on link
+E rbnb site login
+D login to site as user A
 E playlist opens in rbnb under user C
-D log into rbnb app as user B
+D log out of rbnb site
 D go to twitter page containing rbnb tweet, click on link
+E rbnb site login
+D login to site as user B
 E playlist won't open, displays helpful non-public message
 D log into rbnb app as user C
 D change playlist to publically visible
-D log into rbnb app as user B
+D log into rbnb app as user B, restart app
+D log out of rbnb site
 D go to twitter page containing rbnb tweet, click on link
+E rbnb site login
+D login as user B
 E playlist opens in rbnb under public playlists
 
 D user C makes friends with user B on facebook
@@ -202,12 +221,9 @@ E facebook api receives friendship update
 D log in to app as user C, user B
 E friendship created on both sides
 
-
 Downloading and Playing
 =======================
 D delete some tracks using delete button
-E tracks deleted
-D delete rest of tracks using del key
 E tracks deleted
 D look at playlists
 E Found 1+ sources for mirrored tracks
@@ -228,11 +244,17 @@ E all items in playlist download successfully
 D (mac/win) Check 'sync with iTunes'
 E iTunes opens, playlist appears with correct tracks
 
-D login to another node as friend user, add track to playlist
+D login to another node as friend user, restart app, add track to playlist
 D wait 5 mins
 E playlist updates and starts downloading
 E (mac/win) iTunes playlist updates with new track
 
+
+Wang
+====
+D in app, click on wang balance to bring up wang panel
+D click 'request top up'
+E top up request email
 
 Misc
 ====

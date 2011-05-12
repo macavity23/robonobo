@@ -75,6 +75,12 @@ public class SharePlaylistSheet extends Sheet {
 				shareBtn.setEnabled(targetSelected());
 			}
 		});
+		emailField.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				if(emailField.getText().equals(DEFAULT_EMAILS))
+					emailField.setText("");
+			}
+		});
 		add(emailField, "3,5");
 
 //		int invitesLeft = control.getMyUser().getInvitesLeft();
