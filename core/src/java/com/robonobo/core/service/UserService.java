@@ -133,11 +133,11 @@ public class UserService extends AbstractService {
 			log.info("Login as " + email + " successful");
 			rbnb.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					rbnb.getEventService().fireLoggedIn();
 					synchronized (UserService.this) {
 						usersByEmail.put(me.getEmail(), me);
 						usersById.put(me.getUserId(), me);
 					}
+					rbnb.getEventService().fireLoggedIn();
 					rbnb.getEventService().fireUserChanged(me);
 					rbnb.getTaskService().runTask(new InitialFetchTask());
 				}
