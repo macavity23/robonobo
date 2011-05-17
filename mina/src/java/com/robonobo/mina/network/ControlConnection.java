@@ -19,6 +19,7 @@ import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.dlugosz.Dlugosz;
 import com.robonobo.common.io.ByteBufferInputStream;
 import com.robonobo.common.util.CodeUtil;
+import com.robonobo.core.api.StreamVelocity;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.mina.instance.MinaInstance;
@@ -283,11 +284,12 @@ public class ControlConnection implements PushDataReceiver {
 	 * @syncpriority 60
 	 */
 	public synchronized boolean isHighestPriority(LCPair argLcp) {
-		int argPri = argLcp.getSM().getPriority();
+		int argPri = mina.getStreamMgr().getPriority(argLcp.getStreamId());
 		for (LCPair iterLcp : lcPairs) {
 			if (iterLcp == argLcp)
 				continue;
-			if (iterLcp.getFlowRate() > 0 && iterLcp.getSM().getPriority() > argPri)
+			int iterPri = mina.getStreamMgr().getPriority(iterLcp.getStreamId());
+			if (iterLcp.getFlowRate() > 0 && iterPri > argPri)
 				return false;
 		}
 		return true;
@@ -499,6 +501,7 @@ public class ControlConnection implements PushDataReceiver {
 
 	/**
 	 * Safe to iterate over
+	 * @syncpriority 60
 	 */
 	public synchronized LCPair[] getLCPairs() {
 		LCPair[] result = new LCPair[lcPairs.size()];
@@ -508,6 +511,7 @@ public class ControlConnection implements PushDataReceiver {
 
 	/**
 	 * Safe to iterate over
+	 * @syncpriority 60
 	 */
 	public synchronized BCPair[] getBCPairs() {
 		BCPair[] result = new BCPair[bcPairs.size()];
@@ -520,7 +524,7 @@ public class ControlConnection implements PushDataReceiver {
 	 */
 	public synchronized LCPair getLCPair(String streamId) {
 		for (LCPair pair : lcPairs) {
-			if (pair.getSM().getStreamId().equals(streamId))
+			if (pair.getStreamId().equals(streamId))
 				return (LCPair) pair;
 		}
 		return null;
@@ -531,7 +535,7 @@ public class ControlConnection implements PushDataReceiver {
 	 */
 	public synchronized BCPair getBCPair(String streamId) {
 		for (BCPair pair : bcPairs) {
-			if (pair.getSM().getStreamId().equals(streamId))
+			if (pair.getStreamId().equals(streamId))
 				return pair;
 		}
 		return null;
@@ -559,6 +563,20 @@ public class ControlConnection implements PushDataReceiver {
 		int result = 0;
 		for (BCPair pair : bcPairs) {
 			result += pair.getFlowRate();
+		}
+		return result;
+	}
+
+	/**
+	 * The highest (fastest) velocity of all those we are receiving from this node
+	 * @syncpriority 60
+	 */
+	public synchronized StreamVelocity highestVelocity() {
+		StreamVelocity result = StreamVelocity.LowestCost;
+		for (LCPair lcp : lcPairs) {
+			StreamVelocity sv = mina.getBidStrategy().getStreamVelocity(lcp.getStreamId());
+			if(sv != null && sv.ordinal() > result.ordinal())
+				result = sv;
 		}
 		return result;
 	}

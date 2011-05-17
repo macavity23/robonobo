@@ -1,4 +1,4 @@
-package com.robonobo.mina.stream;
+package com.robonobo.mina.instance;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,11 +14,14 @@ import java.util.TreeSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.robonobo.mina.external.buffer.PageBuffer;
 import com.robonobo.mina.external.buffer.StreamPosition;
-import com.robonobo.mina.instance.MinaInstance;
 import com.robonobo.mina.message.proto.MinaProtocol.StreamStatus;
 
 /**
+ * Handles what pages to request when
+ * 
+ * @author macavity
  * @syncpriority 90
  */
 public class PageRequestMgr {
@@ -26,26 +29,33 @@ public class PageRequestMgr {
 	static final int MAX_PAGE_WINDOW = 32;
 
 	private MinaInstance mina;
-	private StreamMgr sm;
-	private Set<Long> pendingPages = new HashSet<Long>();
-	private SortedSet<Long> overduePages = new TreeSet<Long>();
-	private Map<String, StreamPosition> spMap = new HashMap<String, StreamPosition>();
+	private Map<String, Set<Long>> pendingPages = new HashMap<String, Set<Long>>();
+	private Map<String, SortedSet<Long>> overduePages = new HashMap<String, SortedSet<Long>>();
+	/** Map<streamid, Map<sourceNodeId, streampos>> */
+	private Map<String, Map<String, StreamPosition>> spMap = new HashMap<String, Map<String, StreamPosition>>();
+	private Map<String, Long> winStartMap = new HashMap<String, Long>();
+	private Map<String, Long> winEndMap = new HashMap<String, Long>();
 	private Random rand = new Random();
-	private long winStart = -1, winEnd = -1;
-	private Log log = LogFactory.getLog(getClass());
+	private Log log;
 
-	public PageRequestMgr(StreamMgr sm) {
-		this.mina = sm.getMinaInstance();
-		this.sm = sm;
+	public PageRequestMgr(MinaInstance mina) {
+		this.mina = mina;
+		log = mina.getLogger(getClass());
 	}
 
-	public synchronized boolean isUsefulSource(StreamPosition pos) {
-		if (pos.highestIncludedPage() <= sm.getPageBuffer().getLastContiguousPage())
+	/**
+	 * @syncpriority 90
+	 */
+	public synchronized boolean isUsefulSource(String sid, StreamPosition pos) {
+		PageBuffer pb = mina.getPageBufProvider().getPageBuf(sid);
+		if (pos.highestIncludedPage() <= pb.getLastContiguousPage())
 			return false;
-		updateWindow();
+		updateWindow(sid, pb);
+		long winStart = winStartMap.get(sid);
+		long winEnd = winEndMap.get(sid);
 		// See if we can get any pages from our window
 		for (long pn = winStart; pn <= winEnd; pn++) {
-			if (sm.getPageBuffer().haveGotPage(pn) || pendingPages.contains(pn))
+			if (pb.haveGotPage(pn) || havePendingPage(sid, pn))
 				continue;
 			if (pos.includesPage(pn))
 				return true;
@@ -53,7 +63,7 @@ public class PageRequestMgr {
 		// If they can't get any from our window, but they can handle things beyond the window (maybe our entire window
 		// is in-flight), then they're good
 		for (long pn = winEnd + 1; pn <= pos.highestIncludedPage(); pn++) {
-			if (sm.getPageBuffer().haveGotPage(pn) || pendingPages.contains(pn))
+			if (pb.haveGotPage(pn) || havePendingPage(sid, pn))
 				continue;
 			if (pos.includesPage(pn))
 				return true;
@@ -62,15 +72,34 @@ public class PageRequestMgr {
 	}
 
 	/**
+	 * Must be called only from inside sync block
+	 */
+	private boolean havePendingPage(String sid, long pageNum) {
+		return (pendingPages.containsKey(sid) && pendingPages.get(sid).contains(pageNum));
+	}
+
+	/**
+	 * Must be called only from inside sync block
+	 */
+	private void addPendingPage(String sid, Long pageNum) {
+		if(!pendingPages.containsKey(sid))
+			pendingPages.put(sid, new HashSet<Long>());
+		pendingPages.get(sid).add(pageNum);
+	}
+	
+	/**
 	 * Go through our page window, and figure which pages to ask for based on least-common-first
 	 * 
 	 * @syncpriority 90
 	 */
-	public synchronized SortedSet<Long> getPagesToRequest(String sourceId, int numPages, Set<Long> alreadyReqdPages) {
+	public synchronized SortedSet<Long> getPagesToRequest(String sid, String sourceId, int numPages,
+			Set<Long> alreadyReqdPages) {
 		SortedSet<Long> result = new TreeSet<Long>();
-		StreamPosition thisSourceSp = spMap.get(sourceId);
-
-		updateWindow();
+		StreamPosition thisSourceSp = spMap.get(sid).get(sourceId);
+		PageBuffer pb = mina.getPageBufProvider().getPageBuf(sid);
+		updateWindow(sid, pb);
+		long winStart = winStartMap.get(sid);
+		long winEnd = winEndMap.get(sid);
 		// log.debug("PRM requesting " + numPages + " pages for s:" + sm.getStreamId() + "/n:" + sourceId + " win:" +
 		// winStart + "-" + winEnd);
 
@@ -81,13 +110,12 @@ public class PageRequestMgr {
 			long thisPn = winStart + i;
 			// If we already have this page, or it's pending, or it's beyond the
 			// end of the stream, mark it as 0 and don't ask for it
-			if (sm.getPageBuffer().haveGotPage(thisPn) || pendingPages.contains(thisPn)
-					|| thisPn >= sm.getPageBuffer().getTotalPages()) {
+			if (pb.haveGotPage(thisPn) || havePendingPage(sid, thisPn) || thisPn >= pb.getTotalPages()) {
 				windowCounts[i] = 0;
 				continue;
 			}
 			int numSources = 0;
-			for (StreamPosition sp : spMap.values()) {
+			for (StreamPosition sp : spMap.get(sid).values()) {
 				if (sp.includesPage(thisPn))
 					numSources++;
 			}
@@ -101,22 +129,24 @@ public class PageRequestMgr {
 		// }
 		// log.debug(sb);
 
-		// Figure out which pages to ask for
 		// sb = new StringBuffer("PRM select: ");
+		// Figure out which pages to ask for
 		List<Long> candidates = new ArrayList<Long>();
 		nextPage: while (result.size() < numPages) {
 			// Overdue pages first
-			Iterator<Long> opIter = overduePages.iterator();
-			while (opIter.hasNext()) {
-				Long pn = opIter.next();
-				// Don't ask the source who was supposed to give it to us first
-				// time around
-				if (thisSourceSp.includesPage(pn) && !alreadyReqdPages.contains(pn)) {
-					opIter.remove();
-					if (!sm.getPageBuffer().haveGotPage(pn)) {
-						// sb.append(pn).append("(o) ");
-						result.add(pn);
-						continue nextPage;
+			if (overduePages.containsKey(sid)) {
+				Iterator<Long> opIter = overduePages.get(sid).iterator();
+				while (opIter.hasNext()) {
+					Long pn = opIter.next();
+					// Don't ask the source who was supposed to give it to us first
+					// time around
+					if (thisSourceSp.includesPage(pn) && !alreadyReqdPages.contains(pn)) {
+						opIter.remove();
+						if (!pb.haveGotPage(pn)) {
+							// sb.append(pn).append("(o) ");
+							result.add(pn);
+							continue nextPage;
+						}
 					}
 				}
 			}
@@ -144,21 +174,22 @@ public class PageRequestMgr {
 				}
 			}
 			// sb.append("} ");
+			// Now randomly pick one of the least-common pages
 			if (candidates.size() == 0)
 				break nextPage;
 			else if (candidates.size() == 1) {
 				result.add(candidates.get(0));
 				// sb.append(candidates.get(0)).append(" ");
 			} else {
-				Long winner = candidates.get(rand.nextInt(candidates.size()));
+				Long winrar = candidates.get(rand.nextInt(candidates.size()));
+				result.add(winrar);
 				// sb.append("[");
 				// for (int i = 0; i < candidates.size(); i++) {
 				// if (i > 0)
 				// sb.append(",");
 				// sb.append(candidates.get(i));
 				// }
-				// sb.append("]=").append(winner).append(" ");
-				result.add(winner);
+				// sb.append("]=").append(winrar).append(" ");
 			}
 		}
 		// If they can't supply any pages in our window, but they have others
@@ -167,7 +198,7 @@ public class PageRequestMgr {
 			for (long pn = winEnd + 1; pn <= thisSourceSp.highestIncludedPage(); pn++) {
 				if (!thisSourceSp.includesPage(pn))
 					continue;
-				if (sm.getPageBuffer().haveGotPage(pn) || pendingPages.contains(pn))
+				if (pb.haveGotPage(pn) || havePendingPage(sid, pn))
 					continue;
 				// sb.append(pn).append("(ex)");
 				result.add(pn);
@@ -177,7 +208,7 @@ public class PageRequestMgr {
 		// log.debug(sb);
 		// Mark these pages as pending
 		for (Long pn : result) {
-			pendingPages.add(pn);
+			addPendingPage(sid, pn);
 		}
 		return result;
 	}
@@ -185,29 +216,34 @@ public class PageRequestMgr {
 	/**
 	 * Must be called only from inside sync block
 	 */
-	private void updateWindow() {
+	private void updateWindow(String sid, PageBuffer pb) {
 		// Always grab page 0 & 1 first - hopefully enough to start playback
-		if (winStart < 0) {
-			winStart = 0;
-			winEnd = 1;
+		if (!winStartMap.containsKey(sid)) {
+			winStartMap.put(sid, 0L);
+			winEndMap.put(sid, 1L);
 		}
-		long lastContigPage = sm.getPageBuffer().getLastContiguousPage();
-		if (lastContigPage >= winEnd) {
+		long lastContigPage = pb.getLastContiguousPage();
+		if (lastContigPage >= winEndMap.get(sid)) {
 			// We have everything in our window, update
-			winStart = lastContigPage + 1;
-			winEnd = winStart + windowSize() - 1;
-			long totPgs = sm.getPageBuffer().getTotalPages();
+			long winStart = lastContigPage + 1;
+			long winEnd = winStart + windowSize(sid, pb) - 1;
+			long totPgs = pb.getTotalPages();
 			if (winEnd >= totPgs)
 				winEnd = totPgs - 1;
+			winStartMap.put(sid, winStart);
+			winEndMap.put(sid, winEnd);
 		}
 	}
 
-	private int windowSize() {
-		if (sm.getPageBuffer().getAvgPageSize() <= 0)
+	/**
+	 * Must be called only from inside sync block
+	 */
+	private int windowSize(String sid, PageBuffer pb) {
+		if (pb.getAvgPageSize() <= 0)
 			return MIN_PAGE_WINDOW;
 		float windowSecs = mina.getConfig().getPageWindowTime() / 1000;
-		int windowBytes = (int) (windowSecs * sm.getListeningFlowRate());
-		int result = (int) (windowBytes / sm.getPageBuffer().getAvgPageSize());
+		int windowBytes = (int) (windowSecs * mina.getFlowRateMgr().getListeningFlowRate(sid));
+		int result = (int) (windowBytes / pb.getAvgPageSize());
 		if (result < MIN_PAGE_WINDOW)
 			result = MIN_PAGE_WINDOW;
 		else if (result > MAX_PAGE_WINDOW)
@@ -218,30 +254,36 @@ public class PageRequestMgr {
 	/**
 	 * @syncpriority 90
 	 */
-	public synchronized void notifyPageReceived(long pageNum) {
-		pendingPages.remove(pageNum);
-		overduePages.remove(pageNum);
+	public synchronized void notifyPageReceived(String sid, long pageNum) {
+		pendingPages.get(sid).remove(pageNum);
+		if(overduePages.containsKey(sid))
+			overduePages.get(sid).remove(pageNum);
 	}
 
 	/**
 	 * @syncpriority 90
 	 */
-	public synchronized void notifyOverduePage(long pageNum) {
-		pendingPages.remove(pageNum);
-		overduePages.add(pageNum);
+	public synchronized void notifyOverduePage(String sid, Long pageNum) {
+		pendingPages.get(sid).remove(pageNum);
+		if(!overduePages.containsKey(sid))
+			overduePages.put(sid, new TreeSet<Long>());
+		overduePages.get(sid).add(pageNum);
 	}
 
 	/**
 	 * @syncpriority 90
 	 */
-	public synchronized void notifyStreamStatus(String sourceId, StreamStatus ss) {
-		spMap.put(sourceId, new StreamPosition(ss.getLastContiguousPage(), ss.getPageMap()));
+	public synchronized void notifyStreamStatus(String sid, String sourceId, StreamStatus ss) {
+		if(!spMap.containsKey(sid))
+			spMap.put(sid, new HashMap<String, StreamPosition>());
+		spMap.get(sid).put(sourceId, new StreamPosition(ss.getLastContiguousPage(), ss.getPageMap()));
 	}
 
 	/**
 	 * @syncpriority 90
 	 */
-	public synchronized void notifyDeadConnection(String sourceId) {
-		spMap.remove(sourceId);
+	public synchronized void notifyDeadConnection(String sid, String sourceNodeId) {
+		if(spMap.containsKey(sid))
+			spMap.get(sid).remove(sourceNodeId);
 	}
 }

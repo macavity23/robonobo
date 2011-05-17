@@ -1,14 +1,11 @@
 package com.robonobo.mina.external;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import com.robonobo.core.api.CurrencyClient;
-import com.robonobo.core.api.StreamVelocity;
-import com.robonobo.core.api.TransferSpeed;
+import com.robonobo.core.api.*;
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.mina.external.buffer.PageBuffer;
+import com.robonobo.mina.external.buffer.PageBufferProvider;
 
 public interface MinaControl {
 	public void start() throws MinaException;
@@ -25,11 +22,11 @@ public interface MinaControl {
 
 	public void addNodeLocator(NodeLocator locator);
 
-	public void startBroadcast(String streamId, PageBuffer pb);
+	public void startBroadcast(String streamId);
 
 	public void stopBroadcast(String streamId);
 
-	public void startReception(String streamId, PageBuffer pb, StreamVelocity sv);
+	public void startReception(String streamId, StreamVelocity sv);
 
 	public void stopReception(String streamId);
 
@@ -55,8 +52,6 @@ public interface MinaControl {
 
 	public Set<Node> getKnownSources(String streamId);
 
-	public PageBuffer getPageBuffer(String streamId);
-
 	public Map<String, TransferSpeed> getTransferSpeeds();
 	
 	public void clearStreamPriorities();
@@ -75,9 +70,13 @@ public interface MinaControl {
 	
 	public void setCurrencyClient(CurrencyClient client);
 
+	public void setPageBufferProvider(PageBufferProvider provider);
+	
 	public abstract void removeNodeFilter(NodeFilter nf);
 
 	public abstract void addNodeFilter(NodeFilter nf);
 
 	public abstract void setHandoverHandler(HandoverHandler handler);
+
+	public abstract void startBroadcasts(Collection<String> sids);
 }

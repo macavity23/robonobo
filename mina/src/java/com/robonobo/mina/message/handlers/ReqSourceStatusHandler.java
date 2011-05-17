@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.robonobo.core.api.proto.CoreApi.Node;
+import com.robonobo.mina.instance.StreamMgr;
 import com.robonobo.mina.message.MessageHolder;
 import com.robonobo.mina.message.proto.MinaProtocol.ReqSourceStatus;
 import com.robonobo.mina.message.proto.MinaProtocol.SourceStatus;
 import com.robonobo.mina.message.proto.MinaProtocol.StreamStatus;
 import com.robonobo.mina.network.ControlConnection;
-import com.robonobo.mina.stream.StreamMgr;
 
 public class ReqSourceStatusHandler extends AbstractMessageHandler {
 
@@ -26,13 +26,12 @@ public class ReqSourceStatusHandler extends AbstractMessageHandler {
 			// If there were any stream ids attached, send
 			// corresponding StreamStatus msgs
 			List<StreamStatus> streamStatList = new ArrayList<StreamStatus>();
-			for(String streamId : rss.getStreamIdList()) {
-				StreamMgr sm = mina.getSmRegister().getSM(streamId);
-				if (sm == null || (!sm.isBroadcasting() && !sm.isRebroadcasting())) {
-					log.error(reqNode.getId() + " sent me ReqStreamStatus for " + streamId + ", but I am not broadcasting that stream");
+			for(String sid : rss.getStreamIdList()) {
+				if (!mina.getStreamMgr().isBroadcasting(sid) && !mina.getStreamMgr().isRebroadcasting(sid)) {
+					log.error(reqNode.getId() + " sent me ReqStreamStatus for " + sid + ", but I am not broadcasting that stream");
 					continue;
 				}
-				streamStatList.add(sm.buildStreamStatus(null));
+				streamStatList.add(mina.getStreamMgr().buildStreamStatus(sid, null));
 			}
 			if(streamStatList.size() == 0)
 				return;

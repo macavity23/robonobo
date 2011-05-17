@@ -22,19 +22,31 @@ public class StreamAdvertiser extends Batcher<String> {
 	/**
 	 * @syncpriority 140
 	 */
-	public void advertiseStream(String streamId) {
+	public void advertiseStream(String sid) {
 		// If we don't yet have a connection to a supernode, don't advertise, as
 		// when we do connect we will send an advert for all [re]broadcasting
 		// streams, and we'd like to avoid sending duplicate streams on startup
 		// (If we have local conns, they need to know about our broadcasts)
 		if (mina.getCCM().haveSupernode() || mina.getCCM().haveLocalConn())
-			add(streamId);
+			add(sid);
+	}
+
+	/**
+	 * @syncpriority 140
+	 */
+	public void advertiseStreams(Collection<String> sids) {
+		if (mina.getCCM().haveSupernode() || mina.getCCM().haveLocalConn()) {
+			for (String sid : sids) {
+				add(sid);
+			}
+		}
 	}
 
 	@Override
 	protected void runBatch(final Collection<String> streamIds) {
-		// If our currency client isn't ready yet, don't advertise until it is - keep track of it here and background poll as required
-		if(mina.getConfig().isAgoric() && !mina.getCurrencyClient().isReady()) {
+		// If our currency client isn't ready yet, don't advertise until it is - keep track of it here and background
+		// poll as required
+		if (mina.getConfig().isAgoric() && !mina.getCurrencyClient().isReady()) {
 			log.debug("Waiting 5s to advertise streams - currency client not yet ready");
 			mina.getExecutor().schedule(new CatchingRunnable() {
 				public void doRun() throws Exception {

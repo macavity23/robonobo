@@ -61,18 +61,18 @@ public class EonBroadcastConnection implements BroadcastConnection, PullDataProv
 	/** Called when seon conn is closed */
 	public void onClose(EONConnectionEvent event) {
 		if (!closed) {
-			log.debug("Network error for BC[" + bcp.getCC().getNodeId() + "/" + bcp.getSM().getStreamId());
+			log.debug("Network error for BC[" + bcp.getCC().getNodeId() + "/" + bcp.getStreamId());
 			bcp.die(false);
 		}
 	}
 
 	@Override
 	public String toString() {
-		return "BC[" + bcp.getCC().getNodeId() + "/" + bcp.getSM().getStreamId() + "]";
+		return "BC[" + bcp.getCC().getNodeId() + "/" + bcp.getStreamId() + "]";
 	}
 
 	public void addPageToQ(long pageNum, int auctionStatus) {
-		log.debug("Adding queued page " + pageNum + " for sending to " + bcp.getCC().getNodeId() + " for stream " + bcp.getSM().getStreamId());
+		log.debug("Adding queued page " + pageNum + " for sending to " + bcp.getCC().getNodeId() + " for stream " + bcp.getStreamId());
 		// If we currently have no pending pages, notify the seon conn that we
 		// need to send data
 		boolean tellConn;
@@ -96,9 +96,9 @@ public class EonBroadcastConnection implements BroadcastConnection, PullDataProv
 		}
 		Page p;
 		try {
-			p = bcp.getSM().getPageBuffer().getPage(pageNum);
+			p = mina.getPageBufProvider().getPageBuf(bcp.getStreamId()).getPage(pageNum);
 		} catch (IOException e) {
-			log.error("Error fetching page " + pageNum + " for stream " + bcp.getSM().getStreamId() + ": " + e.getMessage());
+			log.error("Error fetching page " + pageNum + " for stream " + bcp.getStreamId() + ": " + e.getMessage());
 			bcp.die();
 			return null;
 		}
@@ -107,7 +107,7 @@ public class EonBroadcastConnection implements BroadcastConnection, PullDataProv
 		ByteBuffer sendBuf = ByteBuffer.allocate(bufSz);
 		serial.serializePage(p, sendBuf);
 		sendBuf.flip();
-		log.debug("Sending page " + pageNum + " to " + bcp.getCC().getNodeId() + " for stream " + bcp.getSM().getStreamId());
+		log.debug("Sending page " + pageNum + " to " + bcp.getCC().getNodeId() + " for stream " + bcp.getStreamId());
 		return sendBuf;
 	}
 

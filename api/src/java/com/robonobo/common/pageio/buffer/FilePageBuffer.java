@@ -66,6 +66,8 @@ public class FilePageBuffer extends AbstractPageBuffer {
 	}
 
 	public synchronized void sleep() throws IOException {
+		if(sleeping)
+			return;
 		if (channel != null) {
 			channel.force(false);
 			channel.close();
@@ -83,6 +85,10 @@ public class FilePageBuffer extends AbstractPageBuffer {
 
 	public void putAllPageInfo(List<PageInfo> pageInfos) throws IOException {
 		pageInfoStore.putAllPageInfo(streamId, pageInfos);
+	}
+	
+	public File getFile() {
+		return file;
 	}
 	
 	private void wakeup() {

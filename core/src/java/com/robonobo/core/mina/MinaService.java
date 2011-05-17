@@ -57,6 +57,7 @@ public class MinaService extends AbstractService {
 		locator.addLocatorUri(getRobonobo().getConfig().getSonarServerUrl());
 		mina.addNodeLocator(locator);
 
+		mina.setPageBufferProvider(getRobonobo().getStorageService());
 		if(getRobonobo().getConfig().isAgoric())
 			mina.setCurrencyClient(getRobonobo().getWangService());
 		mina.start();

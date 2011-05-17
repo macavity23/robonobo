@@ -10,14 +10,14 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.robonobo.common.pageio.buffer.FilePageBuffer;
 import com.robonobo.core.api.model.Stream;
 import com.robonobo.core.service.AbstractService;
-import com.robonobo.mina.external.buffer.PageBuffer;
-import com.robonobo.mina.external.buffer.PageInfo;
+import com.robonobo.mina.external.buffer.*;
 
 @SuppressWarnings("unchecked")
-public class StorageService extends AbstractService {
-	protected Map<String, PageBuffer> bufferCache = new HashMap<String, PageBuffer>();
+public class StorageService extends AbstractService implements PageBufferProvider {
+	protected Map<String, FilePageBuffer> bufferCache = new HashMap<String, FilePageBuffer>();
 	Log log = LogFactory.getLog(getClass());
 	PageInfoMgr pim;
 
@@ -48,10 +48,16 @@ public class StorageService extends AbstractService {
 		} catch (Exception e) {
 			log.error("Error shutting down PIM", e);
 		}
+		for (PageBuffer pb : bufferCache.values()) {
+			try {
+				pb.sleep();
+			} catch (IOException ignore) {
+			}
+		}
 	}
 
-	public PageBuffer createPageBufForDownload(Stream s, File dataFile) throws IOException {
-		PageBuffer pb = pim.createPageBuf(s, dataFile);
+	public FilePageBuffer createPageBufForDownload(Stream s, File dataFile) throws IOException {
+		FilePageBuffer pb = pim.createPageBuf(s, dataFile);
 		bufferCache.put(s.getStreamId(), pb);
 		return pb;
 	}
@@ -60,8 +66,8 @@ public class StorageService extends AbstractService {
 	 * @param initPageInfo true if we should create params in the db for this pagebuf, false if they're already there
 	 * TODO should figure this out ourselves maybe?
 	 */
-	public PageBuffer createPageBufForShare(Stream s, File dataFile, boolean initPageInfo) throws IOException {
-		PageBuffer pb;
+	public FilePageBuffer createPageBufForShare(Stream s, File dataFile, boolean initPageInfo) throws IOException {
+		FilePageBuffer pb;
 		if (initPageInfo)
 			pb = pim.createPageBuf(s, dataFile);
 		else
@@ -70,14 +76,21 @@ public class StorageService extends AbstractService {
 		return pb;
 	}
 
-	public PageBuffer loadPageBuf(String streamId) throws IOException {
-		if (bufferCache.containsKey(streamId))
-			return bufferCache.get(streamId);
-		PageBuffer pb = pim.getPageBuffer(streamId);
-		bufferCache.put(streamId, pb);
-		return pb;
+	@Override
+	public FilePageBuffer getPageBuf(String sid) {
+		return getPageBuf(sid, true);
 	}
 
+	public FilePageBuffer getPageBuf(String sid, boolean cacheResult) {
+		if (bufferCache.containsKey(sid))
+			return bufferCache.get(sid);
+		FilePageBuffer pb = pim.getPageBuffer(sid);
+		if(pb != null && cacheResult)
+			bufferCache.put(sid, pb);
+		return pb;
+		
+	}
+	
 	public PageInfo getPageInfo(String streamId, long pageNum) {
 		return pim.getPageInfo(streamId, pageNum);
 	}

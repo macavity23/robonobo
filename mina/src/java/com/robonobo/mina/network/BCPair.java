@@ -9,10 +9,10 @@ import com.robonobo.common.util.TimeUtil;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.mina.external.buffer.PageInfo;
 import com.robonobo.mina.instance.MinaInstance;
+import com.robonobo.mina.instance.StreamMgr;
 import com.robonobo.mina.message.MessageHolder;
 import com.robonobo.mina.message.proto.MinaProtocol.ReqPage;
 import com.robonobo.mina.message.proto.MinaProtocol.SourceStopping;
-import com.robonobo.mina.stream.StreamMgr;
 import com.robonobo.mina.util.MinaConnectionException;
 
 /**
@@ -28,8 +28,8 @@ public class BCPair extends ConnectionPair {
 	 * @param pages
 	 * @syncpriority 160
 	 */
-	public BCPair(MinaInstance mina, StreamMgr sm, ControlConnection cc, EndPoint listenEp, List<Long> pages) {
-		super(sm, cc);
+	public BCPair(MinaInstance mina, String sid, ControlConnection cc, EndPoint listenEp, List<Long> pages) {
+		super(mina, sid, cc);
 		try {
 			bc = cc.getSCF().getBroadcastConnection(cc, listenEp);
 			bc.setBCPair(this);
@@ -39,7 +39,7 @@ public class BCPair extends ConnectionPair {
 		}
 		// This will set our gamma
 		cc.addBCPair(this);
-		log.info("Starting broadcast of " + sm.getStreamId() + " to node " + cc.getNodeId());
+		log.info("Starting broadcast of " + sid + " to node " + cc.getNodeId());
 		requestPages(pages);
 	}
 
@@ -63,7 +63,7 @@ public class BCPair extends ConnectionPair {
 	 * @syncpriority 120
 	 */
 	public void die(boolean sendSourceStopping) {
-		log.info("Stopping broadcast of " + sm.getStreamId() + " to node " + cc.getNodeId());
+		log.info("Stopping broadcast of " + sid + " to node " + cc.getNodeId());
 		synchronized (this) {
 			if (isClosed)
 				return;
@@ -72,7 +72,7 @@ public class BCPair extends ConnectionPair {
 				bc.close();
 		}
 		if (sendSourceStopping)
-			cc.sendMessage("SourceStopping", SourceStopping.newBuilder().setStreamId(sm.getStreamId()).build());
+			cc.sendMessage("SourceStopping", SourceStopping.newBuilder().setStreamId(sid).build());
 		cc.removeBCPair(this);
 		super.die();
 	}
@@ -104,7 +104,7 @@ public class BCPair extends ConnectionPair {
 			long totalPageLen = 0;
 			if (mina.getConfig().isAgoric()) {
 				for (Long pn : pages) {
-					PageInfo pi = sm.getPageBuffer().getPageInfo(pn);
+					PageInfo pi = mina.getPageBufProvider().getPageBuf(sid).getPageInfo(pn);
 					if (pi != null)
 						totalPageLen += pi.getLength();
 					else {
@@ -125,7 +125,7 @@ public class BCPair extends ConnectionPair {
 					totalPageLen) : 0;
 			if (auctStatIdx < 0) {
 				// Ask again when they've paid up
-				ReqPage rp = ReqPage.newBuilder().setStreamId(sm.getStreamId()).addAllRequestedPage(pages).build();
+				ReqPage rp = ReqPage.newBuilder().setStreamId(sid).addAllRequestedPage(pages).build();
 				MessageHolder mh = new MessageHolder("ReqPage", rp, cc, TimeUtil.now());
 				if (!mina.getSellMgr().haveActiveAccount(cc.getNodeId())) {
 					mina.getSellMgr().msgPendingActiveAccount(mh);
@@ -148,7 +148,7 @@ public class BCPair extends ConnectionPair {
 		}
 		// If they asked us for a page we didn't have, tell them where we are in the stream
 		if (failedPages != null)
-			cc.sendMessage("StreamStatus", sm.buildStreamStatus(cc.getNodeId()));
+			cc.sendMessage("StreamStatus", mina.getStreamMgr().buildStreamStatus(sid, cc.getNodeId()));
 	}
 
 	public void setGamma(float gamma) {
@@ -165,10 +165,10 @@ public class BCPair extends ConnectionPair {
 	}
 
 	public int hashCode() {
-		return getClass().getName().hashCode() ^ cc.getNodeId().hashCode() ^ sm.getStreamId().hashCode();
+		return getClass().getName().hashCode() ^ cc.getNodeId().hashCode() ^ sid.hashCode();
 	}
 
 	public String toString() {
-		return "BCP[node=" + cc.getNodeId() + ",stream=" + sm.getStreamId() + "]";
+		return "BCP[node=" + cc.getNodeId() + ",stream=" + sid + "]";
 	}
 }

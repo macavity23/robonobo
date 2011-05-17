@@ -14,7 +14,6 @@ import com.robonobo.mina.message.proto.MinaProtocol.SourceStatus;
 import com.robonobo.mina.message.proto.MinaProtocol.StreamStatus;
 import com.robonobo.mina.message.proto.MinaProtocol.WantSource;
 import com.robonobo.mina.network.ControlConnection;
-import com.robonobo.mina.stream.StreamMgr;
 
 /**
  * Handles requesting and caching of source info
@@ -62,27 +61,25 @@ public class SourceMgr {
 
 	/**
 	 * Tells the network we want sources
-	 * 
-	 * @param tolerateDelay
-	 *            false to send the request for sources out immediately (otherwise waits <5sec to batch requests
-	 *            together)
 	 */
-	public void wantSources(String streamId, boolean tolerateDelay) {
+	public void wantSources(String sid) {
 		synchronized (this) {
-			if (wantSources.contains(streamId))
+			if (wantSources.contains(sid))
 				return;
-			wantSources.add(streamId);
+			wantSources.add(sid);
 		}
-		if (tolerateDelay)
-			wsBatch.add(streamId);
+		if (mina.getBidStrategy().tolerateDelay(sid))
+			wsBatch.add(sid);
 		else {
-			WantSource ws = WantSource.newBuilder().addStreamId(streamId).build();
+			WantSource ws = WantSource.newBuilder().addStreamId(sid).build();
 			mina.getCCM().sendMessageToNetwork("WantSource", ws);
 		}
 	}
 
-	public synchronized boolean wantsSource(String streamId) {
-		return wantSources.contains(streamId);
+	public synchronized List<String> sidsWantingSources() {
+		List<String> result = new ArrayList<String>();
+		result.addAll(wantSources);
+		return result;
 	}
 
 	public void dontWantSources(String streamId) {
@@ -108,10 +105,8 @@ public class SourceMgr {
 		}
 		if (source.getId().equals(mina.getMyNodeId().toString()))
 			return;
-		StreamMgr sm = mina.getSmRegister().getSM(streamId);
-		if (sm == null)
-			return;
-		if (sm.getStreamConns().getListenConn(source.getId()) != null)
+		ControlConnection cc = mina.getCCM().getCCWithId(source.getId());
+		if (cc != null && cc.getLCPair(streamId) != null)
 			return;
 		if (mina.getBadNodeList().checkBadNode(source.getId())) {
 			log.debug("Ignoring Bad source " + source.getId());
@@ -123,7 +118,7 @@ public class SourceMgr {
 			synchronized (this) {
 				sd = possSourcesById.get(source.getId());
 			}
-			queryStatus(sd, sm.tolerateDelay());
+			queryStatus(sd, mina.getBidStrategy().tolerateDelay(streamId));
 		} else {
 			// We can't connect to them - if they have an endpoint, keep them about, our connection status might change
 			// - in particular, we might find we can do nat traversal
@@ -172,9 +167,7 @@ public class SourceMgr {
 				if (!wantSources.contains(streamStat.getStreamId()))
 					continue;
 			}
-			StreamMgr sm = mina.getSmRegister().getSM(streamStat.getStreamId());
-			if (sm != null)
-				sm.foundSource(sourceStat, streamStat);
+			mina.getStreamMgr().foundSource(sourceStat, streamStat);
 		}
 	}
 

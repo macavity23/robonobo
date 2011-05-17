@@ -13,7 +13,7 @@ public class StreamStatusHandler extends AbstractMessageHandler {
 	public void handleMessage(MessageHolder mh) {
 		StreamStatus ss = (StreamStatus) mh.getMessage();
 		for (LCPair lcp : mh.getFromCC().getLCPairs()) {
-			if(lcp.getSM().getStreamId().equals(ss.getStreamId()))
+			if(lcp.getStreamId().equals(ss.getStreamId()))
 				lcp.notifyStreamStatus(ss);
 		}
 	}

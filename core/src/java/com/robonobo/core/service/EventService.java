@@ -405,25 +405,7 @@ public class EventService extends AbstractService implements MinaListener {
 		return result;
 	}
 
-	public void broadcastStarted(String streamId) {
-	}
-
-	public void broadcastStopped(String streamId) {
-	}
-
-	public void minaStarted(MinaControl mina) {
-	}
-
-	public void minaStopped(MinaControl mina) {
-	}
-
 	public void receptionCompleted(String streamId) {
-	}
-
-	public void receptionStarted(String streamId) {
-	}
-
-	public void receptionStopped(String streamId) {
 	}
 
 	public void receptionConnsChanged(String streamId) {

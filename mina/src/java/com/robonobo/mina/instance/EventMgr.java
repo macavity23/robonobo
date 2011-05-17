@@ -25,66 +25,6 @@ public class EventMgr {
 		minaListeners.add(listener);
 	}
 
-	void fireMinaStarted() {
-		mina.getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				for (MinaListener listener : getArr()) {
-					listener.minaStarted(mina);
-				}
-			}
-		});
-	}
-
-	void fireMinaStopped() {
-		mina.getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				for (MinaListener listener : getArr()) {
-					listener.minaStopped(mina);
-				}
-			}
-		});
-	}
-
-	public void fireBroadcastStarted(final String streamId) {
-		mina.getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				for (MinaListener listener : getArr()) {
-					listener.broadcastStarted(streamId);
-				}
-			}
-		});
-	}
-
-	public void fireReceptionStarted(final String streamId) {
-		mina.getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				for (MinaListener listener : getArr()) {
-					listener.receptionStarted(streamId);
-				}
-			}
-		});
-	}
-
-	public void fireBroadcastStopped(final String streamId) {
-		mina.getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				for (MinaListener listener : getArr()) {
-					listener.broadcastStopped(streamId);
-				}
-			}
-		});
-	}
-
-	public void fireReceptionStopped(final String streamId) {
-		mina.getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				for (MinaListener listener : getArr()) {
-					listener.receptionStopped(streamId);
-				}
-			}
-		});
-	}
-
 	public void fireReceptionCompleted(final String streamId) {
 		mina.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {

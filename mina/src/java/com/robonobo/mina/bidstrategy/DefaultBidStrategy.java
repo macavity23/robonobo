@@ -1,4 +1,4 @@
-package com.robonobo.mina.stream.bidstrategy;
+package com.robonobo.mina.bidstrategy;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,6 +12,7 @@ import com.robonobo.mina.message.proto.MinaProtocol.Agorics;
 import com.robonobo.mina.message.proto.MinaProtocol.Bid;
 import com.robonobo.mina.message.proto.MinaProtocol.BidUpdate;
 import com.robonobo.mina.message.proto.MinaProtocol.ReceivedBid;
+import com.robonobo.mina.network.ControlConnection;
 
 /**
  * A plain, straightforward and probably highly suboptimal bidding strategy.
@@ -42,14 +43,14 @@ public class DefaultBidStrategy extends BidStrategy {
 
 		// We should never get here if our max is above their min, but check
 		// just in case
-		if (ag.getMinBid() > maxBid())
+		if (ag.getMinBid() > maxBid(nodeId))
 			return 0;
 
 		// If there are no bidders, just bid the minimum
 		if (bids.size() == 0)
 			return ag.getMinBid();
 
-		return getPreferredBid(bids, ag.getIncrement());
+		return getPreferredBid(nodeId, bids, ag.getIncrement());
 	}
 
 	/**
@@ -67,7 +68,7 @@ public class DefaultBidStrategy extends BidStrategy {
 		if (bu.getListenerIdCount() == 0)
 			return ag.getMinBid();
 
-		double myNewBid = getPreferredBid(cleanBids(bu), ag.getIncrement());
+		double myNewBid = getPreferredBid(nodeId, cleanBids(bu), ag.getIncrement());
 		if (myNewBid == as.getLastSentBid()) {
 			// No bid
 			return 0;
@@ -93,16 +94,16 @@ public class DefaultBidStrategy extends BidStrategy {
 	}
 	
 	@Override
-	public boolean worthConnectingTo(AuctionState as) {
+	public boolean worthConnectingTo(String sid, AuctionState as) {
 		// TODO When we are measuring stream reception speed, we might not
 		// want/need to connect to new sources
 		return true;
 	}
 
-	private double getPreferredBid(List<ReceivedBid> bids, double minIncrement) {
+	private double getPreferredBid(String nodeId, List<ReceivedBid> bids, double minIncrement) {
 		// We want to be MAX_OVERPAY times the next highest bidder, or failing
 		// that as high as we're willing to go
-		double maxBid = maxBid();
+		double maxBid = maxBid(nodeId);
 		double highestCurBid = bids.get(bids.size() - 1).getBid();
 		double overpayBid = highestCurBid * MAX_OVERPAY;
 		if (maxBid < overpayBid)
@@ -110,8 +111,11 @@ public class DefaultBidStrategy extends BidStrategy {
 		return overpayBid;
 	}
 
-	private double maxBid() {
-		return mina.getCurrencyClient().getMaxBid(streamVelocity);
+	private double maxBid(String nodeId) {
+		ControlConnection cc = mina.getCCM().getCCWithId(nodeId);
+		if(cc == null)
+			return 0;
+		return mina.getCurrencyClient().getMaxBid(cc.highestVelocity());
 	}
 
 	/**
