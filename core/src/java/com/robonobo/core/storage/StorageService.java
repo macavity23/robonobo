@@ -48,17 +48,21 @@ public class StorageService extends AbstractService implements PageBufferProvide
 		} catch (Exception e) {
 			log.error("Error shutting down PIM", e);
 		}
-		for (PageBuffer pb : bufferCache.values()) {
-			try {
-				pb.sleep();
-			} catch (IOException ignore) {
-			}
+		synchronized (this) {
+			for (PageBuffer pb : bufferCache.values()) {
+				try {
+					pb.sleep();
+				} catch (IOException ignore) {
+				}
+			}			
 		}
 	}
 
 	public FilePageBuffer createPageBufForDownload(Stream s, File dataFile) throws IOException {
 		FilePageBuffer pb = pim.createPageBuf(s, dataFile);
-		bufferCache.put(s.getStreamId(), pb);
+		synchronized (this) {
+			bufferCache.put(s.getStreamId(), pb);			
+		}
 		return pb;
 	}
 
@@ -72,7 +76,9 @@ public class StorageService extends AbstractService implements PageBufferProvide
 			pb = pim.createPageBuf(s, dataFile);
 		else
 			pb = pim.updateAndReturnPageBuf(s, dataFile);
-		bufferCache.put(s.getStreamId(), pb);
+		synchronized (this) {
+			bufferCache.put(s.getStreamId(), pb);			
+		}
 		return pb;
 	}
 
@@ -82,11 +88,16 @@ public class StorageService extends AbstractService implements PageBufferProvide
 	}
 
 	public FilePageBuffer getPageBuf(String sid, boolean cacheResult) {
-		if (bufferCache.containsKey(sid))
-			return bufferCache.get(sid);
+		synchronized (this) {
+			if (bufferCache.containsKey(sid))
+				return bufferCache.get(sid);			
+		}
 		FilePageBuffer pb = pim.getPageBuffer(sid);
-		if(pb != null && cacheResult)
-			bufferCache.put(sid, pb);
+		if(pb != null && cacheResult) {
+			synchronized (this) {
+				bufferCache.put(sid, pb);				
+			}
+		}
 		return pb;
 		
 	}
@@ -98,7 +109,9 @@ public class StorageService extends AbstractService implements PageBufferProvide
 	public void nukePageBuf(String streamId) {
 		log.debug("Nuking pagebuf for stream " + streamId);
 		pim.nuke(streamId);
-		bufferCache.remove(streamId);
+		synchronized (this) {
+			bufferCache.remove(streamId);
+		}
 	}
 	
 	public Connection getPageDbConnection() throws SQLException {

@@ -7,6 +7,7 @@ import org.apache.commons.logging.Log;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.mina.agoric.AuctionState;
 import com.robonobo.mina.external.FoundSourceListener;
@@ -30,7 +31,11 @@ public class StreamMgr {
 	protected Set<String> rebroadcastingSids = new HashSet<String>();
 	protected Map<String, Set<FoundSourceListener>> listeners = new HashMap<String, Set<FoundSourceListener>>();
 	protected Map<String, Integer> streamPriorities = new HashMap<String, Integer>();
-	protected Map<String, PageBuffer> pageBufs = new HashMap<String, PageBuffer>();
+	/**
+	 * We keep page buffers for 'live' streams - those that either we are receiving, or that we are actively
+	 * broadcasting to one or more listeners
+	 */
+	protected Map<String, PageBuffer> liveStreams = new HashMap<String, PageBuffer>();
 
 	public StreamMgr(MinaInstance mina) {
 		this.mina = mina;
@@ -59,31 +64,37 @@ public class StreamMgr {
 		return wantingSources;
 	}
 
-	private synchronized PageBuffer getPageBuf(String sid) {
-		// We don't keep track of all page buffers, because most of them won't be live
-		if (!pageBufs.containsKey(sid))
-			pageBufs.put(sid, mina.getPageBufProvider().getPageBuf(sid));
-		return pageBufs.get(sid);
+	/**
+	 * Makes this stream live - must be called only inside sync block
+	 */
+	private void wakePageBuf(String sid) {
+		if (!liveStreams.containsKey(sid))
+			liveStreams.put(sid, mina.getPageBufProvider().getPageBuf(sid));
 	}
 
-	private synchronized void sleepPageBuf(String sid) {
-		PageBuffer pageBuf = pageBufs.get(sid);
+	/**
+	 * Must be called only inside sync block
+	 */
+	private void sleepPageBuf(String sid) {
+		PageBuffer pageBuf = liveStreams.remove(sid);
 		if (pageBuf != null) {
 			try {
 				pageBuf.sleep();
 			} catch (IOException e) {
 				log.error("Error sleeping pagebuf for stream " + sid, e);
 			}
-			pageBufs.remove(sid);
 		}
 	}
 
 	/**
-	 * @return The stream ids that might have some activity on them. Safe to iterate over.
+	 * @return 'Live' streams are those that either we are receiving, or that we are actively broadcasting to one or
+	 *         more listeners
 	 * @syncpriority 200
 	 */
 	public synchronized String[] getLiveStreamIds() {
-		throw new SeekInnerCalmException();
+		String[] result = new String[liveStreams.size()];
+		liveStreams.keySet().toArray(result);
+		return result;
 	}
 
 	/**
@@ -105,15 +116,16 @@ public class StreamMgr {
 		result.addAll(broadcastingSids);
 		result.addAll(rebroadcastingSids);
 		return result;
-		
+
 	}
+
 	/**
 	 * @syncpriority 200
 	 */
 	public synchronized void clearStreamPriorities() {
 		streamPriorities.clear();
 	}
-	
+
 	/**
 	 * @syncpriority 200
 	 */
@@ -176,7 +188,13 @@ public class StreamMgr {
 			bldr.setFromNodeId(mina.getMyNodeId());
 		}
 		bldr.setStreamId(sid);
-		PageBuffer pageBuf = getPageBuf(sid);
+		PageBuffer pageBuf;
+		synchronized (this) {
+			if (liveStreams.containsKey(sid))
+				pageBuf = liveStreams.get(sid);
+			else
+				pageBuf = mina.getPageBufProvider().getPageBuf(sid);
+		}
 		if (pageBuf.getTotalPages() > 0)
 			bldr.setTotalPages(pageBuf.getTotalPages());
 		StreamPosition sp = pageBuf.getStreamPosition();
@@ -192,22 +210,27 @@ public class StreamMgr {
 	public void foundSource(SourceStatus sourceStat, StreamStatus streamStat) {
 		String fromNodeId = sourceStat.getFromNode().getId();
 		String sid = streamStat.getStreamId();
-		PageBuffer pageBuf = getPageBuf(sid);
-		if (streamStat.getTotalPages() != 0) {
-			// If we don't have a page buffer yet, keep track of the total pages so we can let the pagebuf know when/if
-			// it turns up
-			if (pageBuf != null && pageBuf.getTotalPages() <= 0)
-				pageBuf.setTotalPages(streamStat.getTotalPages());
-		}
 		// If we're already listening to this guy, ignore it
 		ControlConnection cc = mina.getCCM().getCCWithId(fromNodeId);
 		if (cc != null && cc.getLCPair(sid) != null)
 			return;
-		// If we're not receiving, then we're just caching sources to pass to an external listener - so cache it
-		if (!isReceiving(sid)) {
-			mina.getSourceMgr().cacheSourceUntilReady(sourceStat, streamStat);
-			notifyListenersOfSource(sid, fromNodeId);
-			return;
+		synchronized (this) {
+			// If we're not receiving, then we're just caching sources to pass to an external listener - so cache it
+			if (!receivingSids.contains(sid)) {
+				mina.getSourceMgr().cacheSourceUntilReady(sourceStat, streamStat);
+				notifyListenersOfSource(sid, fromNodeId);
+				return;
+			}
+			// If we haven't learned the total number of pages for this stream, do it now
+			if (streamStat.getTotalPages() > 0) {
+				PageBuffer pageBuf = liveStreams.get(sid);
+				if (pageBuf == null) {
+					log.error("Found source for stream " + sid + ", but that stream is not live");
+					return;
+				}
+				if (pageBuf.getTotalPages() <= 0)
+					pageBuf.setTotalPages(streamStat.getTotalPages());
+			}
 		}
 		// Check agorics are acceptable
 		if (mina.getConfig().isAgoric()) {
@@ -242,6 +265,14 @@ public class StreamMgr {
 		mina.getSCM().makeListenConnectionTo(sid, sourceStat);
 	}
 
+	/**
+	 * @syncpriority 200
+	 */
+	public synchronized void broadcastTo(String sid, ControlConnection cc, EndPoint listenEp, List<Long> pages) {
+		wakePageBuf(sid);
+		mina.getSCM().makeBroadcastConnectionTo(sid, cc, listenEp, pages);
+	}
+
 	private void notifyListenersOfSource(final String sid, final String sourceId) {
 		final FoundSourceListener[] lisArr;
 		synchronized (this) {
@@ -266,7 +297,15 @@ public class StreamMgr {
 	public void receivePage(String sid, Page p) {
 		if (!isReceiving(sid))
 			return;
-		PageBuffer pageBuf = getPageBuf(sid);
+		PageBuffer pageBuf;
+		synchronized (this) {
+			pageBuf = liveStreams.get(sid);
+			if (pageBuf == null) {
+				log.error("Received page " + p.getPageNumber() + " for stream " + sid
+						+ ", but that streams is not live");
+				return;
+			}
+		}
 		try {
 			pageBuf.putPage(p);
 		} catch (IOException e) {
@@ -326,14 +365,14 @@ public class StreamMgr {
 				mina.getPRM().notifyDeadConnection(sid, nid);
 				if (mina.getSCM().getNumListenConns(sid) < mina.getConfig().getMaxSources())
 					requestCachedSources(sid);
-				if(cc.getLCPairs().length == 0)
-					mina.getBidStrategy().cleanup(nid);
+				if (cc.getLCPairs().length == 0)
+					mina.getBidStrategy().cleanupNode(nid);
 				// Make note of them in case they come back
 				LCPair lcp = (LCPair) pair;
 				mina.getSourceMgr().cachePossiblyDeadSource(lcp.getCC().getNode(), sid);
-			}
-			if (mina.getSCM().getNumBroadcastConns(sid) == 0 && mina.getSCM().getNumListenConns(sid) == 0) {
-				sleepPageBuf(sid);
+			} else {
+				if (mina.getSCM().getNumBroadcastConns(sid) == 0 && !receivingSids.contains(sid))
+					sleepPageBuf(sid);
 			}
 		}
 		if (isReceiving(sid))
@@ -415,8 +454,9 @@ public class StreamMgr {
 	public synchronized void startReception(String sid) {
 		if (receivingSids.contains(sid))
 			throw new SeekInnerCalmException();
+		wakePageBuf(sid);
 		// If we're already finished, just start rebroadcasting
-		PageBuffer pageBuf = getPageBuf(sid);
+		PageBuffer pageBuf = liveStreams.get(sid);
 		if (pageBuf.isComplete())
 			startRebroadcast(sid);
 		else {
@@ -434,7 +474,7 @@ public class StreamMgr {
 	 */
 	public synchronized void stop() {
 		log.debug("StreamMgr stopping");
-		pageBufs.clear();
+		liveStreams.clear();
 		receivingSids.clear();
 		rebroadcastingSids.clear();
 		broadcastingSids.clear();
@@ -494,7 +534,12 @@ public class StreamMgr {
 				mina.getSourceMgr().cacheSourceUntilReady(lcp.getLastSourceStatus(), lcp.getLastStreamStatus());
 			}
 		}
+		// Cleanup
 		mina.getSCM().closeAllListenConns(sid);
+		if (mina.getSCM().getNumBroadcastConns(sid) == 0)
+			sleepPageBuf(sid);
+		mina.getBidStrategy().cleanupStream(sid);
+		mina.getPRM().cleanupStream(sid);
 	}
 
 	private void receptionCompleted(String sid) {

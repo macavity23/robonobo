@@ -128,7 +128,7 @@ public class LCPair extends ConnectionPair {
 	}
 
 	/**
-	 * @syncpriority 170
+	 * @syncpriority 200
 	 */
 	public void notifySourceStatus(SourceStatus sourceStat) {
 		setLastSourceStat(sourceStat);
@@ -141,7 +141,7 @@ public class LCPair extends ConnectionPair {
 	}
 
 	/**
-	 * @syncpriority 170
+	 * @syncpriority 200
 	 */
 	public void notifyStreamStatus(StreamStatus streamStat) {
 		this.lastStreamStat = streamStat;
@@ -261,7 +261,7 @@ public class LCPair extends ConnectionPair {
 	}
 
 	/**
-	 * @syncpriority 170
+	 * @syncpriority 200
 	 */
 	private void sendReqPageIfNecessary() {
 		if (closing || !mina.getStreamMgr().isReceiving(sid) || mina.getCCM().isShuttingDown())

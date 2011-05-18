@@ -31,7 +31,7 @@ public class StartSourceHandler extends AbstractMessageHandler {
 			cc.close("You asked for a stream without opening an account");
 			return;
 		}
-		mina.getSCM().makeBroadcastConnectionTo(sid, cc, ss.getEp(), ss.getPageList());
+		mina.getStreamMgr().broadcastTo(sid, cc, ss.getEp(), ss.getPageList());
 	}
 
 	@Override

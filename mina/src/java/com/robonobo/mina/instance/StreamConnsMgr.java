@@ -181,7 +181,7 @@ public class StreamConnsMgr {
 //	}
 
 	/**
-	 * @param pages
+	 * Don't call this directly - call StreamMgr.broadcastTo() instead
 	 * @syncpriority 180
 	 */
 	public synchronized void makeBroadcastConnectionTo(String sid, ControlConnection cc, EndPoint listenEp, List<Long> pages) {
@@ -388,7 +388,7 @@ public class StreamConnsMgr {
 		}
 
 		/**
-		 * @syncpriority 180
+		 * @syncpriority 200
 		 */
 		protected void onFail() {
 			log.info("Failed to connect to " + nodeId + " for stream '" + sid + "'");

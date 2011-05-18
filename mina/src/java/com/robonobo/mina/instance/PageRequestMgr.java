@@ -286,4 +286,15 @@ public class PageRequestMgr {
 		if(spMap.containsKey(sid))
 			spMap.get(sid).remove(sourceNodeId);
 	}
+	
+	/**
+	 * @syncpriority 90
+	 */
+	public synchronized void cleanupStream(String sid) {
+		overduePages.remove(sid);
+		pendingPages.remove(sid);
+		spMap.remove(sid);
+		winStartMap.remove(sid);
+		winEndMap.remove(sid);
+	}
 }

@@ -89,8 +89,8 @@ public class DefaultBidStrategy extends BidStrategy {
 	}
 
 	@Override
-	public void cleanup(String sellerNodeId) {
-		canReduceBid.remove(sellerNodeId);
+	public void cleanupNode(String nodeId) {
+		canReduceBid.remove(nodeId);
 	}
 	
 	@Override

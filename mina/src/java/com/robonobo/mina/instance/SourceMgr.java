@@ -149,6 +149,9 @@ public class SourceMgr {
 		}
 	}
 	
+	/**
+	 * @syncpriority 200
+	 */
 	public void gotSourceStatus(SourceStatus sourceStat) {
 		// Remove it from our list of waiting sources - sm.foundSource() might add it again
 		synchronized (this) {

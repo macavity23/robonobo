@@ -1,7 +1,6 @@
 package com.robonobo.mina.bidstrategy;
 
 import java.util.*;
-import java.util.concurrent.ScheduledFuture;
 
 import org.apache.commons.logging.Log;
 
@@ -9,11 +8,9 @@ import com.robonobo.core.api.StreamVelocity;
 import com.robonobo.mina.agoric.AuctionState;
 import com.robonobo.mina.instance.MinaInstance;
 import com.robonobo.mina.message.proto.MinaProtocol.BidUpdate;
-import com.robonobo.mina.network.LCPair;
 
 public abstract class BidStrategy {
 	protected MinaInstance mina;
-	private ScheduledFuture<?> checkTask;
 	protected Map<String, StreamVelocity> streamVelocities = Collections.synchronizedMap(new HashMap<String, StreamVelocity>());
 	protected Log log;
 
@@ -48,6 +45,13 @@ public abstract class BidStrategy {
 	}
 	
 	/**
+	 * We are no longer receiving this stream, get rid of all trace
+	 */
+	public void cleanupStream(String sid) {
+		streamVelocities.remove(sid);
+	}
+	
+	/**
 	 * Is it worth connecting to this guy? 
 	 */
 	public abstract boolean worthConnectingTo(String sid, AuctionState as);
@@ -67,5 +71,5 @@ public abstract class BidStrategy {
 	/**
 	 * We are no longer receiving from this guy, so remove any trace of him
 	 */
-	public abstract void cleanup(String sellerNodeId);
+	public abstract void cleanupNode(String nodeId);
 }
