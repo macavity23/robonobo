@@ -79,6 +79,7 @@ public class MinaInstance implements MinaControl {
 		netMgr = new NetworkMgr(this);
 		try {
 			bidStrategy = (BidStrategy) Class.forName(config.getBidStrategyClass()).newInstance();
+			bidStrategy.setMinaInstance(this);
 		} catch (Exception e) {
 			throw new SeekInnerCalmException(e);
 		}

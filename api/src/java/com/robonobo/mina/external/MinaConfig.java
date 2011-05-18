@@ -15,7 +15,7 @@ public class MinaConfig implements Cloneable, Serializable {
 	/** Comma-sep list of fq classnames of endpoint mgrs */
 	String endPointMgrClasses = "com.robonobo.mina.network.eon.EonEndPointMgr";
 	/** FQ classname of bid strategy */
-	String bidStrategyClass = "com.robonobo.mina.stream.bidstrategy.DefaultBidStrategy";
+	String bidStrategyClass = "com.robonobo.mina.bidstrategy.DefaultBidStrategy";
 	int maxCachedBroadcasterAge = 300;
 	int listenUdpPort = 23232;
 	int gatewayUdpPort = 17235;
