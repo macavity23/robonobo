@@ -51,11 +51,6 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements U
 	}
 
 	@Override
-	public void libraryChanged(Library lib) {
-		// Do nothing
-	}
-
-	@Override
 	public void userConfigChanged(UserConfig cfg) {
 		// Do nothing
 	}

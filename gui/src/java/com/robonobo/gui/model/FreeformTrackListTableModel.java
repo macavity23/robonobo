@@ -1,5 +1,7 @@
 package com.robonobo.gui.model;
 
+import static com.robonobo.gui.GuiUtil.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,14 +16,16 @@ import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.util.ContiguousBlock;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.TrackListener;
 import com.robonobo.core.api.model.Stream;
 import com.robonobo.core.api.model.Track;
+import com.robonobo.gui.GuiUtil;
 
 /**
- * A track list containing tracks, maintained in the default stream order (see StreamComparator). Add the tracks you want in your subclass constructor and
- * implement trackUpdated() to maintain your track list.
+ * A track list containing tracks, maintained in the default stream order (see StreamComparator). Add the tracks you
+ * want in your subclass constructor and implement trackUpdated() to maintain your track list.
  * 
  * @author mortw0
  * 
@@ -36,8 +40,8 @@ public abstract class FreeformTrackListTableModel extends TrackListTableModel im
 	protected List<Stream> streams = new ArrayList<Stream>();
 	protected StreamComparator comparator = new StreamComparator();
 	/**
-	 * We keep track of the indices of all our streams, so that when information about them is updated (upload/Download speed, status), we know which index
-	 * we're talking about and can update the table swiftly
+	 * We keep track of the indices of all our streams, so that when information about them is updated (upload/Download
+	 * speed, status), we know which index we're talking about and can update the table swiftly
 	 */
 	protected Map<String, Integer> streamIndices = new HashMap<String, Integer>();
 
@@ -57,66 +61,127 @@ public abstract class FreeformTrackListTableModel extends TrackListTableModel im
 		add(t, true);
 	}
 
+	/** Call only from within sync block AND on ui thread */
+	private int doAdd(Track t) {
+		Stream stream = t.getStream();
+		String streamId = stream.getStreamId();
+		if (streamIndices.containsKey(streamId))
+			return -1;
+		// See the binarySearch javadoc for the meaning of this
+		// incantation
+		final int newIndex = -Collections.binarySearch(streams, stream, comparator) - 1;
+		if (newIndex < 0)
+			throw new SeekInnerCalmException();
+		// Update our stream indices
+		for (int i = newIndex; i < streams.size(); i++) {
+			String incSid = streams.get(i).getStreamId();
+			streamIndices.put(incSid, i + 1);
+		}
+		streamIndices.put(streamId, newIndex);
+		streams.add(newIndex, stream);
+		return newIndex;
+	}
+
 	protected void add(final Track t, final boolean fireUpdate) {
 		try {
-			CatchingRunnable meat = new CatchingRunnable() {
-				@Override
+			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
+					int idx;
 					synchronized (FreeformTrackListTableModel.this) {
-						Stream stream = t.getStream();
-						String streamId = stream.getStreamId();
-						if (streamIndices.containsKey(streamId))
-							return;
-						// See the binarySearch javadoc for the meaning of this
-						// incantation
-						final int newIndex = -Collections.binarySearch(streams, stream, comparator) - 1;
-						if (newIndex < 0)
-							throw new SeekInnerCalmException();
-						// Update our stream indices
-						for (int i = newIndex; i < streams.size(); i++) {
-							String incSid = streams.get(i).getStreamId();
-							streamIndices.put(incSid, i + 1);
-						}
-						streamIndices.put(streamId, newIndex);
-						streams.add(newIndex, stream);
-						if (fireUpdate)
-							fireTableRowsInserted(newIndex, newIndex);
+						idx = doAdd(t);
 					}
+					if (fireUpdate && idx >= 0)
+						fireTableRowsInserted(idx, idx);
 				}
-			};
-			if (SwingUtilities.isEventDispatchThread())
-				meat.run();
-			else
-				SwingUtilities.invokeLater(meat);
+			});
 		} catch (Exception e) {
-			log.error("Error adding sc to tablemodel");
+			log.error("Error adding track to tablemodel");
 		}
 	}
 
-	protected void remove(final Track t) {
+	protected void add(final Collection<Track> trax, final boolean fireUpdate) {
 		try {
-			SwingUtilities.invokeLater(new CatchingRunnable() {
-				@Override
+			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
+					// Keep track of which indices have been added so we can fire as few events as possible 
+					ContiguousBlock cb = new ContiguousBlock();
 					synchronized (FreeformTrackListTableModel.this) {
-						Stream stream = t.getStream();
-						String streamId = stream.getStreamId();
-						if (!streamIndices.containsKey(streamId))
-							return;
-						final int index = streamIndices.get(streamId);
-						// Update our stream indices
-						for (int i = index + 1; i < streams.size(); i++) {
-							String decSid = streams.get(i).getStreamId();
-							streamIndices.put(decSid, i - 1);
+						for (Track t : trax) {
+							int idx = doAdd(t);
+							if (idx >= 0)
+								cb.add(idx);
 						}
-						streams.remove(index);
-						streamIndices.remove(streamId);
-						fireTableRowsDeleted(index, index);
+					}
+					if (fireUpdate) {
+						int[] block;
+						while ((block = cb.getNextBlock()) != null) {
+							fireTableRowsInserted(block[0], block[1]);
+						}
 					}
 				}
 			});
 		} catch (Exception e) {
+			log.error("Error adding tracks to tablemodel");
+		}
+	}
+
+	/** Call only from within sync block AND on ui thread */
+	private int doRemove(final Track t) {
+		Stream stream = t.getStream();
+		String streamId = stream.getStreamId();
+		if (!streamIndices.containsKey(streamId))
+			return -1;
+		final int index = streamIndices.get(streamId);
+		// Update our stream indices
+		for (int i = index + 1; i < streams.size(); i++) {
+			String decSid = streams.get(i).getStreamId();
+			streamIndices.put(decSid, i - 1);
+		}
+		streams.remove(index);
+		streamIndices.remove(streamId);
+		return index;
+	}
+
+	protected void remove(final Track t) {
+		try {
+			runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					int idx;
+					synchronized (FreeformTrackListTableModel.this) {
+						idx = doRemove(t);
+					}
+					if (idx >= 0)
+						fireTableRowsDeleted(idx, idx);
+				}
+			});
+		} catch (Exception e) {
 			log.error("Error removing sc from tm");
+		}
+	}
+
+	protected void remove(final Collection<Track> trax, final boolean fireEvent) {
+		try {
+			runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					// Keep track of which indices have been removed so we can fire as few events as possible 
+					ContiguousBlock cb = new ContiguousBlock();
+					synchronized (FreeformTrackListTableModel.this) {
+						for (Track t : trax) {
+							int idx = doRemove(t);
+							if (idx >= 0)
+								cb.add(idx);
+						}
+					}
+					int[] block;
+					if (fireEvent) {
+						while ((block = cb.getNextBlock()) != null) {
+							fireTableRowsDeleted(block[0], block[1]);
+						}
+					}
+				}
+			});
+		} catch (Exception e) {
+			log.error("Error adding sc to tablemodel");
 		}
 	}
 

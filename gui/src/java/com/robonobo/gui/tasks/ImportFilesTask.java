@@ -19,7 +19,7 @@ public class ImportFilesTask extends Task {
 	}
 
 	@Override
-	public void doRun() throws Exception {
+	public void runTask() throws Exception {
 		log.info("Running import files task for "+files.size()+" files");
 		List<String> streamIds = new ArrayList<String>();
 		int totalSz = files.size();
@@ -28,8 +28,7 @@ public class ImportFilesTask extends Task {
 		try {
 			while (it.hasNext()) {
 				if (cancelRequested) {
-					cancelled = true;
-					fireUpdated();
+					cancelConfirmed();
 					return;
 				}
 				completion = (float) i / totalSz;

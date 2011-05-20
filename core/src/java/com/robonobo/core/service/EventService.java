@@ -18,6 +18,7 @@ public class EventService extends AbstractService implements MinaListener {
 	private List<WangListener> wList = new ArrayList<WangListener>();
 	private List<TransferSpeedListener> tsList = new ArrayList<TransferSpeedListener>();
 	private List<TaskListener> tlList = new ArrayList<TaskListener>();
+	private List<LibraryListener> llList = new ArrayList<LibraryListener>();
 	private int minaSupernodes = 0;
 	private Log log = LogFactory.getLog(getClass());
 
@@ -54,6 +55,14 @@ public class EventService extends AbstractService implements MinaListener {
 	
 	public synchronized void removeUserPlaylistListener(UserPlaylistListener l) {
 		upList.remove(l);
+	}
+	
+	public synchronized void addLibraryListener(LibraryListener l) {
+		llList.add(l);
+	}
+	
+	public synchronized void removeLibraryListener(LibraryListener l) {
+		llList.remove(l);
 	}
 	
 	public synchronized void addWangListener(WangListener l) {
@@ -240,13 +249,13 @@ public class EventService extends AbstractService implements MinaListener {
 		}
 	}
 
-	public void fireLibraryUpdated(Library lib) {
-		UserPlaylistListener[] arr;
+	public void fireLibraryUpdated(Library lib, Set<String> newTracks) {
+		LibraryListener[] arr;
 		synchronized (this) {
-			arr = getUpArr();
+			arr = getLlArr();
 		}
-		for (UserPlaylistListener listener : arr) {
-			listener.libraryChanged(lib);
+		for (LibraryListener listener : arr) {
+			listener.libraryChanged(lib, newTracks);
 		}
 	}
 
@@ -378,6 +387,12 @@ public class EventService extends AbstractService implements MinaListener {
 	private UserPlaylistListener[] getUpArr() {
 		UserPlaylistListener[] result = new UserPlaylistListener[upList.size()];
 		upList.toArray(result);
+		return result;
+	}
+
+	private LibraryListener[] getLlArr() {
+		LibraryListener[] result = new LibraryListener[llList.size()];
+		llList.toArray(result);
 		return result;
 	}
 

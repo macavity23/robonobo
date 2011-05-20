@@ -5,6 +5,7 @@ import java.awt.datatransfer.Transferable;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.swing.SortableTreeNode;
 import com.robonobo.core.api.model.Library;
+import com.robonobo.gui.components.TrackList;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 @SuppressWarnings("serial")
@@ -32,9 +33,18 @@ public class LibraryTreeNode extends SelectableTreeNode {
 		return lib;
 	}
 
-	public void setLib(Library lib) {
+	public void setLib(final Library lib, boolean isSelected) {
 		this.lib = lib;
-		numUnseenTracks = frame.getController().numUnseenTracks(lib);
+		// If we're selected, don't show any unseen tracks
+		if(isSelected) {
+			numUnseenTracks = 0;
+			frame.getController().getExecutor().execute(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					frame.getController().markAllAsSeen(lib);
+				}
+			});
+		} else 
+			numUnseenTracks = frame.getController().numUnseenTracks(lib);
 	}
 	
 	public int getNumUnseenTracks() {
@@ -54,14 +64,17 @@ public class LibraryTreeNode extends SelectableTreeNode {
 	@Override
 	public boolean handleSelect() {
 		numUnseenTracks = 0;
-		frame.getController().markAllAsSeen(lib);
 		frame.getMainPanel().selectContentPanel(contentPanelName());
-		// Start finding sources for this guy
 		frame.getController().getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				FriendLibraryTableModel model = (FriendLibraryTableModel) frame.getMainPanel()
-						.getContentPanel(contentPanelName()).getTrackList().getModel();
+				// Do this off the ui thread as there's a db hit marking 10^4 tracks as read
+				frame.getController().markAllAsSeen(lib);
+				// Activate this panel so it can find sources
+				TrackList trackList = frame.getMainPanel()
+						.getContentPanel(contentPanelName()).getTrackList();
+				FriendLibraryTableModel model = (FriendLibraryTableModel) trackList.getModel();
 				model.activate();
+				trackList.activate();
 			}
 		});
 		return true;

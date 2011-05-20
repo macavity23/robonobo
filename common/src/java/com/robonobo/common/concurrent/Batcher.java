@@ -23,17 +23,17 @@ import java.util.concurrent.locks.ReentrantLock;
  * @param <T> The things that are being batched
  */
 public abstract class Batcher<T> extends CatchingRunnable {
-	protected long timespan;
+	protected long timespanMs;
 	protected ScheduledThreadPoolExecutor executor;
 	protected ScheduledFuture<?> task;
 	protected List<T> queuedObjs = new ArrayList<T>();
 	protected Lock lock = new ReentrantLock();
 
 	/**
-	 * @param timespan (millisecs)
+	 * @param timespanMs 
 	 */
-	public Batcher(long timespan, ScheduledThreadPoolExecutor executor) {
-		this.timespan = timespan;
+	public Batcher(long timespanMs, ScheduledThreadPoolExecutor executor) {
+		this.timespanMs = timespanMs;
 		this.executor = executor;
 	}
 
@@ -41,7 +41,7 @@ public abstract class Batcher<T> extends CatchingRunnable {
 		lock.lock();
 		queuedObjs.add(obj);
 		if (task == null)
-			task = executor.schedule(this, timespan, TimeUnit.MILLISECONDS);
+			task = executor.schedule(this, timespanMs, TimeUnit.MILLISECONDS);
 		lock.unlock();
 	}
 
@@ -50,7 +50,7 @@ public abstract class Batcher<T> extends CatchingRunnable {
 		try {
 			queuedObjs.addAll(objs);
 			if (task == null)
-				task = executor.schedule(this, timespan, TimeUnit.MILLISECONDS);
+				task = executor.schedule(this, timespanMs, TimeUnit.MILLISECONDS);
 		} finally {
 			lock.unlock();
 		}

@@ -78,6 +78,14 @@ public class RobonoboController {
 		inst.getEventService().removeUserPlaylistListener(l);
 	}
 
+	public void addLibraryListener(LibraryListener l) {
+		inst.getEventService().addLibraryListener(l);
+	}
+
+	public void removeLibraryListener(LibraryListener l) {
+		inst.getEventService().removeLibraryListener(l);
+	}
+
 	public void addWangListener(WangListener l) {
 		inst.getEventService().addWangListener(l);
 	}
@@ -515,7 +523,7 @@ public class RobonoboController {
 	}
 	
 	public void markAllAsSeen(Library lib)  {
-		inst.getDbService().markAllAsSeen(lib);
+		inst.getDbService().markAllLibTracksAsSeen(lib);
 	}
 	
 	public void requestTopUp() throws IOException {

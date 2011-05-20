@@ -61,7 +61,7 @@ public class WangService extends AbstractService implements CurrencyClient {
 		}
 		
 		@Override
-		public void doRun() throws Exception {
+		public void runTask() throws Exception {
 			if (client != null)
 				client.stop();
 

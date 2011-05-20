@@ -28,10 +28,18 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 		return playlist;
 	}
 
-	public void setPlaylist(Playlist playlist) {
+	public void setPlaylist(final Playlist playlist, boolean isSelected) {
 		this.playlist = playlist;
 		setUserObject(playlist.getTitle());
-		numUnseenTracks = frame.getController().numUnseenTracks(playlist);
+		if (isSelected) {
+			numUnseenTracks = 0;
+			frame.getController().getExecutor().execute(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					frame.getController().markAllAsSeen(playlist);
+				}
+			});
+		} else
+			numUnseenTracks = frame.getController().numUnseenTracks(playlist);
 	}
 
 	@Override
@@ -42,11 +50,11 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 	@Override
 	public boolean handleSelect() {
 		numUnseenTracks = 0;
-		frame.getController().markAllAsSeen(playlist);
 		frame.getMainPanel().selectContentPanel(contentPanelName());
-		// Start finding sources for this guy
 		frame.getController().getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
+				frame.getController().markAllAsSeen(playlist);
+				// Start finding sources for this guy
 				PlaylistTableModel model = (PlaylistTableModel) frame.getMainPanel()
 						.getContentPanel(contentPanelName()).getTrackList().getModel();
 				model.activate();
@@ -70,7 +78,7 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 
 	@Override
 	public int compareTo(SortableTreeNode o) {
-		if(o instanceof LibraryTreeNode)
+		if (o instanceof LibraryTreeNode)
 			return 1;
 		PlaylistTreeNode other = (PlaylistTreeNode) o;
 		return playlist.getTitle().compareTo(other.getPlaylist().getTitle());

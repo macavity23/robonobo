@@ -10,8 +10,7 @@ import java.util.regex.Matcher;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
@@ -24,6 +23,7 @@ import org.jdesktop.swingx.table.TableColumnExt;
 import org.jdesktop.swingx.table.TableColumnModelExt;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.SearchExecutor;
 import com.robonobo.core.api.model.*;
@@ -48,6 +48,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 	Log log;
 	RobonoboFrame frame;
 	PopupMenu popupMenu = new PopupMenu();
+	ViewportListener viewportListener;
 
 	public TrackList(final RobonoboFrame frame, TrackListTableModel model) {
 		this.model = model;
@@ -161,19 +162,23 @@ public class TrackList extends JPanel implements SearchExecutor {
 				int mouseRow = table.rowAtPoint(e.getPoint());
 				boolean alreadySel = false;
 				for (int selRow : table.getSelectedRows()) {
-					if(selRow == mouseRow) {
+					if (selRow == mouseRow) {
 						alreadySel = true;
 						break;
 					}
 				}
-				if(!alreadySel)
-					table.getSelectionModel().addSelectionInterval(mouseRow, mouseRow); 
+				if (!alreadySel)
+					table.getSelectionModel().addSelectionInterval(mouseRow, mouseRow);
 				popupMenu.refresh();
 				popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
 		});
 
 		scrollPane = new JScrollPane(table);
+		if (model.wantScrollEvents()) {
+			viewportListener = new ViewportListener();
+			scrollPane.getViewport().addChangeListener(viewportListener);
+		}
 		add(scrollPane, "0,0");
 	}
 
@@ -292,6 +297,11 @@ public class TrackList extends JPanel implements SearchExecutor {
 		}
 	}
 
+	public void activate() {
+		if(viewportListener != null)
+			viewportListener.checkViewportAndFire();
+	}
+	
 	class PopupMenu extends JPopupMenu implements ActionListener {
 		public PopupMenu() {
 		}
@@ -328,7 +338,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 				plMenu.add(pmi);
 			}
 			add(plMenu);
-			if(model.allowDelete()) {
+			if (model.allowDelete()) {
 				RMenuItem del = new RMenuItem("Delete");
 				del.setActionCommand("delete");
 				del.addActionListener(this);
@@ -360,7 +370,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel().getContentPanel(
 						"playlist/" + plId);
 				cp.addTracks(getSelectedStreamIds());
-			} else if(action.equals("delete")) {
+			} else if (action.equals("delete")) {
 				frame.getMainPanel().currentContentPanel().getTrackList().deleteSelectedTracks();
 			} else
 				log.error("PopupMenu generated unknown action: " + action);
@@ -504,6 +514,37 @@ public class TrackList extends JPanel implements SearchExecutor {
 				}
 			}
 			return result;
+		}
+	}
+
+	class ViewportListener implements ChangeListener {
+		int firstRow = -1, lastRow = -1;
+		JViewport v;
+		
+		public ViewportListener() {
+			v = scrollPane.getViewport();
+		}
+
+		public void stateChanged(ChangeEvent e) {
+			checkViewportAndFire();
+		}
+
+		public void checkViewportAndFire() {
+			Point viewPos = v.getViewPosition();
+			Dimension viewSz = v.getExtentSize();
+			int newFirstRow = table.rowAtPoint(viewPos);
+			int newLastRow = table.rowAtPoint(new Point(viewPos.x, viewPos.y + viewSz.height));
+			if(newFirstRow == firstRow && newLastRow == lastRow)
+				return;
+			if(newFirstRow < 0 || newLastRow < 0)
+				throw new SeekInnerCalmException();
+			firstRow = newFirstRow;
+			lastRow = newLastRow;
+			int[] modelIdxs = new int[lastRow - firstRow + 1];
+			for(int i=0;i<modelIdxs.length;i++) {
+				modelIdxs[i] = table.convertRowIndexToModel(firstRow+i);
+			}
+			getModel().onScroll(modelIdxs);
 		}
 	}
 }

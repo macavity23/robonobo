@@ -4,8 +4,7 @@ import static com.robonobo.gui.RoboColor.*;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import javax.swing.*;
 
@@ -13,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.core.api.LibraryListener;
 import com.robonobo.core.api.UserPlaylistListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.components.*;
@@ -21,7 +21,7 @@ import com.robonobo.gui.model.ActiveSearchListModel;
 import com.robonobo.gui.model.SearchResultTableModel;
 
 @SuppressWarnings("serial")
-public class LeftSidebar extends JPanel implements UserPlaylistListener {
+public class LeftSidebar extends JPanel implements UserPlaylistListener, LibraryListener {
 	List<LeftSidebarComponent> sideBarComps = new ArrayList<LeftSidebarComponent>();
 	RobonoboFrame frame;
 	private ActiveSearchList activeSearchList;
@@ -242,7 +242,7 @@ public class LeftSidebar extends JPanel implements UserPlaylistListener {
 	}
 	
 	@Override
-	public void libraryChanged(Library lib) {
+	public void libraryChanged(Library lib, Set<String> newTrackSids) {
 		String panelName = "library/"+lib.getUserId();
 		ContentPanel lPanel = frame.getMainPanel().getContentPanel(panelName);
 		if(lPanel == null)

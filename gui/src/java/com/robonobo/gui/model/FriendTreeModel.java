@@ -3,6 +3,8 @@
  */
 package com.robonobo.gui.model;
 
+import static com.robonobo.gui.GuiUtil.*;
+
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -16,15 +18,19 @@ import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.swing.SortableTreeNode;
 import com.robonobo.common.swing.SortedTreeModel;
 import com.robonobo.core.RobonoboController;
+import com.robonobo.core.api.LibraryListener;
 import com.robonobo.core.api.UserPlaylistListener;
 import com.robonobo.core.api.model.*;
+import com.robonobo.gui.GuiUtil;
+import com.robonobo.gui.components.FriendTree;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 @SuppressWarnings("serial")
-public class FriendTreeModel extends SortedTreeModel implements UserPlaylistListener {
+public class FriendTreeModel extends SortedTreeModel implements UserPlaylistListener, LibraryListener {
 	static final int MAX_FRIEND_PLAYLIST_TITLE_WIDTH = 100;
 	RobonoboFrame frame;
-	RobonoboController controller;
+	RobonoboController control;
+	FriendTree tree;
 	Map<Long, FriendTreeNode> friendNodes = new HashMap<Long, FriendTreeNode>();
 	Map<Long, LibraryTreeNode> libNodes = new HashMap<Long, LibraryTreeNode>();
 	Map<Long, Map<Long, PlaylistTreeNode>> playlistNodes = new HashMap<Long, Map<Long, PlaylistTreeNode>>();
@@ -37,12 +43,13 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 		myRoot = new SelectableTreeNode("Friends");
 		setRoot(myRoot);
 		frame = rFrame;
-		controller = frame.getController();
-		controller.addUserPlaylistListener(this);
+		control = frame.getController();
+		control.addUserPlaylistListener(this);
+		control.addLibraryListener(this);
 	}
 
 	public void loggedIn() {
-		SwingUtilities.invokeLater(new CatchingRunnable() {
+		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				synchronized (FriendTreeModel.this) {
 					getRoot().removeAllChildren();
@@ -57,8 +64,8 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 
 	public void userChanged(final User u) {
 		// If it's me, check to see if any of my friends are no longer friends
-		if (controller.getMyUser().equals(u)) {
-			SwingUtilities.invokeLater(new CatchingRunnable() {
+		if (control.getMyUser().equals(u)) {
+			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					synchronized (FriendTreeModel.this) {
 						for (Long friendId : friendNodes.keySet()) {
@@ -72,9 +79,9 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 					}
 				}
 			});
-		} else if (controller.getMyUser().getFriendIds().contains(u.getUserId())) {
+		} else if (control.getMyUser().getFriendIds().contains(u.getUserId())) {
 			// It's a friend
-			SwingUtilities.invokeLater(new CatchingRunnable() {
+			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					synchronized (FriendTreeModel.this) {
 						if (friendNodes.containsKey(u.getUserId())) {
@@ -107,7 +114,7 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 	}
 
 	public void playlistChanged(final Playlist p) {
-		SwingUtilities.invokeLater(new CatchingRunnable() {
+		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				synchronized (FriendTreeModel.this) {
 					for (FriendTreeNode ftn : friendNodes.values()) {
@@ -122,7 +129,7 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 								playlistIds.add(p.getPlaylistId());
 								firePathToRootChanged(ptn);
 							} else {
-								ptn.setPlaylist(p);
+								ptn.setPlaylist(p, tree.isSelectedNode(ptn));
 								replaceNodeSorted(ftn, ptn);
 								firePathToRootChanged(ptn);
 							}
@@ -134,8 +141,8 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 	}
 
 	@Override
-	public void libraryChanged(final Library lib) {
-		SwingUtilities.invokeLater(new CatchingRunnable() {
+	public void libraryChanged(final Library lib, final Set<String> newTrackSids) {
+		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				synchronized (FriendTreeModel.this) {
 					long uid = lib.getUserId();
@@ -150,7 +157,7 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 						insertNodeSorted(ftn, ltn);
 						libNodes.put(uid, ltn);
 					} else
-						ltn.setLib(lib);
+						ltn.setLib(lib, tree.isSelectedNode(ltn));
 					firePathToRootChanged(ltn);
 				}
 			}
@@ -193,5 +200,9 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 	
 	public synchronized boolean hasPlaylist(long playlistId) {
 		return playlistIds.contains(playlistId);
+	}
+	
+	public void setTree(FriendTree tree) {
+		this.tree = tree;
 	}
 }

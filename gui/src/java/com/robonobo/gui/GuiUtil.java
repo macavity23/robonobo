@@ -1,5 +1,7 @@
 package com.robonobo.gui;
 
+import static javax.swing.SwingUtilities.*;
+
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -11,6 +13,7 @@ import java.net.URL;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.SwingUtilities;
 
 import com.robonobo.common.exceptions.SeekInnerCalmException;
 
@@ -60,5 +63,12 @@ public class GuiUtil {
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+	}
+	
+	public static void runOnUiThread(Runnable r) {
+		if (isEventDispatchThread())
+			r.run();
+		else
+			invokeLater(r);
 	}
 }

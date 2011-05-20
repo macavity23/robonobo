@@ -19,8 +19,21 @@ public abstract class Task extends CatchingRunnable {
 	/** 0 - 1 */
 	protected float completion;
 	protected boolean cancelRequested;
-	protected boolean cancelled;
 	protected Log log = LogFactory.getLog(getClass());
+	
+	@Override
+	public void doRun() throws Exception {
+		try {
+			runTask();
+		} catch(Exception e) {
+			log.error("Caught exception running task '"+title+"'", e);
+			statusText = "An error occurred: "+e.getMessage();
+			completion = 1f;
+			fireUpdated();
+		}
+	}
+	
+	public abstract void runTask() throws Exception;
 	
 	public void cancel() {
 		cancelRequested = true;
@@ -80,9 +93,11 @@ public abstract class Task extends CatchingRunnable {
 	public void setStatusText(String statusText) {
 		this.statusText = statusText;
 	}
-	
-	public boolean isCancelled() {
-		return cancelled;
+
+	protected void cancelConfirmed() {
+		statusText = "Cancelled";
+		completion = 1f;
+		fireUpdated();
 	}
 	
 	@Override

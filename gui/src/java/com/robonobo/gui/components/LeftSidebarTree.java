@@ -66,6 +66,10 @@ public class LeftSidebarTree extends JTree implements LeftSidebarComponent {
 		selTreePath = null;
 	}
 
+	public boolean isSelectedNode(SelectableTreeNode node) {
+		return (selTreePath != null) && (selTreePath.equals(new TreePath(node.getPath())));
+	}
+	
 	/**
 	 * Stop Swing from deselecting us at its twisted whim
 	 */

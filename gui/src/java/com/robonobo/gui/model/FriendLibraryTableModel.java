@@ -1,27 +1,31 @@
 package com.robonobo.gui.model;
 
-import java.util.List;
+import java.util.*;
 
 import javax.swing.SwingUtilities;
 
+import com.robonobo.common.concurrent.Batcher;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.RobonoboController;
-import com.robonobo.core.api.UserPlaylistListener;
+import com.robonobo.core.api.LibraryListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.mina.external.FoundSourceListener;
 
 @SuppressWarnings("serial")
-public class FriendLibraryTableModel extends FreeformTrackListTableModel implements UserPlaylistListener, FoundSourceListener {
+public class FriendLibraryTableModel extends FreeformTrackListTableModel implements LibraryListener,
+		FoundSourceListener {
 	private Library lib;
-	private boolean activated;
+	// Because we might have very many tracks in a friend's library, we don't look up sources for them straight away -
+	// instead we look them up as the user scrolls - but we batch them for performance
+	static final long SCROLL_DELAY = 1000;
+	private TrackScrollBatcher scrollBatcher = new TrackScrollBatcher();
+	private boolean activated = false;
 
 	public FriendLibraryTableModel(RobonoboController controller, Library lib) {
 		super(controller);
+		controller.addLibraryListener(this);
 		this.lib = lib;
-		for (String sid : lib.getTracks().keySet()) {
-			add(control.getTrack(sid), false);
-		}
-		controller.addUserPlaylistListener(this);
+		libraryChanged(lib, lib.getTracks().keySet(), false);
 	}
 
 	@Override
@@ -31,36 +35,25 @@ public class FriendLibraryTableModel extends FreeformTrackListTableModel impleme
 		t.setDateAdded(lib.getTracks().get(t.getStream().getStreamId()));
 		return t;
 	}
-	
+
 	@Override
-	public void libraryChanged(Library lib) {
-		if(lib.getUserId() != this.lib.getUserId())
+	public void libraryChanged(Library lib, Set<String> newTrackSids) {
+		libraryChanged(lib, newTrackSids, true);
+	}
+
+	public void libraryChanged(Library lib, Set<String> newTrackSids, boolean fireEvent) {
+		if (lib.getUserId() != this.lib.getUserId())
 			return;
-		synchronized (this) {
-			streams.clear();
-			streamIndices.clear();
+		List<Track> addTrax = new ArrayList<Track>();
+		for (String sid : newTrackSids) {
+			addTrax.add(control.getTrack(sid));
 		}
+		add(addTrax, fireEvent);
 		this.lib = lib;
-		for (String sid : lib.getTracks().keySet()) {
-			add(control.getTrack(sid), false);
-		}
-		SwingUtilities.invokeLater(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				fireTableDataChanged();
-			}
-		});
-		// If we have been activated already, find sources for any new streams
-		if(activated)
-			activate();
 	}
 
 	public void activate() {
 		activated = true;
-		for (String streamId : lib.getTracks().keySet()) {
-			Track t = control.getTrack(streamId);
-			if (t instanceof CloudTrack)
-				control.findSources(streamId, this);
-		}
 	}
 
 	public synchronized void foundBroadcaster(String streamId, String nodeId) {
@@ -96,13 +89,27 @@ public class FriendLibraryTableModel extends FreeformTrackListTableModel impleme
 	}
 
 	@Override
-	public void allTracksLoaded() {
-		// Do nothing
+	public boolean allowDelete() {
+		return false;
 	}
 
 	@Override
-	public boolean allowDelete() {
-		return false;
+	public boolean wantScrollEvents() {
+		return true;
+	}
+
+	@Override
+	public synchronized void onScroll(int[] indexen) {
+		if(!activated)
+			return;
+		for (int i = 0; i < indexen.length; i++) {
+			scrollBatcher.add(streams.get(i).getStreamId());
+		}
+	}
+
+	@Override
+	public void allTracksLoaded() {
+		// Do nothing
 	}
 
 	@Override
@@ -110,29 +117,18 @@ public class FriendLibraryTableModel extends FreeformTrackListTableModel impleme
 		// Never called
 	}
 
-	@Override
-	public void loggedIn() {
-		// Do nothing
-	}
+	class TrackScrollBatcher extends Batcher<String> {
+		public TrackScrollBatcher() {
+			super(SCROLL_DELAY, control.getExecutor());
+		}
 
-	@Override
-	public void userChanged(User u) {
-		// Do nothing
-	}
-
-	@Override
-	public void allUsersAndPlaylistsUpdated() {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	@Override
-	public void playlistChanged(Playlist p) {
-		// Do nothing
-	}
-	
-	@Override
-	public void userConfigChanged(UserConfig cfg) {
-		// Do nothing
+		@Override
+		protected void runBatch(Collection<String> sids) throws Exception {
+			for (String sid : sids) {
+				Track t = control.getTrack(sid);
+				if (t instanceof CloudTrack)
+					control.findSources(sid, FriendLibraryTableModel.this);
+			}
+		}
 	}
 }

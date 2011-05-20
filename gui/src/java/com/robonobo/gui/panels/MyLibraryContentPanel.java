@@ -70,11 +70,6 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 	}
 
 	@Override
-	public void libraryChanged(Library lib) {
-		// Do nothing
-	}
-
-	@Override
 	public void loggedIn() {
 		// Do nothing
 	}

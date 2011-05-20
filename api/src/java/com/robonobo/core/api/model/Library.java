@@ -8,12 +8,14 @@ import com.robonobo.core.api.proto.CoreApi.LibraryTrackMsg;
 public class Library {
 	private Map<String, Date> tracks = new HashMap<String, Date>();
 	private long userId = -1;
+	/** This is used client-side only - not serialized or meaningful to the server */
+	Date lastUpdated = null;
 
 	public Library() {
 	}
 
 	public Library(LibraryMsg msg) {
-		if(msg.hasUserId())
+		if (msg.hasUserId())
 			userId = msg.getUserId();
 		for (int i = 0; i < msg.getTrackCount(); i++) {
 			LibraryTrackMsg t = msg.getTrack(i);
@@ -24,13 +26,13 @@ public class Library {
 
 	public LibraryMsg toMsg() {
 		LibraryMsg.Builder b = LibraryMsg.newBuilder();
-		if(userId >= 0)
+		if (userId >= 0)
 			b.setUserId(userId);
 		for (String streamId : tracks.keySet()) {
 			LibraryTrackMsg.Builder tb = LibraryTrackMsg.newBuilder();
 			tb.setStreamId(streamId);
 			Date d = tracks.get(streamId);
-			if(d != null)
+			if (d != null)
 				tb.setAddedDate(d.getTime());
 			b.addTrack(tb.build());
 		}
@@ -51,5 +53,13 @@ public class Library {
 
 	public void setUserId(long userId) {
 		this.userId = userId;
+	}
+
+	public Date getLastUpdated() {
+		return lastUpdated;
+	}
+
+	public void setLastUpdated(Date lastUpdated) {
+		this.lastUpdated = lastUpdated;
 	}
 }
