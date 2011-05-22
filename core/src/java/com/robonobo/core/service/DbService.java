@@ -38,7 +38,7 @@ public class DbService extends AbstractService {
 	private static final String READ_PLAYLIST_SEEN_SIDS = "SELECT STREAM_ID FROM PLAYLIST_SEEN_SIDS WHERE PLAYLIST_ID = ?";
 	private static final String READ_LIBRARY_TRACKS = "SELECT stream_id, added_date FROM library_tracks WHERE user_id = ?";
 	private static final String READ_LIBRARY_LAST_CHECKED = "SELECT check_date FROM library_last_checked WHERE user_id = ?";
-	private static final String READ_LIBRARY_UNKNOWN_STREAMS = "SELECT lt.stream_id, lt.added_date FROM library_tracks as lt WHERE lt.user_id = ? AND lt.stream_id NOT IN (SELECT s.stream_id FROM streams AS s)";
+	private static final String READ_LIBRARY_UNKNOWN_STREAMS = "SELECT lt.stream_id, lt.added_date FROM library_tracks as lt WHERE lt.user_id = ? AND NOT EXISTS (SELECT * FROM streams AS s WHERE s.stream_id = lt.stream_id)";
 	// Do libraries slightly differently to playlists as we might have library tracks we don't yet have streams for (this is never true of playlists) and we don't include those tracks in our unseen count
 	private static final String READ_LIBRARY_NUM_UNSEEN_SIDS = "SELECT COUNT(*) FROM ((SELECT lt.stream_id FROM library_tracks as lt WHERE lt.user_id = ? INTERSECT SELECT s.stream_id FROM streams AS s) MINUS SELECT pss.stream_id FROM playlist_seen_sids AS pss WHERE pss.playlist_id = CONCAT('playlist:', ?))";
 
