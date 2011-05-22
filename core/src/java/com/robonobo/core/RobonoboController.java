@@ -523,7 +523,7 @@ public class RobonoboController {
 	}
 	
 	public void markAllAsSeen(Library lib)  {
-		inst.getDbService().markAllLibTracksAsSeen(lib);
+		inst.getDbService().markAllAsSeen(lib);
 	}
 	
 	public void requestTopUp() throws IOException {

@@ -90,6 +90,9 @@ public class TrackList extends JPanel implements SearchExecutor {
 		table.getColumn(11).setCellRenderer(tr);
 		table.getColumn(12).setCellRenderer(tr);
 
+		// NOTE disabling sorting for now as it causes massive performance hits when tracks are being inserted
+		table.setSortable(false);
+		
 		// Render table header as not bold and with sorting arrows
 		// NOTE massively irritating bug in java5 (maybe mac only, but they're the only ones stuck on j5 anyway) that
 		// renders the table header as white if we set a custom renderer here. So we only do it in java 6+ - means that
