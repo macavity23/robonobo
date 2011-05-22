@@ -461,38 +461,31 @@ public class CCMgr {
 				conAttempt.succeeded();
 			}
 			mina.getBadNodeList().markNodeAsGood(cc.getNodeId());
-			// If this is a supernode, tell them about our broadcasts, and get
-			// broadcasters for any streams we're receiving
 			if (cc.getNode().getSupernode()) {
 				mina.getStreamAdvertiser().advertiseStreams(mina.getStreamMgr().getAdvertisingStreamIds());
 				List<String> wantingSources = mina.getSourceMgr().sidsWantingSources();
-				if(wantingSources.size() > 0) {
+				if (wantingSources.size() > 0) {
 					cc.sendMessage("WantSource", WantSource.newBuilder().addAllStreamId(wantingSources).build());
 				}
+				// Now, figure out if we can do nat traversal
+				mina.getNetMgr().figureOutNatTraversal();
 			}
 		}
 		if (mina.getEscrowMgr() != null)
 			mina.getEscrowMgr().notifySuccessfulConnection(cc);
 		mina.getEventMgr().fireNodeConnected(buildConnectedNode(cc));
-		checkNATTraversal(cc);
+		checkNatTraversal(cc);
 	}
 
 	/**
 	 * Use this new connection to figure out if our NAT (if any) supports traversal
 	 */
-	private void checkNATTraversal(ControlConnection cc) {
-		boolean needToCheck = false;
-		for (EndPointMgr epMgr : mina.getNetMgr().getEndPointMgrs()) {
-			if (!epMgr.natTraversalDecided()) {
-				needToCheck = true;
-				break;
-			}
-		}
-		if (needToCheck) {
-			ReqPublicDetails.Builder b = ReqPublicDetails.newBuilder();
-			b.setFromNodeId(mina.getMyNodeId());
-			cc.sendMessage("ReqPublicDetails", b.build());
-		}
+	private void checkNatTraversal(ControlConnection cc) {
+		if (mina.getNetMgr().natTraversalDecided())
+			return;
+		ReqPublicDetails.Builder b = ReqPublicDetails.newBuilder();
+		b.setFromNodeId(mina.getMyNodeId());
+		cc.sendMessage("ReqPublicDetails", b.build());
 	}
 
 	public boolean isShuttingDown() {

@@ -17,4 +17,6 @@ public interface NodeDao {
 	public void saveNode(Node n);
 	
 	public void deleteNodesOlderThan(long maxAgeMs);
+
+	public abstract List<Node> getPublicNodes(int maxNum);
 }

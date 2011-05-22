@@ -16,26 +16,25 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.core.api.proto.CoreApi.NodeList;
-import com.robonobo.sonar.retention.RetentionStrategy;
-import com.robonobo.sonar.retention.SupernodesOnlyStrategy;
+import com.robonobo.sonar.retention.*;
 
 @Controller
 public class SonarController {
+	static final int MAX_PUBLIC_NODES_TO_RETURN = 10;
 	Log log = LogFactory.getLog(getClass());
-//	RetentionStrategy rStrat = new PublicSupernodesOnlyStrategy();
-	RetentionStrategy rStrat = new SupernodesOnlyStrategy();
+	RetentionStrategy rStrat = new NonHolepunchOnlyStrategy();
 
 	@Autowired
 	private NodeDao nodeDao;
-	
-	@RequestMapping(value="/", method=RequestMethod.POST)
-	@Transactional(rollbackFor=Exception.class)
+
+	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@Transactional(rollbackFor = Exception.class)
 	public void getSupernodes(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		Node.Builder nb = Node.newBuilder();
 		nb.mergeFrom(req.getInputStream());
 		Node node = nb.build();
-		if(rStrat.shouldRetainNode(node)) {
-			log.info("Retaining node "+node);
+		if (rStrat.shouldRetainNode(node)) {
+			log.info("Retaining node " + node);
 			nodeDao.deleteDuplicateNodes(node);
 			nodeDao.saveNode(node);
 		}
@@ -45,6 +44,16 @@ public class SonarController {
 		nl.writeTo(resp.getOutputStream());
 		resp.setContentType("application/data");
 		resp.setStatus(HttpServletResponse.SC_OK);
-		log.info("Sent " + nodes.size() + " nodes to node " + node.getId());
+		log.info("Node " + node.getId() + " called in - sent " + nodes.size() + " supernodes");
+	}
+
+	@RequestMapping(value = "/public", method = RequestMethod.GET)
+	public void getPublicNodes(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		List<Node> nodes = nodeDao.getPublicNodes(MAX_PUBLIC_NODES_TO_RETURN);
+		NodeList nl = NodeList.newBuilder().addAllNode(nodes).build();
+		nl.writeTo(resp.getOutputStream());
+		resp.setContentType("application/data");
+		resp.setStatus(HttpServletResponse.SC_OK);
+		log.info("Sent " + nodes.size() + " public nodes to request ip " + req.getRemoteAddr());
 	}
 }

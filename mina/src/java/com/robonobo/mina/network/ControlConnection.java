@@ -425,7 +425,7 @@ public class ControlConnection implements PushDataReceiver {
 		closeIfUnused();
 	}
 
-	private void closeIfUnused() {
+	public void closeIfUnused() {
 		if (closing)
 			return;
 		if (!isInUse()) {
