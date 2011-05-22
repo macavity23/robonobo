@@ -1,6 +1,7 @@
 package com.robonobo.gui.components;
 
 import static com.robonobo.common.util.CodeUtil.*;
+import static com.robonobo.gui.GuiUtil.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -175,7 +176,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 		});
 
 		scrollPane = new JScrollPane(table);
-		if (model.wantScrollEvents()) {
+		if (model.wantScrollEventsEver()) {
 			viewportListener = new ViewportListener();
 			scrollPane.getViewport().addChangeListener(viewportListener);
 		}
@@ -298,8 +299,13 @@ public class TrackList extends JPanel implements SearchExecutor {
 	}
 
 	public void activate() {
-		if(viewportListener != null)
-			viewportListener.checkViewportAndFire();
+		if(viewportListener != null) {
+			runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					viewportListener.checkViewportAndFire();
+				}
+			});
+		}
 	}
 	
 	class PopupMenu extends JPopupMenu implements ActionListener {
@@ -530,6 +536,8 @@ public class TrackList extends JPanel implements SearchExecutor {
 		}
 
 		public void checkViewportAndFire() {
+			if(!model.wantScrollEventsNow())
+				return;
 			Point viewPos = v.getViewPosition();
 			Dimension viewSz = v.getExtentSize();
 			int newFirstRow = table.rowAtPoint(viewPos);
@@ -537,7 +545,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 			if(newFirstRow == firstRow && newLastRow == lastRow)
 				return;
 			if(newFirstRow < 0 || newLastRow < 0)
-				throw new SeekInnerCalmException();
+				return;
 			firstRow = newFirstRow;
 			lastRow = newLastRow;
 			int[] modelIdxs = new int[lastRow - firstRow + 1];

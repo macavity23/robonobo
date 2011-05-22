@@ -120,12 +120,19 @@ public abstract class TrackListTableModel extends AbstractTableModel {
 	}
 
 	/**
-	 * Return true in a subclass to have onScroll() called every time the track list is scrolled
+	 * Return true in a subclass to have onScroll() called every time the track list is scrolled (as long as wantScrollEventsNow() returns true)
 	 */
-	public boolean wantScrollEvents() {
+	public boolean wantScrollEventsEver() {
 		return false;
 	}
 
+	/**
+	 * Return true in a subclass to have onScroll() called with the in-view indexen (wantScrollEventsEver() must also return true)
+	 */
+	public boolean wantScrollEventsNow() {
+		return false;
+	}
+	
 	/**
 	 * @param indexen
 	 *            The items currently in-viewport (model indexes, not view). Note this is called on the UI thread, so be

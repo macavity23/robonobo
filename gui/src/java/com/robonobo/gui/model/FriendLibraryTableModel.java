@@ -94,16 +94,21 @@ public class FriendLibraryTableModel extends FreeformTrackListTableModel impleme
 	}
 
 	@Override
-	public boolean wantScrollEvents() {
+	public boolean wantScrollEventsEver() {
 		return true;
 	}
 
 	@Override
+	public boolean wantScrollEventsNow() {
+		return activated;
+	}
+	
+	@Override
 	public synchronized void onScroll(int[] indexen) {
-		if(!activated)
-			return;
 		for (int i = 0; i < indexen.length; i++) {
-			scrollBatcher.add(streams.get(i).getStreamId());
+			int sIdx = indexen[i];
+			if(sIdx >= 0)
+				scrollBatcher.add(streams.get(sIdx).getStreamId());
 		}
 	}
 

@@ -92,6 +92,7 @@ public class LeftSidebar extends JPanel implements UserPlaylistListener, Library
 		add(statusPnl);
 		
 		frame.getController().addUserPlaylistListener(this);
+		frame.getController().addLibraryListener(this);
 	}
 
 	private void relayoutSidebar() {

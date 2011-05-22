@@ -10,8 +10,6 @@ import org.doomdark.uuid.UUIDGenerator;
 
 import com.robonobo.common.concurrent.SafetyNet;
 import com.robonobo.common.exceptions.SeekInnerCalmException;
-import com.robonobo.common.util.ExceptionEvent;
-import com.robonobo.common.util.ExceptionListener;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.core.api.proto.CoreApi.Node;
@@ -21,7 +19,6 @@ import com.robonobo.mina.bidstrategy.BidStrategy;
 import com.robonobo.mina.escrow.EscrowMgr;
 import com.robonobo.mina.escrow.EscrowProvider;
 import com.robonobo.mina.external.*;
-import com.robonobo.mina.external.buffer.PageBuffer;
 import com.robonobo.mina.external.buffer.PageBufferProvider;
 import com.robonobo.mina.message.proto.MinaProtocol.Agorics;
 import com.robonobo.mina.network.*;
@@ -65,7 +62,6 @@ public class MinaInstance implements MinaControl {
 
 	public MinaInstance(MinaConfig config, Application application, ScheduledThreadPoolExecutor executor) {
 		// Make sure we know about exceptions
-		SafetyNet.addListener(new MinaExceptionListener());
 		log = getLogger(getClass());
 		this.config = config;
 		this.executor = executor;
@@ -287,12 +283,6 @@ public class MinaInstance implements MinaControl {
 
 	public Set<Node> getKnownSources(String sid) {
 		return streamMgr.getKnownSources(sid);
-	}
-
-	private class MinaExceptionListener implements ExceptionListener {
-		public void onException(ExceptionEvent e) {
-			log.fatal(e.getSource().getClass().getName() + " caught Exception: ", e.getException());
-		}
 	}
 
 	public Map<String, TransferSpeed> getTransferSpeeds() {

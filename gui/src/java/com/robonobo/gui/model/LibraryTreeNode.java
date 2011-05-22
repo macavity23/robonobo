@@ -20,11 +20,11 @@ public class LibraryTreeNode extends SelectableTreeNode {
 		this.lib = lib;
 		numUnseenTracks = frame.getController().numUnseenTracks(lib);
 	}
-	
+
 	@Override
 	public int compareTo(SortableTreeNode o) {
 		// We are equal to other library nodes (though there shouldn't be any), but before anything else
-		if(o instanceof LibraryTreeNode)
+		if (o instanceof LibraryTreeNode)
 			return 0;
 		return -1;
 	}
@@ -36,31 +36,30 @@ public class LibraryTreeNode extends SelectableTreeNode {
 	public void setLib(final Library lib, boolean isSelected) {
 		this.lib = lib;
 		// If we're selected, don't show any unseen tracks
-		if(isSelected) {
+		if (isSelected) {
 			numUnseenTracks = 0;
 			frame.getController().getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					frame.getController().markAllAsSeen(lib);
 				}
 			});
-		} else 
+		} else
 			numUnseenTracks = frame.getController().numUnseenTracks(lib);
 	}
-	
+
 	public int getNumUnseenTracks() {
 		return numUnseenTracks;
 	}
-	
-	protected String contentPanelName() {
-		return "library/"+lib.getUserId();
-	}
 
+	protected String contentPanelName() {
+		return "library/" + lib.getUserId();
+	}
 
 	@Override
 	public boolean wantSelect() {
 		return true;
 	}
-	
+
 	@Override
 	public boolean handleSelect() {
 		numUnseenTracks = 0;
@@ -70,8 +69,7 @@ public class LibraryTreeNode extends SelectableTreeNode {
 				// Do this off the ui thread as there's a db hit marking 10^4 tracks as read
 				frame.getController().markAllAsSeen(lib);
 				// Activate this panel so it can find sources
-				TrackList trackList = frame.getMainPanel()
-						.getContentPanel(contentPanelName()).getTrackList();
+				TrackList trackList = frame.getMainPanel().getContentPanel(contentPanelName()).getTrackList();
 				FriendLibraryTableModel model = (FriendLibraryTableModel) trackList.getModel();
 				model.activate();
 				trackList.activate();
@@ -79,8 +77,7 @@ public class LibraryTreeNode extends SelectableTreeNode {
 		});
 		return true;
 	}
-	
-	
+
 	@Override
 	public boolean importData(Transferable t) {
 		return false;
