@@ -11,7 +11,7 @@ import com.robonobo.gui.components.TrackList;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.panels.ContentPanel;
 import com.robonobo.gui.panels.FriendLibraryContentPanel;
-import com.robonobo.gui.sheets.LibraryLoadingSheet;
+import com.robonobo.gui.sheets.PleaseWaitSheet;
 
 @SuppressWarnings("serial")
 public class LibraryTreeNode extends SelectableTreeNode {
@@ -75,17 +75,18 @@ public class LibraryTreeNode extends SelectableTreeNode {
 			activatePanel(hadUnseen);
 		} else {
 			// Need to create the content panel - this hangs the ui thread as it creates the table, which might take a
-			// couple of seconds if there are a lot of tracks in the library, so we display a sheet to let them know
-			final LibraryLoadingSheet sheet = new LibraryLoadingSheet(frame);
-			frame.showSheet(sheet);
-			SwingUtilities.invokeLater(new CatchingRunnable() {
+			// couple of seconds if there are a lot of tracks in the library
+			CatchingRunnable task = new CatchingRunnable() {
 				public void doRun() throws Exception {
 					frame.getMainPanel().addContentPanel(contentPanelName(), new FriendLibraryContentPanel(frame, lib));
 					frame.getMainPanel().selectContentPanel(contentPanelName());
-					sheet.setVisible(false);
 					activatePanel(hadUnseen);
 				}
-			});
+			};
+			if(lib.getTracks().size() < TrackList.TRACKLIST_SIZE_THRESHOLD)
+				task.run();
+			else
+				frame.runSlowTask("library loading", task);
 		}
 		return hadUnseen;
 	}
@@ -100,7 +101,7 @@ public class LibraryTreeNode extends SelectableTreeNode {
 				TrackList trackList = frame.getMainPanel().getContentPanel(contentPanelName()).getTrackList();
 				FriendLibraryTableModel model = (FriendLibraryTableModel) trackList.getModel();
 				model.activate();
-				trackList.activate();
+				trackList.updateViewport();
 			}
 		});		
 	}

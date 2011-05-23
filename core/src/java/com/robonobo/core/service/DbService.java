@@ -31,16 +31,18 @@ public class DbService extends AbstractService {
 
 	private static final String READ_STREAM = "SELECT * FROM STREAMS WHERE STREAM_ID = ?";
 	private static final String READ_STREAM_ATTRIBUTES = "SELECT * FROM STREAM_ATTRIBUTES WHERE STREAM_ID = ?";
-	private static final String READ_SHARE = "SELECT * FROM SHARES WHERE STREAM_ID = ?";
+	private static final String READ_SHARE = "SELECT * FROM shares WHERE stream_id = ?";
 	private static final String READ_SHARE_BY_PATH = "SELECT * FROM SHARES WHERE FILE_PATH = ?";
-	private static final String READ_DOWNLOAD = "SELECT * FROM DOWNLOADS WHERE STREAM_ID = ?";
+	private static final String READ_DOWNLOAD = "SELECT * FROM downloads WHERE stream_id = ?";
+	private static final String READ_NUM_SHARES_AND_DOWNLOADS = "SELECT COUNT(*) FROM (SELECT stream_id FROM shares UNION SELECT stream_id FROM downloads)";
 	private static final String READ_CHECKED_FILE = "SELECT * FROM CHECKED_FILES WHERE FILEPATH = ?";
 	private static final String READ_PLAYLIST_CFG = "SELECT * FROM PLAYLIST_CFG WHERE PLAYLIST_ID = ?";
 	private static final String READ_PLAYLIST_SEEN_SIDS = "SELECT stream_id FROM playlist_seen_sids WHERE playlist_id = ?";
 	private static final String READ_LIBRARY_TRACKS = "SELECT stream_id, added_date FROM library_tracks WHERE user_id = ?";
 	private static final String READ_LIBRARY_LAST_CHECKED = "SELECT check_date FROM library_last_checked WHERE user_id = ?";
 	private static final String READ_LIBRARY_UNKNOWN_STREAMS = "SELECT lt.stream_id, lt.added_date FROM library_tracks as lt WHERE lt.user_id = ? AND NOT EXISTS (SELECT * FROM streams AS s WHERE s.stream_id = lt.stream_id)";
-	// We do libraries differently from playlists as libs might contain tracks that we don't yet have the streams for (this is never true of playlists) and we don't include those
+	// We do libraries differently from playlists as libs might contain tracks that we don't yet have the streams for
+	// (this is never true of playlists) and we don't include those
 	private static final String READ_LIBRARY_NUM_UNSEEN_SIDS = "SELECT COUNT(*) FROM ((SELECT lt.stream_id FROM library_tracks as lt WHERE lt.user_id = ? INTERSECT SELECT s.stream_id FROM streams AS s) MINUS SELECT lss.stream_id FROM library_seen_sids AS lss WHERE lss.user_id = ?)";
 
 	private static final String MATCH_SHARES = "SELECT DISTINCT sh.* FROM SHARES AS sh, STREAMS AS st WHERE sh.STREAM_ID = st.STREAM_ID AND (lower(st.TITLE) LIKE lower(?) OR lower(st.DESCRIPTION) LIKE lower(?))"
@@ -74,6 +76,7 @@ public class DbService extends AbstractService {
 	private static final String GET_ALL_WATCHDIRS = "SELECT * FROM WATCHDIRS";
 
 	private String dbUrl;
+	private boolean running = false;
 
 	public DbService() {
 		addHardDependency("core.event");
@@ -102,7 +105,8 @@ public class DbService extends AbstractService {
 			log.info("Creating metadata db with prefix " + dbPrefix);
 			String[] creatStats = { CREATE_STREAMS_TBL, CREATE_ATTRIBUTES_TBL, CREATE_SHARES_TBL, CREATE_DOWNLOADS_TBL,
 					CREATE_WATCHDIRS_TBL, CREATE_CHECKED_FILES_TBL, CREATE_PLAYLIST_CFG_TBL,
-					CREATE_PLAYLIST_SEEN_SIDS_TBL, CREATE_LIBRARY_TRACKS_TBL, CREATE_LIBRARY_SEEN_SIDS_TBL, CREATE_LIBRARY_LAST_CHECKED_TBL };
+					CREATE_PLAYLIST_SEEN_SIDS_TBL, CREATE_LIBRARY_TRACKS_TBL, CREATE_LIBRARY_SEEN_SIDS_TBL,
+					CREATE_LIBRARY_LAST_CHECKED_TBL };
 			Connection conn = getConnection();
 			for (String stat : creatStats) {
 				try {
@@ -116,10 +120,12 @@ public class DbService extends AbstractService {
 			returnConnection(conn);
 		} else
 			log.info("Using metadata db with prefix " + dbPrefix);
+		running = true;
 	}
 
 	@Override
 	public void shutdown() throws Exception {
+		running = false;
 		Connection conn = getConnection();
 		Statement s = conn.createStatement();
 		s.executeUpdate("SHUTDOWN COMPACT");
@@ -147,6 +153,8 @@ public class DbService extends AbstractService {
 	}
 
 	public Stream getStream(String streamId) {
+		if (!running)
+			return null;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -180,6 +188,8 @@ public class DbService extends AbstractService {
 	}
 
 	public List<File> getWatchDirs() {
+		if (!running)
+			return null;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -201,6 +211,8 @@ public class DbService extends AbstractService {
 	}
 
 	public Set<String> getShares() {
+		if (!running)
+			return null;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -221,6 +233,8 @@ public class DbService extends AbstractService {
 	}
 
 	public Collection<SharedTrack> getSharesByPattern(String searchPattern) {
+		if (!running)
+			return null;
 		Connection conn = null;
 		String sqlPattern = "%" + searchPattern + "%";
 		try {
@@ -245,6 +259,8 @@ public class DbService extends AbstractService {
 	}
 
 	public SharedTrack getShare(String streamId) {
+		if (!running)
+			return null;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -265,6 +281,8 @@ public class DbService extends AbstractService {
 	}
 
 	public SharedTrack getShareByFilePath(String filePath) {
+		if (!running)
+			return null;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -294,6 +312,8 @@ public class DbService extends AbstractService {
 	}
 
 	public void putShare(SharedTrack share) {
+		if (!running)
+			return;
 		Connection conn = null;
 		try {
 			// TODO replace this with a merge now that we are using hsql2 - others in this class too
@@ -323,6 +343,8 @@ public class DbService extends AbstractService {
 	}
 
 	public void deleteShare(String streamId) {
+		if (!running)
+			return;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -342,6 +364,8 @@ public class DbService extends AbstractService {
 	 * @return All downloads, sorted first-started-first
 	 */
 	public List<String> getDownloads() {
+		if (!running)
+			return null;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -362,6 +386,8 @@ public class DbService extends AbstractService {
 	}
 
 	public DownloadingTrack getDownload(String streamId) {
+		if (!running)
+			return null;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -382,6 +408,8 @@ public class DbService extends AbstractService {
 	}
 
 	public int numRunningDownloads() {
+		if (!running)
+			return 0;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -409,6 +437,8 @@ public class DbService extends AbstractService {
 	}
 
 	public void putDownload(DownloadingTrack d) {
+		if (!running)
+			return;
 		Connection conn = null;
 		try {
 			PreparedStatement ps;
@@ -438,6 +468,8 @@ public class DbService extends AbstractService {
 	}
 
 	public void deleteDownload(String streamId) {
+		if (!running)
+			return;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -453,7 +485,29 @@ public class DbService extends AbstractService {
 
 	}
 
+	public int numSharesAndDownloads() {
+		if (!running)
+			return 0;
+		Connection conn = null;
+		try {
+			conn = getConnection();
+			PreparedStatement ps = conn.prepareStatement(READ_NUM_SHARES_AND_DOWNLOADS);
+			ResultSet rs = ps.executeQuery();
+			if (!rs.next())
+				return 0;
+			return rs.getInt(1);
+		} catch (SQLException e) {
+			log.error("Error retrieving num shares & downloads from db", e);
+			return 0;
+		} finally {
+			if (conn != null)
+				returnConnection(conn);
+		}
+	}
+
 	public void putStream(Stream s) {
+		if (!running)
+			return;
 		if (getStream(s.getStreamId()) != null)
 			return;
 		Connection conn = null;
@@ -484,6 +538,8 @@ public class DbService extends AbstractService {
 	}
 
 	public void putWatchDir(File dir) {
+		if (!running)
+			return;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -500,6 +556,8 @@ public class DbService extends AbstractService {
 	}
 
 	public void deleteStream(String streamId) {
+		if (!running)
+			return;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -518,6 +576,8 @@ public class DbService extends AbstractService {
 	}
 
 	public void deleteWatchDir(File dir) {
+		if (!running)
+			return;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -533,6 +593,8 @@ public class DbService extends AbstractService {
 	}
 
 	public boolean haveCheckedFile(File file) {
+		if (!running)
+			return false;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -550,6 +612,8 @@ public class DbService extends AbstractService {
 	}
 
 	public void notifyFileChecked(File file) {
+		if (!running)
+			return;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -565,6 +629,8 @@ public class DbService extends AbstractService {
 	}
 
 	public PlaylistConfig getPlaylistConfig(long playlistId) {
+		if (!running)
+			return null;
 		PlaylistConfig pc = new PlaylistConfig();
 		pc.setPlaylistId(playlistId);
 		Connection conn = null;
@@ -588,6 +654,8 @@ public class DbService extends AbstractService {
 	}
 
 	public void putPlaylistConfig(PlaylistConfig pc) {
+		if (!running)
+			return;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -610,6 +678,8 @@ public class DbService extends AbstractService {
 	}
 
 	public int numUnseenTracks(Playlist p) {
+		if (!running)
+			return 0;
 		Set<String> sids = new HashSet<String>();
 		sids.addAll(p.getStreamIds());
 		Connection conn = null;
@@ -632,6 +702,8 @@ public class DbService extends AbstractService {
 	}
 
 	public int numUnseenTracks(Library lib) {
+		if (!running)
+			return 0;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -639,11 +711,11 @@ public class DbService extends AbstractService {
 			ps.setLong(1, lib.getUserId());
 			ps.setLong(2, lib.getUserId());
 			ResultSet rs = ps.executeQuery();
-			if(!rs.next())
+			if (!rs.next())
 				return 0;
 			return rs.getInt(1);
 		} catch (SQLException e) {
-			log.error("Error determining unseen tracks of library for user id "+lib.getUserId() , e);
+			log.error("Error determining unseen tracks of library for user id " + lib.getUserId(), e);
 			return 0;
 		} finally {
 			if (conn != null)
@@ -652,6 +724,8 @@ public class DbService extends AbstractService {
 	}
 
 	public Library getLibrary(long userId) {
+		if (!running)
+			return null;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -662,7 +736,7 @@ public class DbService extends AbstractService {
 			while (rs.next()) {
 				tracks.put(rs.getString(1), new Date(rs.getLong(2)));
 			}
-			if(tracks.size() == 0)
+			if (tracks.size() == 0)
 				return null;
 			Library lib = new Library();
 			lib.setUserId(userId);
@@ -670,7 +744,7 @@ public class DbService extends AbstractService {
 			ps = conn.prepareStatement(READ_LIBRARY_LAST_CHECKED);
 			ps.setLong(1, userId);
 			rs = ps.executeQuery();
-			if(rs.next())
+			if (rs.next())
 				lib.setLastUpdated(new Date(rs.getLong(1)));
 			return lib;
 		} catch (SQLException e) {
@@ -681,11 +755,13 @@ public class DbService extends AbstractService {
 				returnConnection(conn);
 		}
 	}
-	
+
 	/**
 	 * Returns the sids for the streams in this user's library we haven't yet looked up
 	 */
 	public Map<String, Date> getUnknownStreamsInLibrary(long userId) {
+		if (!running)
+			return null;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -703,10 +779,12 @@ public class DbService extends AbstractService {
 		} finally {
 			if (conn != null)
 				returnConnection(conn);
-		}		
+		}
 	}
-	
+
 	public void addTracksToLibrary(long userId, Map<String, Date> newTracks) {
+		if (!running)
+			return;
 		Connection conn = null;
 		try {
 			conn = getConnection();
@@ -731,10 +809,12 @@ public class DbService extends AbstractService {
 		} finally {
 			if (conn != null)
 				returnConnection(conn);
-		}		
+		}
 	}
-	
+
 	public void markAllAsSeen(Playlist p) {
+		if (!running)
+			return;
 		Set<String> sids = new HashSet<String>();
 		sids.addAll(p.getStreamIds());
 		String collectionId = "playlist:" + p.getPlaylistId();
@@ -757,6 +837,8 @@ public class DbService extends AbstractService {
 	}
 
 	public void markAllAsSeen(Library lib) {
+		if (!running)
+			return;
 		Set<String> sids = new HashSet<String>();
 		sids.addAll(lib.getTracks().keySet());
 		long start = System.currentTimeMillis();
@@ -777,6 +859,6 @@ public class DbService extends AbstractService {
 		}
 
 		long end = System.currentTimeMillis();
-		log.debug("Marked lib tracks as seen: "+(end - start)+" ms");
+		log.debug("Marked lib tracks as seen: " + (end - start) + " ms");
 	}
 }

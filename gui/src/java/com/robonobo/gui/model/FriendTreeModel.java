@@ -165,6 +165,12 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 	}
 	
 	@Override
+	public void myLibraryUpdated() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
 	public void allUsersAndPlaylistsUpdated() {
 		// TODO Auto-generated method stub
 		

@@ -100,9 +100,10 @@ public class ShareService extends AbstractService {
 		synchronized (this) {
 			shareStreamIds.add(s.getStreamId());
 		}
-		rbnb.getLibraryService().addToLibrary(streamId);
 		startShare(streamId);
+		rbnb.getLibraryService().addToLibrary(streamId);
 		event.fireTrackUpdated(s.getStreamId());
+		event.fireMyLibraryUpdated();
 		users.checkPlaylistsForNewShare(sh);
 	}
 

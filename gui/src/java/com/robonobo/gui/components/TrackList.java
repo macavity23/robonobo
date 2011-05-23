@@ -24,9 +24,7 @@ import org.jdesktop.swingx.table.TableColumnExt;
 import org.jdesktop.swingx.table.TableColumnModelExt;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.RobonoboException;
-import com.robonobo.core.api.SearchExecutor;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
 import com.robonobo.core.api.model.Track.PlaybackStatus;
@@ -38,7 +36,10 @@ import com.robonobo.gui.model.TrackListTableModel;
 import com.robonobo.gui.panels.MyPlaylistContentPanel;
 
 @SuppressWarnings("serial")
-public class TrackList extends JPanel implements SearchExecutor {
+public class TrackList extends JPanel {
+	/** If the track list has more than this many tracks, we show a helpful message while we create/change it as the ui might hang for a second or two */
+	public static final int TRACKLIST_SIZE_THRESHOLD = 512;
+
 	JScrollPane scrollPane;
 	JXTable table;
 	TrackListTableModel model;
@@ -186,17 +187,18 @@ public class TrackList extends JPanel implements SearchExecutor {
 		add(scrollPane, "0,0");
 	}
 
-	public void search(String query) {
+	public void filterTracks(String filterStr) {
 		table.clearSelection();
-		if (query == null || query.length() == 0) {
+		if (filterStr == null || filterStr.length() == 0) {
 			table.setFilters(null);
 		} else {
-			final String lcq = query.toLowerCase();
+			final String lcf = filterStr.toLowerCase();
 			// Only include rows that have a matching title, artist, album or
 			// year
 			final int[] cols = { 1, 2, 3, 7 };
-			table.setFilters(new FilterPipeline(new MultiColumnPatternFilter(lcq, 0, cols)));
+			table.setFilters(new FilterPipeline(new MultiColumnPatternFilter(lcf, 0, cols)));
 		}
+		updateViewport();
 	}
 
 	public TrackListTableModel getModel() {
@@ -254,7 +256,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 		if (modelIndex < 0)
 			return null;
 		int tblIndex = table.convertRowIndexToView(modelIndex);
-		if (tblIndex == 0)
+		if (tblIndex <= 0)
 			return null;
 		int prevModelIndex = table.convertRowIndexToModel(tblIndex - 1);
 		return model.getStreamId(prevModelIndex);
@@ -301,7 +303,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 		}
 	}
 
-	public void activate() {
+	public void updateViewport() {
 		if(viewportListener != null) {
 			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {

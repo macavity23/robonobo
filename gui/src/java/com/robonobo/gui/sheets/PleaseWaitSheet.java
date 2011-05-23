@@ -4,17 +4,21 @@ import info.clearthought.layout.TableLayout;
 
 import javax.swing.JButton;
 
+import com.robonobo.gui.components.base.RLabel;
 import com.robonobo.gui.components.base.RLabel14B;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 @SuppressWarnings("serial")
-public class LibraryLoadingSheet extends Sheet {
-	public LibraryLoadingSheet(RobonoboFrame frame) {
+public class PleaseWaitSheet extends Sheet {
+	public PleaseWaitSheet(RobonoboFrame frame, String whatsHappening) {
 		super(frame);
-		double[][] cellSizen = { {10, 300, 10}, {10, 50, 10} };
+		RLabel lbl = new RLabel14B();
+		int textWidth = getFontMetrics(lbl.getFont()).stringWidth(whatsHappening);
+		double[][] cellSizen = { { 10, 250 + textWidth, 10 }, { 10, 50, 10 } };
 		setLayout(new TableLayout(cellSizen));
 		setName("playback.background.panel");
-		add(new RLabel14B("Please wait while the library loads..."), "1,1,CENTER,CENTER");
+		lbl.setText("Please wait, " + whatsHappening + "...");
+		add(lbl, "1,1,CENTER,CENTER");
 	}
 
 	@Override

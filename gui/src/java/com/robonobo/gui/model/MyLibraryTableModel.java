@@ -8,38 +8,46 @@ import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.model.*;
+import com.robonobo.gui.components.TrackList;
+import com.robonobo.gui.frames.RobonoboFrame;
 
 @SuppressWarnings("serial")
 public class MyLibraryTableModel extends FreeformTrackListTableModel {
 	// Keep track of mass-deleted tracks
 	Set<String> deletedSids = new HashSet<String>();
+	RobonoboFrame frame;
 
-	public MyLibraryTableModel(RobonoboController controller) {
-		super(controller);
+	public MyLibraryTableModel(RobonoboFrame frame) {
+		super(frame.getController());
+		this.frame = frame;
 		// If everything's started already before we get here, load it now
-		if (controller.haveAllSharesStarted())
+		if (control.haveAllSharesStarted())
 			allTracksLoaded();
 	}
 
 	public void allTracksLoaded() {
+		final List<Track> trax = new ArrayList<Track>();
 		synchronized (this) {
 			streams.clear();
 			streamIndices.clear();
 			for (String streamId : control.getShares()) {
 				Track t = control.getTrack(streamId);
-				add(t, false);
+				trax.add(t);
 			}
 			for (String streamId : control.getDownloads()) {
 				Track t = control.getTrack(streamId);
-				add(t, false);
+				trax.add(t);
 			}
 		}
-
-		SwingUtilities.invokeLater(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				fireTableDataChanged();
-			}
-		});
+		if (trax.size() < TrackList.TRACKLIST_SIZE_THRESHOLD)
+			add(trax, true);
+		else {
+			frame.runSlowTask("library loading", new CatchingRunnable() {
+				public void doRun() throws Exception {
+					add(trax, true);
+				}
+			});
+		}
 	}
 
 	@Override
@@ -72,7 +80,7 @@ public class MyLibraryTableModel extends FreeformTrackListTableModel {
 					streamIndices.put(decSid, j - numToDec);
 				}
 			}
-			for(int i=delIdxs.size()-1;i>=0;i--) {
+			for (int i = delIdxs.size() - 1; i >= 0; i--) {
 				int idx = delIdxs.get(i);
 				// Explicit cast otherwise this calls streams.remove(Object), oops
 				streams.remove(idx);

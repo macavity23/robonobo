@@ -10,8 +10,7 @@ import java.util.concurrent.TimeUnit;
 import com.robonobo.common.concurrent.Batcher;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.util.TimeUtil;
-import com.robonobo.core.api.Task;
-import com.robonobo.core.api.UserPlaylistListener;
+import com.robonobo.core.api.*;
 import com.robonobo.core.api.config.MetadataServerConfig;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.proto.CoreApi.LibraryMsg;
@@ -172,13 +171,16 @@ public class LibraryService extends AbstractService implements UserPlaylistListe
 							// If this is a stream we haven't seen before, this next method will result in a blocking
 							// call to the metadata server
 							Stream s = rbnb.getMetadataService().getStream(sid);
-							if (s != null)
+							if (s == null) {
+								if(rbnb.getStatus() == RobonoboStatus.Stopping)
+									return;
+							} else
 								newSidsForUi.add(sid);
 							if (newSidsForUi.size() > 0 && msElapsedSince(lastFiredEvent) > (FIRE_UI_EVENT_DELAY * 1000)) {
 								for (String newSid : newSidsForUi) {
 									cLib.getTracks().put(newSid, unknownTracks.get(newSid));
 								}
-								rbnb.getEventService().fireLibraryUpdated(cLib, newSidsForUi);
+								rbnb.getEventService().fireLibraryChanged(cLib, newSidsForUi);
 								// Create a new one rather than clear the old one as it might have been passed into another thread and used somewhere
 								newSidsForUi = new HashSet<String>();
 								lastFiredEvent = now();
@@ -190,7 +192,7 @@ public class LibraryService extends AbstractService implements UserPlaylistListe
 						for (String newSid : newSidsForUi) {
 							cLib.getTracks().put(newSid, unknownTracks.get(newSid));
 						}
-						rbnb.getEventService().fireLibraryUpdated(cLib, newSidsForUi);
+						rbnb.getEventService().fireLibraryChanged(cLib, newSidsForUi);
 					}						
 				}
 				statusText = "Done.";

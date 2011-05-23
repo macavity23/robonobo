@@ -124,8 +124,8 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	public void addDownload(String streamId) throws RobonoboException {
 		File dataFile = new File(downloadsDir, makeFileNameSafe(streamId));
 		log.info("Adding download for " + streamId);
-		Stream s1 = metadata.getStream(streamId);
-		DownloadingTrack d = new DownloadingTrack(s1, dataFile, DownloadStatus.Paused);
+		Stream s = metadata.getStream(streamId);
+		DownloadingTrack d = new DownloadingTrack(s, dataFile, DownloadStatus.Paused);
 		long startTime = now().getTime();
 		synchronized (this) {
 			if (startTime == lastDlStartTime)
@@ -134,24 +134,25 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		}
 		d.setDateAdded(new Date(startTime));
 		try {
-			PageBuffer pb = storage.createPageBufForDownload(s1, dataFile);
+			PageBuffer pb = storage.createPageBufForDownload(s, dataFile);
 			if (numRunningDownloads() < rbnb.getConfig().getMaxRunningDownloads())
 				startDownload(d, pb);
 		} catch (Exception e) {
-			log.error("Caught exception when starting download for " + s1.getStreamId(), e);
+			log.error("Caught exception when starting download for " + s.getStreamId(), e);
 			throw new RobonoboException(e);
 		} finally {
 			if (d != null)
 				db.putDownload(d);
 		}
 		synchronized (dPriority) {
-			dPriority.add(s1.getStreamId());
+			dPriority.add(s.getStreamId());
 		}
 		updatePriorities();
 		synchronized (this) {
-			downloadStreamIds.add(s1.getStreamId());
+			downloadStreamIds.add(s.getStreamId());
 		}
-		event.fireTrackUpdated(s1.getStreamId());
+		event.fireTrackUpdated(s.getStreamId());
+		event.fireMyLibraryUpdated();
 	}
 	
 	public void deleteDownload(String streamId) throws RobonoboException {

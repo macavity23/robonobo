@@ -46,7 +46,7 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 			public void doRun() throws Exception {
 				if (tasks.containsKey(t.getId()))
 					tasks.get(t.getId()).taskUpdated(t);
-				else {
+				else if (t.getCompletion() < 1f) {
 					TaskPanel p = new TaskPanel(t);
 					tasks.put(t.getId(), p);
 					taskListPanel.add(p);
@@ -63,6 +63,10 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 			// For some reason revalidate doesn't cause the panel to repaint...?
 			RepaintManager.currentManager(taskListPanel).markCompletelyDirty(taskListPanel);
 		}
+	}
+
+	private boolean contentPanelSelected() {
+		return "tasklist".equals(frame.getMainPanel().currentContentPanelName());
 	}
 
 	class TaskPanel extends JPanel {
@@ -120,13 +124,18 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 					progBar.setValue(pcnt);
 					progBar.setString(pcnt + "%");
 					if ((t.getCompletion() - 1f) == 0f) {
-						cancelBtn.setText("Clear");
-						// Start a timer to nuke this task
-						frame.getController().getExecutor().schedule(new CatchingRunnable() {
-							public void doRun() throws Exception {
-								removeTask(t);
-							}
-						}, frame.getGuiConfig().getZombieTaskLifetime(), TimeUnit.SECONDS);
+						if (contentPanelSelected()) {
+							cancelBtn.setText("Clear");
+							// Start a timer to nuke this task
+							frame.getController().getExecutor().schedule(new CatchingRunnable() {
+								public void doRun() throws Exception {
+									removeTask(t);
+								}
+							}, frame.getGuiConfig().getZombieTaskLifetime(), TimeUnit.SECONDS);
+						} else {
+							// They're not looking - just remove it
+							removeTask(t);
+						}
 					}
 				}
 			});

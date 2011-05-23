@@ -91,6 +91,7 @@ public class RobonoboInstance implements Robonobo {
 	}
 
 	public void start() throws RobonoboException {
+		setStatus(RobonoboStatus.Starting);
 		serviceMgr.startup();
 	}
 
@@ -247,7 +248,9 @@ public class RobonoboInstance implements Robonobo {
 	}
 
 	public void shutdown() {
+		setStatus(RobonoboStatus.Stopping);
 		serviceMgr.shutdown();
+		setStatus(RobonoboStatus.Stopped);
 	}
 
 	protected void loadApplicationDetails() {

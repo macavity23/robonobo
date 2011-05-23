@@ -10,4 +10,5 @@ public interface LibraryListener {
 	 * @param newTrackSids The stream ids of new tracks (if any)
 	 */
 	public void libraryChanged(Library lib, Set<String> newTrackSids);
+	public void myLibraryUpdated();
 }

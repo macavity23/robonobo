@@ -52,6 +52,11 @@ public class FriendLibraryTableModel extends FreeformTrackListTableModel impleme
 		this.lib = lib;
 	}
 
+	@Override
+	public void myLibraryUpdated() {
+		// Do nothing
+	}
+	
 	public void activate() {
 		activated = true;
 	}

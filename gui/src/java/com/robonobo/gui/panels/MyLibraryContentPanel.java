@@ -1,20 +1,25 @@
 package com.robonobo.gui.panels;
 
 import static com.robonobo.common.util.TextUtil.*;
+import static com.robonobo.gui.GuiUtil.*;
 import info.clearthought.layout.TableLayout;
 
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
+import com.robonobo.core.api.LibraryListener;
 import com.robonobo.core.api.UserPlaylistListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.components.base.*;
@@ -22,14 +27,16 @@ import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.MyLibraryTableModel;
 
 @SuppressWarnings("serial")
-public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistListener {
+public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistListener, LibraryListener {
 	private RCheckBox shareLibCheckBox;
+	private RLabel addLbl;
 
 	public MyLibraryContentPanel(RobonoboFrame f) {
-		super(f, new MyLibraryTableModel(f.getController()));
-		tabPane.insertTab("library", null, new MyLibraryTabPanel(), null, 0);
+		super(f, new MyLibraryTableModel(f));
+		tabPane.insertTab("library", null, new TabPanel(), null, 0);
 		tabPane.setSelectedIndex(0);
 		frame.getController().addUserPlaylistListener(this);
+		frame.getController().addLibraryListener(this);
 
 		frame.getController().getExecutor().schedule(new CatchingRunnable() {
 			public void doRun() throws Exception {
@@ -104,33 +111,39 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 		});
 	}
 
-	class MyLibraryTabPanel extends JPanel {
-		public MyLibraryTabPanel() {
-			double[][] cellSizen = { { 10, 200, 200, TableLayout.FILL, 10 }, { 0, 25, 5, 30, 10, 30, TableLayout.FILL } };
+	@Override
+	public void libraryChanged(Library lib, Set<String> newTrackSids) {
+		// Do nothing
+	}
+
+	@Override
+	public void myLibraryUpdated() {
+		final int libSz = frame.getController().getNumSharesAndDownloads();
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				addLbl.setText("Add to library (" + libSz + " tracks)");
+			}
+		});
+	}
+
+	class TabPanel extends JPanel {
+		public TabPanel() {
+			double[][] cellSizen = { { 10, 300, 100, 300, TableLayout.FILL }, { TableLayout.FILL } };
 			setLayout(new TableLayout(cellSizen));
 
-			RLabel addLbl = new RLabel16B("Add to library");
-			add(addLbl, "1,1");
+			JPanel lPanel = new JPanel();
+			lPanel.setLayout(new BoxLayout(lPanel, BoxLayout.Y_AXIS));
+			lPanel.add(Box.createVerticalStrut(5));
 
-			RButton shareFilesBtn = new RGlassButton("Add from files...");
-			shareFilesBtn.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					frame.showAddSharesDialog();
-				}
-			});
-			add(shareFilesBtn, "1,3");
-			if (Platform.getPlatform().iTunesAvailable()) {
-				RButton shareITunesBtn = new RGlassButton("Add from iTunes...");
-				shareITunesBtn.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						frame.importITunes();
-					}
-				});
-				add(shareITunesBtn, "1,5");
-			}
+			TrackListSearchPanel sp = new TrackListSearchPanel(frame, trackList);
+			sp.setAlignmentX(Component.LEFT_ALIGNMENT);
+			lPanel.add(sp);
+			lPanel.add(Box.createVerticalStrut(15));
 
 			RLabel optsLbl = new RLabel16B("Library options");
-			add(optsLbl, "3,1");
+			optsLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+			lPanel.add(optsLbl);
+			lPanel.add(Box.createVerticalStrut(5));
 
 			shareLibCheckBox = new RCheckBox("Share library with friends");
 			shareLibCheckBox.addItemListener(new ItemListener() {
@@ -147,10 +160,53 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 					});
 				}
 			});
+			shareLibCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 			shareLibCheckBox.setSelected(false);
 			// We disable it first, it gets re-enabled when we get our user config
 			shareLibCheckBox.setEnabled(false);
-			add(shareLibCheckBox, "3,3,LEFT,TOP");
+			lPanel.add(shareLibCheckBox);
+			add(lPanel, "1,0");
+
+			JPanel rPanel = new JPanel();
+			rPanel.setLayout(new BoxLayout(rPanel, BoxLayout.Y_AXIS));
+			rPanel.add(Box.createVerticalStrut(5));
+
+			addLbl = new RLabel16B("Add to library (0 tracks)");
+			rPanel.add(addLbl);
+			rPanel.add(Box.createVerticalStrut(10));
+
+			RButton shareFilesBtn = new RGlassButton("Add from files...");
+			shareFilesBtn.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					frame.showAddSharesDialog();
+				}
+			});
+			shareFilesBtn.setMaximumSize(new Dimension(200, 30));
+			rPanel.add(shareFilesBtn);
+			rPanel.add(Box.createVerticalStrut(10));
+
+			if (Platform.getPlatform().iTunesAvailable()) {
+				RButton shareITunesBtn = new RGlassButton("Add from iTunes...");
+				shareITunesBtn.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						frame.importITunes();
+					}
+				});
+				shareITunesBtn.setMaximumSize(new Dimension(200, 30));
+				rPanel.add(shareITunesBtn);
+			}
+			add(rPanel, "3,0");
+			onStartup();
+		}
+		
+		private void onStartup() {
+			// Deal with concurrency issues arising from controller and ui starting independently
+			frame.getController().getExecutor().execute(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					if(frame.getController().haveAllSharesStarted())
+						myLibraryUpdated();
+				}
+			});
 		}
 	}
 }

@@ -249,13 +249,23 @@ public class EventService extends AbstractService implements MinaListener {
 		}
 	}
 
-	public void fireLibraryUpdated(Library lib, Set<String> newTracks) {
+	public void fireLibraryChanged(Library lib, Set<String> newTracks) {
 		LibraryListener[] arr;
 		synchronized (this) {
 			arr = getLlArr();
 		}
 		for (LibraryListener listener : arr) {
 			listener.libraryChanged(lib, newTracks);
+		}
+	}
+
+	public void fireMyLibraryUpdated() {
+		LibraryListener[] arr;
+		synchronized (this) {
+			arr = getLlArr();
+		}
+		for (LibraryListener listener : arr) {
+			listener.myLibraryUpdated();
 		}
 	}
 
@@ -435,7 +445,7 @@ public class EventService extends AbstractService implements MinaListener {
 
 	@Override
 	public void startup() throws Exception {
-		getRobonobo().setStatus(RobonoboStatus.Starting);
+		// This will fire our status as 'starting'
 		fireStatusChanged();
 	}
 

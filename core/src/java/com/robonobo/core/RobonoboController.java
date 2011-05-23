@@ -201,6 +201,10 @@ public class RobonoboController {
 		inst.getShareService().deleteShare(streamId);
 	}
 
+	public int getNumSharesAndDownloads() {
+		return inst.getDbService().numSharesAndDownloads();
+	}
+	
 	public String getMyNodeId() {
 		return inst.getMina().getMyNodeId();
 	}

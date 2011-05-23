@@ -1,6 +1,7 @@
 package com.robonobo.gui.frames;
 
 import static com.robonobo.common.util.TextUtil.*;
+import static com.robonobo.gui.GuiUtil.*;
 import static javax.swing.SwingUtilities.*;
 import info.clearthought.layout.TableLayout;
 
@@ -460,6 +461,25 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		});
 	}
 
+	/**
+	 * For slow things that have to happen on the gui thread - shows a helpful message to mollify the user while their ui is frozen
+	 * @param task This will be run on the gui thread
+	 */
+	public void runSlowTask(final String whatsHappening, final Runnable task) {
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				final PleaseWaitSheet sheet = new PleaseWaitSheet(RobonoboFrame.this, whatsHappening);
+				showSheet(sheet);
+				invokeLater(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						task.run();
+						sheet.setVisible(false);
+					}
+				});
+			}
+		});
+	}
+	
 	class CloseListener extends WindowAdapter {
 		public void windowClosing(WindowEvent e) {
 			confirmThenShutdown();

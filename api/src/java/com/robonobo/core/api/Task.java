@@ -37,6 +37,7 @@ public abstract class Task extends CatchingRunnable {
 	
 	public void cancel() {
 		cancelRequested = true;
+		fireUpdated();
 	}
 	
 	public int getId() {
