@@ -21,7 +21,7 @@ import com.robonobo.gui.model.ActiveSearchListModel;
 import com.robonobo.gui.model.SearchResultTableModel;
 
 @SuppressWarnings("serial")
-public class LeftSidebar extends JPanel implements UserPlaylistListener, LibraryListener {
+public class LeftSidebar extends JPanel implements UserPlaylistListener {
 	List<LeftSidebarComponent> sideBarComps = new ArrayList<LeftSidebarComponent>();
 	RobonoboFrame frame;
 	private ActiveSearchList activeSearchList;
@@ -92,7 +92,6 @@ public class LeftSidebar extends JPanel implements UserPlaylistListener, Library
 		add(statusPnl);
 		
 		frame.getController().addUserPlaylistListener(this);
-		frame.getController().addLibraryListener(this);
 	}
 
 	private void relayoutSidebar() {
@@ -240,14 +239,6 @@ public class LeftSidebar extends JPanel implements UserPlaylistListener, Library
 				frame.getMainPanel().addContentPanel(panelName, new MyPlaylistContentPanel(frame, p, pc));
 			}
 		}
-	}
-	
-	@Override
-	public void libraryChanged(Library lib, Set<String> newTrackSids) {
-		String panelName = "library/"+lib.getUserId();
-		ContentPanel lPanel = frame.getMainPanel().getContentPanel(panelName);
-		if(lPanel == null)
-			frame.getMainPanel().addContentPanel(panelName, new FriendLibraryContentPanel(frame, lib));
 	}
 	
 	@Override

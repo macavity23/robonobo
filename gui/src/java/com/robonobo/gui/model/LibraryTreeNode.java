@@ -2,11 +2,16 @@ package com.robonobo.gui.model;
 
 import java.awt.datatransfer.Transferable;
 
+import javax.swing.SwingUtilities;
+
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.swing.SortableTreeNode;
 import com.robonobo.core.api.model.Library;
 import com.robonobo.gui.components.TrackList;
 import com.robonobo.gui.frames.RobonoboFrame;
+import com.robonobo.gui.panels.ContentPanel;
+import com.robonobo.gui.panels.FriendLibraryContentPanel;
+import com.robonobo.gui.sheets.LibraryLoadingSheet;
 
 @SuppressWarnings("serial")
 public class LibraryTreeNode extends SelectableTreeNode {
@@ -62,22 +67,44 @@ public class LibraryTreeNode extends SelectableTreeNode {
 
 	@Override
 	public boolean handleSelect() {
+		final boolean hadUnseen = (numUnseenTracks > 0);
 		numUnseenTracks = 0;
-		frame.getMainPanel().selectContentPanel(contentPanelName());
+		ContentPanel cp = frame.getMainPanel().getContentPanel(contentPanelName());
+		if (cp != null) {
+			frame.getMainPanel().selectContentPanel(contentPanelName());
+			activatePanel(hadUnseen);
+		} else {
+			// Need to create the content panel - this hangs the ui thread as it creates the table, which might take a
+			// couple of seconds if there are a lot of tracks in the library, so we display a sheet to let them know
+			final LibraryLoadingSheet sheet = new LibraryLoadingSheet(frame);
+			frame.showSheet(sheet);
+			SwingUtilities.invokeLater(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					frame.getMainPanel().addContentPanel(contentPanelName(), new FriendLibraryContentPanel(frame, lib));
+					frame.getMainPanel().selectContentPanel(contentPanelName());
+					sheet.setVisible(false);
+					activatePanel(hadUnseen);
+				}
+			});
+		}
+		return hadUnseen;
+	}
+
+	private void activatePanel(final boolean markAllAsSeen) {
 		frame.getController().getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				// Do this off the ui thread as there's a db hit marking 10^4 tracks as read
-				frame.getController().markAllAsSeen(lib);
+				if(markAllAsSeen)
+					frame.getController().markAllAsSeen(lib);
 				// Activate this panel so it can find sources
 				TrackList trackList = frame.getMainPanel().getContentPanel(contentPanelName()).getTrackList();
 				FriendLibraryTableModel model = (FriendLibraryTableModel) trackList.getModel();
 				model.activate();
 				trackList.activate();
 			}
-		});
-		return true;
+		});		
 	}
-
+	
 	@Override
 	public boolean importData(Transferable t) {
 		return false;
