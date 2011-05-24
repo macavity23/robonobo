@@ -27,40 +27,39 @@ public class CleanupBean implements InitializingBean, DisposableBean {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		transTemplate = new TransactionTemplate(transactionManager);
-		log.warn("DEBUG: cleanupbean disabled!");
-//		// Clean the db on startup
-//		log.info("Purging all nodes from db");
-//		transTemplate.execute(new TransactionCallbackWithoutResult() {
-//			protected void doInTransactionWithoutResult(TransactionStatus ts) {
-//				// By default, the transactiontemplate only rolls back for RuntimeExceptions, and I can't figure out how
-//				// to change this...
-//				try {
-//					nodeDao.deleteAllNodes();
-//				} catch (Exception e) {
-//					throw new RuntimeException(e);
-//				}
-//			}
-//		});
-//		thread = new Thread(new CatchingRunnable() {
-//			public void doRun() throws Exception {
-//				while (true) {
-//					Thread.sleep(appCfg.getMaxNodeAge());
-//					log.debug("Cleanup Bean running");
-//					transTemplate.execute(new TransactionCallbackWithoutResult() {
-//						protected void doInTransactionWithoutResult(TransactionStatus ts) {
-//							// By default, the transactiontemplate only rolls back for RuntimeExceptions, and I can't figure out how
-//							// to change this...
-//							try {
-//								nodeDao.deleteNodesOlderThan(appCfg.getMaxNodeAge());
-//							} catch (Exception e) {
-//								throw new RuntimeException(e);
-//							}
-//						}
-//					});
-//				}
-//			}
-//		});
-//		thread.start();
+		// Clean the db on startup
+		log.info("Purging all nodes from db");
+		transTemplate.execute(new TransactionCallbackWithoutResult() {
+			protected void doInTransactionWithoutResult(TransactionStatus ts) {
+				// By default, the transactiontemplate only rolls back for RuntimeExceptions, and I can't figure out how
+				// to change this...
+				try {
+					nodeDao.deleteAllNodes();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+		});
+		thread = new Thread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				while (true) {
+					Thread.sleep(appCfg.getMaxNodeAge());
+					log.debug("Cleanup Bean running");
+					transTemplate.execute(new TransactionCallbackWithoutResult() {
+						protected void doInTransactionWithoutResult(TransactionStatus ts) {
+							// By default, the transactiontemplate only rolls back for RuntimeExceptions, and I can't figure out how
+							// to change this...
+							try {
+								nodeDao.deleteNodesOlderThan(appCfg.getMaxNodeAge());
+							} catch (Exception e) {
+								throw new RuntimeException(e);
+							}
+						}
+					});
+				}
+			}
+		});
+		thread.start();
 	}
 
 	@Override
