@@ -25,6 +25,6 @@
 	<!-- Remoting Details so other webapps can talk to us -->
 	<Parameter name="remoteWangListenURL" value="socket://127.0.0.1:10124"
 		override="true" />
-	<Parameter name="remoteWangSecret" value="" override="true" />
+	<Parameter name="remoteWangSecret" value="sekrit" override="true" />
 
 </Context>

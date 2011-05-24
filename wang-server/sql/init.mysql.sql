@@ -3,7 +3,7 @@ CREATE TABLE user_account (
 	friendly_name VARCHAR(256),
 	email VARCHAR(256),
 	password VARCHAR(256),
-	balance NUMERIC
+	balance DOUBLE
 );
 CREATE INDEX ua_email_idx ON user_account(email);
 
