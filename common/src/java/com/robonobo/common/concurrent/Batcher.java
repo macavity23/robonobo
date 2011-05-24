@@ -29,9 +29,6 @@ public abstract class Batcher<T> extends CatchingRunnable {
 	protected List<T> queuedObjs = new ArrayList<T>();
 	protected Lock lock = new ReentrantLock();
 
-	/**
-	 * @param timespanMs 
-	 */
 	public Batcher(long timespanMs, ScheduledThreadPoolExecutor executor) {
 		this.timespanMs = timespanMs;
 		this.executor = executor;

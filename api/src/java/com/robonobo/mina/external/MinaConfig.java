@@ -41,29 +41,24 @@ public class MinaConfig implements Cloneable, Serializable {
 	int bidTimeout = 10000; // Millisecs
 	int minTimeBetweenAuctions = 30000; // Millisecs
 	/**
-	 * Make sure we have enough in our accounts with senders to receive for this
-	 * time (secs)
+	 * Make sure we have enough in our accounts with senders to receive for this time (secs)
 	 */
 	int balanceBufferTime = 30;
 	/**
-	 * When we get a payment demand and we find that our balance doesn't agree
-	 * with what they say, it might be due to pages in flight - back off for
-	 * this many seconds and try again
+	 * When we get a payment demand and we find that our balance doesn't agree with what they say, it might be due to
+	 * pages in flight - back off for this many seconds and try again
 	 */
 	int payUpCatchUpTime = 10;
 	/**
-	 * If a source does not have data useful to us, wait this many secs before
-	 * polling it again (secs)
+	 * If a source does not have data useful to us, wait this many secs before polling it again (secs)
 	 */
 	int sourceDataFailWaitTime = 60;
 	/**
-	 * If a source is too expensive for us, wait this many secs before polling
-	 * it again (secs)
+	 * If a source is too expensive for us, wait this many secs before polling it again (secs)
 	 */
 	int sourceAgoricsFailWaitTime = 60;
 	/**
-	 * If a source dies unexpectedly, query it again after this many secs to see
-	 * if it's returned
+	 * If a source dies unexpectedly, query it again after this many secs to see if it's returned
 	 */
 	int deadSourceQueryTime = 60;
 	/**
@@ -71,18 +66,21 @@ public class MinaConfig implements Cloneable, Serializable {
 	 */
 	int initialSourceQueryTime = 60;
 	/**
-	 * If a source doesn't answer a query for status, retry this many times
-	 * before giving up (doubling wait time each time)
+	 * If a source doesn't answer a query for status, retry this many times before giving up (doubling wait time each
+	 * time)
 	 */
 	int sourceQueryRetries = 3;
 	/**
-	 * Batch up requests for source information, waiting a max of this many ms
-	 * before sending. Requests for immediate-playback streams are not batched
+	 * Batch up requests for source information, waiting a max of this many ms before sending. Requests for
+	 * immediate-playback streams are not batched. Also used for stream adverts in the same way
 	 */
 	int sourceRequestBatchTime = 2000;
 	/**
-	 * When we request pages, ask for this many millisecs' worth based on
-	 * current flow rate
+	 * Don't send more than this many stream adverts per sec
+	 */
+	int streamAdvertMaxPerSec = 30;
+	/**
+	 * When we request pages, ask for this many millisecs' worth based on current flow rate
 	 */
 	int pageRequestLookAheadTime = 2000;
 	/**
@@ -102,7 +100,7 @@ public class MinaConfig implements Cloneable, Serializable {
 	 */
 	int escrowFee = 1;
 	int maxOutboundBps = -1;
-	
+
 	public MinaConfig() {
 	}
 
@@ -440,5 +438,13 @@ public class MinaConfig implements Cloneable, Serializable {
 
 	public void setMaxRunningListeners(int maxListeners) {
 		this.maxRunningListeners = maxListeners;
+	}
+
+	public int getStreamAdvertMaxPerSec() {
+		return streamAdvertMaxPerSec;
+	}
+
+	public void setStreamAdvertMaxPerSec(int streamAdvertMaxPerSec) {
+		this.streamAdvertMaxPerSec = streamAdvertMaxPerSec;
 	}
 }

@@ -1,21 +1,19 @@
 package com.robonobo.mina.instance;
 
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.concurrent.Batcher;
-import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.concurrent.RateLimitedBatcher;
 import com.robonobo.mina.message.proto.MinaProtocol.AdvSource;
 
-public class StreamAdvertiser extends Batcher<String> {
+public class StreamAdvertiser extends RateLimitedBatcher<String> {
 	MinaInstance mina;
 	Log log = LogFactory.getLog(getClass());
 
 	public StreamAdvertiser(MinaInstance mina) {
-		super(mina.getConfig().getSourceRequestBatchTime(), mina.getExecutor());
+		super(mina.getConfig().getSourceRequestBatchTime(), mina.getExecutor(), (mina.getConfig().getSourceRequestBatchTime() / 1000 * mina.getConfig().getStreamAdvertMaxPerSec()));
 		this.mina = mina;
 	}
 
@@ -35,24 +33,16 @@ public class StreamAdvertiser extends Batcher<String> {
 	 * @syncpriority 140
 	 */
 	public void advertiseStreams(Collection<String> sids) {
-		if (mina.getCCM().haveSupernode() || mina.getCCM().haveLocalConn()) {
-			for (String sid : sids) {
-				add(sid);
-			}
-		}
+		if (mina.getCCM().haveSupernode() || mina.getCCM().haveLocalConn())
+			addAll(sids);
 	}
 
 	@Override
 	protected void runBatch(final Collection<String> streamIds) {
-		// If our currency client isn't ready yet, don't advertise until it is - keep track of it here and background
-		// poll as required
+		// If our currency client isn't ready yet, don't advertise until it is - retry in a lil while
 		if (mina.getConfig().isAgoric() && !mina.getCurrencyClient().isReady()) {
-			log.debug("Waiting 5s to advertise streams - currency client not yet ready");
-			mina.getExecutor().schedule(new CatchingRunnable() {
-				public void doRun() throws Exception {
-					runBatch(streamIds);
-				}
-			}, 5, TimeUnit.SECONDS);
+			log.debug("Waiting to advertise streams - currency client not yet ready");
+			addAll(streamIds);
 			return;
 		}
 		AdvSource as = AdvSource.newBuilder().addAllStreamId(streamIds).build();
