@@ -55,7 +55,7 @@ public class DbService extends AbstractService {
 	private static final String CREATE_WATCHDIR = "INSERT INTO WATCHDIRS (DIRPATH) VALUES (?)";
 	private static final String CREATE_CHECKED_FILE = "INSERT INTO CHECKED_FILES (FILEPATH) VALUES (?)";
 	private static final String CREATE_PLAYLIST_CFG = "INSERT INTO PLAYLIST_CFG (PLAYLIST_ID, ITEM_NAME, ITEM_VAL) VALUES (?, ?, ?)";
-	private static final String CREATE_PLAYLIST_SEEN_SID = "MERGE INTO playlist_seen_sids AS pss USING (VALUES(CAST(? AS BIGINT))) AS vals(x) ON pss.playlist_id = vals.x WHEN NOT MATCHED THEN INSERT VALUES(vals.x, CAST(? AS VARCHAR(36)))";
+	private static final String CREATE_PLAYLIST_SEEN_SID = "INSERT INTO playlist_seen_sids (playlist_id, stream_id) VALUES(?, ?)";
 	private static final String CREATE_LIBRARY_TRACK = "INSERT INTO library_tracks (user_id, stream_id, added_date) VALUES (?, ?, ?)";
 	private static final String CREATE_LIBRARY_LAST_CHECKED = "MERGE INTO library_last_checked AS llc USING (VALUES(CAST(? AS BIGINT))) AS vals(x) ON llc.user_id = vals.x WHEN MATCHED THEN UPDATE SET llc.check_date = CAST(? AS BIGINT) WHEN NOT MATCHED THEN INSERT VALUES(vals.x, CAST(? AS BIGINT))";
 
@@ -69,6 +69,7 @@ public class DbService extends AbstractService {
 	private static final String DELETE_DOWNLOAD = "DELETE FROM DOWNLOADS WHERE STREAM_ID = ?";
 	private static final String DELETE_WATCHDIR = "DELETE FROM WATCHDIRS WHERE DIRPATH = ?";
 	private static final String DELETE_PLAYLIST_CFG = "DELETE FROM PLAYLIST_CFG WHERE PLAYLIST_ID = ?";
+	private static final String DELETE_PLAYLIST_SEEN_SIDS = "DELETE FROM playlist_seen_sids WHERE playlist_id = ?";
 
 	private static final String GET_ALL_SHARE_STREAM_IDS = "SELECT STREAM_ID FROM SHARES";
 	private static final String GET_ALL_DOWNLOAD_STREAM_IDS = "SELECT STREAM_ID FROM DOWNLOADS ORDER BY DATE_STARTED ASC";
@@ -815,21 +816,21 @@ public class DbService extends AbstractService {
 	public void markAllAsSeen(Playlist p) {
 		if (!running)
 			return;
-		Set<String> sids = new HashSet<String>();
-		sids.addAll(p.getStreamIds());
-		String collectionId = "playlist:" + p.getPlaylistId();
 		Connection conn = null;
 		try {
 			conn = getConnection();
-			PreparedStatement ps = conn.prepareStatement(CREATE_PLAYLIST_SEEN_SID);
-			for (String sid : sids) {
-				ps.setString(1, collectionId);
+			PreparedStatement ps = conn.prepareStatement(DELETE_PLAYLIST_SEEN_SIDS);
+			ps.setLong(1, p.getPlaylistId());
+			ps.executeUpdate();
+			ps = conn.prepareStatement(CREATE_PLAYLIST_SEEN_SID);
+			for (String sid : p.getStreamIds()) {
+				ps.setLong(1, p.getPlaylistId());
 				ps.setString(2, sid);
 				ps.addBatch();
 			}
 			ps.executeBatch();
 		} catch (SQLException e) {
-			log.error("Error marking tracks as seen for " + collectionId, e);
+			log.error("Error marking tracks as seen for playlist id " + p.getPlaylistId(), e);
 		} finally {
 			if (conn != null)
 				returnConnection(conn);
