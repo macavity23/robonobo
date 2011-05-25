@@ -8,6 +8,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -196,7 +197,7 @@ public class TrackList extends JPanel {
 			// Only include rows that have a matching title, artist, album or
 			// year
 			final int[] cols = { 1, 2, 3, 7 };
-			table.setFilters(new FilterPipeline(new MultiColumnPatternFilter(lcf, 0, cols)));
+			table.setFilters(new FilterPipeline(new MultiColumnPatternFilter(lcf, Pattern.CASE_INSENSITIVE, cols)));
 		}
 		updateViewport();
 	}
@@ -514,7 +515,7 @@ public class TrackList extends JPanel {
 			boolean result = false;
 			for (int col : cols) {
 				if (adapter.isTestable(col)) {
-					String text = getInputString(row, col).toLowerCase();
+					String text = getInputString(row, col);
 					if (text != null && (text.length() > 0)) {
 						Matcher m = pattern.matcher(text);
 						if (m.find()) {
