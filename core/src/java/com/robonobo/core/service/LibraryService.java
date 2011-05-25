@@ -2,14 +2,12 @@ package com.robonobo.core.service;
 
 import static com.robonobo.common.util.TimeUtil.*;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.Map.Entry;
+
+import javax.swing.JSpinner.DateEditor;
 
 import com.robonobo.common.concurrent.Batcher;
-import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.util.TimeUtil;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.config.MetadataServerConfig;
 import com.robonobo.core.api.model.*;
@@ -164,6 +162,15 @@ public class LibraryService extends AbstractService implements UserPlaylistListe
 						}
 					}
 					Map<String, Date> unknownTracks = rbnb.getDbService().getUnknownStreamsInLibrary(friendId);
+					// Any of these new tracks we know about from other sources, punt them up to the ui
+					for (Entry<String, Date> entry : newTrax.entrySet()) {
+						String sid = entry.getKey();
+						Date dateAdded = entry.getValue();
+						if(!unknownTracks.containsKey(sid)) {
+							cLib.getTracks().put(sid, dateAdded);
+							newSidsForUi.add(sid);
+						}
+					}
 					if(unknownTracks.size() > 0) {
 						log.debug("Looking up "+unknownTracks.size()+" unknown streams in library for "+u.getEmail());
 						Date lastFiredEvent = now();
