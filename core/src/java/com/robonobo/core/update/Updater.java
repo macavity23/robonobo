@@ -5,6 +5,7 @@ import static com.robonobo.common.util.FileUtil.*;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.sql.*;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,7 +21,7 @@ import com.robonobo.core.service.DbService;
  */
 @SuppressWarnings("unused")
 public class Updater {
-	static final int CURRENT_VERSION = 1;
+	static final int CURRENT_VERSION = 2;
 	private File homeDir;
 	Log log = LogFactory.getLog(getClass());
 
@@ -80,9 +81,12 @@ public class Updater {
 
 	private void updateVersion1ToVersion2() {
 		log.info("Updating robohome dir " + homeDir.getAbsolutePath() + " from version 1 to version 2");
-		// Nuke config - nobody's changed any config settings yet anyway :)
-		File configDir = new File(homeDir, "config");
-		deleteDirectory(configDir);
+		// Remove config setting
+		try {
+			removeConfigSetting("mina", "bidStrategyClass");
+		} catch (IOException e) {
+			log.error("Caught ioexception removing config setting - oh noes!", e);
+		}
 		// Update db
 		String[] sqlArr = { "DROP TABLE playlist_seen_sids", DbService.CREATE_PLAYLIST_SEEN_SIDS_TBL, DbService.CREATE_LIBRARY_TRACKS_TBL,
 				DbService.CREATE_LIBRARY_SEEN_SIDS_TBL, DbService.CREATE_LIBRARY_LAST_CHECKED_TBL };
@@ -93,6 +97,29 @@ public class Updater {
 		}
 	}
 
+	private void removeConfigSetting(String cfgName, String settingName) throws IOException {
+		File configDir = new File(homeDir, "config");
+		File cfgFile = new File(configDir, cfgName+".cfg");
+		if(!cfgFile.exists()) {
+			log.info("Not updating config "+cfgName+" - config file does not exist!");
+			return;
+		}
+		log.info("Removing setting "+settingName+" from config "+cfgName);
+		Pattern p = Pattern.compile("^"+settingName+"=.*$");
+		File tmpFile = File.createTempFile("robo", "cfg");
+		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(cfgFile)));
+		PrintWriter out = new PrintWriter(tmpFile);
+		String line;
+		while((line = in.readLine()) != null) {
+			if(!p.matcher(line).matches())
+				out.println(line);
+		}
+		in.close();
+		out.close();
+		cfgFile.delete();
+		tmpFile.renameTo(cfgFile);
+	}
+	
 	private void updateMetadataDb(String[] sqlStatements) throws SQLException {
 		String sep = File.separator;
 		String dbPrefix = homeDir.getAbsolutePath() + sep + "db" + sep + "metadata";
