@@ -4,11 +4,13 @@ import static com.robonobo.common.util.FileUtil.*;
 
 import java.io.*;
 import java.lang.reflect.Method;
+import java.sql.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.core.service.DbService;
 
 /**
  * Updates the rbnb home dir to the format expected by a new version
@@ -16,6 +18,7 @@ import com.robonobo.common.exceptions.SeekInnerCalmException;
  * @author macavity
  * 
  */
+@SuppressWarnings("unused")
 public class Updater {
 	static final int CURRENT_VERSION = 1;
 	private File homeDir;
@@ -64,7 +67,7 @@ public class Updater {
 	}
 
 	private void updateVersion0ToVersion1() {
-		log.info("Updating robohome dir "+homeDir.getAbsolutePath()+" from version 0 to version 1");
+		log.info("Updating robohome dir " + homeDir.getAbsolutePath() + " from version 0 to version 1");
 		// Just delete the config and db dirs - a bit lazy, but for version 0 it should be ok
 		File configDir = new File(homeDir, "config");
 		deleteDirectory(configDir);
@@ -73,5 +76,50 @@ public class Updater {
 		// log4j props file name changed
 		File log4jFile = new File(homeDir, "robonobo-log4j.properties");
 		log4jFile.delete();
+	}
+
+	private void updateVersion1ToVersion2() {
+		log.info("Updating robohome dir " + homeDir.getAbsolutePath() + " from version 1 to version 2");
+		// Nuke config - nobody's changed any config settings yet anyway :)
+		File configDir = new File(homeDir, "config");
+		deleteDirectory(configDir);
+		// Update db
+		String[] sqlArr = { "DROP TABLE playlist_seen_sids", DbService.CREATE_PLAYLIST_SEEN_SIDS_TBL, DbService.CREATE_LIBRARY_TRACKS_TBL,
+				DbService.CREATE_LIBRARY_SEEN_SIDS_TBL, DbService.CREATE_LIBRARY_LAST_CHECKED_TBL };
+		try {
+			updateMetadataDb(sqlArr);
+		} catch (SQLException e) {
+			log.error("Caught sqlexception updating metadata db - oh noes!", e);
+		}
+	}
+
+	private void updateMetadataDb(String[] sqlStatements) throws SQLException {
+		String sep = File.separator;
+		String dbPrefix = homeDir.getAbsolutePath() + sep + "db" + sep + "metadata";
+		try {
+			Class.forName("org.hsqldb.jdbcDriver");
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+		String dbUrl = "jdbc:hsqldb:file:" + dbPrefix;
+		File dbPropsFile = new File(dbPrefix + ".properties");
+		if (dbPropsFile.exists()) {
+			log.info("Updating metadata db with "+sqlStatements.length+" statements");
+			Connection conn = DriverManager.getConnection(dbUrl, "sa", "");
+			for (String sql : sqlStatements) {
+				log.debug("Running: "+sql);
+				try {
+					Statement st = conn.createStatement();
+					st.executeUpdate(sql);
+					st.close();
+				} catch (SQLException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			Statement st = conn.createStatement();
+			st.executeUpdate("SHUTDOWN COMPACT");
+			st.close();
+		} else
+			log.info("metadata db props does not exist - not updating metadata db");
 	}
 }
