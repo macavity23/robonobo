@@ -66,38 +66,6 @@ public class SonarNodeLocator implements NodeLocator {
 		return result;
 	}
 
-	@Override
-	public List<Node> locatePublicNodes() {
-		List<Node> result = new ArrayList<Node>();
-		for(int i = 0; i < urls.size(); i++) {
-			result.addAll(locatePublicNodesUsingUri(urls.get(i)+"public"));
-		}
-		return result;
-
-	}
-	
-	private List<Node> locatePublicNodesUsingUri(String uri) {
-		List<Node> result = new ArrayList<Node>();
-		HttpClient client = new HttpClient();
-		GetMethod get = new GetMethod(uri);
-		try {
-			int status = client.executeMethod(get);
-			switch(status) {
-			case 200:
-				NodeList nl = NodeList.parseFrom(get.getResponseBody());
-				result.addAll(nl.getNodeList());
-				log.debug("Sonar server @ " + uri +" returned "+nl.getNodeCount()+" public nodes");
-				break;
-			default:
-				log.error("Sonar error: returned status '" + get.getStatusText() + "' from url "+uri);
-				log.error(get.getResponseBodyAsString());
-			}
-		} catch(IOException e) {
-			log.error("IOException locating supernodes", e);
-		}
-		return result;
-	}
-
 	public String toString() {
 		return "SonarNodeLocator (" + urls.size() + " urls)";
 	}

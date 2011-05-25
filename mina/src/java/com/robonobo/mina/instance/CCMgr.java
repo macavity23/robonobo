@@ -464,11 +464,8 @@ public class CCMgr {
 			if (cc.getNode().getSupernode()) {
 				mina.getStreamAdvertiser().advertiseStreams(mina.getStreamMgr().getAdvertisingStreamIds());
 				List<String> wantingSources = mina.getSourceMgr().sidsWantingSources();
-				if (wantingSources.size() > 0) {
+				if (wantingSources.size() > 0)
 					cc.sendMessage("WantSource", WantSource.newBuilder().addAllStreamId(wantingSources).build());
-				}
-				// Now, figure out if we can do nat traversal
-				mina.getNetMgr().figureOutNatTraversal();
 			}
 		}
 		if (mina.getEscrowMgr() != null)

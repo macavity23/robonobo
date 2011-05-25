@@ -224,25 +224,22 @@ public class NetworkMgr {
 	}
 
 	/**
-	 * Finds public nodes and polls them to see if our NAT supports traversal
+	 * Called when we hear about another node in the network - perhaps we can use them to test if our NAT supports traversal
+	 * @syncpriority 140
 	 */
-	public void figureOutNatTraversal() {
-		if (natTraversalDecided())
+	public void heardAboutNode(Node node) {
+		if(natTraversalDecided())
 			return;
-		mina.getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				for (NodeLocator nodeLoc : nodeLocators) {
-					List<Node> publicNodes = nodeLoc.locatePublicNodes();
-					for (Node pubNode : publicNodes) {
-						CheckNatTraversalAttempt a = new CheckNatTraversalAttempt(pubNode.getId());
-						a.start();
-						mina.getCCM().makeCCTo(pubNode, a);
-					}
-				}
-			}
-		});
+		if(!canConnectTo(node))
+			return;
+		if(mina.getCCM().haveRunningOrPendingCCTo(node.getId()))
+			return;
+		log.debug("Connecting to node "+node.getId()+" to test our NAT traversal status");
+		CheckNatTraversalAttempt a = new CheckNatTraversalAttempt(node.getId());
+		a.start();
+		mina.getCCM().makeCCTo(node, a);
 	}
-
+	
 	private void connectToSupernode(List<Node> supernodes) {
 		if (supernodes.size() == 0)
 			return;

@@ -22,7 +22,7 @@ import com.robonobo.sonar.retention.*;
 public class SonarController {
 	static final int MAX_PUBLIC_NODES_TO_RETURN = 10;
 	Log log = LogFactory.getLog(getClass());
-	RetentionStrategy rStrat = new NonHolepunchOnlyStrategy();
+	RetentionStrategy rStrat = new PublicSupernodesOnlyStrategy();
 
 	@Autowired
 	private NodeDao nodeDao;
@@ -45,15 +45,5 @@ public class SonarController {
 		resp.setContentType("application/data");
 		resp.setStatus(HttpServletResponse.SC_OK);
 		log.info("Node " + node.getId() + " called in - sent " + nodes.size() + " supernodes");
-	}
-
-	@RequestMapping(value = "/public", method = RequestMethod.GET)
-	public void getPublicNodes(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		List<Node> nodes = nodeDao.getPublicNodes(MAX_PUBLIC_NODES_TO_RETURN);
-		NodeList nl = NodeList.newBuilder().addAllNode(nodes).build();
-		nl.writeTo(resp.getOutputStream());
-		resp.setContentType("application/data");
-		resp.setStatus(HttpServletResponse.SC_OK);
-		log.info("Sent " + nodes.size() + " public nodes to request ip " + req.getRemoteAddr());
 	}
 }

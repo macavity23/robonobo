@@ -13,6 +13,7 @@ public class GotSourceHandler extends AbstractMessageHandler {
 	public void handleMessage(MessageHolder mh) {
 		GotSource gs = (GotSource) mh.getMessage();
 		for(Node node : gs.getNodeList()) {
+			mina.getNetMgr().heardAboutNode(node);
 			mina.getSourceMgr().gotSource(gs.getStreamId(), node);
 		}
 	}

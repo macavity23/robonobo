@@ -38,18 +38,6 @@ public class NodeDaoImpl extends HibernateDaoSupport implements NodeDao {
 	}
 	
 	@Override
-	public List<Node> getPublicNodes(int maxNum) {
-		String hql = "select ep.node from SonarEndPoint as ep where ep.url not like '%nt' order by ep.node.lastSeen desc";
-		Query q = getSession().createQuery(hql);
-		List<SonarNode> snList = q.list();
-		List<Node> result = new ArrayList<Node>();
-		for (SonarNode sn : snList) {
-			result.add(sn.toMsg());
-		}
-		return result;
-	}
-	
-	@Override
 	public void deleteAllNodes() {
 		Session s = getSession();
 		Criteria c = s.createCriteria(SonarNode.class);
