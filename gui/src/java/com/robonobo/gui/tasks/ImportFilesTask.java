@@ -42,7 +42,7 @@ public class ImportFilesTask extends Task {
 				try {
 					s = control.addShare(filePath);
 				} catch (RobonoboException e) {
-					log.error("Error adding share from file " + filePath, e);
+					log.error("Error adding share from file " + filePath+": "+e.getMessage());
 					continue;
 				} finally {
 					it.remove();
