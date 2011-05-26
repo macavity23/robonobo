@@ -144,7 +144,7 @@ public class Updater {
 				}
 			}
 			Statement st = conn.createStatement();
-			st.executeUpdate("SHUTDOWN COMPACT");
+			st.executeUpdate("SHUTDOWN");
 			st.close();
 		} else
 			log.info("metadata db props does not exist - not updating metadata db");

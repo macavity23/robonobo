@@ -129,7 +129,7 @@ public class DbService extends AbstractService {
 		running = false;
 		Connection conn = getConnection();
 		Statement s = conn.createStatement();
-		s.executeUpdate("SHUTDOWN COMPACT");
+		s.executeUpdate("SHUTDOWN");
 		s.close();
 		returnConnection(conn);
 	}
