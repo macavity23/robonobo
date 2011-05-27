@@ -78,6 +78,14 @@ public class RobonoboController {
 		inst.getEventService().removeUserPlaylistListener(l);
 	}
 
+	public void addLibraryListener(LibraryListener l) {
+		inst.getEventService().addLibraryListener(l);
+	}
+
+	public void removeLibraryListener(LibraryListener l) {
+		inst.getEventService().removeLibraryListener(l);
+	}
+
 	public void addWangListener(WangListener l) {
 		inst.getEventService().addWangListener(l);
 	}
@@ -193,6 +201,10 @@ public class RobonoboController {
 		inst.getShareService().deleteShare(streamId);
 	}
 
+	public int getNumSharesAndDownloads() {
+		return inst.getDbService().numSharesAndDownloads();
+	}
+	
 	public String getMyNodeId() {
 		return inst.getMina().getMyNodeId();
 	}

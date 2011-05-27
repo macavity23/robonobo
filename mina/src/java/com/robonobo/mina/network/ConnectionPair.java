@@ -5,18 +5,18 @@ import org.apache.commons.logging.Log;
 import com.google.protobuf.GeneratedMessage;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.mina.instance.MinaInstance;
-import com.robonobo.mina.stream.StreamMgr;
+import com.robonobo.mina.instance.StreamMgr;
 import com.robonobo.mina.util.MinaConnectionException;
 
 public abstract class ConnectionPair {
 	protected ControlConnection cc;
-	protected StreamMgr sm;
+	protected String sid;
 	protected MinaInstance mina;
 	protected Log log;
 
-	ConnectionPair(StreamMgr sm, ControlConnection cc) {
-		this.sm = sm;
-		mina = sm.getMinaInstance();
+	ConnectionPair(MinaInstance mina, String sid, ControlConnection cc) {
+		this.sid = sid;
+		this.mina = mina;
 		this.cc = cc;
 		log = mina.getLogger(getClass());
 	}
@@ -25,7 +25,7 @@ public abstract class ConnectionPair {
 		// Calling higher syncpriority (than subclass), use separate thread
 		mina.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() {
-				sm.notifyDeadConnection(ConnectionPair.this);
+				mina.getStreamMgr().notifyDeadConnection(ConnectionPair.this);
 			}
 		});
 	}
@@ -33,14 +33,16 @@ public abstract class ConnectionPair {
 	/** Bytes per sec */
 	public abstract int getFlowRate();
 	
+	public abstract void abort();
+	
 	public ControlConnection getCC() {
 		return cc;
 	}
 
-	public StreamMgr getSM() {
-		return sm;
+	public String getStreamId() {
+		return sid;
 	}
-
+	
 	public void sendMessage(String msgName, GeneratedMessage msg) {
 		cc.sendMessage(msgName, msg);
 	}

@@ -1,8 +1,7 @@
 package com.robonobo.mina.network;
 
 import java.util.*;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import org.apache.commons.logging.Log;
 
@@ -60,7 +59,9 @@ public class NetworkMgr {
 	}
 
 	/**
-	 * We've discovered we can do NAT traversal, and we should tell our supernodes and existing connections (other than locals, they don't need to know)
+	 * We've discovered we can do NAT traversal, and we should tell our supernodes and existing connections (other than
+	 * locals, they don't need to know)
+	 * 
 	 * @syncpriority 140
 	 */
 	public void readvertiseEndpoints() {
@@ -214,6 +215,31 @@ public class NetworkMgr {
 		return endPointMgrs;
 	}
 
+	public boolean natTraversalDecided() {
+		for (EndPointMgr epMgr : endPointMgrs) {
+			if (!epMgr.natTraversalDecided())
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Called when we hear about another node in the network - perhaps we can use them to test if our NAT supports traversal
+	 * @syncpriority 140
+	 */
+	public void heardAboutNode(Node node) {
+		if(natTraversalDecided())
+			return;
+		if(!canConnectTo(node))
+			return;
+		if(mina.getCCM().haveRunningOrPendingCCTo(node.getId()))
+			return;
+		log.debug("Connecting to node "+node.getId()+" to test our NAT traversal status");
+		CheckNatTraversalAttempt a = new CheckNatTraversalAttempt(node.getId());
+		a.start();
+		mina.getCCM().makeCCTo(node, a);
+	}
+	
 	private void connectToSupernode(List<Node> supernodes) {
 		if (supernodes.size() == 0)
 			return;
@@ -274,6 +300,33 @@ public class NetworkMgr {
 		@Override
 		protected void onTimeout() {
 			onFail();
+		}
+	}
+
+	/**
+	 * Represents a connection to a node to discover our public details so that we can figure out if we can do nat
+	 * traversal. After we've connected, waits a while then shuts the connection down unless it's being used
+	 */
+	private class CheckNatTraversalAttempt extends Attempt {
+		private String nodeId;
+
+		public CheckNatTraversalAttempt(String nodeId) {
+			super(mina.getExecutor(), mina.getConfig().getMessageTimeout() * 1000, "CheckNatTraversalAttempt");
+			this.nodeId = nodeId;
+		}
+
+		@Override
+		protected void onSuccess() {
+			// As soon as the node is connected, nat traversal will be checked automatically - just make sure we shut
+			// any unused connections down after we've checked
+			mina.getExecutor().schedule(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					ControlConnection cc = mina.getCCM().getCCWithId(nodeId);
+					if (cc == null)
+						return;
+					cc.closeIfUnused();
+				}
+			}, mina.getConfig().getMessageTimeout() * 2, TimeUnit.SECONDS);
 		}
 	}
 }

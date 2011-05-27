@@ -8,13 +8,13 @@ import org.apache.commons.logging.Log;
 
 import com.robonobo.common.concurrent.*;
 import com.robonobo.core.api.proto.CoreApi.Node;
+import com.robonobo.mina.instance.SourceMgr.ReqSourceStatusBatcher;
 import com.robonobo.mina.message.proto.MinaProtocol.DontWantSource;
 import com.robonobo.mina.message.proto.MinaProtocol.ReqSourceStatus;
 import com.robonobo.mina.message.proto.MinaProtocol.SourceStatus;
 import com.robonobo.mina.message.proto.MinaProtocol.StreamStatus;
 import com.robonobo.mina.message.proto.MinaProtocol.WantSource;
 import com.robonobo.mina.network.ControlConnection;
-import com.robonobo.mina.stream.StreamMgr;
 
 /**
  * Handles requesting and caching of source info
@@ -26,7 +26,7 @@ public class SourceMgr {
 	static final int SOURCE_CHECK_FREQ = 30; // Secs
 	private MinaInstance mina;
 	Log log;
-	private Map<String, Map<String, SourceStatus>> readySources = new HashMap<String, Map<String, SourceStatus>>();
+	private Map<String, Set<SourceStatus>> readySources = new HashMap<String, Set<SourceStatus>>();
 	/** Stream IDs that want sources */
 	private Set<String> wantSources = new HashSet<String>();
 	/** Information on possible sources, including when to query them next */
@@ -62,27 +62,25 @@ public class SourceMgr {
 
 	/**
 	 * Tells the network we want sources
-	 * 
-	 * @param tolerateDelay
-	 *            false to send the request for sources out immediately (otherwise waits <5sec to batch requests
-	 *            together)
 	 */
-	public void wantSources(String streamId, boolean tolerateDelay) {
+	public void wantSources(String sid) {
 		synchronized (this) {
-			if (wantSources.contains(streamId))
+			if (wantSources.contains(sid))
 				return;
-			wantSources.add(streamId);
+			wantSources.add(sid);
 		}
-		if (tolerateDelay)
-			wsBatch.add(streamId);
+		if (mina.getBidStrategy().tolerateDelay(sid))
+			wsBatch.add(sid);
 		else {
-			WantSource ws = WantSource.newBuilder().addStreamId(streamId).build();
+			WantSource ws = WantSource.newBuilder().addStreamId(sid).build();
 			mina.getCCM().sendMessageToNetwork("WantSource", ws);
 		}
 	}
 
-	public synchronized boolean wantsSource(String streamId) {
-		return wantSources.contains(streamId);
+	public synchronized List<String> sidsWantingSources() {
+		List<String> result = new ArrayList<String>();
+		result.addAll(wantSources);
+		return result;
 	}
 
 	public void dontWantSources(String streamId) {
@@ -108,10 +106,8 @@ public class SourceMgr {
 		}
 		if (source.getId().equals(mina.getMyNodeId().toString()))
 			return;
-		StreamMgr sm = mina.getSmRegister().getSM(streamId);
-		if (sm == null)
-			return;
-		if (sm.getStreamConns().getListenConn(source.getId()) != null)
+		ControlConnection cc = mina.getCCM().getCCWithId(source.getId());
+		if (cc != null && cc.getLCPair(streamId) != null)
 			return;
 		if (mina.getBadNodeList().checkBadNode(source.getId())) {
 			log.debug("Ignoring Bad source " + source.getId());
@@ -119,11 +115,24 @@ public class SourceMgr {
 		}
 		if (mina.getNetMgr().canConnectTo(source)) {
 			cacheSourceInitially(source, streamId);
-			SourceDetails sd;
-			synchronized (this) {
-				sd = possSourcesById.get(source.getId());
+			if (log.isDebugEnabled())
+				log.debug("Querying source " + source.getId() + " for stream " + streamId);
+			if (mina.getBidStrategy().tolerateDelay(streamId)) {
+				ReqSourceStatusBatcher rssb;
+				synchronized (this) {
+					if (rssBatchers.containsKey(source.getId()))
+						rssb = rssBatchers.get(source.getId());
+					else {
+						rssb = new ReqSourceStatusBatcher(source);
+						rssBatchers.put(source.getId(), rssb);
+					}
+				}
+				rssb.add(streamId);
+			} else {
+				ReqSourceStatus.Builder rssb = ReqSourceStatus.newBuilder();
+				rssb.addStreamId(streamId);
+				sendReqSourceStatus(source, rssb);
 			}
-			queryStatus(sd, sm.tolerateDelay());
 		} else {
 			// We can't connect to them - if they have an endpoint, keep them about, our connection status might change
 			// - in particular, we might find we can do nat traversal
@@ -154,6 +163,9 @@ public class SourceMgr {
 		}
 	}
 	
+	/**
+	 * @syncpriority 200
+	 */
 	public void gotSourceStatus(SourceStatus sourceStat) {
 		// Remove it from our list of waiting sources - sm.foundSource() might add it again
 		synchronized (this) {
@@ -172,9 +184,7 @@ public class SourceMgr {
 				if (!wantSources.contains(streamStat.getStreamId()))
 					continue;
 			}
-			StreamMgr sm = mina.getSmRegister().getSM(streamStat.getStreamId());
-			if (sm != null)
-				sm.foundSource(sourceStat, streamStat);
+			mina.getStreamMgr().foundSource(sourceStat, streamStat);
 		}
 	}
 
@@ -286,28 +296,19 @@ public class SourceMgr {
 								+ getTimeFormat().format(sd.nextQ));
 				}
 			}
-			queryStatus(sd, true);
-		}
-	}
-
-	private void queryStatus(SourceDetails sd, boolean tolerateDelay) {
-		if (log.isDebugEnabled())
-			log.debug("Querying source " + sd.node.getId() + " for streams " + sd.streamIds);
-		if (tolerateDelay) {
+			String sourceId = sd.node.getId();
+			if (log.isDebugEnabled())
+				log.debug("Querying source " + sourceId + " for streams " + sd.streamIds);
 			ReqSourceStatusBatcher rssb;
 			synchronized (this) {
-				if (rssBatchers.containsKey(sd.node.getId()))
-					rssb = rssBatchers.get(sd.node.getId());
+				if (rssBatchers.containsKey(sourceId))
+					rssb = rssBatchers.get(sourceId);
 				else {
 					rssb = new ReqSourceStatusBatcher(sd.node);
-					rssBatchers.put(sd.node.getId(), rssb);
+					rssBatchers.put(sourceId, rssb);
 				}
 			}
 			rssb.addAll(sd.streamIds);
-		} else {
-			ReqSourceStatus.Builder rssb = ReqSourceStatus.newBuilder();
-			rssb.addAllStreamId(sd.streamIds);
-			sendReqSourceStatus(sd.node, rssb);
 		}
 	}
 
@@ -316,8 +317,8 @@ public class SourceMgr {
 	 */
 	public synchronized void cacheSourceUntilReady(SourceStatus sourceStat, StreamStatus streamStat) {
 		if (!readySources.containsKey(streamStat.getStreamId()))
-			readySources.put(streamStat.getStreamId(), new HashMap<String, SourceStatus>());
-		readySources.get(streamStat.getStreamId()).put(sourceStat.getFromNode().getId(), sourceStat);
+			readySources.put(streamStat.getStreamId(), new HashSet<SourceStatus>());
+		readySources.get(streamStat.getStreamId()).add(sourceStat);
 	}
 
 	/**
@@ -326,7 +327,7 @@ public class SourceMgr {
 	public synchronized Set<SourceStatus> getReadySources(String streamId) {
 		Set<SourceStatus> result = new HashSet<SourceStatus>();
 		if (readySources.containsKey(streamId))
-			result.addAll(readySources.remove(streamId).values());
+			result.addAll(readySources.remove(streamId));
 		return result;
 	}
 
@@ -335,7 +336,7 @@ public class SourceMgr {
 	 */
 	public synchronized Set<Node> getReadyNodes(String streamId) {
 		Set<Node> result = new HashSet<Node>();
-		for (SourceStatus ss : readySources.get(streamId).values()) {
+		for (SourceStatus ss : readySources.get(streamId)) {
 			result.add(ss.getFromNode());
 		}
 		return result;
@@ -347,7 +348,7 @@ public class SourceMgr {
 	public synchronized Set<String> getReadyNodeIds(String streamId) {
 		Set<String> result = new HashSet<String>();
 		if (readySources.containsKey(streamId)) {
-			for (SourceStatus ss : readySources.get(streamId).values()) {
+			for (SourceStatus ss : readySources.get(streamId)) {
 				result.add(ss.getFromNode().getId());
 			}
 		}

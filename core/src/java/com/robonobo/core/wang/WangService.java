@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.doomdark.uuid.UUID;
 import org.doomdark.uuid.UUIDGenerator;
+import org.hsqldb.lib.tar.RB;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.SeekInnerCalmException;
@@ -61,7 +62,7 @@ public class WangService extends AbstractService implements CurrencyClient {
 		}
 		
 		@Override
-		public void doRun() throws Exception {
+		public void runTask() throws Exception {
 			if (client != null)
 				client.stop();
 
@@ -80,7 +81,7 @@ public class WangService extends AbstractService implements CurrencyClient {
 			completion = 1f;
 			statusText = "Done.";
 			fireUpdated();
-			getRobonobo().getEventService().fireWangBalanceChanged(cachedBankBalance);
+			fireBalanceUpdated();
 		}
 	}
 	
@@ -178,12 +179,16 @@ public class WangService extends AbstractService implements CurrencyClient {
 		}
 	}
 
+	private void fireBalanceUpdated() {
+		getRobonobo().getEventService().fireWangBalanceChanged(cachedBankBalance+client.getOnHandBalance());
+	}
+	
 	private void fireAccountActivity(final double creditValue, final String narration) {
 		getRobonobo().getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				updateBalanceIfNecessary(false);
 				getRobonobo().getEventService().fireWangAccountActivity(creditValue, narration);
-				getRobonobo().getEventService().fireWangBalanceChanged(cachedBankBalance);
+				fireBalanceUpdated();
 			}
 		});		
 	}

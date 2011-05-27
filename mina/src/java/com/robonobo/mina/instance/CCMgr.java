@@ -2,14 +2,7 @@ package com.robonobo.mina.instance;
 
 import static com.robonobo.mina.message.MessageUtil.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 
@@ -24,7 +17,6 @@ import com.robonobo.mina.message.proto.MinaProtocol.ReqConn;
 import com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails;
 import com.robonobo.mina.message.proto.MinaProtocol.WantSource;
 import com.robonobo.mina.network.*;
-import com.robonobo.mina.stream.StreamMgr;
 import com.robonobo.mina.util.MinaConnectionException;
 
 /**
@@ -469,46 +461,28 @@ public class CCMgr {
 				conAttempt.succeeded();
 			}
 			mina.getBadNodeList().markNodeAsGood(cc.getNodeId());
-			// If this is a supernode, tell them about our broadcasts, and get
-			// broadcasters for any streams we're receiving
 			if (cc.getNode().getSupernode()) {
-				StreamMgr[] sms = mina.getSmRegister().getAllSMs();
-				// Batch up our stream adverts (there might be lots of them),
-				// but send out broadcaster searches individually (probably
-				// won't be many)
-				for (int i = 0; i < sms.length; i++) {
-					if (sms[i].isBroadcasting() || sms[i].isRebroadcasting())
-						mina.getStreamAdvertiser().advertiseStream(sms[i].getStreamId());
-					if (mina.getSourceMgr().wantsSource(sms[i].getStreamId())) {
-						List<String> streamIds = new ArrayList<String>();
-						streamIds.add(sms[i].getStreamId());
-						cc.sendMessage("WantSource", WantSource.newBuilder().addAllStreamId(streamIds).build());
-					}
-				}
+				mina.getStreamAdvertiser().advertiseStreams(mina.getStreamMgr().getAdvertisingStreamIds());
+				List<String> wantingSources = mina.getSourceMgr().sidsWantingSources();
+				if (wantingSources.size() > 0)
+					cc.sendMessage("WantSource", WantSource.newBuilder().addAllStreamId(wantingSources).build());
 			}
 		}
 		if (mina.getEscrowMgr() != null)
 			mina.getEscrowMgr().notifySuccessfulConnection(cc);
 		mina.getEventMgr().fireNodeConnected(buildConnectedNode(cc));
-		checkNATTraversal(cc);
+		checkNatTraversal(cc);
 	}
 
 	/**
 	 * Use this new connection to figure out if our NAT (if any) supports traversal
 	 */
-	private void checkNATTraversal(ControlConnection cc) {
-		boolean needToCheck = false;
-		for (EndPointMgr epMgr : mina.getNetMgr().getEndPointMgrs()) {
-			if (!epMgr.natTraversalDecided()) {
-				needToCheck = true;
-				break;
-			}
-		}
-		if (needToCheck) {
-			ReqPublicDetails.Builder b = ReqPublicDetails.newBuilder();
-			b.setFromNodeId(mina.getMyNodeId());
-			cc.sendMessage("ReqPublicDetails", b.build());
-		}
+	private void checkNatTraversal(ControlConnection cc) {
+		if (mina.getNetMgr().natTraversalDecided())
+			return;
+		ReqPublicDetails.Builder b = ReqPublicDetails.newBuilder();
+		b.setFromNodeId(mina.getMyNodeId());
+		cc.sendMessage("ReqPublicDetails", b.build());
 	}
 
 	public boolean isShuttingDown() {

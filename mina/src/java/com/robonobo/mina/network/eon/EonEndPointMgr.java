@@ -246,7 +246,8 @@ public class EonEndPointMgr implements EndPointMgr {
 		if ((myAllegedPublicEndpoint.getUdpPort() == newEp.getUdpPort())) {
 			log.info("It appears my NAT supports traversal - w00t");
 			natTraversalEp = new SeonNatTraversalEndPoint(newEp.getAddress(), newEp.getUdpPort(), LISTENER_EON_PORT);
-		}
+		} else
+			log.info("My NAT doesn't support traversal :-(");
 		natTraversalDecided = true;
 		return (natTraversalEp != null);
 	}

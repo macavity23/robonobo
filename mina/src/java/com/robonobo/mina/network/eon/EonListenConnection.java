@@ -52,7 +52,7 @@ public class EonListenConnection implements ListenConnection, PushDataReceiver {
 	public void providerClosed() {
 		if (!closed) {
 			// Something bad happened at the network layer - we're closing
-			log.debug("Network error in LC " + lcPair.getCC().getNodeId() + "/" + lcPair.getSM().getStreamId());
+			log.debug("Network error in LC " + lcPair.getCC().getNodeId() + "/" + lcPair.getStreamId());
 			lcPair.die(false);
 		}
 	}

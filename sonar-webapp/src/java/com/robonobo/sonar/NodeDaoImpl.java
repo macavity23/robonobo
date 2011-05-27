@@ -7,8 +7,7 @@ import java.util.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.*;
-import org.hibernate.criterion.Expression;
-import org.hibernate.criterion.Order;
+import org.hibernate.criterion.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
@@ -25,10 +24,10 @@ public class NodeDaoImpl extends HibernateDaoSupport implements NodeDao {
 	@Override
 	public List<Node> getAllSupernodes(Node except) {
 		Criteria criteria = getSession().createCriteria(SonarNode.class);
-		criteria.add(Expression.eq("supernode", true));
+		criteria.add(Restrictions.eq("supernode", true));
 		if(except != null)
-			criteria.add(Expression.ne("id", except.getId()));
-		criteria.add(Expression.gt("lastSeen", new Date(new Date().getTime() - 300000)));
+			criteria.add(Restrictions.ne("id", except.getId()));
+		criteria.add(Restrictions.gt("lastSeen", new Date(new Date().getTime() - 300000)));
 		criteria.addOrder(Order.desc("lastSeen"));
 		List<SonarNode> sonarNodes = criteria.list();
 		List<Node> result = new ArrayList<Node>();
@@ -54,7 +53,7 @@ public class NodeDaoImpl extends HibernateDaoSupport implements NodeDao {
 		Set<SonarNode> nodesToDelete = new HashSet<SonarNode>();
 		for (EndPoint ep : n.getEndPointList()) {
 			Criteria crit = getSession().createCriteria(SonarEndPoint.class);
-			crit.add(Expression.eq("url", ep.getUrl()));
+			crit.add(Restrictions.eq("url", ep.getUrl()));
 			List<SonarEndPoint> matchingEps = crit.list();
 			for (SonarEndPoint mEp : matchingEps) {
 				nodesToDelete.add(mEp.getNode());
@@ -78,14 +77,14 @@ public class NodeDaoImpl extends HibernateDaoSupport implements NodeDao {
 	
 	private SonarNode getSonarNode(String id) {
 		Criteria crit = getSession().createCriteria(SonarNode.class);
-		crit.add(Expression.eq("id", id));
+		crit.add(Restrictions.eq("id", id));
 		return (SonarNode) crit.uniqueResult();
 	}
 	@Override
 	public void deleteNodesOlderThan(long maxAgeMs) {
 		Date date = timeInPast(maxAgeMs);
 		Criteria criteria = getSession().createCriteria(SonarNode.class);
-		criteria.add(Expression.lt("lastSeen", date));
+		criteria.add(Restrictions.lt("lastSeen", date));
 		List nodes = criteria.list();
 		Iterator i = nodes.iterator();
 		while(i.hasNext())

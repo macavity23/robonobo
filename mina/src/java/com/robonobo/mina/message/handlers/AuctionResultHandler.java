@@ -7,7 +7,6 @@ import com.robonobo.mina.agoric.AuctionState;
 import com.robonobo.mina.message.MessageHolder;
 import com.robonobo.mina.message.proto.MinaProtocol.AuctionResult;
 import com.robonobo.mina.network.ControlConnection;
-import com.robonobo.mina.network.LCPair;
 
 public class AuctionResultHandler extends AbstractMessageHandler {
 
@@ -17,9 +16,7 @@ public class AuctionResultHandler extends AbstractMessageHandler {
 		AuctionState as = new AuctionState(ar.getAuctionState());
 		ControlConnection cc = mh.getFromCC();
 		mina.getBuyMgr().newAuctionState(cc.getNodeId(), as);
-		for (LCPair lcp : cc.getLCPairs()) {
-			lcp.getSM().getBidStrategy().newAuctionState(cc.getNodeId(), as);
-		}
+		mina.getBidStrategy().newAuctionState(cc.getNodeId(), as);
 	}
 
 	@Override

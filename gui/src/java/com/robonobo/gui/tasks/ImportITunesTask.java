@@ -24,7 +24,7 @@ public class ImportITunesTask extends Task {
 	}
 
 	@Override
-	public void doRun() throws Exception {
+	public void runTask() throws Exception {
 		log.info("Running import iTunes task");
 		statusText = "Reading list of files from iTunes";
 		completion = 0;
@@ -40,8 +40,8 @@ public class ImportITunesTask extends Task {
 		int totalSz = files.size() + itPls.size();
 		for (File file : files) {
 			if(cancelRequested) {
-				cancelled = true;
-				fireUpdated();
+				cancelConfirmed();
+				return;
 			}
 			completion = (float) i / totalSz;
 			i++;
@@ -60,8 +60,8 @@ public class ImportITunesTask extends Task {
 		i=0;
 		for (String pName : itPls.keySet()) {
 			if(cancelRequested) {
-				cancelled = true;
-				fireUpdated();
+				cancelConfirmed();
+				return;
 			}
 			completion = (float) (files.size() + i) / totalSz;
 			i++;

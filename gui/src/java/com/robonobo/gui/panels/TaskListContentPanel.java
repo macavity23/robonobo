@@ -1,5 +1,7 @@
 package com.robonobo.gui.panels;
 
+import static com.robonobo.gui.GuiUtil.*;
+import static javax.swing.SwingUtilities.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.Dimension;
@@ -14,6 +16,7 @@ import javax.swing.*;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.Task;
 import com.robonobo.core.api.TaskListener;
+import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -39,13 +42,11 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 
 	@Override
 	public void taskUpdated(final Task t) {
-		if(t.isCancelled())
-			return;
-		SwingUtilities.invokeLater(new CatchingRunnable() {
+		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				if (tasks.containsKey(t.getId()))
 					tasks.get(t.getId()).taskUpdated(t);
-				else {
+				else if (t.getCompletion() < 1f) {
 					TaskPanel p = new TaskPanel(t);
 					tasks.put(t.getId(), p);
 					taskListPanel.add(p);
@@ -56,12 +57,16 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 
 	public void removeTask(final Task t) {
 		TaskPanel p = tasks.remove(t.getId());
-		if (p != null) {	
+		if (p != null) {
 			taskListPanel.remove(p);
 			taskListPanel.revalidate();
 			// For some reason revalidate doesn't cause the panel to repaint...?
 			RepaintManager.currentManager(taskListPanel).markCompletelyDirty(taskListPanel);
 		}
+	}
+
+	private boolean contentPanelSelected() {
+		return "tasklist".equals(frame.getMainPanel().currentContentPanelName());
 	}
 
 	class TaskPanel extends JPanel {
@@ -92,15 +97,15 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 			cancelBtn = new RRedGlassButton("Cancel");
 			cancelBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					if(t.getCompletion() < 1f)
+					if (t.getCompletion() < 1f)
 						t.cancel();
 					removeTask(t);
-					if(tasks.size() == 0)
+					if (tasks.size() == 0)
 						frame.getLeftSidebar().selectMyMusic();
 				}
 			});
 			add(cancelBtn, "5,3");
-			
+
 			JSeparator sep = new JSeparator(JSeparator.HORIZONTAL);
 			sep.setBackground(RoboColor.DARKISH_GRAY);
 			add(sep, "1,5,5,5");
@@ -118,15 +123,20 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 					int pcnt = (int) (100 * t.getCompletion());
 					progBar.setValue(pcnt);
 					progBar.setString(pcnt + "%");
-					if (pcnt == 100) {
-						cancelBtn.setText("Clear");
-						// Start a timer to nuke this task
-						frame.getController().getExecutor().schedule(new CatchingRunnable() {
-							public void doRun() throws Exception {
-								removeTask(t);
-							}
-						}, frame.getGuiConfig().getZombieTaskLifetime(), TimeUnit.SECONDS);
-					}									
+					if ((t.getCompletion() - 1f) == 0f) {
+						if (contentPanelSelected()) {
+							cancelBtn.setText("Clear");
+							// Start a timer to nuke this task
+							frame.getController().getExecutor().schedule(new CatchingRunnable() {
+								public void doRun() throws Exception {
+									removeTask(t);
+								}
+							}, frame.getGuiConfig().getZombieTaskLifetime(), TimeUnit.SECONDS);
+						} else {
+							// They're not looking - just remove it
+							removeTask(t);
+						}
+					}
 				}
 			});
 		}

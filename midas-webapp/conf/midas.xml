@@ -15,8 +15,8 @@
   <Resource name="jdbc/midas" 
             auth="Container"
             type="javax.sql.DataSource"
-            driverClassName="org.postgresql.Driver"
-            url="jdbc:postgresql://localhost/midas"
+            driverClassName="com.mysql.jdbc.Driver"
+            url="jdbc:mysql://localhost/midas"
             username=""
             password=""
             maxActive="100"
@@ -33,8 +33,10 @@
 
   <!-- Remoting Details so other webapps can talk to us -->
   <Parameter name="remoteMidasListenUrl" value="socket://127.0.0.1:10123" override="true"/>
-  <Parameter name="remoteMidasSecret" value="" override="true"/>
+  <Parameter name="remoteMidasSecret" value="sekrit" override="true"/>
+<!-- Uncomment this to set the smtp server - otherwise no mails will be sent 
   <Parameter name="smtpServer" value="127.0.0.1" override="true"/>
+ -->
   <Parameter name="fromName" value="robonobo website" override="true"/>
   <Parameter name="fromEmail" value="do_not_reply@robonobo.com" override="true"/>
   <Parameter name="facebookAuthTokenUrl" value="https://graph.facebook.com/oauth/access_token?client_id=171526759534429&amp;client_secret=EDITME&amp;grant_type=client_credentials" override="true"/>

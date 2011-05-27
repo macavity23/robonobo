@@ -26,8 +26,9 @@ import com.robonobo.remote.service.MidasService;
 @Controller
 public class LibraryController extends BaseController {
 	@RequestMapping("/library/{userIdStr}")
-	public void getLibrary(@PathVariable("userIdStr") String userIdStr, HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
+	public void getLibrary(@PathVariable("userIdStr") String userIdStr,
+			@RequestParam(value = "since", required = false) Long since, 
+			HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		long reqUserId = Long.parseLong(userIdStr, 16);
 		MidasUser authUser = getAuthUser(req);
 		if (authUser == null) {
@@ -47,10 +48,10 @@ public class LibraryController extends BaseController {
 				writeToOutput(lib.toMsg(), resp);
 			} else {
 				log.info("Returning library for " + reqUser.getEmail() + " to " + authUser.getEmail());
-				Date since = null;
-				if (req.getParameter("since") != null)
-					since = new Date(Long.parseLong(req.getParameter("since")));
-				Library lib = midas.getLibrary(reqUser, since);
+				Date sinceDate = null;
+				if(since != null)
+					sinceDate = new Date(Long.parseLong(req.getParameter("since")));
+				Library lib = midas.getLibrary(reqUser, sinceDate);
 				if (lib == null)
 					lib = new MidasLibrary();
 				writeToOutput(lib.toMsg(), resp);
@@ -71,7 +72,7 @@ public class LibraryController extends BaseController {
 	 * NB we do both these via PUT rather than using PUT & DELETE as tomcat doesn't pass through a request body in the
 	 * DELETE
 	 */
-	@RequestMapping(value="/library/{userIdStr}/{verb}", method=RequestMethod.PUT)
+	@RequestMapping(value = "/library/{userIdStr}/{verb}", method = RequestMethod.PUT)
 	public void addOrRemoveFromLibrary(@PathVariable("userIdStr") String userIdStr, @PathVariable("verb") String verb,
 			HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		MidasUser authUser = getAuthUser(req);

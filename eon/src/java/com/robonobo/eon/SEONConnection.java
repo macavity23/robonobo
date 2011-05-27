@@ -31,7 +31,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hsqldb.util.ShutdownServer;
 
 import com.robonobo.common.async.*;
 import com.robonobo.common.concurrent.CatchingRunnable;

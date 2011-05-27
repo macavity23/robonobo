@@ -13,6 +13,7 @@ import com.robonobo.gui.panels.LeftSidebar;
 
 @SuppressWarnings("serial")
 public class SearchField extends JPanel {
+	private static final String DEFAULT_SEARCH_TEXT = "Search network...";
 	private RTextField searchField;
 
 	public SearchField(final LeftSidebar leftSidebar) {
@@ -24,7 +25,7 @@ public class SearchField extends JPanel {
 		setMinimumSize(new Dimension(185, 30));
 		setMaximumSize(new Dimension(185, 30));
 		setAlignmentX(0f);
-		searchField = new RTextField("Search...");
+		searchField = new RTextField(DEFAULT_SEARCH_TEXT);
 		searchField.setFont(RoboFont.getFont(12, false));
 		searchField.setName("robonobo.search.textfield");
 		searchField.setPreferredSize(new Dimension(170, 25));
@@ -34,14 +35,14 @@ public class SearchField extends JPanel {
 		searchField.setSelectionEnd(searchField.getText().length());
 		searchField.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
-				if(searchField.getText().equals("Search..."))
+				if(searchField.getText().equals(DEFAULT_SEARCH_TEXT))
 					searchField.setText("");
 			}
 		});
 		searchField.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				leftSidebar.searchAdded(searchField.getText());
-				searchField.setText("Search...");
+				searchField.setText(DEFAULT_SEARCH_TEXT);
 				searchField.setSelectionStart(0);
 				searchField.setSelectionEnd(searchField.getText().length());
 			}

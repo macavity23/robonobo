@@ -3,8 +3,7 @@ package com.robonobo.console.cmds;
 import static com.robonobo.common.util.TextUtil.*;
 
 import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.Statement;
+import java.sql.*;
 
 import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.console.RobonoboConsole;
@@ -35,6 +34,8 @@ public class dbupdate implements ConsoleCommand {
 			int rowCount = st.executeUpdate(query);
 			st.close();
 			out.println(numItems(rowCount, "row")+" updated");
+		} catch(SQLException e) {
+			out.println("SQL error: "+e.getMessage());
 		} finally {
 			if(args[0].equalsIgnoreCase("meta"))
 				console.getController().returnMetadataDbConnection(conn);

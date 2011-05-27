@@ -1,17 +1,18 @@
 package com.robonobo.gui.components;
 
 import static com.robonobo.common.util.CodeUtil.*;
+import static com.robonobo.gui.GuiUtil.*;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
@@ -25,7 +26,6 @@ import org.jdesktop.swingx.table.TableColumnModelExt;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.RobonoboException;
-import com.robonobo.core.api.SearchExecutor;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
 import com.robonobo.core.api.model.Track.PlaybackStatus;
@@ -37,7 +37,10 @@ import com.robonobo.gui.model.TrackListTableModel;
 import com.robonobo.gui.panels.MyPlaylistContentPanel;
 
 @SuppressWarnings("serial")
-public class TrackList extends JPanel implements SearchExecutor {
+public class TrackList extends JPanel {
+	/** If the track list has more than this many tracks, we show a helpful message while we create/change it as the ui might hang for a second or two */
+	public static final int TRACKLIST_SIZE_THRESHOLD = 256;
+
 	JScrollPane scrollPane;
 	JXTable table;
 	TrackListTableModel model;
@@ -48,6 +51,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 	Log log;
 	RobonoboFrame frame;
 	PopupMenu popupMenu = new PopupMenu();
+	ViewportListener viewportListener;
 
 	public TrackList(final RobonoboFrame frame, TrackListTableModel model) {
 		this.model = model;
@@ -88,6 +92,9 @@ public class TrackList extends JPanel implements SearchExecutor {
 		table.getColumn(11).setCellRenderer(tr);
 		table.getColumn(12).setCellRenderer(tr);
 
+		// NOTE disabling sorting for now as it causes massive performance hits when tracks are being inserted
+		table.setSortable(false);
+		
 		// Render table header as not bold and with sorting arrows
 		// NOTE massively irritating bug in java5 (maybe mac only, but they're the only ones stuck on j5 anyway) that
 		// renders the table header as white if we set a custom renderer here. So we only do it in java 6+ - means that
@@ -161,33 +168,38 @@ public class TrackList extends JPanel implements SearchExecutor {
 				int mouseRow = table.rowAtPoint(e.getPoint());
 				boolean alreadySel = false;
 				for (int selRow : table.getSelectedRows()) {
-					if(selRow == mouseRow) {
+					if (selRow == mouseRow) {
 						alreadySel = true;
 						break;
 					}
 				}
-				if(!alreadySel)
-					table.getSelectionModel().addSelectionInterval(mouseRow, mouseRow); 
+				if (!alreadySel)
+					table.getSelectionModel().addSelectionInterval(mouseRow, mouseRow);
 				popupMenu.refresh();
 				popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
 		});
 
 		scrollPane = new JScrollPane(table);
+		if (model.wantScrollEventsEver()) {
+			viewportListener = new ViewportListener();
+			scrollPane.getViewport().addChangeListener(viewportListener);
+		}
 		add(scrollPane, "0,0");
 	}
 
-	public void search(String query) {
+	public void filterTracks(String filterStr) {
 		table.clearSelection();
-		if (query == null || query.length() == 0) {
+		if (filterStr == null || filterStr.length() == 0) {
 			table.setFilters(null);
 		} else {
-			final String lcq = query.toLowerCase();
+			final String lcf = filterStr.toLowerCase();
 			// Only include rows that have a matching title, artist, album or
 			// year
 			final int[] cols = { 1, 2, 3, 7 };
-			table.setFilters(new FilterPipeline(new MultiColumnPatternFilter(lcq, 0, cols)));
+			table.setFilters(new FilterPipeline(new MultiColumnPatternFilter(lcf, Pattern.CASE_INSENSITIVE, cols)));
 		}
+		updateViewport();
 	}
 
 	public TrackListTableModel getModel() {
@@ -245,7 +257,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 		if (modelIndex < 0)
 			return null;
 		int tblIndex = table.convertRowIndexToView(modelIndex);
-		if (tblIndex == 0)
+		if (tblIndex <= 0)
 			return null;
 		int prevModelIndex = table.convertRowIndexToModel(tblIndex - 1);
 		return model.getStreamId(prevModelIndex);
@@ -292,6 +304,16 @@ public class TrackList extends JPanel implements SearchExecutor {
 		}
 	}
 
+	public void updateViewport() {
+		if(viewportListener != null) {
+			runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					viewportListener.checkViewportAndFire();
+				}
+			});
+		}
+	}
+	
 	class PopupMenu extends JPopupMenu implements ActionListener {
 		public PopupMenu() {
 		}
@@ -328,7 +350,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 				plMenu.add(pmi);
 			}
 			add(plMenu);
-			if(model.allowDelete()) {
+			if (model.allowDelete()) {
 				RMenuItem del = new RMenuItem("Delete");
 				del.setActionCommand("delete");
 				del.addActionListener(this);
@@ -360,7 +382,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel().getContentPanel(
 						"playlist/" + plId);
 				cp.addTracks(getSelectedStreamIds());
-			} else if(action.equals("delete")) {
+			} else if (action.equals("delete")) {
 				frame.getMainPanel().currentContentPanel().getTrackList().deleteSelectedTracks();
 			} else
 				log.error("PopupMenu generated unknown action: " + action);
@@ -493,7 +515,7 @@ public class TrackList extends JPanel implements SearchExecutor {
 			boolean result = false;
 			for (int col : cols) {
 				if (adapter.isTestable(col)) {
-					String text = getInputString(row, col).toLowerCase();
+					String text = getInputString(row, col);
 					if (text != null && (text.length() > 0)) {
 						Matcher m = pattern.matcher(text);
 						if (m.find()) {
@@ -504,6 +526,39 @@ public class TrackList extends JPanel implements SearchExecutor {
 				}
 			}
 			return result;
+		}
+	}
+
+	class ViewportListener implements ChangeListener {
+		int firstRow = -1, lastRow = -1;
+		JViewport v;
+		
+		public ViewportListener() {
+			v = scrollPane.getViewport();
+		}
+
+		public void stateChanged(ChangeEvent e) {
+			checkViewportAndFire();
+		}
+
+		public void checkViewportAndFire() {
+			if(!model.wantScrollEventsNow())
+				return;
+			Point viewPos = v.getViewPosition();
+			Dimension viewSz = v.getExtentSize();
+			int newFirstRow = table.rowAtPoint(viewPos);
+			int newLastRow = table.rowAtPoint(new Point(viewPos.x, viewPos.y + viewSz.height));
+			if(newFirstRow == firstRow && newLastRow == lastRow)
+				return;
+			if(newFirstRow < 0 || newLastRow < 0)
+				return;
+			firstRow = newFirstRow;
+			lastRow = newLastRow;
+			int[] modelIdxs = new int[lastRow - firstRow + 1];
+			for(int i=0;i<modelIdxs.length;i++) {
+				modelIdxs[i] = table.convertRowIndexToModel(firstRow+i);
+			}
+			getModel().onScroll(modelIdxs);
 		}
 	}
 }

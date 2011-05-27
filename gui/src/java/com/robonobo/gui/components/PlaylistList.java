@@ -152,11 +152,6 @@ public class PlaylistList extends LeftSidebarList implements UserPlaylistListene
 	}
 
 	@Override
-	public void libraryChanged(Library lib) {
-		// Do nothing
-	}
-
-	@Override
 	public void userConfigChanged(UserConfig cfg) {
 		// Do nothing
 	}

@@ -4,8 +4,7 @@ import static com.robonobo.gui.RoboColor.*;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import javax.swing.*;
 
@@ -13,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.core.api.LibraryListener;
 import com.robonobo.core.api.UserPlaylistListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.components.*;
@@ -239,14 +239,6 @@ public class LeftSidebar extends JPanel implements UserPlaylistListener {
 				frame.getMainPanel().addContentPanel(panelName, new MyPlaylistContentPanel(frame, p, pc));
 			}
 		}
-	}
-	
-	@Override
-	public void libraryChanged(Library lib) {
-		String panelName = "library/"+lib.getUserId();
-		ContentPanel lPanel = frame.getMainPanel().getContentPanel(panelName);
-		if(lPanel == null)
-			frame.getMainPanel().addContentPanel(panelName, new FriendLibraryContentPanel(frame, lib));
 	}
 	
 	@Override

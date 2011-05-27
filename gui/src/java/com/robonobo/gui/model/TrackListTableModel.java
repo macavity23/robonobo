@@ -17,8 +17,9 @@ import com.robonobo.core.api.model.Track;
 @SuppressWarnings("serial")
 public abstract class TrackListTableModel extends AbstractTableModel {
 	static DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-		
-	String[] colNames = { " "/*StatusIcon*/, "Title", "Artist", "Album", "Track", "Year", "Time", "Size", "Status", "Download", "Upload", "Added to Library", "Stream Id" };
+
+	String[] colNames = { " "/* StatusIcon */, "Title", "Artist", "Album", "Track", "Year", "Time", "Size", "Status",
+			"Download", "Upload", "Added to Library", "Stream Id" };
 	Pattern firstNumPat = Pattern.compile("^\\s*(\\d*).*$");
 
 	public int getColumnCount() {
@@ -36,7 +37,7 @@ public abstract class TrackListTableModel extends AbstractTableModel {
 
 	@Override
 	public Class<?> getColumnClass(int columnIndex) {
-		switch(columnIndex) {
+		switch (columnIndex) {
 		case 0:
 			return Track.PlaybackStatus.class;
 		case 1:
@@ -58,10 +59,10 @@ public abstract class TrackListTableModel extends AbstractTableModel {
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		Track t = getTrack(rowIndex);
-		if(t == null)
+		if (t == null)
 			return null;
 		Stream s = t.getStream();
-		switch(columnIndex) {
+		switch (columnIndex) {
 		case 0:
 			return t.getPlaybackStatus();
 		case 1:
@@ -82,19 +83,19 @@ public abstract class TrackListTableModel extends AbstractTableModel {
 			return t.getTransferStatus();
 		case 9:
 			int rate = t.getDownloadRate();
-			if(rate == 0) {
+			if (rate == 0) {
 				return null;
 			}
-			return FileUtil.humanReadableSize(rate)+"/s";
+			return FileUtil.humanReadableSize(rate) + "/s";
 		case 10:
 			rate = t.getUploadRate();
-			if(rate == 0) {
+			if (rate == 0) {
 				return null;
 			}
-			return FileUtil.humanReadableSize(rate)+"/s";
+			return FileUtil.humanReadableSize(rate) + "/s";
 		case 11:
 			Date addDate = t.getDateAdded();
-			if(addDate == null)
+			if (addDate == null)
 				return null;
 			return df.format(t.getDateAdded());
 		case 12:
@@ -105,10 +106,10 @@ public abstract class TrackListTableModel extends AbstractTableModel {
 
 	private Integer getTrackNumber(Stream s) {
 		String trackStr = s.getAttrValue("track");
-		if(trackStr == null || trackStr.length() == 0)
+		if (trackStr == null || trackStr.length() == 0)
 			return null;
 		Matcher m = firstNumPat.matcher(trackStr);
-		if(!m.matches())
+		if (!m.matches())
 			return null;
 		return Integer.parseInt(m.group(1));
 	}
@@ -118,16 +119,39 @@ public abstract class TrackListTableModel extends AbstractTableModel {
 		return new int[] { 4, 12 };
 	}
 
+	/**
+	 * Return true in a subclass to have onScroll() called every time the track list is scrolled (as long as wantScrollEventsNow() returns true)
+	 */
+	public boolean wantScrollEventsEver() {
+		return false;
+	}
+
+	/**
+	 * Return true in a subclass to have onScroll() called with the in-view indexen (wantScrollEventsEver() must also return true)
+	 */
+	public boolean wantScrollEventsNow() {
+		return false;
+	}
+	
+	/**
+	 * @param indexen
+	 *            The items currently in-viewport (model indexes, not view). Note this is called on the UI thread, so be
+	 *            thrifty with your cycles!
+	 */
+	public void onScroll(int[] indexen) {
+		// Default implementation does nothing
+	}
+
 	public abstract Track getTrack(int index);
 
 	public abstract String getStreamId(int index);
-	
+
 	public abstract int getTrackIndex(String streamId);
 
 	public abstract int numTracks();
-	
+
 	/** Are we allowed to delete tracks from this tracklist? */
 	public abstract boolean allowDelete();
-	
+
 	public abstract void deleteTracks(List<String> streamIds);
 }

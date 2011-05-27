@@ -17,14 +17,7 @@ public class BidUpdateHandler extends AbstractMessageHandler {
 	public void handleMessage(MessageHolder mh) {
 		BidUpdate bu = (BidUpdate) mh.getMessage();
 		ControlConnection cc = mh.getFromCC();
-		// Notify the streammgr for every stream we are receiving from, get their bid - get the highest one, send it back
-		LCPair[] pairs = cc.getLCPairs();
-		double answeringBid = 0;
-		for (LCPair pair : pairs) {
-			double thisBid = pair.getSM().getBidStrategy().getAnsweringBid(cc.getNodeId(), bu);
-			if(thisBid > answeringBid)
-				answeringBid = thisBid;
-		}
+		double answeringBid = mina.getBidStrategy().getAnsweringBid(cc.getNodeId(), bu);
 		// If we are replying with the same bid, just send a NoBid instead
 		if(answeringBid == 0 || answeringBid == myBid(bu))
 			cc.sendMessage("NoBid", NoBid.getDefaultInstance());

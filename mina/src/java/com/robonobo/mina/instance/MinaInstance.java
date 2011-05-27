@@ -10,33 +10,40 @@ import org.doomdark.uuid.UUIDGenerator;
 
 import com.robonobo.common.concurrent.SafetyNet;
 import com.robonobo.common.exceptions.SeekInnerCalmException;
-import com.robonobo.common.util.ExceptionEvent;
-import com.robonobo.common.util.ExceptionListener;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.mina.agoric.BuyMgr;
 import com.robonobo.mina.agoric.SellMgr;
+import com.robonobo.mina.bidstrategy.BidStrategy;
 import com.robonobo.mina.escrow.EscrowMgr;
 import com.robonobo.mina.escrow.EscrowProvider;
 import com.robonobo.mina.external.*;
-import com.robonobo.mina.external.buffer.PageBuffer;
+import com.robonobo.mina.external.buffer.PageBufferProvider;
 import com.robonobo.mina.message.proto.MinaProtocol.Agorics;
 import com.robonobo.mina.network.*;
-import com.robonobo.mina.stream.StreamMgr;
 import com.robonobo.mina.util.BadNodeList;
 import com.robonobo.mina.util.Tagline;
 
+/**
+ * Main per-instance class - does little except hold references to mgr classes
+ * @author macavity
+ *
+ */
 public class MinaInstance implements MinaControl {
 	public static final int MINA_PROTOCOL_VERSION = 1;
 
 	private String myNodeId;
-	private final Log log;
-	private final MinaConfig config;
-	private final CCMgr ccm;
-	private final MessageMgr messageMgr;
-	private final NetworkMgr netMgr;
-	private final SMRegister smRegister;
+	private Log log;
+	private MinaConfig config;
+	private CCMgr ccm;
+	private MessageMgr messageMgr;
+	private NetworkMgr netMgr;
+	private BidStrategy bidStrategy;
+	private	StreamMgr streamMgr;
+	private StreamConnsMgr scm;
+	private PageRequestMgr prm;
+	private FlowRateMgr flowRateMgr;
 	private SupernodeMgr supernodeMgr;
 	private SellMgr sellMgr;
 	private BuyMgr buyMgr;
@@ -44,17 +51,17 @@ public class MinaInstance implements MinaControl {
 	private EscrowMgr escrowMgr;
 	private EscrowProvider escrowProvider;
 	private ScheduledThreadPoolExecutor executor;
-	private final BadNodeList badNodes;
-	private final EventMgr eventMgr;
+	private BadNodeList badNodes;
+	private EventMgr eventMgr;
 	private StreamAdvertiser streamAdvertiser;
-	private final Application implementingApplication;
+	private Application implementingApplication;
 	private boolean started = false;
 	private Agorics myAgorics;
 	private CurrencyClient curClient;
+	private PageBufferProvider pageBufProvider;
 
 	public MinaInstance(MinaConfig config, Application application, ScheduledThreadPoolExecutor executor) {
 		// Make sure we know about exceptions
-		SafetyNet.addListener(new MinaExceptionListener());
 		log = getLogger(getClass());
 		this.config = config;
 		this.executor = executor;
@@ -66,7 +73,16 @@ public class MinaInstance implements MinaControl {
 		messageMgr = new MessageMgr(this);
 		ccm = new CCMgr(this);
 		netMgr = new NetworkMgr(this);
-		smRegister = new SMRegister(this);
+		try {
+			bidStrategy = (BidStrategy) Class.forName(config.getBidStrategyClass()).newInstance();
+			bidStrategy.setMinaInstance(this);
+		} catch (Exception e) {
+			throw new SeekInnerCalmException(e);
+		}
+		scm = new StreamConnsMgr(this);
+		streamMgr = new StreamMgr(this);
+		prm = new PageRequestMgr(this);
+		flowRateMgr = new FlowRateMgr(this);
 		if (config.isSupernode())
 			supernodeMgr = new SupernodeMgr(this);
 		if (config.isAgoric()) {
@@ -95,10 +111,7 @@ public class MinaInstance implements MinaControl {
 	public void abort() {
 		log.fatal("Mina instance ABORTING!");
 		ccm.prepareForShutdown();
-		StreamMgr[] sms = smRegister.getAllSMs();
-		for (int i = 0; i < sms.length; i++) {
-			sms[i].abort();
-		}
+		scm.abort();
 		ccm.abort();
 		netMgr.stop();
 		started = false;
@@ -113,45 +126,26 @@ public class MinaInstance implements MinaControl {
 		getNetMgr().addNodeLocator(locator);
 	}
 
-	public void startBroadcast(String streamId, PageBuffer pb) {
-		StreamMgr sm = getSmRegister().getSM(streamId);
-		if (sm == null) {
-			sm = getSmRegister().getOrCreateSM(streamId, pb);
-		} else {
-			sm.setPageBuffer(pb);
-		}
-		sm.startBroadcast();
-		getEventMgr().fireBroadcastStarted(streamId);
+	@Override
+	public void startBroadcasts(Collection<String> sids) {
+		streamMgr.startBroadcasts(sids);
+	}
+	
+	public void startBroadcast(String sid) {
+		streamMgr.startBroadcast(sid);
 	}
 
-	public void stopBroadcast(String streamId) {
-		StreamMgr sm = getSmRegister().getSM(streamId);
-		if (sm == null) {
-			throw new SeekInnerCalmException();
-		}
-		sm.stopBroadcast();
-		getEventMgr().fireBroadcastStopped(streamId);
+	public void stopBroadcast(String sid) {
+		streamMgr.stopBroadcast(sid);
 	}
 
-	public void startReception(String streamId, PageBuffer pb, StreamVelocity sv) {
-		StreamMgr sm = getSmRegister().getSM(streamId);
-		if (sm == null)
-			sm = getSmRegister().getOrCreateSM(streamId, pb);
-		else
-			sm.setPageBuffer(pb);
-		if (sv != null)
-			sm.setStreamVelocity(sv);
-		sm.startReception();
-		getEventMgr().fireReceptionStarted(streamId);
+	public void startReception(String sid, StreamVelocity sv) {
+		bidStrategy.setStreamVelocity(sid, sv);
+		streamMgr.startReception(sid);
 	}
 
-	public void stopReception(String streamId) {
-		StreamMgr sm = getSmRegister().getSM(streamId);
-		if (sm == null) {
-			throw new SeekInnerCalmException();
-		}
-		sm.stopReception();
-		getEventMgr().fireReceptionStopped(streamId);
+	public void stopReception(String sid) {
+		streamMgr.stopReception(sid);
 	}
 
 	public BadNodeList getBadNodeList() {
@@ -170,25 +164,21 @@ public class MinaInstance implements MinaControl {
 		return ccm.getConnectedNodes();
 	}
 
-	public Set<String> getSources(String streamId) {
-		StreamMgr sm = smRegister.getSM(streamId);
-		if (sm == null)
-			return new HashSet<String>();
-		return sm.getSourceNodeIds();
+	public Set<String> getSources(String sid) {
+		return streamMgr.getSourceNodeIds(sid);
 	}
 
-	public int numSources(String streamId) {
-		StreamMgr sm = smRegister.getSM(streamId);
-		if (sm == null)
-			return 0;
-		return sm.numSources();
+	public int numSources(String sid) {
+		return streamMgr.numSources(sid);
 	}
 
-	public List<String> getConnectedSources(String streamId) {
-		StreamMgr sm = smRegister.getSM(streamId);
-		if (sm == null)
-			return new ArrayList<String>();
-		return sm.getConnectedSources();
+	public List<String> getConnectedSources(String sid) {
+		LCPair[] arrr = scm.getListenConns(sid);
+		List<String> result = new ArrayList<String>();
+		for (LCPair lcp : arrr) {
+			result.add(lcp.getCC().getNodeId());
+		}
+		return result;
 	}
 
 	public boolean isConnectedToSupernode() {
@@ -236,24 +226,12 @@ public class MinaInstance implements MinaControl {
 		return netMgr;
 	}
 
-	public SMRegister getSmRegister() {
-		return smRegister;
-	}
-
 	public SupernodeMgr getSupernodeMgr() {
 		return supernodeMgr;
 	}
 
 	public boolean isStarted() {
 		return started;
-	}
-
-	public PageBuffer getPageBuffer(String streamId) {
-		StreamMgr sm = smRegister.getSM(streamId);
-		if (sm == null) {
-			return null;
-		}
-		return sm.getPageBuffer();
 	}
 
 	public void removeNodeLocator(NodeLocator locator) {
@@ -265,7 +243,6 @@ public class MinaInstance implements MinaControl {
 			log.info(Tagline.getTagLine());
 			netMgr.start();
 			started = true;
-			eventMgr.fireMinaStarted();
 		} catch (MinaException e) {
 			SafetyNet.notifyException(e, this);
 			log.fatal("MinaException caught on startup, stopping Mina");
@@ -280,10 +257,8 @@ public class MinaInstance implements MinaControl {
 	public void stop() throws MinaException {
 		log.fatal("Mina instance stopping");
 		ccm.prepareForShutdown();
-		StreamMgr[] sms = smRegister.getAllSMs();
-		for (int i = 0; i < sms.length; i++) {
-			sms[i].stop();
-		}
+		scm.closeAllStreamConns();
+		streamMgr.stop();
 		sourceMgr.stop();
 		streamAdvertiser.cancel();
 		ccm.stop();
@@ -291,7 +266,6 @@ public class MinaInstance implements MinaControl {
 		badNodes.clear();
 		started = false;
 		log.fatal("Mina instance stopped");
-		eventMgr.fireMinaStopped();
 	}
 
 	@Override
@@ -299,35 +273,25 @@ public class MinaInstance implements MinaControl {
 		return "[MinaInstance,id=" + myNodeId + "]";
 	}
 
-	public void addFoundSourceListener(String streamId, FoundSourceListener listener) {
-		StreamMgr sm = smRegister.getOrCreateSM(streamId, null);
-		sm.addFoundSourceListener(listener);
+	public void addFoundSourceListener(String sid, FoundSourceListener listener) {
+		streamMgr.addFoundSourceListener(sid, listener);
 	}
 
-	public void removeFoundSourceListener(String streamId, FoundSourceListener listener) {
-		StreamMgr sm = smRegister.getSM(streamId);
-		if (sm != null) {
-			sm.removeFoundSourceListener(listener);
-		}
+	public void removeFoundSourceListener(String sid, FoundSourceListener listener) {
+		streamMgr.removeFoundSourceListener(sid, listener);
 	}
 
-	public Set<Node> getKnownSources(String streamId) {
-		return smRegister.getSM(streamId).getKnownSources();
-	}
-
-	private class MinaExceptionListener implements ExceptionListener {
-		public void onException(ExceptionEvent e) {
-			log.fatal(e.getSource().getClass().getName() + " caught Exception: ", e.getException());
-		}
+	public Set<Node> getKnownSources(String sid) {
+		return streamMgr.getKnownSources(sid);
 	}
 
 	public Map<String, TransferSpeed> getTransferSpeeds() {
 		Map<String, TransferSpeed> result = new HashMap<String, TransferSpeed>();
-		for (StreamMgr sm : smRegister.getLiveSMs()) {
-			int upload = sm.getBroadcastingFlowRate();
-			int download = sm.getListeningFlowRate();
+		for (String sid : streamMgr.getLiveStreamIds()) {
+			int upload = flowRateMgr.getBroadcastingFlowRate(sid);
+			int download = flowRateMgr.getListeningFlowRate(sid);
 			if (upload > 0 || download > 0)
-				result.put(sm.getStreamId(), new TransferSpeed(sm.getStreamId(), download, upload));
+				result.put(sid, new TransferSpeed(sid, download, upload));
 		}
 		return result;
 	}
@@ -337,40 +301,35 @@ public class MinaInstance implements MinaControl {
 	}
 
 	public void clearStreamPriorities() {
-		for (StreamMgr sm : smRegister.getLiveSMs()) {
-			sm.setPriority(0);
-		}
+		streamMgr.clearStreamPriorities();
 	}
 
 	/**
 	 * The stream priority dictates the importance of streams relative to each other (higher is more important)
 	 */
 	public void setStreamPriority(String streamId, int priority) {
-		StreamMgr sm = smRegister.getSM(streamId);
-		if (sm != null)
-			sm.setPriority(priority);
+		streamMgr.setPriority(streamId, priority);
 	}
 
 	/**
 	 * The streamvelocity dictates how fast we want this stream (slower = cheaper)
 	 */
-	public void setStreamVelocity(String streamId, StreamVelocity sv) {
-		StreamMgr sm = smRegister.getSM(streamId);
-		if (sm != null) {
-			sm.setStreamVelocity(sv);
-			for (LCPair lcp : sm.getStreamConns().getAllListenConns()) {
-				buyMgr.possiblyRebid(lcp.getCC().getNodeId());
-			}
+	public void setStreamVelocity(String sid, StreamVelocity sv) {
+		bidStrategy.setStreamVelocity(sid, sv);
+		// After the velocity is changed, we might want to inc/dec our bid to our sources
+		for (LCPair lcp : scm.getListenConns(sid)) {
+			buyMgr.possiblyRebid(lcp.getCC().getNodeId());
 		}
 	}
 
 	public void setAllStreamVelocitiesExcept(String streamId, StreamVelocity sv) {
-		StreamMgr[] sms = smRegister.getLiveSMs();
+		String[] receivingSids = streamMgr.getReceivingStreamIds();
+		// After the velocity is changed, we might want to inc/dec our bid to our sources
 		Set<String> rebidNodeIds = new HashSet<String>();
-		for (StreamMgr sm : sms) {
-			if (sm.isReceiving() && !sm.getStreamId().equals(streamId)) {
-				sm.setStreamVelocity(sv);
-				for (LCPair lcp : sm.getStreamConns().getAllListenConns()) {
+		for (String sid : receivingSids) {
+			if(!sid.equals(streamId)) {
+				bidStrategy.setStreamVelocity(sid, sv);
+				for (LCPair lcp : scm.getListenConns(sid)) {
 					rebidNodeIds.add(lcp.getCC().getNodeId());
 				}
 			}
@@ -403,6 +362,15 @@ public class MinaInstance implements MinaControl {
 			escrowProvider.setCurrencyClient(client);
 	}
 
+	@Override
+	public void setPageBufferProvider(PageBufferProvider provider) {
+		pageBufProvider = provider;
+	}
+	
+	public PageBufferProvider getPageBufProvider() {
+		return pageBufProvider;
+	}
+	
 	public void configUpdated() {
 		netMgr.configUpdated();
 	}
@@ -416,6 +384,26 @@ public class MinaInstance implements MinaControl {
 		return curClient;
 	}
 
+	public BidStrategy getBidStrategy() {
+		return bidStrategy;
+	}
+	
+	public StreamMgr getStreamMgr() {
+		return streamMgr;
+	}
+	
+	public StreamConnsMgr getSCM() {
+		return scm;
+	}
+	
+	public PageRequestMgr getPRM() {
+		return prm;
+	}
+	
+	public FlowRateMgr getFlowRateMgr() {
+		return flowRateMgr;
+	}
+	
 	public SellMgr getSellMgr() {
 		return sellMgr;
 	}

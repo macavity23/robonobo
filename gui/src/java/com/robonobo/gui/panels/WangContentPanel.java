@@ -144,11 +144,6 @@ public class WangContentPanel extends ContentPanel implements WangListener, User
 	}
 	
 	@Override
-	public void libraryChanged(Library lib) {
-		// Do nothing
-	}
-	
-	@Override
 	public void playlistChanged(Playlist p) {
 		// Do nothing
 	}

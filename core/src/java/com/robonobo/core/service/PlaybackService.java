@@ -38,6 +38,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 
 	public PlaybackService() {
 		addHardDependency("core.tracks");
+		addHardDependency("core.storage");
 	}
 
 	@Override
@@ -113,7 +114,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 			mina.setStreamVelocity(currentStreamId, StreamVelocity.MaxRate);
 			mina.setAllStreamVelocitiesExcept(currentStreamId, StreamVelocity.LowestCost);
 		}
-		PageBuffer pb = mina.getPageBuffer(currentStreamId);
+		PageBuffer pb = rbnb.getStorageService().getPageBuf(currentStreamId);
 		if (pb == null)
 			throw new SeekInnerCalmException();
 		// If we already have some of this stream, start playing it straight
@@ -207,7 +208,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 				// We don't have a player yet, we're waiting for feedback to be
 				// buffered - remove ourselves as a listener so we don't start
 				// playing when the buffer is full
-				mina.getPageBuffer(currentStreamId).removeListener(this);
+				rbnb.getStorageService().getPageBuf(currentStreamId).removeListener(this);
 			}
 			if (player != null) {
 				try {

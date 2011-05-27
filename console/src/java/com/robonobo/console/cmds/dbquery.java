@@ -3,10 +3,7 @@ package com.robonobo.console.cmds;
 import static com.robonobo.common.util.TextUtil.*;
 
 import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,6 +73,8 @@ public class dbquery implements ConsoleCommand {
 			}
 			out.println(numItems(numRows, "row"));
 			st.close();
+		} catch(SQLException e) {
+			out.println("SQL error: "+e.getMessage());
 		} finally {
 			if(args[0].equalsIgnoreCase("meta"))
 				console.getController().returnMetadataDbConnection(conn);

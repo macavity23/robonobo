@@ -310,14 +310,8 @@ public class BuyMgr {
 			lastBid = as.getLastSentBid();
 			timeUntilBid = as.getBidsOpen();
 		}
-		// Poll everyone interested in this guy, use the highest bid
-		double topBid = 0;
-		for (LCPair lcp : cc.getLCPairs()) {
-			double thisBid = lcp.getSM().getBidStrategy().getOpeningBid(nodeId);
-			if (thisBid > topBid)
-				topBid = thisBid;
-		}
-		if(dblEq(lastBid, topBid)) {
+		double bid = mina.getBidStrategy().getOpeningBid(nodeId);
+		if(dblEq(lastBid, bid)) {
 			log.debug("Not rebidding to "+nodeId+" - happy with current bid");
 			return;
 		}
@@ -345,20 +339,14 @@ public class BuyMgr {
 				return;
 			}
 		}
-		// Poll everyone interested in this guy, use the highest bid
-		double topBid = 0;
-		for (LCPair lcp : cc.getLCPairs()) {
-			double thisBid = lcp.getSM().getBidStrategy().getOpeningBid(nodeId);
-			if (thisBid > topBid)
-				topBid = thisBid;
-		}
-		if (topBid == 0) {
+		double bid = mina.getBidStrategy().getOpeningBid(nodeId);
+		if (bid == 0) {
 			log.error("Told to open bidding to " + nodeId + ", but now nobody wants to bid!");
 			return;
 		}
-		Bid bidMsg = Bid.newBuilder().setAmount(topBid).build();
+		Bid bidMsg = Bid.newBuilder().setAmount(bid).build();
 		cc.sendMessage("Bid", bidMsg);
-		sentBid(nodeId, topBid);
+		sentBid(nodeId, bid);
 	}
 
 	/**
@@ -413,22 +401,18 @@ public class BuyMgr {
 		return (numRLsAboveMe < maxRL);
 	}
 
+	/**
+	 * @syncpriority 60
+	 */
 	private void bidFailure(final String sellerNodeId, AuctionState as) {
 		// We bid in this auction, but we weren't in the result
-		// Figure out if we are too cheap for this guy - work out our highest streamvelocity in order to do so
+		// Figure out if we are too cheap for this guy
 		ControlConnection cc = mina.getCCM().getCCWithId(sellerNodeId);
 		if (cc == null)
 			return;
-		// TODO Real-time streamvelocity
-		StreamVelocity sv = StreamVelocity.LowestCost;
-		LCPair[] lcps = cc.getLCPairs();
-		for (LCPair lcp : lcps) {
-			if (lcp.getSM().getStreamVelocity() == StreamVelocity.MaxRate)
-				sv = StreamVelocity.MaxRate;
-		}
-		if (!canListenTo(as, sv)) {
+		if (!canListenTo(as, cc.highestVelocity())) {
 			log.debug("Failed to successfully bid with " + sellerNodeId + ": they're full and/or we are cheap");
-			for (LCPair lcp : lcps) {
+			for (LCPair lcp : cc.getLCPairs()) {
 				lcp.agoricsFailure();
 			}
 			return;
@@ -576,7 +560,7 @@ public class BuyMgr {
 		LCPair[] lcps = cc.getLCPairs();
 		for (LCPair lcp : lcps) {
 			int bytesForTime = lcp.getFlowRate() * mina.getConfig().getBalanceBufferTime();
-			PageBuffer pb = lcp.getSM().getPageBuffer();
+			PageBuffer pb = mina.getPageBufProvider().getPageBuf(lcp.getStreamId());
 			long bytesForRestOfStream = (pb.getTotalPages() - pb.getLastContiguousPage()) * pb.getAvgPageSize();
 			bytesRequired += Math.min(bytesForTime, bytesForRestOfStream);
 		}

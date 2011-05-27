@@ -64,33 +64,14 @@ public class RobonoboInstance implements Robonobo {
 		loadApplicationDetails();
 		initSerializers();
 		loadConfig();
-		if(isDevVersion())
-			applyDevConfig();
 		overrideConfigWithEnv();
 		registerServices();
 		startExecutor();
 		Platform.getPlatform().initRobonobo(this);
 	}
 
-	private void applyDevConfig() {
-		// If we are a dev version, apply different config
-		// TODO this is a hack! Use a templated file instead
-		log.debug("Applying dev config");
-		RobonoboConfig defaultCfg = new RobonoboConfig();
-		RobonoboConfig cfg = getConfig();
-		if(cfg.getMetadataServerUrl().equals(defaultCfg.getMetadataServerUrl()))
-			cfg.setMetadataServerUrl("http://dev.robonobo.com/midas/");
-		if(cfg.getSonarServerUrl().equals(defaultCfg.getSonarServerUrl()))
-			cfg.setSonarServerUrl("http://dev.robonobo.com/sonar/");
-		if(cfg.getWebsiteUrlBase().equals(defaultCfg.getWebsiteUrlBase()))
-			cfg.setWebsiteUrlBase("http://dev.robonobo.com/website/");
-		RobonoboWangConfig defWangCfg = new RobonoboWangConfig();
-		RobonoboWangConfig wangCfg = (RobonoboWangConfig) getConfig("wang");
-		if(wangCfg.getBankUrl().equals(defWangCfg.getBankUrl()))
-			wangCfg.setBankUrl("http://dev.robonobo.com/wang/");
-	}
-
 	public void start() throws RobonoboException {
+		setStatus(RobonoboStatus.Starting);
 		serviceMgr.startup();
 	}
 
@@ -247,7 +228,9 @@ public class RobonoboInstance implements Robonobo {
 	}
 
 	public void shutdown() {
+		setStatus(RobonoboStatus.Stopping);
 		serviceMgr.shutdown();
+		setStatus(RobonoboStatus.Stopped);
 	}
 
 	protected void loadApplicationDetails() {

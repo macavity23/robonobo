@@ -18,6 +18,7 @@ public class EventService extends AbstractService implements MinaListener {
 	private List<WangListener> wList = new ArrayList<WangListener>();
 	private List<TransferSpeedListener> tsList = new ArrayList<TransferSpeedListener>();
 	private List<TaskListener> tlList = new ArrayList<TaskListener>();
+	private List<LibraryListener> llList = new ArrayList<LibraryListener>();
 	private int minaSupernodes = 0;
 	private Log log = LogFactory.getLog(getClass());
 
@@ -54,6 +55,14 @@ public class EventService extends AbstractService implements MinaListener {
 	
 	public synchronized void removeUserPlaylistListener(UserPlaylistListener l) {
 		upList.remove(l);
+	}
+	
+	public synchronized void addLibraryListener(LibraryListener l) {
+		llList.add(l);
+	}
+	
+	public synchronized void removeLibraryListener(LibraryListener l) {
+		llList.remove(l);
 	}
 	
 	public synchronized void addWangListener(WangListener l) {
@@ -240,13 +249,23 @@ public class EventService extends AbstractService implements MinaListener {
 		}
 	}
 
-	public void fireLibraryUpdated(Library lib) {
-		UserPlaylistListener[] arr;
+	public void fireLibraryChanged(Library lib, Set<String> newTracks) {
+		LibraryListener[] arr;
 		synchronized (this) {
-			arr = getUpArr();
+			arr = getLlArr();
 		}
-		for (UserPlaylistListener listener : arr) {
-			listener.libraryChanged(lib);
+		for (LibraryListener listener : arr) {
+			listener.libraryChanged(lib, newTracks);
+		}
+	}
+
+	public void fireMyLibraryUpdated() {
+		LibraryListener[] arr;
+		synchronized (this) {
+			arr = getLlArr();
+		}
+		for (LibraryListener listener : arr) {
+			listener.myLibraryUpdated();
 		}
 	}
 
@@ -381,6 +400,12 @@ public class EventService extends AbstractService implements MinaListener {
 		return result;
 	}
 
+	private LibraryListener[] getLlArr() {
+		LibraryListener[] result = new LibraryListener[llList.size()];
+		llList.toArray(result);
+		return result;
+	}
+
 	private RobonoboStatusListener[] getStArr() {
 		RobonoboStatusListener[] result = new RobonoboStatusListener[stList.size()];
 		stList.toArray(result);
@@ -405,25 +430,7 @@ public class EventService extends AbstractService implements MinaListener {
 		return result;
 	}
 
-	public void broadcastStarted(String streamId) {
-	}
-
-	public void broadcastStopped(String streamId) {
-	}
-
-	public void minaStarted(MinaControl mina) {
-	}
-
-	public void minaStopped(MinaControl mina) {
-	}
-
 	public void receptionCompleted(String streamId) {
-	}
-
-	public void receptionStarted(String streamId) {
-	}
-
-	public void receptionStopped(String streamId) {
 	}
 
 	public void receptionConnsChanged(String streamId) {
@@ -438,7 +445,7 @@ public class EventService extends AbstractService implements MinaListener {
 
 	@Override
 	public void startup() throws Exception {
-		getRobonobo().setStatus(RobonoboStatus.Starting);
+		// This will fire our status as 'starting'
 		fireStatusChanged();
 	}
 

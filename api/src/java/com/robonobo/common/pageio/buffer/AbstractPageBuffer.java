@@ -128,12 +128,6 @@ abstract public class AbstractPageBuffer implements PageBuffer {
 		this.pageInfoStore = pageInfoStore;
 	}
 
-	public void start() {
-	}
-
-	public void stop() {
-	}
-
 	public String getStreamId() {
 		return streamId;
 	}

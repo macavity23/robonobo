@@ -2,21 +2,16 @@ package com.robonobo.core.mina;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
-
 
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
-import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.core.api.proto.CoreApi.NodeList;
 import com.robonobo.mina.external.NodeLocator;
-import com.robonobo.mina.external.ParsingException;
 
 /**
  * Uses the newer Sonar server to locate nodes. Multiple urls can be specified
@@ -27,8 +22,7 @@ import com.robonobo.mina.external.ParsingException;
  */
 public class SonarNodeLocator implements NodeLocator {
 	Log log = LogFactory.getLog(getClass());
-	// String sonarUrl;
-	Vector urls = new Vector();
+	List<String> urls = new ArrayList<String>();
 
 	public SonarNodeLocator() {
 	}
@@ -44,7 +38,7 @@ public class SonarNodeLocator implements NodeLocator {
 	public List<Node> locateSuperNodes(Node myNodeDesc) {
 		List<Node> result = new ArrayList<Node>();
 		for(int i = 0; i < urls.size(); i++) {
-			result.addAll(locateSuperNodesUsingUri(myNodeDesc, ((String) urls.get(0))));
+			result.addAll(locateSuperNodesUsingUri(myNodeDesc, urls.get(i)));
 		}
 		return result;
 	}
@@ -60,7 +54,7 @@ public class SonarNodeLocator implements NodeLocator {
 			case 200:
 				NodeList nl = NodeList.parseFrom(post.getResponseBody());
 				result.addAll(nl.getNodeList());
-				log.debug("Sonar server @ " + uri +" returned "+nl.getNodeCount()+" nodes");
+				log.debug("Sonar server @ " + uri +" returned "+nl.getNodeCount()+" supernodes");
 				break;
 			default:
 				log.error("Sonar error: returned status '" + post.getStatusText() + "' from url "+uri);

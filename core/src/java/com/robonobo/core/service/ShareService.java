@@ -5,9 +5,7 @@ import static com.robonobo.common.util.TimeUtil.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -16,13 +14,10 @@ import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.pageio.buffer.FilePageBuffer;
 import com.robonobo.common.util.FileUtil;
-import com.robonobo.common.util.TimeUtil;
-import com.robonobo.core.RobonoboRuntime;
 import com.robonobo.core.api.RobonoboException;
-import com.robonobo.core.api.model.DownloadingTrack;
-import com.robonobo.core.api.model.SharedTrack;
-import com.robonobo.core.api.model.Stream;
+import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
 import com.robonobo.core.api.model.SharedTrack.ShareStatus;
 import com.robonobo.core.storage.StorageService;
@@ -90,9 +85,8 @@ public class ShareService extends AbstractService {
 			return;
 		}
 		sh = new SharedTrack(s, dataFile, ShareStatus.Sharing);
-		PageBuffer pb;
 		try {
-			pb = storage.createPageBufForShare(sh.getStream(), sh.getFile(), true);
+			PageBuffer pb = storage.createPageBufForShare(sh.getStream(), sh.getFile(), true);
 			FormatSupportProvider fsp = rbnb.getFormatService().getFormatSupportProvider(s.getMimeType());
 			if (fsp == null)
 				throw new IOException("No FSP available for the mimeType " + s.getMimeType());
@@ -106,9 +100,10 @@ public class ShareService extends AbstractService {
 		synchronized (this) {
 			shareStreamIds.add(s.getStreamId());
 		}
+		startShare(streamId);
 		rbnb.getLibraryService().addToLibrary(streamId);
-		startShare(streamId, pb);
 		event.fireTrackUpdated(s.getStreamId());
+		event.fireMyLibraryUpdated();
 		users.checkPlaylistsForNewShare(sh);
 	}
 
@@ -149,13 +144,12 @@ public class ShareService extends AbstractService {
 		synchronized (this) {
 			shareStreamIds.add(s.getStreamId());
 		}
-		PageBuffer pb;
 		try {
-			pb = rbnb.getStorageService().createPageBufForShare(s, shareFile, false);
+			rbnb.getStorageService().createPageBufForShare(s, shareFile, false);
 		} catch (IOException e) {
 			throw new RobonoboException(e);
 		}
-		startShare(s.getStreamId(), pb);
+		startShare(s.getStreamId());
 		event.fireTrackUpdated(s.getStreamId());
 		users.checkPlaylistsForNewShare(sh);
 	}
@@ -176,11 +170,11 @@ public class ShareService extends AbstractService {
 		event.fireTrackUpdated(streamId);
 	}
 
-	private void startShare(String streamId, PageBuffer pb) throws RobonoboException {
+	private void startShare(String streamId) throws RobonoboException {
 		Stream s = db.getStream(streamId);
 		if (s == null)
 			metadata.putStream(s);
-		mina.startBroadcast(s.getStreamId(), pb);
+		mina.startBroadcast(s.getStreamId());
 	}
 
 	private void stopShare(String streamId) {
@@ -250,25 +244,38 @@ public class ShareService extends AbstractService {
 
 	void startAllShares() throws IOException, RobonoboException {
 		log.debug("Start Share thread running");
-		int i = 0;
 		// Copy out our stream ids so we can iterate while adding new shares
 		String[] arr;
 		synchronized (this) {
 			arr = new String[shareStreamIds.size()];
 			shareStreamIds.toArray(arr);
 		}
+		Set<String> shareSids = new HashSet<String>();
 		for (String streamId : arr) {
-			PageBuffer pb = storage.loadPageBuf(streamId);
+			// We don't cache the page buffer unless we need it (there could be 10^4+), just look it up to make sure
+			// it's kosher
+			FilePageBuffer pb = storage.getPageBuf(streamId);
 			if (pb == null) {
 				// Errot
 				log.error("Found null pagebuf when starting share for " + streamId + " - deleting share");
 				db.deleteShare(streamId);
 				continue;
 			}
-			startShare(streamId, pb);
-			i++;
+			// If the file for this share doesn't exist, don't start this share but keep the reference around - might be
+			// a removable drive that will come back later
+			File file = pb.getFile();
+			if (!file.exists() || !file.canRead()) {
+				log.error("Could not find or read from file " + file.getAbsolutePath() + " for stream " + streamId
+						+ " - not starting share");
+				synchronized (this) {
+					shareStreamIds.remove(streamId);
+				}
+				continue;
+			}
+			shareSids.add(streamId);
 		}
-		log.debug("Start Share thread finished: started " + i + " shares");
+		getRobonobo().getMina().startBroadcasts(shareSids);
+		log.debug("Start Share thread finished: started " + shareSids.size() + " shares");
 	}
 
 	private class WatchDirChecker extends CatchingRunnable {

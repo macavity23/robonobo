@@ -32,7 +32,7 @@ public class TaskListSelector extends LeftSidebarSelector implements TaskListene
 		SwingUtilities.invokeLater(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				synchronized (TaskListSelector.this) {
-					if (t.isCancelled() || (t.getCompletion() - 1f) == 0f)
+					if ((t.getCompletion() - 1f) == 0f)
 						tasks.remove(t);
 					else
 						tasks.add(t);

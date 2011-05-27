@@ -5,10 +5,6 @@ import java.io.Serializable;
 import java.util.List;
 
 public interface PageBuffer extends Serializable {
-	public void start();
-
-	public void stop();
-
 	/**
 	 * Header is page 0
 	 * 

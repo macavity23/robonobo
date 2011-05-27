@@ -70,6 +70,7 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 				share.startAllShares();
 				allSharesStarted = true;
 				event.fireAllTracksLoaded();
+				event.fireMyLibraryUpdated();
 			}
 		});
 		event.addTransferSpeedListener(this);

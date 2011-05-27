@@ -92,7 +92,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 				db.deleteDownload(streamId);
 				continue;
 			}
-			PageBuffer pb = storage.loadPageBuf(d.getStream().getStreamId());
+			PageBuffer pb = storage.getPageBuf(d.getStream().getStreamId());
 			d.setPageBuf(pb);
 			// If we died or got kill-9d at the wrong point, we might be 100%
 			// finished downloading - turn it into a share here, or it'll never
@@ -124,8 +124,8 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	public void addDownload(String streamId) throws RobonoboException {
 		File dataFile = new File(downloadsDir, makeFileNameSafe(streamId));
 		log.info("Adding download for " + streamId);
-		Stream s1 = metadata.getStream(streamId);
-		DownloadingTrack d = new DownloadingTrack(s1, dataFile, DownloadStatus.Paused);
+		Stream s = metadata.getStream(streamId);
+		DownloadingTrack d = new DownloadingTrack(s, dataFile, DownloadStatus.Paused);
 		long startTime = now().getTime();
 		synchronized (this) {
 			if (startTime == lastDlStartTime)
@@ -134,24 +134,25 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		}
 		d.setDateAdded(new Date(startTime));
 		try {
-			PageBuffer pb = storage.createPageBufForDownload(s1, dataFile);
+			PageBuffer pb = storage.createPageBufForDownload(s, dataFile);
 			if (numRunningDownloads() < rbnb.getConfig().getMaxRunningDownloads())
 				startDownload(d, pb);
 		} catch (Exception e) {
-			log.error("Caught exception when starting download for " + s1.getStreamId(), e);
+			log.error("Caught exception when starting download for " + s.getStreamId(), e);
 			throw new RobonoboException(e);
 		} finally {
 			if (d != null)
 				db.putDownload(d);
 		}
 		synchronized (dPriority) {
-			dPriority.add(s1.getStreamId());
+			dPriority.add(s.getStreamId());
 		}
 		updatePriorities();
 		synchronized (this) {
-			downloadStreamIds.add(s1.getStreamId());
+			downloadStreamIds.add(s.getStreamId());
 		}
-		event.fireTrackUpdated(s1.getStreamId());
+		event.fireTrackUpdated(s.getStreamId());
+		event.fireMyLibraryUpdated();
 	}
 	
 	public void deleteDownload(String streamId) throws RobonoboException {
@@ -199,12 +200,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 			log.debug("Not starting already-running download "+streamId);
 			return;
 		}
-		PageBuffer pb;
-		try {
-			pb = storage.loadPageBuf(streamId);
-		} catch (IOException e) {
-			throw new RobonoboException(e);
-		}
+		PageBuffer pb = storage.getPageBuf(streamId);
 		d.setPageBuf(pb);
 		pb.addListener(this);
 		startDownload(d, pb);
@@ -215,7 +211,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 
 	private void startDownload(DownloadingTrack d, PageBuffer pb) throws RobonoboException {
 		d.setPageBuf(pb);
-		mina.startReception(d.getStream().getStreamId(), pb, StreamVelocity.LowestCost);
+		mina.startReception(d.getStream().getStreamId(), StreamVelocity.LowestCost);
 		if (d.getDownloadStatus() != DownloadStatus.Downloading) {
 			d.setDownloadStatus(DownloadStatus.Downloading);
 			db.putDownload(d);
@@ -240,12 +236,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		DownloadingTrack d = rbnb.getDbService().getDownload(streamId);
 		if (d != null) {
 			d.setNumSources(mina.numSources(streamId));
-			try {
-				d.setPageBuf(storage.loadPageBuf(streamId));
-			} catch (IOException e) {
-				log.error("Error loading page buffer for stream "+streamId, e);
-				return null;
-			}
+			d.setPageBuf(storage.getPageBuf(streamId));
 		}
 		return d;
 
@@ -259,7 +250,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 			return;
 		}
 		try {
-			d.setPageBuf(storage.loadPageBuf(streamId));
+			d.setPageBuf(storage.getPageBuf(streamId));
 		} catch (Exception e) {
 			log.error("Error stopping completed download", e);
 		}
@@ -348,32 +339,12 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		}
 	}
 
-	public void receptionStarted(String streamId) {
-		// Do nothing
-	}
-
-	public void receptionStopped(String streamId) {
-		// Do nothing
-	}
-
 	public String getName() {
 		return "Download Service";
 	}
 
 	public String getProvides() {
 		return "core.downloads";
-	}
-
-	public void broadcastStarted(String streamId) {
-	}
-
-	public void broadcastStopped(String streamId) {
-	}
-
-	public void minaStarted(MinaControl mina) {
-	}
-
-	public void minaStopped(MinaControl mina) {
 	}
 
 	public void nodeConnected(ConnectedNode node) {

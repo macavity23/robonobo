@@ -133,11 +133,11 @@ public class UserService extends AbstractService {
 			log.info("Login as " + email + " successful");
 			rbnb.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					rbnb.getEventService().fireLoggedIn();
 					synchronized (UserService.this) {
 						usersByEmail.put(me.getEmail(), me);
 						usersById.put(me.getUserId(), me);
 					}
+					rbnb.getEventService().fireLoggedIn();
 					rbnb.getEventService().fireUserChanged(me);
 					rbnb.getTaskService().runTask(new InitialFetchTask());
 				}
@@ -511,7 +511,7 @@ public class UserService extends AbstractService {
 			title = "Fetching friends and playlists";
 		}
 
-		public void doRun() throws Exception {
+		public void runTask() throws Exception {
 			log.info("Fetching initial user & playlist info");
 			Set<Long> playlistIds = me.getPlaylistIds();
 			Set<Long> friendIds = me.getFriendIds();
@@ -554,7 +554,7 @@ public class UserService extends AbstractService {
 			title = "Updating friends and playlists";
 		}
 
-		public void doRun() throws Exception {
+		public void runTask() throws Exception {
 			if (me == null) {
 				return;
 			}
@@ -564,8 +564,7 @@ public class UserService extends AbstractService {
 			usersByEmail.values().toArray(uArr);
 			for (int i = 0; i < uArr.length; i++) {
 				if (cancelRequested) {
-					cancelled = true;
-					fireUpdated();
+					cancelConfirmed();
 					return;
 				}
 				User u = uArr[i];
