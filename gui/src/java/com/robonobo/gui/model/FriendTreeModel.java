@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import javax.swing.SwingUtilities;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.apache.commons.logging.Log;
@@ -144,11 +145,13 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 	public void libraryChanged(final Library lib, final Set<String> newTrackSids) {
 		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
+				LibraryTreeNode ltn;
+				FriendTreeNode ftn;
 				synchronized (FriendTreeModel.this) {
 					long uid = lib.getUserId();
-					LibraryTreeNode ltn = libNodes.get(uid);
+					ltn = libNodes.get(uid);
+					ftn = friendNodes.get(uid);
 					if(ltn == null) {
-						FriendTreeNode ftn = friendNodes.get(uid);
 						if(ftn == null) {
 							log.error("ERROR: library updated for userId "+uid+", but there is no friend tree node");
 							return;
@@ -158,11 +161,19 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 						libNodes.put(uid, ltn);
 					} else
 						ltn.setLib(lib, tree.isSelectedNode(ltn));
-					firePathToRootChanged(ltn);
 				}
+				firePathToRootChanged(ltn);
+				
+				// There is a stupid bug in some java impls that doesn't repaint the tree nodes unless you call each one individually
+				firePathToRootChanged(ftn);
+				firePathToRootChanged(getRoot());
 			}
 		});
 	}
+	
+//	private void handleRetardedJ1.5TreeBug() {
+//		
+//	}
 	
 	@Override
 	public void myLibraryUpdated() {
