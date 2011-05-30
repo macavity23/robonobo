@@ -3,3 +3,9 @@
 * First version in git
 * Totally new GUI
 * Facebook/Twitter integration
+
+0.5.1
+
+* UI performance enhancements & fixes
+* Incremental library loading
+* Eager detection of NAT Traversal
