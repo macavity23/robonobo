@@ -96,7 +96,7 @@
 			<fatjar.jarsource file="../common/lib/commons-codec-1.2.jar" relpath="." />
 			<fatjar.jarsource file="../common/lib/protobuf-java-2.3.0.jar" relpath="." />
 			<fatjar.jarsource file="../common/lib/twmacinta-fastmd5.jar" relpath="." />
-			<fatjar.jarsource file="../common/lib/hsqldb-2.2.1.jar" relpath="." />
+			<fatjar.jarsource file="../common/lib/hsqldb-j1.5-2.2.2.jar" relpath="." />
 		</fatjar.build>
 		<!-- If you are building for the jnlp, uncomment this! -->
 		<!--
