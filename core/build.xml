@@ -1,4 +1,4 @@
-<project name="core" default="build">
+<project name="core" default="compile-all">
     <property name="ant.reuse.loader" value="true"/> 
     <path id="fjepPath" location="../common/buildlib/fatjar-0.0.31.jar"/>
     <taskdef name="fatjar.build" classname="net.sf.fjep.anttask.FJBuildTask" classpathref="fjepPath"/>
@@ -16,9 +16,6 @@
 
 
 	<property name="out" location="target/dist/" />
-	
-	<!-- For building outside eclipse -->
-	<target name="build-ext" depends="compile-all, build"/>
 	
 	<target name="compile-all">
 		<ant dir="../common" inheritall="false" target="compile-all"/>
@@ -45,65 +42,6 @@
 		<copy todir="target/classes">
 			<fileset dir="src/java" includes="**/*.properties,**/*.xml"/>
 		</copy>
-	</target>
-		
-	<!-- generate a version number and create a version.properties in net.robonobo.core -->
-	<target name="build.versionnumber">
-		
-		<!-- get product version properties and svn revision number -->
-		<property file="version.properties" />
-		
-		<!-- extract the svn revision number -->
-		<property name="product.version.revision" value="2161"/>
-		<propertyregex property="product.version.revision" input="${product.version.revision.raw}" regexp="\$Revision: (.*) \$" select="\1"/> 
-		
-		<!-- get and update build number -->
-		<buildnumber file="build.num"/>
-		
-		<property name="product.version" value="${product.version.major}.${product.version.minor}.${product.version.revision}.${build.number}"/>
-		
-		<echo message="This is version ${product.version}" />
-		
-		<propertyfile file="src/java/version.properties">
-			<entry key="product.version.major" value="${product.version.major}"/>
-			<entry key="product.version.minor" value="${product.version.minor}"/>
-			<entry key="product.version.revision" value="${product.version.revision}"/>
-			<entry key="product.version.build" value="${build.number}"/>
-			<entry key="product.version" value="${product.version}"/>
-			<entry key="product.status" value="${product.version.status}"/>
-		</propertyfile>
-		
-		<!-- copy file="src/java/net/robonobo/core/version.properties" todir="target/classes" / -->
-	</target>
-			
-	<target name="build" depends="build.versionnumber">
-
-		<mkdir dir="${out}" />
-		
-		<mkdir dir="${out}/lib" />
-		<fatjar.build output="${out}/lib/robonobo-core.jar">
-			<fatjar.manifest mergemanifests="false" mainclass="net.robonobo.core.RobonoboCore" manifestfile="${basedir}/MANIFEST.MF" />
-			<fatjar.filesource path="../common/target/classes" relpath="." />
-			<fatjar.filesource path="../api/target/classes" relpath="." />
-			<fatjar.filesource path="../eon/target/classes" relpath="." />
-			<fatjar.filesource path="../mina/target/classes" relpath="." />
-			<fatjar.filesource path="../core/target/classes" relpath="." />
-			<fatjar.filesource path="../wang-client/target/classes" relpath="."/>
-			
-			<fatjar.jarsource file="../core/lib/commons-cli-1.0.jar" relpath="."/>
-			<fatjar.jarsource file="../core/lib/commons-jxpath-1.1.jar" relpath="."/>
-			<fatjar.jarsource file="../core/lib/sbbi-jmx-1.0.jar" relpath="."/>
-			<fatjar.jarsource file="../core/lib/sbbi-upnplib-1.0.3.jar" relpath="."/>
-			
-			<fatjar.jarsource file="../common/lib/log4j-1.2.13.jar" relpath="."/>
-			<fatjar.jarsource file="../common/lib/jdom1.1.jar" relpath="."/>
-			<fatjar.jarsource file="../common/lib/commons-logging-1.0.3.jar" relpath="."/>
-			<fatjar.jarsource file="../common/lib/commons-httpclient-3.0.jar" relpath="."/>
-			<fatjar.jarsource file="../common/lib/commons-codec-1.2.jar" relpath="."/>
-			<fatjar.jarsource file="../common/lib/jug-1.1.2.jar" relpath="."/>
-			<fatjar.jarsource file="../common/lib/twmacinta-fastmd5.jar" relpath="."/>
-			<fatjar.jarsource file="../common/lib/hsqldb.jar" relpath="."/>
-		</fatjar.build>	
 	</target>
 		
 	<target name="clean">

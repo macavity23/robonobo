@@ -25,7 +25,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="lib/tablelayout.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/hsqldb-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/hsqldb-j1.5-2.2.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3.8.1"/>
 	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.13.jar">
 		<attributes>
