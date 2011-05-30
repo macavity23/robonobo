@@ -11,6 +11,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.service.DbService;
 
 /**
@@ -87,31 +88,38 @@ public class Updater {
 		} catch (IOException e) {
 			log.error("Caught ioexception removing config setting - oh noes!", e);
 		}
-		// Update db
-		String[] sqlArr = { "DROP TABLE playlist_seen_sids", DbService.CREATE_PLAYLIST_SEEN_SIDS_TBL, DbService.CREATE_LIBRARY_TRACKS_TBL,
-				DbService.CREATE_LIBRARY_SEEN_SIDS_TBL, DbService.CREATE_LIBRARY_LAST_CHECKED_TBL };
-		try {
-			updateMetadataDb(sqlArr);
-		} catch (SQLException e) {
-			log.error("Caught sqlexception updating metadata db - oh noes!", e);
+		// Nuke dbs - not very optimal, but otherwise we get hsqldb errors
+		File dbDir = new File(homeDir, "db");
+		if (dbDir.exists()) {
+			log.info("Nuking db directory...");
+			FileUtil.deleteDirectory(dbDir);
 		}
+//		String[] sqlArr = { "DROP TABLE playlist_seen_sids", DbService.CREATE_PLAYLIST_SEEN_SIDS_TBL,
+//				DbService.CREATE_LIBRARY_TRACKS_TBL, DbService.CREATE_LIBRARY_SEEN_SIDS_TBL,
+//				DbService.CREATE_LIBRARY_LAST_CHECKED_TBL };
+//		try {
+//			updateMetadataDb(sqlArr);
+//			compactPagesDb();
+//		} catch (SQLException e) {
+//			log.error("Caught sqlexception updating metadata db - oh noes!", e);
+//		}
 	}
 
 	private void removeConfigSetting(String cfgName, String settingName) throws IOException {
 		File configDir = new File(homeDir, "config");
-		File cfgFile = new File(configDir, cfgName+".cfg");
-		if(!cfgFile.exists()) {
-			log.info("Not updating config "+cfgName+" - config file does not exist!");
+		File cfgFile = new File(configDir, cfgName + ".cfg");
+		if (!cfgFile.exists()) {
+			log.info("Not updating config " + cfgName + " - config file does not exist!");
 			return;
 		}
-		log.info("Removing setting "+settingName+" from config "+cfgName);
-		Pattern p = Pattern.compile("^"+settingName+"=.*$");
+		log.info("Removing setting " + settingName + " from config " + cfgName);
+		Pattern p = Pattern.compile("^" + settingName + "=.*$");
 		File tmpFile = File.createTempFile("robo", "cfg");
 		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(cfgFile)));
 		PrintWriter out = new PrintWriter(tmpFile);
 		String line;
-		while((line = in.readLine()) != null) {
-			if(!p.matcher(line).matches())
+		while ((line = in.readLine()) != null) {
+			if (!p.matcher(line).matches())
 				out.println(line);
 		}
 		in.close();
@@ -119,7 +127,27 @@ public class Updater {
 		cfgFile.delete();
 		tmpFile.renameTo(cfgFile);
 	}
-	
+
+	private void compactPagesDb() throws SQLException {
+		String sep = File.separator;
+		String dbPrefix = homeDir.getAbsolutePath() + sep + "db" + sep + "metadata";
+		try {
+			Class.forName("org.hsqldb.jdbcDriver");
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+		String dbUrl = "jdbc:hsqldb:file:" + dbPrefix;
+		File dbPropsFile = new File(dbPrefix + ".properties");
+		if (dbPropsFile.exists()) {
+			log.info("Compacting pages db");
+			Connection conn = DriverManager.getConnection(dbUrl, "sa", "");
+			Statement st = conn.createStatement();
+			st.executeUpdate("SHUTDOWN COMPACT");
+			st.close();
+		} else
+			log.info("pages db props does not exist - not updating pages db");
+	}
+
 	private void updateMetadataDb(String[] sqlStatements) throws SQLException {
 		String sep = File.separator;
 		String dbPrefix = homeDir.getAbsolutePath() + sep + "db" + sep + "metadata";
@@ -131,10 +159,10 @@ public class Updater {
 		String dbUrl = "jdbc:hsqldb:file:" + dbPrefix;
 		File dbPropsFile = new File(dbPrefix + ".properties");
 		if (dbPropsFile.exists()) {
-			log.info("Updating metadata db with "+sqlStatements.length+" statements");
+			log.info("Updating metadata db with " + sqlStatements.length + " statements");
 			Connection conn = DriverManager.getConnection(dbUrl, "sa", "");
 			for (String sql : sqlStatements) {
-				log.debug("Running: "+sql);
+				log.debug("Running: " + sql);
 				try {
 					Statement st = conn.createStatement();
 					st.executeUpdate(sql);
@@ -144,7 +172,7 @@ public class Updater {
 				}
 			}
 			Statement st = conn.createStatement();
-			st.executeUpdate("SHUTDOWN");
+			st.executeUpdate("SHUTDOWN COMPACT");
 			st.close();
 		} else
 			log.info("metadata db props does not exist - not updating metadata db");

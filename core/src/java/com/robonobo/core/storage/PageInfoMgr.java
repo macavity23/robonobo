@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.locks.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.pageio.buffer.FilePageBuffer;
 import com.robonobo.common.pageio.buffer.PageInfoStore;
 import com.robonobo.core.api.model.Stream;
@@ -32,6 +34,17 @@ public class PageInfoMgr implements PageInfoStore {
 
 	private static final String NUKE_PB_PARAMS_SQL = "DELETE FROM PB_PARAMS WHERE STREAM_ID = ?";
 
+	private static final String CREATE_PAGE_INFO_SQL = "CREATE CACHED TABLE page_info (stream_id VARCHAR(36) NOT NULL, page_num BIGINT NOT NULL, byte_offset BIGINT NOT NULL, time_offset BIGINT NOT NULL, length BIGINT NOT NULL)";
+	private static final String CREATE_PAGE_INFO_PI_IDX_SQL = "CREATE UNIQUE INDEX page_info_pi_idx ON page_info(stream_id, page_num)";
+	private static final String CREATE_PAGE_INFO_SID_IDX_SQL = "CREATE INDEX page_info_sid_idx ON page_info(stream_id)";
+	
+	private static final String GET_PAGE_INFO_SQL = "SELECT page_num, byte_offset, time_offset, length FROM page_info WHERE stream_id = ? AND page_num = ?";
+	private static final String PUT_PAGE_INFO_SQL = "INSERT INTO page_info (stream_id, page_num, byte_offset, time_offset, length) VALUES(?, ?, ?, ?, ?)";
+	private static final String COUNT_PAGE_INFO_SQL = "SELECT COUNT(*) FROM page_info WHERE stream_id = ?";
+	private static final String GET_PAGE_MAP_SQL = "SELECT page_num FROM page_info WHERE stream_id = ? AND page_num >= ? AND page_num <= ?";
+	
+	private static final String DELETE_PAGE_INFO_SQL = "DELETE FROM page_info WHERE stream_id = ?";
+	
 	private static final int PAGEMAP_SZ = 32;
 
 	Log log = LogFactory.getLog(getClass());
@@ -39,8 +52,14 @@ public class PageInfoMgr implements PageInfoStore {
 	private Map<String, String> tableNames = new HashMap<String, String>();
 	private final String dbUrl;
 	private int numConnsCreated = 0;
+	
+	Lock lock = new ReentrantLock();
+	boolean connInUse;
+	Condition connReady;
+	Connection conn;
 
 	public PageInfoMgr(String dbPathPrefix) {
+		connReady = lock.newCondition();
 		try {
 			Class.forName("org.hsqldb.jdbcDriver");
 		} catch (ClassNotFoundException e) {
@@ -54,6 +73,9 @@ public class PageInfoMgr implements PageInfoStore {
 				Connection conn = getConnection();
 				Statement s = conn.createStatement();
 				s.executeUpdate(CREATE_PB_PARAMS_SQL);
+				s.executeUpdate(CREATE_PAGE_INFO_SQL);
+				s.executeUpdate(CREATE_PAGE_INFO_PI_IDX_SQL);
+				s.executeUpdate(CREATE_PAGE_INFO_SID_IDX_SQL);
 				s.close();
 				returnConnection(conn);
 			} catch (SQLException e) {
@@ -68,12 +90,7 @@ public class PageInfoMgr implements PageInfoStore {
 		String sid = s.getStreamId();
 		try {
 			conn = getConnection();
-			
-			PreparedStatement ps = conn.prepareStatement(getInitStreamSQL(sid));
-			ps.executeUpdate();
-			ps.close();
-
-			ps = conn.prepareStatement(INSERT_PB_PARAMS_SQL);
+			PreparedStatement ps = conn.prepareStatement(INSERT_PB_PARAMS_SQL);
 			ps.setString(1, sid);
 			ps.setLong(2, -1);
 			ps.setLong(3, 0);
@@ -82,7 +99,6 @@ public class PageInfoMgr implements PageInfoStore {
 			ps.setString(6, f.getAbsolutePath());
 			ps.executeUpdate();
 			ps.close();
-			
 			FilePageBuffer pb = new FilePageBuffer(sid, f, this);
 			return pb;
 		} catch (SQLException e) {
@@ -164,6 +180,18 @@ public class PageInfoMgr implements PageInfoStore {
 		Connection conn = null;
 		try {
 			conn = getConnection();
+			return getLastContiguousPage(streamId, conn);
+		} catch (SQLException e) {
+			log.error("Caught sqlexception retrieving data for stream " + streamId, e);
+		} finally {
+			if (conn != null)
+				returnConnection(conn);
+		}
+		return -1;	
+	}
+	
+	private long getLastContiguousPage(String streamId, Connection conn) {
+		try {
 			PreparedStatement ps = conn.prepareStatement(GET_LAST_CONTIG_PAGE_SQL);
 			ps.setString(1, streamId);
 			ResultSet rs = ps.executeQuery();
@@ -175,22 +203,23 @@ public class PageInfoMgr implements PageInfoStore {
 			return result;
 		} catch (SQLException e) {
 			log.error("Caught sqlexception retrieving data for stream " + streamId, e);
-		} finally {
-			if (conn != null)
-				returnConnection(conn);
 		}
 		return -1;
 	}
 
 	public StreamPosition getStreamPosition(String streamId) {
-		long lastContig = getLastContiguousPage(streamId);
-		long firstPageInMap = lastContig + 1;
-		long lastPageInMap = lastContig + PAGEMAP_SZ;
 		int pageMap = 0;
+		long lastContig = -1;
 		Connection conn = null;
 		try {
 			conn = getConnection();
-			PreparedStatement ps = conn.prepareStatement(getPageMapSQL(streamId, firstPageInMap, lastPageInMap));
+			lastContig = getLastContiguousPage(streamId, conn);
+			long firstPageInMap = lastContig + 1;
+			long lastPageInMap = lastContig + PAGEMAP_SZ;
+			PreparedStatement ps = conn.prepareStatement(GET_PAGE_MAP_SQL);
+			ps.setString(1, streamId);
+			ps.setLong(2, firstPageInMap);
+			ps.setLong(3, lastPageInMap);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				long gotPageNum = rs.getLong(1);
@@ -279,7 +308,8 @@ public class PageInfoMgr implements PageInfoStore {
 		Connection conn = null;
 		try {
 			conn = getConnection();
-			PreparedStatement ps = conn.prepareStatement(getCountPageInfosSQL(streamId));
+			PreparedStatement ps = conn.prepareStatement(COUNT_PAGE_INFO_SQL);
+			ps.setString(1, streamId);
 			ResultSet rs = ps.executeQuery();
 			rs.next();
 			int result = rs.getInt(1);
@@ -298,11 +328,7 @@ public class PageInfoMgr implements PageInfoStore {
 		Connection conn = null;
 		try {
 			conn = getConnection();
-			PreparedStatement ps = conn.prepareStatement(getGetPageInfoSQL(streamId, pageNum));
-			ResultSet rs = ps.executeQuery();
-			boolean result = rs.next();
-			ps.close();
-			return result;
+			return haveGotPage(streamId, pageNum, conn);
 		} catch (SQLException e) {
 			log.error("Caught sqlexception retrieving pageinfo", e);
 			return false;
@@ -311,12 +337,24 @@ public class PageInfoMgr implements PageInfoStore {
 				returnConnection(conn);
 		}
 	}
+	
+	private boolean haveGotPage(String streamId, long pageNum, Connection conn) throws SQLException {
+		PreparedStatement ps = conn.prepareStatement(GET_PAGE_INFO_SQL);
+		ps.setString(1, streamId);
+		ps.setLong(2, pageNum);
+		ResultSet rs = ps.executeQuery();
+		boolean result = rs.next();
+		ps.close();
+		return result;
+	}
 
 	public PageInfo getPageInfo(String streamId, long pageNum) {
 		Connection conn = null;
 		try {
 			conn = getConnection();
-			PreparedStatement ps = conn.prepareStatement(getGetPageInfoSQL(streamId, pageNum));
+			PreparedStatement ps = conn.prepareStatement(GET_PAGE_INFO_SQL);
+			ps.setString(1, streamId);
+			ps.setLong(2, pageNum);
 			ResultSet rs = ps.executeQuery();
 			if (!rs.next()) {
 				ps.close();
@@ -351,14 +389,18 @@ public class PageInfoMgr implements PageInfoStore {
 			// through
 			conn.setAutoCommit(false);
 			// Insert page info
-			String sql = getInsertPageInfoSQL(streamId, pi.getPageNumber(), pi.getByteOffset(), pi.getTimeOffset(), pi.getLength());
-			PreparedStatement ps = conn.prepareStatement(sql);
+			PreparedStatement ps = conn.prepareStatement(PUT_PAGE_INFO_SQL);
+			ps.setString(1, streamId);
+			ps.setLong(2, pi.getPageNumber());
+			ps.setLong(3, pi.getByteOffset());
+			ps.setLong(4, pi.getTimeOffset());
+			ps.setLong(5, pi.getLength());
 			ps.executeUpdate();
 			ps.close();
 			// Figure out which is our last contig page now - we haven't
 			// committed this transaction yet so this one won't show
-			long lastContigPage = getLastContiguousPage(streamId);
-			while ((lastContigPage + 1 == pi.getPageNumber()) || haveGotPage(streamId, lastContigPage + 1)) {
+			long lastContigPage = getLastContiguousPage(streamId, conn);
+			while ((lastContigPage + 1 == pi.getPageNumber()) || haveGotPage(streamId, lastContigPage + 1, conn)) {
 				lastContigPage++;
 			}
 			ps = conn.prepareStatement(UPDATE_PB_PARAMS_SQL);
@@ -387,19 +429,24 @@ public class PageInfoMgr implements PageInfoStore {
 		try {
 			conn = getConnection();
 			conn.setAutoCommit(false);
-			Statement s = conn.createStatement();
 			long bytesRecvd = 0;
 			long lastPage = -1;
+			PreparedStatement ps = conn.prepareStatement(PUT_PAGE_INFO_SQL);
 			for (PageInfo pi : pis) {
-				s.addBatch(getInsertPageInfoSQL(streamId, pi.getPageNumber(), pi.getByteOffset(), pi.getTimeOffset(), pi.getLength()));
+				ps.setString(1, streamId);
+				ps.setLong(2, pi.getPageNumber());
+				ps.setLong(3, pi.getByteOffset());
+				ps.setLong(4, pi.getTimeOffset());
+				ps.setLong(5, pi.getLength());
+				ps.addBatch();
 				bytesRecvd += pi.getLength();
 				if (pi.getPageNumber() > lastPage)
 					lastPage = pi.getPageNumber();
 			}
-			s.executeBatch();
-			s.close();
+			ps.executeBatch();
+			ps.close();
 			// Update pb params
-			PreparedStatement ps = conn.prepareStatement(SET_PB_PARAMS_SQL);
+			ps = conn.prepareStatement(SET_PB_PARAMS_SQL);
 			ps.setLong(1, pis.size());
 			ps.setLong(2, pis.size());
 			ps.setLong(3, bytesRecvd);
@@ -431,7 +478,8 @@ public class PageInfoMgr implements PageInfoStore {
 		Connection conn = null;
 		try {
 			conn = getConnection();
-			PreparedStatement ps = conn.prepareStatement(getNukeStreamSQL(streamId));
+			PreparedStatement ps = conn.prepareStatement(DELETE_PAGE_INFO_SQL);
+			ps.setString(1, streamId);
 			ps.executeUpdate();
 			ps.close();
 			ps = conn.prepareStatement(NUKE_PB_PARAMS_SQL);
@@ -447,63 +495,44 @@ public class PageInfoMgr implements PageInfoStore {
 		}
 	}
 
-	public synchronized Connection getConnection() throws SQLException {
-		if (freeConns.size() > 0)
-			return freeConns.remove(0);
-		else {
-			log.debug("PageDB: now created " + ++numConnsCreated + " db connections");
-			return DriverManager.getConnection(dbUrl);
+	public Connection getConnection() throws SQLException {
+		lock.lock();
+		try {
+			if(conn == null)
+				conn = DriverManager.getConnection(dbUrl);
+			if(connInUse)
+				connReady.await();
+			connInUse = true;
+			return conn;
+		} catch (InterruptedException e) {
+			throw new SeekInnerCalmException(e);
+		} finally {
+			lock.unlock();
 		}
+		
+//		if (freeConns.size() > 0)
+//			return freeConns.remove(0);
+//		else {
+//			log.debug("PageDB: now created " + ++numConnsCreated + " db connections");
+//			Connection conn = DriverManager.getConnection(dbUrl);
+//			Statement st = conn.createStatement();
+//			
+//			// DEBUG
+//			st.execute("SET FILES LOG SIZE 0");
+//			
+//			
+//			return conn;
+//		}
 	}
 
 	public synchronized void returnConnection(Connection conn) {
-		freeConns.add(conn);
-	}
-
-	private String getInitStreamSQL(String streamId) {
-		return "CREATE CACHED TABLE " + tableName(streamId)
-				+ " (PAGENUM BIGINT NOT NULL PRIMARY KEY, BYTEOFFSET BIGINT, TIMEOFFSET BIGINT, LENGTH BIGINT)";
-	}
-
-	private String getGetPageInfoSQL(String streamId, long pageNum) {
-		return "SELECT PAGENUM, BYTEOFFSET, TIMEOFFSET, LENGTH FROM " + tableName(streamId) + " WHERE PAGENUM = "
-				+ pageNum;
-	}
-
-	private String getInsertPageInfoSQL(String streamId, long pageNum, long byteOffset, long timeOffset, long length) {
-		StringBuffer sb = new StringBuffer("INSERT INTO ");
-		sb.append(tableName(streamId));
-		sb.append(" (PAGENUM, BYTEOFFSET, TIMEOFFSET, LENGTH) VALUES (");
-		sb.append(pageNum).append(", ");
-		sb.append(byteOffset).append(", ");
-		sb.append(timeOffset).append(", ");
-		sb.append(length).append(")");
-		return sb.toString();
-	}
-
-	private String getCountPageInfosSQL(String streamId) {
-		return "SELECT COUNT(*) FROM " + tableName(streamId);
-	}
-
-	private String getPageMapSQL(String streamId, long firstPage, long lastPage) {
-		StringBuffer sb = new StringBuffer("SELECT PAGENUM FROM ");
-		sb.append(tableName(streamId));
-		sb.append(" WHERE PAGENUM >= ").append(firstPage);
-		sb.append(" AND PAGENUM <= ").append(lastPage);
-		return sb.toString();
-	}
-
-	private String getNukeStreamSQL(String streamId) {
-		return "DROP TABLE " + tableName(streamId);
-	}
-
-	private synchronized String tableName(String streamId) {
-		if (tableNames.containsKey(streamId))
-			return tableNames.get(streamId);
-		MD5 md5 = new MD5();
-		md5.Update(streamId);
-		String tn = "tbl_" + md5.asHex();
-		tableNames.put(streamId, tn);
-		return tn;
+		lock.lock();
+		try {
+			connInUse = false;
+			connReady.signal();
+		} finally {
+			lock.unlock();
+		}
+//		freeConns.add(conn);
 	}
 }

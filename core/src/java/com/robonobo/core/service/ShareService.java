@@ -251,28 +251,31 @@ public class ShareService extends AbstractService {
 			shareStreamIds.toArray(arr);
 		}
 		Set<String> shareSids = new HashSet<String>();
-		for (String streamId : arr) {
+		for (String sid : arr) {
+			// DEBUG
+			log.debug("Starting share "+sid);
+			
 			// We don't cache the page buffer unless we need it (there could be 10^4+), just look it up to make sure
 			// it's kosher
-			FilePageBuffer pb = storage.getPageBuf(streamId);
+			FilePageBuffer pb = storage.getPageBuf(sid);
 			if (pb == null) {
 				// Errot
-				log.error("Found null pagebuf when starting share for " + streamId + " - deleting share");
-				db.deleteShare(streamId);
+				log.error("Found null pagebuf when starting share for " + sid + " - deleting share");
+				db.deleteShare(sid);
 				continue;
 			}
 			// If the file for this share doesn't exist, don't start this share but keep the reference around - might be
 			// a removable drive that will come back later
 			File file = pb.getFile();
 			if (!file.exists() || !file.canRead()) {
-				log.error("Could not find or read from file " + file.getAbsolutePath() + " for stream " + streamId
+				log.error("Could not find or read from file " + file.getAbsolutePath() + " for stream " + sid
 						+ " - not starting share");
 				synchronized (this) {
-					shareStreamIds.remove(streamId);
+					shareStreamIds.remove(sid);
 				}
 				continue;
 			}
-			shareSids.add(streamId);
+			shareSids.add(sid);
 		}
 		getRobonobo().getMina().startBroadcasts(shareSids);
 		log.debug("Start Share thread finished: started " + shareSids.size() + " shares");
