@@ -50,6 +50,7 @@ public class FormatService extends AbstractService {
 		for (String className : classNames) {
 			try {
 				FormatSupportProvider fsp = (FormatSupportProvider) Class.forName(className).newInstance();
+				fsp.init(rbnb);
 				addFsp(fsp);
 			} catch (Exception e) {
 				log.error("Error loading formatsupportprovider '"+className+"'", e);
@@ -58,10 +59,9 @@ public class FormatService extends AbstractService {
 
 	}
 
-	@SuppressWarnings("unchecked")
 	private void addFsp(FormatSupportProvider newFsp) {
 		// Don't add it if we've got one already
-		Class newFspClass = newFsp.getClass();
+		Class<?> newFspClass = newFsp.getClass();
 		for (FormatSupportProvider fsp : fsps) {
 			if(newFspClass.equals(fsp.getClass()))
 				return;
