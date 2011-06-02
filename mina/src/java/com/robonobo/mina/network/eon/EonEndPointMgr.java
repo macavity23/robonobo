@@ -83,8 +83,8 @@ public class EonEndPointMgr implements EndPointMgr {
 	}
 
 	public boolean canConnectTo(Node node) {
-		// If I am public, I can connect to anyone, by asking them to connect to me
-		if(localAddrIsPublic() || gatewayEp != null)
+		// If I am public, I can connect t¤o anyone, by asking them to connect to me
+		if (localAddrIsPublic() || gatewayEp != null)
 			return true;
 		for (EndPoint ep : node.getEndPointList()) {
 			if (isEonUrl(ep.getUrl())) {
@@ -115,22 +115,23 @@ public class EonEndPointMgr implements EndPointMgr {
 				try {
 					if (!(theirEp instanceof SeonEndPoint))
 						continue;
-					if ((theirEp instanceof SeonNatTraversalEndPoint) && (natTraversalEp != null) && indirectAllowed) {
-						// Only connect if we are behind a NAT too
-						if (natTraversalEp == null)
+					if (theirEp instanceof SeonNatTraversalEndPoint) {
+						if ((!natTraversalDecided) || natTraversalEp == null)
 							continue;
+						// w00t, let's do some NAT traversal
 						if (indirectAllowed) {
 							// We're traversing NATs at both ends, and we are the initiating node, so we send a 'NAT
 							// seed'. These packets contain no data, but open up the port on our NAT so that when their
 							// connection arrives, it's allowed through
-							InetSocketAddress natSeedEp = new InetSocketAddress(theirEp.getAddress(), theirEp.getUdpPort());
-							log.debug("Sending NAT seed to "+natSeedEp);
+							InetSocketAddress natSeedEp = new InetSocketAddress(theirEp.getAddress(),
+									theirEp.getUdpPort());
+							log.debug("Sending NAT seed to " + natSeedEp);
 							eonMgr.sendNATSeed(natSeedEp);
 							// Now we just return null - CCMgr.makeCCTo will then send a ReqConn, which should get
 							// through our NAT
 							return null;
-						}
-						// If we get here, we're doing NAT traversal and have received the ReqConn - just connect as per
+						} 
+						// If we get here, we're doing NAT traversal and we have received the ReqConn - just connect as per
 						// normal, their NAT seed should have opened the NAT and allowed us to connect
 					}
 					log.info("Connecting to node " + node.getId() + " on " + theirEp.getUrl());
