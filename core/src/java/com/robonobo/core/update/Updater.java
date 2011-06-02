@@ -82,27 +82,20 @@ public class Updater {
 
 	private void updateVersion1ToVersion2() {
 		log.info("Updating robohome dir " + homeDir.getAbsolutePath() + " from version 1 to version 2");
-		// Remove config setting
+		// Remove config settings
 		try {
 			removeConfigSetting("mina", "bidStrategyClass");
+			removeConfigSetting("mina", "sourceRequestBatchTime");
 		} catch (IOException e) {
 			log.error("Caught ioexception removing config setting - oh noes!", e);
 		}
-		// Nuke dbs - not very optimal, but otherwise we get hsqldb errors
+		// Nuke dbs - not very optimal, but otherwise we get hsqldb errors as we upgraded hsqldb in this version...
+		// better to do it now while we have a few users!
 		File dbDir = new File(homeDir, "db");
 		if (dbDir.exists()) {
 			log.info("Nuking db directory...");
 			FileUtil.deleteDirectory(dbDir);
 		}
-//		String[] sqlArr = { "DROP TABLE playlist_seen_sids", DbService.CREATE_PLAYLIST_SEEN_SIDS_TBL,
-//				DbService.CREATE_LIBRARY_TRACKS_TBL, DbService.CREATE_LIBRARY_SEEN_SIDS_TBL,
-//				DbService.CREATE_LIBRARY_LAST_CHECKED_TBL };
-//		try {
-//			updateMetadataDb(sqlArr);
-//			compactPagesDb();
-//		} catch (SQLException e) {
-//			log.error("Caught sqlexception updating metadata db - oh noes!", e);
-//		}
 	}
 
 	private void removeConfigSetting(String cfgName, String settingName) throws IOException {

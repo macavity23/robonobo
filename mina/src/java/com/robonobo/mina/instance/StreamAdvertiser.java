@@ -13,7 +13,7 @@ public class StreamAdvertiser extends RateLimitedBatcher<String> {
 	Log log = LogFactory.getLog(getClass());
 
 	public StreamAdvertiser(MinaInstance mina) {
-		super(mina.getConfig().getSourceRequestBatchTime(), mina.getExecutor(), (mina.getConfig().getSourceRequestBatchTime() / 1000 * mina.getConfig().getStreamAdvertMaxPerSec()));
+		super(mina.getConfig().getStreamAdvertBatchTime(), mina.getExecutor(), (mina.getConfig().getStreamAdvertBatchTime() / 1000 * mina.getConfig().getStreamAdvertMaxPerSec()));
 		this.mina = mina;
 	}
 
