@@ -22,7 +22,10 @@
 	<target name="build" depends="compile-all" />
 
 	<target name="compile-all">
+		<ant dir="../core" inheritall="false" target="compile-all"/>
 		<ant dir="../console" inheritall="false" target="compile-all" />
+		<ant dir="../plugin-mplayer" inheritall="false" target="compile-all"/>
+		<ant dir="../plugin-mp3" inheritall="false" target="compile-all"/>
 
 		<mkdir dir="${classes.dir}" />
 		<javac source="1.5" target="1.5" srcdir="src/java" destdir="${classes.dir}" debug="on" includes="**/*.java,**/*.properties,**/*.xml">
@@ -69,8 +72,9 @@
 			<fatjar.jarsource file="${basedir}/lib/swingx-0.9.7.jar" relpath="." />
 
 			<fatjar.filesource path="../console/target/classes" relpath="." />
-			<fatjar.filesource path="../plugin-mp3/target/classes" relpath="." />
 			<fatjar.filesource path="../plugin-default/target/classes" relpath="." />
+			<fatjar.filesource path="../plugin-mp3/target/classes" relpath="." />
+			<fatjar.filesource path="../plugin-mplayer/target/classes" relpath="." />
 			<fatjar.filesource path="../common/target/classes" relpath="." />
 			<fatjar.filesource path="../api/target/classes" relpath="." />
 			<fatjar.filesource path="../eon/target/classes" relpath="." />
@@ -199,7 +203,10 @@
 		<delete dir="${classes.dir}" />
 		<delete dir="${dist.dir}" />
 		<delete dir="${tmp.dir}"/>
+		<ant dir="../core" inheritall="false" target="clean"/>
 		<ant dir="../console" inheritall="false" target="clean" />
+		<ant dir="../plugin-mp3" inheritall="false" target="clean"/>
+		<ant dir="../plugin-mplayer" inheritall="false" target="clean"/>
 	</target>
 
 </project>

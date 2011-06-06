@@ -8,6 +8,7 @@
 				<pathelement path="../common/target/classes" />
 				<pathelement path="../api/target/classes" />
 				<pathelement path="../core/target/classes" />
+				<pathelement path="../plugin-mplayer/target/classes" />
 				<pathelement path="../mina/bin" />
 				<fileset dir="lib">
 					<include name="**/*.jar" />
