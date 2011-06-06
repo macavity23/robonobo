@@ -39,6 +39,7 @@ public class RobonoboConfig implements Serializable {
 	boolean allowLoopbackAddress = false;
 	String playlistUrlBase = "http://rbnb.co/p/";
 	String websiteUrlBase = "http://robonobo.com/";
+	String mplayerExePath = null;
 
 	public RobonoboConfig() {
 	}
@@ -257,5 +258,13 @@ public class RobonoboConfig implements Serializable {
 
 	public void setWebsiteUrlBase(String websiteUrlBase) {
 		this.websiteUrlBase = websiteUrlBase;
+	}
+
+	public String getMplayerExePath() {
+		return mplayerExePath;
+	}
+
+	public void setMplayerExePath(String mplayerExePath) {
+		this.mplayerExePath = mplayerExePath;
 	}
 }

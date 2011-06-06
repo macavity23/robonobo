@@ -1,10 +1,9 @@
 package com.robonobo.plugin.mp3;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.util.Map;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,6 +14,9 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import javazoom.spi.mpeg.sampled.file.MpegAudioFileFormat;
 import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.robonobo.common.pageio.paginator.EqualSizeFilePaginator;
 import com.robonobo.common.pageio.paginator.Paginator;
 import com.robonobo.core.RobonoboInstance;
@@ -22,19 +24,21 @@ import com.robonobo.core.api.AudioPlayer;
 import com.robonobo.core.api.Robonobo;
 import com.robonobo.core.api.model.Stream;
 import com.robonobo.mina.external.buffer.PageBuffer;
+import com.robonobo.plugin.mplayer.MplayerAudioPlayer;
 import com.robonobo.spi.FormatSupportProvider;
 
 
 public class Mp3FormatSupportProvider implements FormatSupportProvider {
 	private static final int PAGE_SIZE = 32*1024;
-	Robonobo robonobo;
+	Robonobo rbnb;
+	Log log = LogFactory.getLog(getClass());
 	
 	public void init(Robonobo r) {
-		this.robonobo = r;
+		this.rbnb = r;
 	}
 	
-	public RobonoboInstance getRobonobo() {
-		return (RobonoboInstance)robonobo;
+	public RobonoboInstance getRbnb() {
+		return (RobonoboInstance)rbnb;
 	}
 	
 	public String getFormatName() {
@@ -115,6 +119,21 @@ public class Mp3FormatSupportProvider implements FormatSupportProvider {
 	}
 
 	public AudioPlayer getAudioPlayer(Stream s, PageBuffer pb, ThreadPoolExecutor ex) {
+		// If we have an mplayer, use that, otherwise use the built-in player
+		String path = rbnb.getConfig().getMplayerExePath();
+		if(path != null) {
+			File mplayerExe = new File(path);
+			if(mplayerExe.canExecute()) {
+				try {
+					log.info("Using mplayer audio player for stream "+s.getStreamId());
+					return new MplayerAudioPlayer((ScheduledThreadPoolExecutor) ex, s, pb, mplayerExe);
+				} catch (IOException e) {
+					log.error("Caught ioe opening mplayer audio player", e);
+				}
+			} else
+				log.warn("Not using mplayer as supplied path "+mplayerExe.getAbsolutePath()+" does not exist or is not executable");
+		}
+		log.info("Using built-in player for stream "+s.getStreamId());
 		return new Mp3AudioPlayer(s, pb, ex);
 	}
 	
