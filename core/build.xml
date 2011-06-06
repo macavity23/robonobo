@@ -23,6 +23,7 @@
 		<ant dir="../eon" inheritall="false" target="compile-all"/>
 		<ant dir="../mina" inheritall="false" target="compile-all"/>
 		<ant dir="../wang-client" inheritall="false" target="compile-all"/>
+
 		<mkdir dir="target/classes"/>
 		<javac source="1.5" target="1.5" srcdir="src/java" destdir="target/classes" debug="on">
 			<classpath>
