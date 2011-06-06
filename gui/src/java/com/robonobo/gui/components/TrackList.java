@@ -39,7 +39,7 @@ import com.robonobo.gui.panels.MyPlaylistContentPanel;
 @SuppressWarnings("serial")
 public class TrackList extends JPanel {
 	/** If the track list has more than this many tracks, we show a helpful message while we create/change it as the ui might hang for a second or two */
-	public static final int TRACKLIST_SIZE_THRESHOLD = 256;
+	public static final int TRACKLIST_SIZE_THRESHOLD = 64;
 
 	JScrollPane scrollPane;
 	JXTable table;

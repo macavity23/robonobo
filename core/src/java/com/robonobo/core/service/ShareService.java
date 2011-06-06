@@ -252,9 +252,6 @@ public class ShareService extends AbstractService {
 		}
 		Set<String> shareSids = new HashSet<String>();
 		for (String sid : arr) {
-			// DEBUG
-			log.debug("Starting share "+sid);
-			
 			// We don't cache the page buffer unless we need it (there could be 10^4+), just look it up to make sure
 			// it's kosher
 			FilePageBuffer pb = storage.getPageBuf(sid);

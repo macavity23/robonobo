@@ -74,7 +74,11 @@ public class MinaConfig implements Cloneable, Serializable {
 	 * Batch up requests for source information, waiting a max of this many ms before sending. Requests for
 	 * immediate-playback streams are not batched. Also used for stream adverts in the same way
 	 */
-	int sourceRequestBatchTime = 2000;
+	int sourceRequestBatchTime = 100;
+	/**
+	 * Batch up stream advertisements, waiting a max of this many ms before sending
+	 */
+	int streamAdvertBatchTime = 5000;
 	/**
 	 * Don't send more than this many stream adverts per sec
 	 */
@@ -446,5 +450,13 @@ public class MinaConfig implements Cloneable, Serializable {
 
 	public void setStreamAdvertMaxPerSec(int streamAdvertMaxPerSec) {
 		this.streamAdvertMaxPerSec = streamAdvertMaxPerSec;
+	}
+
+	public int getStreamAdvertBatchTime() {
+		return streamAdvertBatchTime;
+	}
+
+	public void setStreamAdvertBatchTime(int streamAdvertBatchTime) {
+		this.streamAdvertBatchTime = streamAdvertBatchTime;
 	}
 }

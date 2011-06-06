@@ -357,7 +357,12 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		List<String> selSids = playingTrackList.getSelectedStreamIds();
 		if (selSids.size() > 0) {
 			playingTrackList.clearTableSelection();
-			control.play(selSids.get(0));
+			final String sid = selSids.get(0);
+			control.getExecutor().execute(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					control.play(sid);
+				}
+			});
 		}
 	}
 

@@ -14,4 +14,4 @@ log4j.logger.com.robonobo.core=DEBUG
 log4j.logger.com.robonobo.gui=DEBUG
 log4j.logger.com.robonobo.common.serialization=DEBUG
 log4j.logger.com.robonobo.common.pageio.buffer=DEBUG
-log4j.logger.com.robonobo.plugins=DEBUG
+log4j.logger.com.robonobo.plugin=DEBUG
