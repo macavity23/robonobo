@@ -34,7 +34,6 @@ import com.robonobo.mina.external.*;
  */
 public class RobonoboController {
 	private RobonoboInstance inst;
-	private JobRunner jobRunner = new JobRunner();
 	private Log log;
 
 	public RobonoboController(String[] args) throws Exception {
@@ -261,15 +260,10 @@ public class RobonoboController {
 
 	public void start() throws RobonoboException {
 		inst.start();
-		jobRunner.start();
 	}
 
 	public Track getTrack(String streamId) {
 		return inst.getTrackService().getTrack(streamId);
-	}
-
-	public void addJob(Runnable job) {
-		jobRunner.addJob(job);
 	}
 
 	/**
@@ -309,7 +303,6 @@ public class RobonoboController {
 
 	public void shutdown() {
 		inst.getEventService().removeAllListeners();
-		jobRunner.stop();
 		inst.shutdown();
 	}
 

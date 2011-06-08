@@ -53,13 +53,11 @@ public class PageInfoMgr implements PageInfoStore {
 	private final String dbUrl;
 	private int numConnsCreated = 0;
 	
-	Lock lock = new ReentrantLock();
-	boolean connInUse;
-	Condition connReady;
+	Lock putPageInfoLock = new ReentrantLock();
+	boolean connInUse = false;
 	Connection conn;
 
 	public PageInfoMgr(String dbPathPrefix) {
-		connReady = lock.newCondition();
 		try {
 			Class.forName("org.hsqldb.jdbcDriver");
 		} catch (ClassNotFoundException e) {
@@ -376,12 +374,12 @@ public class PageInfoMgr implements PageInfoStore {
 		}
 	}
 
-	// Synchronized to avoid putting more than one page for a stream in at the
-	// same time, which would throw off the pagebuf params
-	public synchronized void putPageInfo(String streamId, PageInfo pi) throws IOException {
+	public void putPageInfo(String streamId, PageInfo pi) throws IOException {
 		if (getPageInfo(streamId, pi.getPageNumber()) != null)
 			return;
 		Connection conn = null;
+		// Use a lock to make sure we only put one pageinfo at a time to ensure our last contig page value is correct
+		putPageInfoLock.lock();
 		try {
 			conn = getConnection();
 			// Store our page info and update our pagebuf params as a
@@ -410,9 +408,10 @@ public class PageInfoMgr implements PageInfoStore {
 			ps.executeUpdate();
 			ps.close();
 			conn.commit();
-		} catch (SQLException e) {
+		} catch (SQLException e) {	
 			throw new IOException("Caught sqlexception putting pageinfo: " + e.getMessage());
 		} finally {
+			putPageInfoLock.unlock();
 			if (conn != null) {
 				try {
 					conn.setAutoCommit(true);
@@ -495,19 +494,17 @@ public class PageInfoMgr implements PageInfoStore {
 		}
 	}
 
-	public Connection getConnection() throws SQLException {
-		lock.lock();
+	public synchronized Connection getConnection() throws SQLException {
 		try {
 			if(conn == null)
 				conn = DriverManager.getConnection(dbUrl);
-			if(connInUse)
-				connReady.await();
+			while(connInUse)
+				wait();
 			connInUse = true;
 			return conn;
 		} catch (InterruptedException e) {
-			throw new SeekInnerCalmException(e);
-		} finally {
-			lock.unlock();
+			log.debug("Caught interruptedexception waiting for pim db lock");
+			return null;
 		}
 		
 //		if (freeConns.size() > 0)
@@ -526,13 +523,8 @@ public class PageInfoMgr implements PageInfoStore {
 	}
 
 	public synchronized void returnConnection(Connection conn) {
-		lock.lock();
-		try {
-			connInUse = false;
-			connReady.signal();
-		} finally {
-			lock.unlock();
-		}
+		connInUse = false;
+		notify();
 //		freeConns.add(conn);
 	}
 }
