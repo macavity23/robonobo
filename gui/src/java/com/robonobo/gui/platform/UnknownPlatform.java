@@ -152,4 +152,14 @@ public class UnknownPlatform extends Platform {
 	public void customizeSearchTextField(JTextField field) {
 		// Do nothing
 	}
+	
+	@Override
+	public String fileManagerName() {
+		return null;
+	}
+	
+	@Override
+	public void showFileInFileManager(File file) {
+		// Do nothing
+	}
 }

@@ -1,7 +1,7 @@
 package com.robonobo.gui.platform;
 
 import java.awt.Event;
-import java.io.File;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.util.List;
 
@@ -132,5 +132,30 @@ public class MacPlatform extends UnknownPlatform {
 		File libDir = new File(FileSystemView.getFileSystemView().getDefaultDirectory(), "Library");
 		File appSupDir = new File(libDir, "Application Support");
 		return new File(appSupDir, "robonobo");
+	}
+	
+	@Override
+	public String fileManagerName() {
+		return "Finder";
+	}
+	
+	@Override
+	public void showFileInFileManager(File file) {
+		// We create a temporary file then execute it in applescript - not very elegant, but it works
+		File tmpFile;
+		try {
+			tmpFile = File.createTempFile("robonobo", "script");
+			PrintWriter writer = new PrintWriter(new FileOutputStream(tmpFile));
+			writer.println("tell application \"Finder\"");
+			writer.println("\tactivate");
+			writer.println("\topen folder POSIX file \""+file.getParentFile().getAbsolutePath()+"\"");
+			writer.println("\tselect item \""+file.getName()+"\" of window 1");
+			writer.println("end tell");
+			writer.close();
+			Runtime.getRuntime().exec("osascript "+tmpFile.getAbsolutePath());
+			tmpFile.deleteOnExit();
+		} catch (IOException e) {
+			log.error("Caught exception showing file in finder", e);
+		}
 	}
 }
