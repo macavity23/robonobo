@@ -68,7 +68,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		if (streamId.equals(currentStreamId) && player != null) {
 			try {
 				player.play();
-				status = Status.Playing;
+				status = Status.Starting;
 			} catch (IOException e) {
 				log.error("Caught exception restarting playback", e);
 			}
@@ -120,12 +120,12 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		// If we already have some of this stream, start playing it straight
 		// away, otherwise ask it to notify us when it gets data, and start
 		// playing
+		status = Status.Buffering;
+		event.firePlaybackStarting();
 		Stream s = rbnb.getMetadataService().getStream(currentStreamId);
 		if (bufferedEnough(s, pb))
 			startPlaying(s, pb);
 		else {
-			status = Status.Starting;
-			event.firePlaybackStarting();
 			tracks.notifyPlayingTrackChange(currentStreamId);
 			pb.addListener(this);
 		}
@@ -141,7 +141,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 	public void gotPage(final PageBuffer pb, long pageNum) {
 		Stream s = rbnb.getMetadataService().getStream(currentStreamId);
 		if (currentStreamId.equals(pb.getStreamId())) {
-			if (status == Status.Starting) {
+			if (status == Status.Buffering) {
 				if (bufferedEnough(s, pb)) {
 					pb.removeListener(this);
 					startPlaying(s, pb);
@@ -167,11 +167,22 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 				return;
 			}
 		}
-		status = Status.Playing;
+		status = Status.Starting;
 		playStartTime = TimeUtil.now();
-		log.info("Started playback for " + s);
+		log.debug("Told audioplayer to start playback for " + s);
 		tracks.notifyPlayingTrackChange(currentStreamId);
-		event.firePlaybackStarted();
+	}
+
+	/**
+	 * This is called by the audioplayer when it starts playback
+	 */
+	@Override
+	public void playbackStarted() {
+		if (status == Status.Buffering || status == Status.Starting) {
+			log.info("Audio player started playback");
+			status = Status.Playing;
+			event.firePlaybackStarted();
+		}
 	}
 
 	private AudioPlayer getAudioPlayer(Stream s, PageBuffer pb) {
@@ -204,7 +215,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 
 	public synchronized void pause() {
 		synchronized (this) {
-			if (status == Status.Starting) {
+			if (status == Status.Buffering) {
 				// We don't have a player yet, we're waiting for feedback to be
 				// buffered - remove ourselves as a listener so we don't start
 				// playing when the buffer is full
@@ -324,11 +335,5 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		if (currentStreamId == null)
 			return;
 		event.firePlaybackProgress(microsecs);
-	}
-
-	public AudioPlayer.Status playbackStatus() {
-		if (player == null)
-			return Status.Stopped;
-		return player.getStatus();
 	}
 }

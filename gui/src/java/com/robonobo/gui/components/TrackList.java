@@ -5,6 +5,7 @@ import static com.robonobo.gui.GuiUtil.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -25,6 +26,7 @@ import org.jdesktop.swingx.table.TableColumnExt;
 import org.jdesktop.swingx.table.TableColumnModelExt;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.core.Platform;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
@@ -38,7 +40,10 @@ import com.robonobo.gui.panels.MyPlaylistContentPanel;
 
 @SuppressWarnings("serial")
 public class TrackList extends JPanel {
-	/** If the track list has more than this many tracks, we show a helpful message while we create/change it as the ui might hang for a second or two */
+	/**
+	 * If the track list has more than this many tracks, we show a helpful message while we create/change it as the ui
+	 * might hang for a second or two
+	 */
 	public static final int TRACKLIST_SIZE_THRESHOLD = 64;
 
 	JScrollPane scrollPane;
@@ -94,7 +99,7 @@ public class TrackList extends JPanel {
 
 		// NOTE disabling sorting for now as it causes massive performance hits when tracks are being inserted
 		table.setSortable(false);
-		
+
 		// Render table header as not bold and with sorting arrows
 		// NOTE massively irritating bug in java5 (maybe mac only, but they're the only ones stuck on j5 anyway) that
 		// renders the table header as white if we set a custom renderer here. So we only do it in java 6+ - means that
@@ -305,7 +310,7 @@ public class TrackList extends JPanel {
 	}
 
 	public void updateViewport() {
-		if(viewportListener != null) {
+		if (viewportListener != null) {
 			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					viewportListener.checkViewportAndFire();
@@ -313,7 +318,7 @@ public class TrackList extends JPanel {
 			});
 		}
 	}
-	
+
 	class PopupMenu extends JPopupMenu implements ActionListener {
 		public PopupMenu() {
 		}
@@ -325,11 +330,12 @@ public class TrackList extends JPanel {
 			play.addActionListener(this);
 			add(play);
 			boolean needDownload = false;
+			boolean needShow = false;
 			for (Track track : getSelectedTracks()) {
-				if (track instanceof CloudTrack) {
+				if (track instanceof CloudTrack)
 					needDownload = true;
-					break;
-				}
+				if (track instanceof SharedTrack)
+					needShow = true;
 			}
 			if (needDownload) {
 				RMenuItem dl = new RMenuItem("Download");
@@ -355,6 +361,13 @@ public class TrackList extends JPanel {
 				del.setActionCommand("delete");
 				del.addActionListener(this);
 				add(del);
+			}
+			String fileManagerName = Platform.getPlatform().fileManagerName();
+			if(needShow && fileManagerName != null) {
+				RMenuItem show = new RMenuItem("Show in "+fileManagerName);
+				show.setActionCommand("show");
+				show.addActionListener(this);
+				add(show);
 			}
 		}
 
@@ -384,6 +397,22 @@ public class TrackList extends JPanel {
 				cp.addTracks(getSelectedStreamIds());
 			} else if (action.equals("delete")) {
 				frame.getMainPanel().currentContentPanel().getTrackList().deleteSelectedTracks();
+			} else if(action.equals("show")) {
+				File showFile = null;
+				for (Track t : getSelectedTracks()) {
+					if (t instanceof SharedTrack) {
+						showFile = ((SharedTrack)t).getFile();
+						break;
+					}
+				}
+				if(showFile != null) {
+					final File finalFile = showFile;
+					frame.getController().getExecutor().execute(new CatchingRunnable() {
+						public void doRun() throws Exception {
+							Platform.getPlatform().showFileInFileManager(finalFile);
+						}
+					});
+				}
 			} else
 				log.error("PopupMenu generated unknown action: " + action);
 		}
@@ -532,7 +561,7 @@ public class TrackList extends JPanel {
 	class ViewportListener implements ChangeListener {
 		int firstRow = -1, lastRow = -1;
 		JViewport v;
-		
+
 		public ViewportListener() {
 			v = scrollPane.getViewport();
 		}
@@ -542,21 +571,21 @@ public class TrackList extends JPanel {
 		}
 
 		public void checkViewportAndFire() {
-			if(!model.wantScrollEventsNow())
+			if (!model.wantScrollEventsNow())
 				return;
 			Point viewPos = v.getViewPosition();
 			Dimension viewSz = v.getExtentSize();
 			int newFirstRow = table.rowAtPoint(viewPos);
 			int newLastRow = table.rowAtPoint(new Point(viewPos.x, viewPos.y + viewSz.height));
-			if(newFirstRow == firstRow && newLastRow == lastRow)
+			if (newFirstRow == firstRow && newLastRow == lastRow)
 				return;
-			if(newFirstRow < 0 || newLastRow < 0)
+			if (newFirstRow < 0 || newLastRow < 0)
 				return;
 			firstRow = newFirstRow;
 			lastRow = newLastRow;
 			int[] modelIdxs = new int[lastRow - firstRow + 1];
-			for(int i=0;i<modelIdxs.length;i++) {
-				modelIdxs[i] = table.convertRowIndexToModel(firstRow+i);
+			for (int i = 0; i < modelIdxs.length; i++) {
+				modelIdxs[i] = table.convertRowIndexToModel(firstRow + i);
 			}
 			getModel().onScroll(modelIdxs);
 		}

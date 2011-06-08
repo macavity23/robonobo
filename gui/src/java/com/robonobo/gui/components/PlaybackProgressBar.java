@@ -44,6 +44,7 @@ public class PlaybackProgressBar extends JProgressBar {
 	private float dataAvailable;
 	Log log = LogFactory.getLog(getClass());
 	private Timer pauseTimer;
+	boolean started = false;
 
 	public PlaybackProgressBar(final RobonoboFrame frame) {
 		this.frame = frame;
@@ -91,6 +92,9 @@ public class PlaybackProgressBar extends JProgressBar {
 		// mouse event processing
 		sliderThumb.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
+				// Don't allow seeking while we're still in initial buffering
+				if(!started)
+					return;
 				dragging = true;
 				mouseDownPt = e.getPoint();
 			}
@@ -111,6 +115,9 @@ public class PlaybackProgressBar extends JProgressBar {
 		});
 		sliderThumb.addMouseMotionListener(new MouseMotionAdapter() {
 			public void mouseDragged(MouseEvent e) {
+				// Don't allow seeking while we're still in initial buffering
+				if(!started)
+					return;
 				// Get position relative to progress bar
 				Point progressBarPos = SwingUtilities.convertPoint(sliderThumb, e.getPoint(), PlaybackProgressBar.this);
 				// Take into account which part of the slider they're dragging by using mouseDownPt
@@ -150,9 +157,14 @@ public class PlaybackProgressBar extends JProgressBar {
 		sliderThumb.setLocation(pos, 0);
 	}
 
+	public void starting() {
+		started = false;
+		startThumbTextFlashing();
+	}
+	
 	public void play() {
-		if (pauseTimer != null)
-			pauseTimer.stop();
+		started = true;
+		stopThumbTextFlashing();
 		SwingUtilities.invokeLater(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				sliderThumb.setForeground(Color.BLACK);
@@ -162,20 +174,31 @@ public class PlaybackProgressBar extends JProgressBar {
 	}
 
 	public void pause() {
-		pauseTimer = new Timer(500, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (sliderThumb.getForeground().equals(Color.BLACK))
-					sliderThumb.setForeground(Color.WHITE);
-				else
-					sliderThumb.setForeground(Color.BLACK);
-			}
-		});
-		pauseTimer.start();
+		startThumbTextFlashing();
 		SwingUtilities.invokeLater(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				sliderThumb.setName("robonobo.playback.progressbar.thumb.paused");
 			}
 		});
+	}
+
+	private void startThumbTextFlashing() {
+		if (pauseTimer == null) {
+			pauseTimer = new Timer(500, new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					if (sliderThumb.getForeground().equals(Color.BLACK))
+						sliderThumb.setForeground(Color.WHITE);
+					else
+						sliderThumb.setForeground(Color.BLACK);
+				}
+			});
+		}
+		pauseTimer.start();
+	}
+
+	private void stopThumbTextFlashing() {
+		if (pauseTimer != null)
+			pauseTimer.stop();
 	}
 
 	public void setOrientation(int newOrientation) {
@@ -229,6 +252,7 @@ public class PlaybackProgressBar extends JProgressBar {
 		long msLeft = trackLengthMs - trackPositionMs;
 		setStartText("-" + timeLblFromMs(msLeft));
 		setThumbPosition(thumbPos);
+		log.debug("Progress bar setting pos: "+positionMs);
 		doRepaint();
 	}
 

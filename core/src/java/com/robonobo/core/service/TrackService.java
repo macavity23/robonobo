@@ -129,6 +129,7 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 		String playingSid = playback.getCurrentStreamId();
 		if (playingSid != null && playingSid.equals(streamId)) {
 			switch (playback.getStatus()) {
+			case Buffering: // fall through
 			case Starting:
 				t.setPlaybackStatus(PlaybackStatus.Starting);
 				break;

@@ -40,7 +40,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	public static final int PREV_TRACK_GRACE_PERIOD = 5000;
 
 	enum PlayState {
-		Stopped, Playing, Paused
+		Stopped, Starting, Playing, Paused
 	};
 
 	ImageIcon prevIcon = createImageIcon("/icon/play_back.png", PREV_TOOLTIP);
@@ -244,13 +244,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 
 	@Override
 	public void playbackStarting() {
-		// As far as we're concerned, starting and playing are the same thing
-		playbackStarted();
-	}
-
-	@Override
-	public void playbackStarted() {
-		state = PlayState.Playing;
+		state = PlayState.Starting;
 		Stream s = frame.getController().currentPlayingStream();
 		if (!s.equals(playingStream)) {
 			synchronized (this) {
@@ -264,6 +258,16 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 				updateDataAvailable();
 			}
 		}
+		playPauseBtn.setIcon(pauseIcon);
+		playPauseBtn.setToolTipText(PAUSE_TOOLTIP);
+		playbackProgress.starting();
+		checkButtonsEnabled();
+		doRepaint();
+	}
+
+	@Override
+	public void playbackRunning() {
+		state = PlayState.Playing;
 		playPauseBtn.setIcon(pauseIcon);
 		playPauseBtn.setToolTipText(PAUSE_TOOLTIP);
 		playbackProgress.play();
@@ -431,6 +435,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 			case Stopped:
 				play();
 				break;
+			case Starting: // fall through
 			case Playing:
 				control.pause();
 				break;

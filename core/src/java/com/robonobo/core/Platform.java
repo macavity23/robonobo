@@ -90,4 +90,11 @@ public abstract class Platform {
 	public abstract void customizeMainbarButtons(List<? extends JButton> btns);
 
 	public abstract void customizeSearchTextField(JTextField field);
+	
+	/**
+	 * Return null to disable showing files in file manager
+	 */
+	public abstract String fileManagerName();
+	
+	public abstract void showFileInFileManager(File file);
 }

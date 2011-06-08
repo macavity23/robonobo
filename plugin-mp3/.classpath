@@ -6,7 +6,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/core"/>
 	<classpathentry exported="true" kind="lib" path="lib/jl1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/mp3spi-robo.jar"/>
-	<classpathentry kind="lib" path="lib/basicplayer3.0-robo.jar"/>
+	<classpathentry kind="lib" path="lib/basicplayer3.0-robo.jar" sourcepath="/basicplayer/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/common"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6">
