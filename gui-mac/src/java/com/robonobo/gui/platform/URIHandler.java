@@ -11,7 +11,6 @@ public class URIHandler implements OpenURIHandler {
 		this.frame = frame;
 	}
 
-	@Override
 	public void openURI(OpenURIEvent e) {
 		String uriStr = e.getURI().toString();
 		frame.openRbnbUri(uriStr);

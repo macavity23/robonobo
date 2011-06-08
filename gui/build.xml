@@ -72,7 +72,6 @@
 			<fatjar.jarsource file="${basedir}/lib/swingx-0.9.7.jar" relpath="." />
 
 			<fatjar.filesource path="../console/target/classes" relpath="." />
-			<fatjar.filesource path="../plugin-default/target/classes" relpath="." />
 			<fatjar.filesource path="../plugin-mp3/target/classes" relpath="." />
 			<fatjar.filesource path="../plugin-mplayer/target/classes" relpath="." />
 			<fatjar.filesource path="../common/target/classes" relpath="." />
