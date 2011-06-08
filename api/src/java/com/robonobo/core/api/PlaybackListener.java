@@ -6,7 +6,7 @@ package com.robonobo.core.api;
  */
 public interface PlaybackListener {
 	public void playbackStarting();
-	public void playbackStarted();
+	public void playbackRunning();
 	public void playbackPaused();
 	public void playbackStopped();
 	public void playbackCompleted();

@@ -96,11 +96,6 @@ public class MplayerAudioPlayer implements AudioPlayer {
 		listeners.remove(listener);
 	}
 
-	@Override
-	public Status getStatus() {
-		return status;
-	}
-
 	private String getMplayerUrl(Stream s) {
 		return "http://localhost:" + serverListenPort + "/" + s.getStreamId() + ".mp3";
 	}

@@ -40,8 +40,9 @@ public class Mp3AudioPlayer implements AudioPlayer {
 	 */
 	private long seekMs = 0;
 	private MP3PlaybackListener listener = new MP3PlaybackListener();
-	private Status status;
+	private Status desiredStatus;
 	private ThreadPoolExecutor executor;
+	private boolean ignorePlayerEvents = false;
 
 	public Mp3AudioPlayer(Stream s, PageBuffer pb, ThreadPoolExecutor executor) {
 		this.s = s;
@@ -53,6 +54,7 @@ public class Mp3AudioPlayer implements AudioPlayer {
 		executor.execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				try {
+					desiredStatus = Status.Playing;
 					if (basicPlayer == null) {
 						basicPlayer = new BasicPlayer();
 						basicPlayer.addBasicPlayerListener(listener);
@@ -62,7 +64,6 @@ public class Mp3AudioPlayer implements AudioPlayer {
 						basicPlayer.play();
 					} else
 						basicPlayer.resume();
-					status = Status.Playing;
 				} catch (Exception e) {
 					for (AudioPlayerListener listener : listeners) {
 						listener.onError(e.getMessage());
@@ -75,6 +76,7 @@ public class Mp3AudioPlayer implements AudioPlayer {
 	public void stop() {
 		executor.execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
+				desiredStatus = Status.Stopped;
 				if (basicPlayer != null) {
 					try {
 						basicPlayer.stop();
@@ -82,7 +84,6 @@ public class Mp3AudioPlayer implements AudioPlayer {
 					}
 					basicPlayer = null;
 				}
-				status = Status.Stopped;
 			}
 		});
 	}
@@ -91,8 +92,11 @@ public class Mp3AudioPlayer implements AudioPlayer {
 		executor.execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				try {
+					// NOTE due to basicplayer's wonderfulness, if it is still opening the stream (doing its internal
+					// buffering) it won't respect this pause call, and will start playing as soon as it has buffered
+					// enough - see MP3PlaybackListener.stateUpdated for how we handle this
+					desiredStatus = Status.Paused;
 					basicPlayer.pause();
-					status = Status.Paused;
 				} catch (BasicPlayerException e) {
 					throw new IOException("Caught BasicPlayerException pausing: " + e.getMessage());
 				}
@@ -106,7 +110,7 @@ public class Mp3AudioPlayer implements AudioPlayer {
 	 */
 	public void seek(final long ms) throws IOException {
 		// Can only seek if playing or paused
-		if (status == Status.Stopped) {
+		if (desiredStatus == Status.Stopped) {
 			log.error("Can't seek while stopped");
 			return;
 		}
@@ -118,6 +122,7 @@ public class Mp3AudioPlayer implements AudioPlayer {
 		// stays accurate
 		log.info("Seeking: Restarting playback stream, skipping " + seekBytes + "b");
 		try {
+			ignorePlayerEvents = true;
 			basicPlayer.stop();
 			PageBufferInputStream pbis = new PageBufferInputStream(pb);
 			pbis.skip(seekBytes);
@@ -125,11 +130,13 @@ public class Mp3AudioPlayer implements AudioPlayer {
 			progressBytes = 0;
 			seekMs = ms;
 			basicPlayer.play();
-			if (status == Status.Paused)
+			if (desiredStatus == Status.Paused)
 				basicPlayer.pause();
 		} catch (BasicPlayerException e) {
 			log.error("Error seeking", e);
 			stop();
+		} finally {
+			ignorePlayerEvents = false;
 		}
 	}
 
@@ -144,27 +151,50 @@ public class Mp3AudioPlayer implements AudioPlayer {
 	class MP3PlaybackListener implements BasicPlayerListener {
 
 		public void opened(java.lang.Object stream, java.util.Map properties) {
-
 		}
 
 		public void progress(int bytesread, long microseconds, byte[] pcmdata, java.util.Map properties) {
-			if (status == Status.Playing)
-				progressBytes = bytesread;
+			if (desiredStatus != Status.Playing)
+				return;
+			progressBytes = bytesread;
 			for (AudioPlayerListener listener : listeners) {
 				listener.onProgress((seekMs * 1000) + microseconds);
 			}
 		}
 
 		public void setController(BasicController controller) {
-
 		}
 
 		public void stateUpdated(BasicPlayerEvent e) {
-			if (e.getCode() == BasicPlayerEvent.EOM) {
+			log.debug("BasicPlayer fired event: " + e.toString());
+			switch (e.getCode()) {
+			case BasicPlayerEvent.PLAYING:
+				// We might have been paused while we were waiting for enough data to arrive (in which case basicplayer
+				// will ignore our pause() call) - if so, pause now
+				if(desiredStatus == Status.Paused) {
+					try {
+						basicPlayer.pause();
+					} catch (BasicPlayerException ex) {
+						log.error("Caught exception whilst pausing after buffering", ex);
+						stop();
+					}
+					return;
+				}
+				for (AudioPlayerListener listener : listeners) {
+					listener.playbackStarted();
+				}
+				break;
+			case BasicPlayerEvent.RESUMED:
+				for (AudioPlayerListener listener : listeners) {
+					listener.playbackStarted();
+				}
+				break;
+			case BasicPlayerEvent.EOM:
 				for (AudioPlayerListener listener : listeners) {
 					listener.onCompletion();
 				}
-				status = Status.Stopped;
+				desiredStatus = Status.Stopped;
+				break;
 			}
 		}
 
@@ -228,6 +258,11 @@ public class Mp3AudioPlayer implements AudioPlayer {
 			public void onProgress(long microsecs) {
 				out.println("Progress: " + microsecs / 1000 + "ms");
 			}
+
+			@Override
+			public void playbackStarted() {
+				out.println("Playback started!");
+			}
 		});
 		player.play();
 		while (true) {
@@ -238,9 +273,5 @@ public class Mp3AudioPlayer implements AudioPlayer {
 			in.readLine();
 			player.play();
 		}
-	}
-
-	public Status getStatus() {
-		return status;
 	}
 }

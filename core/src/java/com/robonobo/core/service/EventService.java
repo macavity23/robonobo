@@ -125,7 +125,7 @@ public class EventService extends AbstractService implements MinaListener {
 			arr = getPlArr();
 		}
 		for (PlaybackListener listener : arr) {
-			listener.playbackStarted();
+			listener.playbackRunning();
 		}
 	}
 

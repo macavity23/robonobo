@@ -4,7 +4,7 @@ import java.io.IOException;
 
 public interface AudioPlayer {
 	public enum Status {
-		Starting, Playing, Paused, Stopped
+		Buffering, Starting, Playing, Paused, Stopped
 	};
 
 	public void play() throws IOException;
@@ -18,6 +18,4 @@ public interface AudioPlayer {
 	public void addListener(AudioPlayerListener listener);
 
 	public void removeListener(AudioPlayerListener listener);
-	
-	public Status getStatus();
 }
