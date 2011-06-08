@@ -120,19 +120,19 @@ public class Mp3FormatSupportProvider implements FormatSupportProvider {
 
 	public AudioPlayer getAudioPlayer(Stream s, PageBuffer pb, ThreadPoolExecutor ex) {
 		// If we have an mplayer, use that, otherwise use the built-in player
-		String path = rbnb.getConfig().getMplayerExePath();
-		if(path != null) {
-			File mplayerExe = new File(path);
-			if(mplayerExe.canExecute()) {
-				try {
-					log.info("Using mplayer audio player for stream "+s.getStreamId());
-					return new MplayerAudioPlayer((ScheduledThreadPoolExecutor) ex, s, pb, mplayerExe);
-				} catch (IOException e) {
-					log.error("Caught ioe opening mplayer audio player", e);
-				}
-			} else
-				log.warn("Not using mplayer as supplied path "+mplayerExe.getAbsolutePath()+" does not exist or is not executable");
-		}
+//		String path = rbnb.getConfig().getMplayerExePath();
+//		if(path != null) {
+//			File mplayerExe = new File(path);
+//			if(mplayerExe.canExecute()) {
+//				try {
+//					log.info("Using mplayer audio player for stream "+s.getStreamId());
+//					return new MplayerAudioPlayer((ScheduledThreadPoolExecutor) ex, s, pb, mplayerExe);
+//				} catch (IOException e) {
+//					log.error("Caught ioe opening mplayer audio player", e);
+//				}
+//			} else
+//				log.warn("Not using mplayer as supplied path "+mplayerExe.getAbsolutePath()+" does not exist or is not executable");
+//		}
 		log.info("Using built-in player for stream "+s.getStreamId());
 		return new Mp3AudioPlayer(s, pb, ex);
 	}

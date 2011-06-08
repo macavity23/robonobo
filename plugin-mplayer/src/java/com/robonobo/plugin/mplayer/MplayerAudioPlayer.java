@@ -1,11 +1,8 @@
 package com.robonobo.plugin.mplayer;
 
-import static com.robonobo.common.util.ByteUtil.*;
 import static java.lang.Math.*;
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -16,9 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.io.LinedInputStreamHandler;
-import com.robonobo.common.pageio.buffer.PageBufferInputStream;
 import com.robonobo.core.api.AudioPlayer;
 import com.robonobo.core.api.AudioPlayerListener;
 import com.robonobo.core.api.model.Stream;
@@ -32,45 +27,44 @@ import com.robonobo.mina.external.buffer.PageBuffer;
  * 
  */
 public class MplayerAudioPlayer implements AudioPlayer {
-	private static final String MPLAYER_ARGS = "-slave -quiet -identify -hr-mp3-seek -cache-min 10";
+	private static final String MPLAYER_ARGS = "-slave -quiet -hr-mp3-seek -cache-min 10";
 
 	ScheduledThreadPoolExecutor executor;
-	Stream s;
-	PageBuffer pb;
 	File mplayerExe;
-	MplayerServer server;
-	MplayerHandler handler;
-	Status status;
+	MplayerHttpServer server;
+	MplayerProcHandler handler;
+	Status status = Status.Starting;
 	List<AudioPlayerListener> listeners = new ArrayList<AudioPlayerListener>();
 	Log log = LogFactory.getLog(getClass());
+	Stream s;
+	PageBuffer pb;
 	int serverListenPort;
-	/**
-	 * mplayer guesses mp3 lengths badly, and we have to compensate for this for seeking. If this is <1, mplayer thinks
-	 * the file is shorter than it really is
-	 */
-	float mplayerStupidityRatio = 1f;
 
+	// TODO starting up mplayer and shutting it down every time here - need to refactor audioplayer to have
+	// persistent instances for better responsiveness
 	public MplayerAudioPlayer(ScheduledThreadPoolExecutor executor, Stream s, PageBuffer pb, File mplayerExe)
 			throws IOException {
 		this.executor = executor;
-		this.s = s;
-		this.pb = pb;
 		this.mplayerExe = mplayerExe;
 		if (!mplayerExe.canExecute())
 			throw new IOException("mplayer exe " + mplayerExe.getAbsolutePath()
 					+ " does not exist or is not executable");
+		this.s = s;
+		this.pb = pb;
+		server = new MplayerHttpServer();
+		server.start();
+		serverListenPort = server.getPort();
+		server.addStream(s, pb);
 	}
 
 	@Override
 	public void play() throws IOException {
-		if (handler == null) {
-			server = new MplayerServer();
-			handler = new MplayerHandler();
-		} else {
-			if (status != Status.Paused)
-				throw new SeekInnerCalmException();
+		if (status == Status.Playing)
+			return;
+		if (status == Status.Paused)
 			handler.resume();
-		}
+		else
+			handler = new MplayerProcHandler();
 		status = Status.Playing;
 	}
 
@@ -78,25 +72,20 @@ public class MplayerAudioPlayer implements AudioPlayer {
 	public void pause() throws IOException {
 		if (status == Status.Paused)
 			return;
-		if (handler != null)
-			handler.pause();
+		handler.pause();
 		status = Status.Paused;
 	}
 
 	@Override
 	public void stop() {
-		if (handler != null) {
-			handler.die();
-			server.die();
-			handler = null;
-		}
+		handler.die();
+		server.stop();
 		status = Status.Stopped;
 	}
 
 	@Override
 	public void seek(long ms) throws IOException {
-		if (handler != null)
-			handler.seek(ms);
+		handler.seek(ms);
 	}
 
 	public void addListener(AudioPlayerListener listener) {
@@ -112,79 +101,35 @@ public class MplayerAudioPlayer implements AudioPlayer {
 		return status;
 	}
 
-	private String getMplayerUrl() {
-		return "http://localhost:" + serverListenPort + "/" + s.getStreamId();
+	private String getMplayerUrl(Stream s) {
+		return "http://localhost:" + serverListenPort + "/" + s.getStreamId() + ".mp3";
 	}
 
-	/**
-	 * Listens on a localhost port and does pretend http for mplayer to talk to
-	 */
-	class MplayerServer extends CatchingRunnable {
-		Thread t;
-		PageBufferInputStream pbis;
-		private ServerSocket serverSock;
-
-		public MplayerServer() throws IOException {
-			serverSock = new ServerSocket();
-			serverSock.bind(null);
-			serverListenPort = serverSock.getLocalPort();
-			pbis = new PageBufferInputStream(pb);
-			t = new Thread(this);
-			t.start();
-			log.debug("MplayerServer listening on local port " + serverListenPort);
-		}
-
-		@Override
-		public void doRun() throws Exception {
-			Socket sock = serverSock.accept();
-			log.debug("Mplayer server received connection, sending data");
-			try {
-				OutputStream out = sock.getOutputStream();
-				out.write("HTTP/1.1 200 OK\n".getBytes());
-				out.write("Content-Length: ".getBytes());
-				out.write(String.valueOf(s.getSize()).getBytes());
-				out.write("\nContent-Type: audio/mpeg\n\n".getBytes());
-				out.flush();
-				streamDump(pbis, out);
-				sock.close();
-				log.debug("Mplayer server sent all data");
-			} catch (IOException e) {
-				log.info("Mplayer server exiting after catching IOException: " + e.getMessage());
-			}
-		}
-
-		void die() {
-			t.interrupt();
-			try {
-				serverSock.close();
-			} catch (IOException ignore) {
-			}
-		}
-	}
-
-	class MplayerHandler {
+	class MplayerProcHandler {
 		Thread stdoutRdr, stderrRdr;
 		PrintWriter stdinWriter;
 		Process mplayerProc;
 		boolean waitingForPlayback = true;
-		Future<?> getPosTask;
+		Future<?> getPropsTask;
 
-		public MplayerHandler() throws IOException {
-			mplayerProc = Runtime.getRuntime().exec(
-					mplayerExe.getAbsolutePath() + " " + MPLAYER_ARGS + " " + getMplayerUrl());
-			stdoutRdr = new Thread(new StdOutHandler(mplayerProc.getInputStream()));
-			stdoutRdr.start();
-			stderrRdr = new Thread(new StdErrHandler(mplayerProc.getErrorStream()));
-			stderrRdr.start();
-			stdinWriter = new PrintWriter(mplayerProc.getOutputStream());
-			getPosTask = executor.scheduleAtFixedRate(new CatchingRunnable() {
-				public void doRun() throws Exception {
-					if (status == Status.Playing) {
-						stdinWriter.write("pausing_keep get_property time_pos\n");
-						stdinWriter.flush();
-					}
-				}
-			}, 500, 500, TimeUnit.MILLISECONDS);
+		public MplayerProcHandler() throws IOException {
+			String cmdLine = mplayerExe.getAbsolutePath() + " " + MPLAYER_ARGS + " " + getMplayerUrl(s);
+			log.debug("DEBUG: run mplayer with cmdline: "+cmdLine);
+//			mplayerProc = Runtime.getRuntime().exec(cmdLine);
+//			stdoutRdr = new Thread(new StdOutHandler(mplayerProc.getInputStream()));
+//			stdoutRdr.start();
+//			stderrRdr = new Thread(new StdErrHandler(mplayerProc.getErrorStream()));
+//			stderrRdr.start();
+//			stdinWriter = new PrintWriter(mplayerProc.getOutputStream());
+//			getPropsTask = executor.scheduleAtFixedRate(new CatchingRunnable() {
+//				public void doRun() throws Exception {
+//					if (status == Status.Playing) {
+//						stdinWriter.write("pausing_keep get_property time_pos\n");
+//						// stdinWriter.write("pausing_keep get_property path\n");
+//						stdinWriter.flush();
+//					}
+//				}
+//			}, 500, 200, TimeUnit.MILLISECONDS);
 		}
 
 		private void pause() {
@@ -192,24 +137,22 @@ public class MplayerAudioPlayer implements AudioPlayer {
 			stdinWriter.flush();
 		}
 
-		/**
-		 * This assumes we're keeping track somewhere else of whether we're paused/playing
-		 */
+		// private void play() {
+		// // TODO If we pause then playback a different stream, and we get snippets of the previous stream, see
+		// // mplayer slave mode doc for how to workaround
+		// stdinWriter.write("loadfile " + getMplayerUrl(s) + "\n");
+		// stdinWriter.flush();
+		// }
+
 		private void resume() {
 			stdinWriter.write("pause\n");
 			stdinWriter.flush();
 		}
 
 		private void seek(long ms) {
-//			int secs = round(ms / 1000 * mplayerStupidityRatio);
-//			int secs = round(ms / 1000f);
-//			log.debug("Seeking to: " + secs);
-//			stdinWriter.write("seek " + secs + " 2\n");
-
-						int pcnt = (int) (100 * ms / s.getDuration());
-			log.debug("Seeking to: "+pcnt+"%");
-			stdinWriter.write("seek " + pcnt + " 1\n");
-			stdinWriter.flush();
+			int secs = round(ms / 1000f);
+			log.debug("Seeking to: " + secs);
+			stdinWriter.write("seek " + secs + " 2\n");
 		}
 
 		private void die() {
@@ -217,18 +160,24 @@ public class MplayerAudioPlayer implements AudioPlayer {
 			stdinWriter.flush();
 			stdoutRdr.interrupt();
 			stderrRdr.interrupt();
-			getPosTask.cancel(true);
+			getPropsTask.cancel(true);
 			stdinWriter.close();
 			mplayerProc.destroy();
 		}
 
 		class StdErrHandler extends LinedInputStreamHandler {
+			final String[] ignoreLines = { "nop_streaming_read error : Bad file descriptor" };
+
 			public StdErrHandler(InputStream is) {
 				super(is);
 			}
 
 			@Override
 			public void handleLine(String line) {
+				for (String ignoreLine : ignoreLines) {
+					if (line.trim().equalsIgnoreCase(ignoreLine))
+						return;
+				}
 				log.debug("Mplayer stderr output: " + line);
 			}
 
@@ -239,7 +188,6 @@ public class MplayerAudioPlayer implements AudioPlayer {
 		}
 
 		class StdOutHandler extends LinedInputStreamHandler {
-			Pattern streamLengthPattern = Pattern.compile("^ID_LENGTH=([0-9\\.]+)$");
 			Pattern playbackStartPattern = Pattern.compile("^Starting playback...$");
 			Pattern propValPattern = Pattern.compile("^(\\S+)=(\\S+)$");
 			Pattern endPattern = Pattern.compile("^Exiting... \\((.*)\\)$");
@@ -252,14 +200,6 @@ public class MplayerAudioPlayer implements AudioPlayer {
 			public void handleLine(String line) {
 				log.info("Got stdout from mplayer: " + line);
 				if (waitingForPlayback) {
-					Matcher m = streamLengthPattern.matcher(line);
-					if (m.find()) {
-						float lengthAccordingToMplayer = Float.parseFloat(m.group(1)) * 1000;
-						long realLength = s.getDuration();
-						mplayerStupidityRatio = lengthAccordingToMplayer / realLength;
-						log.info("Mplayer thinks stream length is "+lengthAccordingToMplayer+" - discrepency "+mplayerStupidityRatio);
-						return;
-					}
 					if (playbackStartPattern.matcher(line).matches()) {
 						waitingForPlayback = false;
 						log.debug("MPlayer playback starting...");
