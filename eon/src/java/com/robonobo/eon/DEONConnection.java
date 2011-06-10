@@ -30,7 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import com.robonobo.common.async.PushDataProvider;
 import com.robonobo.common.async.PushDataReceiver;
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 
 public class DEONConnection extends EONConnection implements PushDataProvider {
 	public static final int DEONConnectionState_Open = 1;
@@ -109,7 +109,7 @@ public class DEONConnection extends EONConnection implements PushDataProvider {
 	public void sendTo(EonSocketAddress remoteEndPoint, byte[] buffer, int startIndex, int numBytes)
 			throws EONException {
 		if (startIndex + numBytes > buffer.length)
-			throw new SeekInnerCalmException("Supplied indices do not fit in supplied buffer");
+			throw new Errot("Supplied indices do not fit in supplied buffer");
 		if (state == DEONConnectionState_Closed)
 			throw new EONException("Connection is closed");
 		byte[] payloadArr = new byte[numBytes];

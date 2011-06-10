@@ -8,8 +8,6 @@ import static com.robonobo.gui.GuiUtil.*;
 import java.util.*;
 import java.util.Map.Entry;
 
-import javax.swing.SwingUtilities;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.apache.commons.logging.Log;
@@ -19,15 +17,13 @@ import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.swing.SortableTreeNode;
 import com.robonobo.common.swing.SortedTreeModel;
 import com.robonobo.core.RobonoboController;
-import com.robonobo.core.api.LibraryListener;
-import com.robonobo.core.api.UserPlaylistListener;
+import com.robonobo.core.api.*;
 import com.robonobo.core.api.model.*;
-import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.components.FriendTree;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 @SuppressWarnings("serial")
-public class FriendTreeModel extends SortedTreeModel implements UserPlaylistListener, LibraryListener {
+public class FriendTreeModel extends SortedTreeModel implements UserListener, PlaylistListener, LibraryListener, LoginListener {
 	static final int MAX_FRIEND_PLAYLIST_TITLE_WIDTH = 100;
 	RobonoboFrame frame;
 	RobonoboController control;
@@ -45,11 +41,14 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 		setRoot(myRoot);
 		frame = rFrame;
 		control = frame.getController();
-		control.addUserPlaylistListener(this);
+		control.addUserListener(this);
+		control.addPlaylistListener(this);
 		control.addLibraryListener(this);
+		control.addLoginListener(this);
 	}
 
-	public void loggedIn() {
+	@Override
+	public void loginSucceeded(User me) {
 		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				synchronized (FriendTreeModel.this) {
@@ -62,7 +61,12 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 			}
 		});
 	}
-
+	
+	@Override
+	public void loginFailed(String reason) {
+		// Do nothing
+	}
+	
 	public void userChanged(final User u) {
 		// If it's me, check to see if any of my friends are no longer friends
 		if (control.getMyUser().equals(u)) {
@@ -142,7 +146,7 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 	}
 
 	@Override
-	public void libraryChanged(final Library lib, final Set<String> newTrackSids) {
+	public void libraryChanged(final Library lib, final Collection<String> newTrackSids) {
 		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				LibraryTreeNode ltn;
@@ -177,12 +181,6 @@ public class FriendTreeModel extends SortedTreeModel implements UserPlaylistList
 	
 	@Override
 	public void myLibraryUpdated() {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	@Override
-	public void allUsersAndPlaylistsUpdated() {
 		// TODO Auto-generated method stub
 		
 	}

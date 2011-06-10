@@ -8,7 +8,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.MD5StreamIdGenerator;
 import com.robonobo.core.api.StreamIdGenerator;
@@ -100,7 +100,7 @@ public class FormatService extends AbstractService {
 					return fsp;
 			}
 		}
-		throw new SeekInnerCalmException();
+		throw new Errot();
 	}
 
 }

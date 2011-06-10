@@ -5,6 +5,7 @@ import java.util.Random;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.PropertyConfigurator;
 
 import com.robonobo.wang.client.WangClient;
@@ -32,7 +33,7 @@ public class WangSoakTester {
 	Random rand;
 
 	private static void printUsage() {
-		System.err.println("Usage: WangSoakTester <bank url> <username> <pwd> <num threads>");
+		System.err.println("Usage: WangSoakTester <bank url> <email> <pwd> <num threads>");
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -93,7 +94,7 @@ public class WangSoakTester {
 			try {
 				while (true) {
 					log.info("Starting new client");
-					WangClient client = new WangClient(cfg);
+					WangClient client = new WangClient(cfg, new DefaultHttpClient());
 					client.start();
 					for (int i = 0; i < TRANS_PER_CLIENT; i++) {
 						double amt = getTransAmt();

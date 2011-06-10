@@ -1,13 +1,7 @@
 package com.robonobo.core;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,21 +12,16 @@ import org.apache.log4j.PropertyConfigurator;
 
 import com.robonobo.common.concurrent.SafetyNet;
 import com.robonobo.common.serialization.ConfigBeanSerializer;
-import com.robonobo.common.serialization.PageBufferSerializer;
-import com.robonobo.common.serialization.SerializationManager;
 import com.robonobo.common.util.ExceptionEvent;
 import com.robonobo.common.util.ExceptionListener;
-import com.robonobo.core.api.Robonobo;
-import com.robonobo.core.api.RobonoboException;
-import com.robonobo.core.api.RobonoboStatus;
+import com.robonobo.core.api.*;
 import com.robonobo.core.api.config.RobonoboConfig;
 import com.robonobo.core.itunes.ITunesService;
+import com.robonobo.core.metadata.AbstractMetadataService;
 import com.robonobo.core.mina.MinaService;
-import com.robonobo.core.search.SearchService;
 import com.robonobo.core.service.*;
 import com.robonobo.core.storage.StorageService;
 import com.robonobo.core.update.Updater;
-import com.robonobo.core.wang.RobonoboWangConfig;
 import com.robonobo.core.wang.WangService;
 import com.robonobo.mina.external.Application;
 import com.robonobo.mina.external.MinaControl;
@@ -51,7 +40,6 @@ public class RobonoboInstance implements Robonobo {
 	ScheduledThreadPoolExecutor executor;
 	Map<String, Object> configs = new HashMap<String, Object>();
 	ServiceManager serviceMgr;
-	private SerializationManager serializationMgr;
 	Application thisApplication;
 	private File homeDir;
 	private RobonoboStatus status = RobonoboStatus.Stopped;
@@ -62,7 +50,6 @@ public class RobonoboInstance implements Robonobo {
 		initLogging();
 		updateHomeDir();
 		loadApplicationDetails();
-		initSerializers();
 		loadConfig();
 		overrideConfigWithEnv();
 		registerServices();
@@ -77,7 +64,7 @@ public class RobonoboInstance implements Robonobo {
 
 	protected void startExecutor() {
 		if (executor == null) {
-			int poolSz = Runtime.getRuntime().availableProcessors() + getConfig().getThreadPoolOverhead();
+			int poolSz = getConfig().getGeneralThreadPoolSize();
 			log.info("Starting thread pool with " + poolSz + " threads");
 			executor = new ScheduledThreadPoolExecutor(poolSz);
 		}
@@ -95,11 +82,28 @@ public class RobonoboInstance implements Robonobo {
 		serviceMgr.registerService(new ShareService());
 		serviceMgr.registerService(new DownloadService());
 		serviceMgr.registerService(new TrackService());
-		serviceMgr.registerService(new MetadataService());
 		serviceMgr.registerService(new PlaybackService());
 		serviceMgr.registerService(new UserService());
+		serviceMgr.registerService(new PlaylistService());
 		serviceMgr.registerService(new TaskService());
 		serviceMgr.registerService(new LibraryService());
+		serviceMgr.registerService(new StreamService());
+		serviceMgr.registerService(new HttpService());
+		// Register our metadata service as defined in config
+		String metadataServiceClass = getConfig().getMetadataServiceClass();
+		try {
+			Class<?> cl = Class.forName(metadataServiceClass);
+			AbstractMetadataService svc = (AbstractMetadataService) cl.newInstance();
+			serviceMgr.registerService(svc);
+		} catch(ClassNotFoundException e) {
+			throw new RuntimeException("Could not find metadata service class '"+metadataServiceClass+"'", e);
+		} catch (InstantiationException e) {
+			throw new RuntimeException("Error instantiating metadata service class '"+metadataServiceClass+"'", e);
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException("Error instantiating metadata service class '"+metadataServiceClass+"'", e);
+		} catch(ClassCastException e) {
+			throw new RuntimeException("Metadata service class '"+metadataServiceClass+"' defined in config does not extend com.robonobo.core.metadata.AbstractMetadataServicew", e);
+		}
 
 		if (getConfig().isAgoric())
 			serviceMgr.registerService(new WangService());
@@ -132,11 +136,6 @@ public class RobonoboInstance implements Robonobo {
 			version = props.getProperty("version");
 			is.close();
 		}
-	}
-
-	protected void initSerializers() {
-		serializationMgr = new SerializationManager();
-		serializationMgr.registerSerializer(new PageBufferSerializer());
 	}
 
 	protected void loadConfig() throws IOException {
@@ -267,10 +266,14 @@ public class RobonoboInstance implements Robonobo {
 		return (ITunesService) serviceMgr.getService("core.itunes");
 	}
 
-	public UserService getUsersService() {
+	public UserService getUserService() {
 		return (UserService) serviceMgr.getService("core.users");
 	}
 
+	public PlaylistService getPlaylistService() {
+		return (PlaylistService) serviceMgr.getService("core.playlists");
+	}
+	
 	public PlaybackService getPlaybackService() {
 		return (PlaybackService) serviceMgr.getService("core.playback");
 	}
@@ -299,16 +302,24 @@ public class RobonoboInstance implements Robonobo {
 		return (DbService) serviceMgr.getService("core.db");
 	}
 
-	public MetadataService getMetadataService() {
-		return (MetadataService) serviceMgr.getService("core.metadata");
+//	public MetadataService getMetadataService() {
+//		return (MetadataService) serviceMgr.getService("core.metadata");
+//	}
+
+	public AbstractMetadataService getMetadataService() {
+		return (AbstractMetadataService) serviceMgr.getService("core.metadata");
 	}
 
+	public HttpService getHttpService() {
+		return (HttpService) serviceMgr.getService("core.http");
+	}
+	
+	public StreamService getStreamService() {
+		return (StreamService) serviceMgr.getService("core.streams");
+	}
+	
 	public MinaControl getMina() {
 		return ((MinaService) getServiceMgr().getService("core.mina")).getMina();
-	}
-
-	public SerializationManager getSerializationManager() {
-		return serializationMgr;
 	}
 
 	public ServiceManager getServiceMgr() {

@@ -2,25 +2,24 @@ package com.robonobo.core.service;
 
 import java.util.*;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.wang.WangListener;
-import com.robonobo.mina.external.*;
+import com.robonobo.mina.external.ConnectedNode;
+import com.robonobo.mina.external.MinaListener;
 
 public class EventService extends AbstractService implements MinaListener {
 	private List<TrackListener> trList = new ArrayList<TrackListener>();
-	private List<PlaybackListener> plList = new ArrayList<PlaybackListener>();
-	private List<UserPlaylistListener> upList = new ArrayList<UserPlaylistListener>();
+	private List<PlaybackListener> pbList = new ArrayList<PlaybackListener>();
+	private List<UserListener> ulList = new ArrayList<UserListener>();
+	private List<PlaylistListener> plList = new ArrayList<PlaylistListener>();
+	private List<LoginListener> liList = new ArrayList<LoginListener>();
 	private List<RobonoboStatusListener> stList = new ArrayList<RobonoboStatusListener>();
 	private List<WangListener> wList = new ArrayList<WangListener>();
 	private List<TransferSpeedListener> tsList = new ArrayList<TransferSpeedListener>();
 	private List<TaskListener> tlList = new ArrayList<TaskListener>();
 	private List<LibraryListener> llList = new ArrayList<LibraryListener>();
 	private int minaSupernodes = 0;
-	private Log log = LogFactory.getLog(getClass());
 
 	public EventService() {
 	}
@@ -34,11 +33,11 @@ public class EventService extends AbstractService implements MinaListener {
 	}
 
 	public synchronized void addPlaybackListener(PlaybackListener l) {
-		plList.add(l);
+		pbList.add(l);
 	}
 
 	public synchronized void removePlaybackListener(PlaybackListener l) {
-		plList.remove(l);
+		pbList.remove(l);
 	}
 
 	public synchronized void addStatusListener(RobonoboStatusListener l) {
@@ -49,14 +48,30 @@ public class EventService extends AbstractService implements MinaListener {
 		stList.remove(l);
 	}
 
-	public synchronized void addUserPlaylistListener(UserPlaylistListener l) {
-		upList.add(l);
+	public synchronized void addUserListener(UserListener l) {
+		ulList.add(l);
 	}
 	
-	public synchronized void removeUserPlaylistListener(UserPlaylistListener l) {
-		upList.remove(l);
+	public synchronized void removeUserListener(UserListener l) {
+		ulList.remove(l);
 	}
 	
+	public synchronized void addPlaylistListener(PlaylistListener l) {
+		plList.add(l);
+	}
+	
+	public synchronized void removePlaylistListener(PlaylistListener l) {
+		plList.remove(l);
+	}
+	
+	public synchronized void addLoginListener(LoginListener l) {
+		liList.add(l);
+	}
+	
+	public synchronized void removeLoginListener(LoginListener l) {
+		liList.remove(l);
+	}
+
 	public synchronized void addLibraryListener(LibraryListener l) {
 		llList.add(l);
 	}
@@ -122,7 +137,7 @@ public class EventService extends AbstractService implements MinaListener {
 	public void firePlaybackStarted() {
 		PlaybackListener[] arr;
 		synchronized (this) {
-			arr = getPlArr();
+			arr = getPbArr();
 		}
 		for (PlaybackListener listener : arr) {
 			listener.playbackRunning();
@@ -132,7 +147,7 @@ public class EventService extends AbstractService implements MinaListener {
 	public void firePlaybackStarting() {
 		PlaybackListener[] arr;
 		synchronized (this) {
-			arr = getPlArr();
+			arr = getPbArr();
 		}
 		for (PlaybackListener listener : arr) {
 			listener.playbackStarting();
@@ -142,7 +157,7 @@ public class EventService extends AbstractService implements MinaListener {
 	public void firePlaybackPaused() {
 		PlaybackListener[] arr;
 		synchronized (this) {
-			arr = getPlArr();
+			arr = getPbArr();
 		}
 		for (PlaybackListener listener : arr) {
 			listener.playbackPaused();
@@ -152,7 +167,7 @@ public class EventService extends AbstractService implements MinaListener {
 	public void firePlaybackStopped() {
 		PlaybackListener[] arr;
 		synchronized (this) {
-			arr = getPlArr();
+			arr = getPbArr();
 		}
 		for (PlaybackListener listener : arr) {
 			listener.playbackStopped();
@@ -162,7 +177,7 @@ public class EventService extends AbstractService implements MinaListener {
 	public void firePlaybackCompleted() {
 		PlaybackListener[] arr;
 		synchronized (this) {
-			arr = getPlArr();
+			arr = getPbArr();
 		}
 		for (PlaybackListener listener : arr) {
 			listener.playbackCompleted();
@@ -172,7 +187,7 @@ public class EventService extends AbstractService implements MinaListener {
 	public void firePlaybackProgress(long microsecs) {
 		PlaybackListener[] arr;
 		synchronized (this) {
-			arr = getPlArr();
+			arr = getPbArr();
 		}
 		for (PlaybackListener listener : arr) {
 			listener.playbackProgress(microsecs);
@@ -182,7 +197,7 @@ public class EventService extends AbstractService implements MinaListener {
 	public void firePlaybackError(String error) {
 		PlaybackListener[] arr;
 		synchronized (this) {
-			arr = getPlArr();
+			arr = getPbArr();
 		}
 		for (PlaybackListener listener : arr) {
 			listener.playbackError(error);
@@ -192,7 +207,7 @@ public class EventService extends AbstractService implements MinaListener {
 	public void fireSeekStarted() {
 		PlaybackListener[] arr;
 		synchronized (this) {
-			arr = getPlArr();
+			arr = getPbArr();
 		}
 		for (PlaybackListener listener : arr) {
 			listener.seekStarted();
@@ -202,7 +217,7 @@ public class EventService extends AbstractService implements MinaListener {
 	public void fireSeekFinished() {
 		PlaybackListener[] arr;
 		synchronized (this) {
-			arr = getPlArr();
+			arr = getPbArr();
 		}
 		for (PlaybackListener listener : arr) {
 			listener.seekFinished();
@@ -210,46 +225,46 @@ public class EventService extends AbstractService implements MinaListener {
 	}
 
 	public void fireUserChanged(User u) {
-		UserPlaylistListener[] arr;
+		UserListener[] arr;
 		synchronized (this) {
-			arr = getUpArr();
+			arr = getUlArr();
 		}
-		for (UserPlaylistListener listener : arr) {
+		for (UserListener listener : arr) {
 			listener.userChanged(u);
 		}
 	}
 
-	public void fireAllUsersAndPlaylistsUpdated() {
-		UserPlaylistListener[] arr;
-		synchronized (this) {
-			arr = getUpArr();
-		}
-		for (UserPlaylistListener listener : arr) {
-			listener.allUsersAndPlaylistsUpdated();
-		}
-	}
-
 	public void firePlaylistChanged(Playlist p) {
-		UserPlaylistListener[] arr;
+		PlaylistListener[] arr;
 		synchronized (this) {
-			arr = getUpArr();
+			arr = getPlArr();
 		}
-		for (UserPlaylistListener listener : arr) {
+		for (PlaylistListener listener : arr) {
 			listener.playlistChanged(p);
 		}
 	}
 
-	public void fireLoggedIn() {
-		UserPlaylistListener[] arr;
+	public void fireLoginSucceeded(User me) {
+		LoginListener[] arr;
 		synchronized (this) {
-			arr = getUpArr();
+			arr = getLiArr();
 		}
-		for (UserPlaylistListener listener : arr) {
-			listener.loggedIn();
+		for (LoginListener listener : arr) {
+			listener.loginSucceeded(me);
 		}
 	}
 
-	public void fireLibraryChanged(Library lib, Set<String> newTracks) {
+	public void fireLoginFailed(String reason) {
+		LoginListener[] arr;
+		synchronized (this) {
+			arr = getLiArr();
+		}
+		for (LoginListener listener : arr) {
+			listener.loginFailed(reason);
+		}
+	}
+
+	public void fireLibraryChanged(Library lib, Collection<String> newTracks) {
 		LibraryListener[] arr;
 		synchronized (this) {
 			arr = getLlArr();
@@ -270,11 +285,11 @@ public class EventService extends AbstractService implements MinaListener {
 	}
 
 	public void fireUserConfigChanged(UserConfig cfg) {
-		UserPlaylistListener[] arr;
+		UserListener[] arr;
 		synchronized (this) {
-			arr = getUpArr();
+			arr = getUlArr();
 		}
-		for (UserPlaylistListener listener : arr) {
+		for (UserListener listener : arr) {
 			listener.userConfigChanged(cfg);
 		}
 	}
@@ -311,15 +326,21 @@ public class EventService extends AbstractService implements MinaListener {
 
 	public void removeAllListeners() {
 		trList.clear();
+		pbList.clear();
+		ulList.clear();
 		plList.clear();
-		upList.clear();
+		liList.clear();
 		stList.clear();
+		wList.clear();
+		tsList.clear();
+		tlList.clear();
+		llList.clear();
 	}
 
 	public void nodeConnected(ConnectedNode node) {
 		if(node.isSupernode()) {
 			minaSupernodes++;
-			if(minaSupernodes > 0 && getRobonobo().getUsersService().isLoggedIn()) {
+			if(minaSupernodes > 0 && getRobonobo().getUserService().isLoggedIn()) {
 				getRobonobo().setStatus(RobonoboStatus.Connected);
 				fireStatusChanged();
 			}
@@ -387,16 +408,27 @@ public class EventService extends AbstractService implements MinaListener {
 	}
 
 	/** Copy the list of listeners, to remove deadlock possibilities */
-	private PlaybackListener[] getPlArr() {
-		PlaybackListener[] result = new PlaybackListener[plList.size()];
+	private PlaybackListener[] getPbArr() {
+		PlaybackListener[] result = new PlaybackListener[pbList.size()];
+		pbList.toArray(result);
+		return result;
+	}
+
+	private UserListener[] getUlArr() {
+		UserListener[] result = new UserListener[ulList.size()];
+		ulList.toArray(result);
+		return result;
+	}
+
+	private PlaylistListener[] getPlArr() {
+		PlaylistListener[] result = new PlaylistListener[plList.size()];
 		plList.toArray(result);
 		return result;
 	}
 
-	/** Copy the list of listeners, to remove deadlock possibilities */
-	private UserPlaylistListener[] getUpArr() {
-		UserPlaylistListener[] result = new UserPlaylistListener[upList.size()];
-		upList.toArray(result);
+	private LoginListener[] getLiArr() {
+		LoginListener[] result = new LoginListener[liList.size()];
+		liList.toArray(result);
 		return result;
 	}
 

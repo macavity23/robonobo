@@ -35,7 +35,7 @@ import org.apache.commons.logging.LogFactory;
 import com.robonobo.common.async.*;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.concurrent.Timeout;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.io.ByteBufferInputStream;
 import com.robonobo.common.util.*;
 
@@ -1215,7 +1215,7 @@ public class SEONConnection extends EONConnection implements PullDataReceiver, P
 
 		if (state == State.Listen) {
 			// Can't happen
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		}
 		// Don't send data in SynSent/SynReceived - but allow ourselves to
 		// retransmit
@@ -1524,7 +1524,7 @@ public class SEONConnection extends EONConnection implements PullDataReceiver, P
 			log.debug(this + " sending immediate pkt:" + pkt);
 
 		if (pkt.getPayloadSize() > 0)
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		if (retransTimeout > 0 && (pkt.isSYN() || pkt.isFIN())) {
 			addToRetransQ(pkt);
 			if (responseTimeout > 0)

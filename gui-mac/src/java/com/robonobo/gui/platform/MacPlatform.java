@@ -10,7 +10,7 @@ import javax.swing.filechooser.FileSystemView;
 
 import com.apple.eawt.Application;
 import com.apple.eawt.OpenURIHandler;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.itunes.ITunesService;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.itunes.mac.MacITunesService;
@@ -31,7 +31,7 @@ public class MacPlatform extends UnknownPlatform {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		}
 		String mbUI = UIManager.getString("MenuBarUI");
 		super.setLookAndFeel();
@@ -65,7 +65,7 @@ public class MacPlatform extends UnknownPlatform {
 			// Old version of apple java
 			// TODO Tell them to update
 		} catch (Exception e) {
-			throw new SeekInnerCalmException("Exception registering URI handler", e);
+			throw new Errot("Exception registering URI handler", e);
 		}
 	}
 

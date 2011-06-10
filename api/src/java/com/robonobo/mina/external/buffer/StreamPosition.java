@@ -1,6 +1,6 @@
 package com.robonobo.mina.external.buffer;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 
 public class StreamPosition {
 	private long lastContiguousPage;
@@ -39,7 +39,7 @@ public class StreamPosition {
 			if(((pageMap >>> i) & 0x1) > 0)
 				return lastContiguousPage + i + 1;
 		}
-		throw new SeekInnerCalmException();
+		throw new Errot();
 	}
 	
 	@Override

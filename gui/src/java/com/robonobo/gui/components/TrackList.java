@@ -41,11 +41,9 @@ import com.robonobo.gui.panels.MyPlaylistContentPanel;
 @SuppressWarnings("serial")
 public class TrackList extends JPanel {
 	/**
-	 * If the track list has more than this many tracks, we show a helpful message while we create/change it as the ui
-	 * might hang for a second or two
+	 * If the track list has more than this many tracks, we show a helpful message while we create/change it as the ui might hang for a second or two
 	 */
 	public static final int TRACKLIST_SIZE_THRESHOLD = 64;
-
 	JScrollPane scrollPane;
 	JXTable table;
 	TrackListTableModel model;
@@ -80,7 +78,6 @@ public class TrackList extends JPanel {
 				frame.getPlaybackPanel().trackSelectionChanged();
 			}
 		});
-
 		// Cell renderers
 		table.getColumn(0).setCellRenderer(new PlaybackStatusRenderer());
 		TextRenderer tr = new TextRenderer();
@@ -96,10 +93,8 @@ public class TrackList extends JPanel {
 		table.getColumn(10).setCellRenderer(tr);
 		table.getColumn(11).setCellRenderer(tr);
 		table.getColumn(12).setCellRenderer(tr);
-
 		// NOTE disabling sorting for now as it causes massive performance hits when tracks are being inserted
 		table.setSortable(false);
-
 		// Render table header as not bold and with sorting arrows
 		// NOTE massively irritating bug in java5 (maybe mac only, but they're the only ones stuck on j5 anyway) that
 		// renders the table header as white if we set a custom renderer here. So we only do it in java 6+ - means that
@@ -109,10 +104,8 @@ public class TrackList extends JPanel {
 				ImageIcon ascSortIcon = GuiUtil.createImageIcon("/icon/arrow_up.png", null);
 				ImageIcon descSortIcon = GuiUtil.createImageIcon("/icon/arrow_down.png", null);
 
-				public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-						boolean hasFocus, int row, int column) {
-					JLabel result = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
-							row, column);
+				public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+					JLabel result = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 					result.setFont(RoboFont.getFont(12, false));
 					result.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 0));
 					SortOrder so = TrackList.this.table.getSortOrder(column);
@@ -128,7 +121,6 @@ public class TrackList extends JPanel {
 				}
 			});
 		}
-
 		TableColumnModelExt cm = (TableColumnModelExt) table.getColumnModel();
 		cm.getColumn(0).setPreferredWidth(22); // Status icon
 		cm.getColumn(1).setPreferredWidth(187); // Title
@@ -143,14 +135,12 @@ public class TrackList extends JPanel {
 		cm.getColumn(10).setPreferredWidth(80); // Upload
 		cm.getColumn(11).setPreferredWidth(140); // Date Added
 		cm.getColumn(12).setPreferredWidth(300); // Stream Id
-
 		int[] hiddenCols = model.hiddenCols();
 		List<TableColumn> cols = cm.getColumns(true);
 		for (int i = 0; i < hiddenCols.length; i++) {
 			TableColumnExt colExt = (TableColumnExt) cols.get(hiddenCols[i]);
 			colExt.setVisible(false);
 		}
-
 		table.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
@@ -184,7 +174,6 @@ public class TrackList extends JPanel {
 				popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
 		});
-
 		scrollPane = new JScrollPane(table);
 		if (model.wantScrollEventsEver()) {
 			viewportListener = new ViewportListener();
@@ -349,11 +338,13 @@ public class TrackList extends JPanel {
 			newPl.addActionListener(this);
 			plMenu.add(newPl);
 			for (long plId : frame.getController().getMyUser().getPlaylistIds()) {
-				Playlist p = frame.getController().getPlaylist(plId);
-				RMenuItem pmi = new RMenuItem(p.getTitle());
-				pmi.setActionCommand("pl-" + p.getPlaylistId());
-				pmi.addActionListener(this);
-				plMenu.add(pmi);
+				Playlist p = frame.getController().getKnownPlaylist(plId);
+				if (p != null) {
+					RMenuItem pmi = new RMenuItem(p.getTitle());
+					pmi.setActionCommand("pl-" + p.getPlaylistId());
+					pmi.addActionListener(this);
+					plMenu.add(pmi);
+				}
 			}
 			add(plMenu);
 			if (model.allowDelete()) {
@@ -363,8 +354,8 @@ public class TrackList extends JPanel {
 				add(del);
 			}
 			String fileManagerName = Platform.getPlatform().fileManagerName();
-			if(needShow && fileManagerName != null) {
-				RMenuItem show = new RMenuItem("Show in "+fileManagerName);
+			if (needShow && fileManagerName != null) {
+				RMenuItem show = new RMenuItem("Show in " + fileManagerName);
 				show.setActionCommand("show");
 				show.addActionListener(this);
 				add(show);
@@ -387,25 +378,23 @@ public class TrackList extends JPanel {
 					}
 				}
 			} else if (action.equals("newpl")) {
-				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel()
-						.getContentPanel("newplaylist");
+				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel().getContentPanel("newplaylist");
 				cp.addTracks(getSelectedStreamIds());
 			} else if (action.startsWith("pl-")) {
 				long plId = Long.parseLong(action.substring(3));
-				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel().getContentPanel(
-						"playlist/" + plId);
+				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel().getContentPanel("playlist/" + plId);
 				cp.addTracks(getSelectedStreamIds());
 			} else if (action.equals("delete")) {
 				frame.getMainPanel().currentContentPanel().getTrackList().deleteSelectedTracks();
-			} else if(action.equals("show")) {
+			} else if (action.equals("show")) {
 				File showFile = null;
 				for (Track t : getSelectedTracks()) {
 					if (t instanceof SharedTrack) {
-						showFile = ((SharedTrack)t).getFile();
+						showFile = ((SharedTrack) t).getFile();
 						break;
 					}
 				}
-				if(showFile != null) {
+				if (showFile != null) {
 					final File finalFile = showFile;
 					frame.getController().getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
@@ -422,8 +411,7 @@ public class TrackList extends JPanel {
 		Font plainFont = RoboFont.getFont(13, false);
 		Font boldFont = RoboFont.getFont(13, true);
 
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-				boolean hasFocus, int row, int column) {
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			Component result = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			((JComponent) result).setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 0));
 			if (column == 1)
@@ -442,8 +430,7 @@ public class TrackList extends JPanel {
 
 	class PlaybackStatusRenderer extends DefaultTableCellRenderer {
 		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-				boolean hasFocus, int row, int column) {
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			lbl.setText(null);
 			lbl.setHorizontalAlignment(JLabel.CENTER);
@@ -489,8 +476,7 @@ public class TrackList extends JPanel {
 			pBarPnl.add(pBar);
 		}
 
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-				boolean hasFocus, int row, int column) {
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			if (value instanceof DownloadingTransferStatus) {
 				DownloadingTransferStatus dStat = (DownloadingTransferStatus) value;

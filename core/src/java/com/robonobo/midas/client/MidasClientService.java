@@ -1,0 +1,343 @@
+package com.robonobo.midas.client;
+
+import static com.robonobo.common.util.TextUtil.*;
+import static java.lang.Math.*;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.*;
+import org.apache.http.auth.*;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.*;
+import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
+
+import com.google.protobuf.AbstractMessage;
+import com.google.protobuf.GeneratedMessage;
+import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.serialization.*;
+import com.robonobo.common.util.CodeUtil;
+import com.robonobo.core.api.model.*;
+import com.robonobo.core.metadata.*;
+
+public class MidasClientService extends AbstractMetadataService {
+	static final Pattern URL_PATTERN = Pattern.compile("^http://([\\w\\.]+?):?(\\d*)/$");
+	/**
+	 * We keep a linkedlist of requests, each of which represents one or more metadata request parameters. We handle one param from a request at a time before moving on to the next
+	 * one, to keep things responsive (some request objects will have many many params)
+	 */
+	LinkedList<Request> requests = new LinkedList<Request>();
+	DefaultHttpClient http;
+	HttpContext context;
+	Log log = LogFactory.getLog(getClass());
+	private MidasClientConfig cfg;
+	AuthScope midasAuthScope;
+	int numThreads;
+	int runningTasks = 0;
+	ExecutorService executor;
+
+	public MidasClientService(MidasClientConfig cfg, String username, String password) {
+		this.cfg = cfg;
+		Matcher m = URL_PATTERN.matcher(cfg.getBaseUrl());
+		if (!m.matches())
+			throw new Errot("midas url "+cfg.getBaseUrl()+"does not match expected pattern");
+		String midasHost = m.group(1);
+		String portStr = m.group(2);
+		int midasPort;
+		if (isEmpty(portStr))
+			midasPort = 80;
+		else
+			midasPort = Integer.parseInt(portStr);
+		log.debug("Setting up midas http auth scope on " + midasHost + ":" + midasPort);
+		midasAuthScope = new AuthScope(midasHost, midasPort);
+		addHardDependency("core.http");
+	}
+
+	@Override
+	public String getName() {
+		return "Midas Metadata Service";
+	}
+
+	@Override
+	public void startup() throws Exception {
+		// Run midas requests in a different thread pool
+		numThreads = rbnb.getConfig().getMidasThreadPoolSize();
+		executor = Executors.newFixedThreadPool(numThreads);
+		http = rbnb.getHttpService().getClient();
+		context = new BasicHttpContext();
+	}
+
+	@Override
+	public void shutdown() throws Exception {
+		executor.shutdownNow();
+	}
+
+	@Override
+	public void updateCredentials(String username, String password) {
+		// Set these details on our http client
+		http.getCredentialsProvider().setCredentials(midasAuthScope, new UsernamePasswordCredentials(username, password));
+		// Start a new http context to use these new creds
+		context = createNewContext();
+	}
+
+	private BasicHttpContext createNewContext() {
+		AuthCache authCache = new BasicAuthCache();
+		BasicScheme basicAuth = new BasicScheme();
+		authCache.put(new HttpHost(midasAuthScope.getHost(), midasAuthScope.getPort()), basicAuth);
+		BasicHttpContext newContext = new BasicHttpContext();
+		newContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+		return newContext;
+	}
+
+	@Override
+	public void fetchStreams(Collection<String> sids, StreamHandler handler) {
+		addRequest(new GetStreamRequest(cfg, sids, handler));
+	}
+
+	@Override
+	public void putStream(Stream s, StreamHandler handler) {
+		addRequest(new PutStreamRequest(cfg, s, handler));
+	}
+
+	@Override
+	public void fetchUser(long userId, UserHandler handler) {
+		addRequest(new GetUsersRequest(cfg, userId, handler));
+	}
+
+	@Override
+	public void fetchUsers(Collection<Long> userIds, UserHandler handler) {
+		addRequest(new GetUsersRequest(cfg, userIds, handler));
+	}
+
+	@Override
+	public void fetchUser(String email, String password, UserHandler handler) {
+		// TODO Use different creds, grrr
+	}
+
+	@Override
+	public void fetchUserConfig(long userId, UserConfigHandler handler) {
+		addRequest(new GetUserConfigRequest(cfg, userId, handler));
+	}
+
+	@Override
+	public void updateUserConfig(UserConfig uc, UserConfigHandler handler) {
+		addRequest(new PutUserConfigRequest(cfg, uc, handler));
+	}
+
+	@Override
+	public void fetchPlaylist(long playlistId, PlaylistHandler handler) {
+		addRequest(new GetPlaylistRequest(cfg, playlistId, handler));
+	}
+	
+	@Override
+	public void fetchPlaylists(Collection<Long> playlistIds, PlaylistHandler handler) {
+		addRequest(new GetPlaylistRequest(cfg, playlistIds, handler));
+	}
+
+	@Override
+	public void updatePlaylist(Playlist p, PlaylistHandler handler) {
+		addRequest(new PutPlaylistRequest(cfg, p, handler));
+	}
+
+	@Override
+	public void postPlaylistUpdateToService(String service, long playlistId, String msg, PlaylistHandler handler) {
+		addRequest(new PlaylistServiceUpdateRequest(cfg, service, playlistId, msg, handler));
+	}
+
+	@Override
+	public void deletePlaylist(Playlist p, PlaylistHandler handler) {
+		addRequest(new DeletePlaylistRequest(cfg, p.getPlaylistId(), handler));
+	}
+
+	@Override
+	public void sharePlaylist(Playlist p, Collection<Long> shareFriendIds, Collection<String> friendEmails, PlaylistHandler handler) {
+		addRequest(new SharePlaylistRequest(cfg, p.getPlaylistId(), shareFriendIds, friendEmails, handler));
+	}
+
+	@Override
+	public void fetchLibrary(long userId, Date lastUpdated, LibraryHandler handler) {
+		addRequest(new GetLibraryRequest(cfg, userId, lastUpdated, handler));
+	}
+
+	@Override
+	public void addToLibrary(long userId, Library addedLib, LibraryHandler handler) {
+		addRequest(new AddToLibraryRequest(cfg, userId, addedLib, handler));
+	}
+
+	@Override
+	public void deleteFromLibrary(long userId, Library delLib, LibraryHandler handler) {
+		addRequest(new DeleteFromLibraryRequest(cfg, userId, delLib, handler));
+	}
+
+	@Override
+	public void search(String query, int firstResult, SearchHandler handler) {
+		addRequest(new SearchRequest(cfg, query, firstResult, handler));
+	}
+
+	private synchronized void addRequest(Request r) {
+		// Add to the front for best responsiveness
+		requests.addFirst(r);
+		int numToStart = min(r.remaining(), (numThreads - runningTasks));
+		runningTasks += numToStart;
+		for (int i = 0; i < numToStart; i++) {
+			executor.execute(new FetchTask());
+		}
+	}
+
+	private void getFromUrl(AbstractMessage.Builder<?> bldr, String url) throws IOException, SerializationException {
+		getFromUrl(bldr, url, null, null);
+	}
+
+	private void getFromUrl(AbstractMessage.Builder<?> bldr, String url, String un, String pwd) throws IOException, SerializationException {
+		log.debug("Getting object from " + url);
+		HttpGet get = new HttpGet(url);
+		Credentials restoreCreds = null;
+		HttpContext thisContext = context;
+		// If we are being supplied with a username & password, store our old creds and restore them afterwards, and use a different httpcontext for this request to avoid using
+		// cached auth
+		if (un != null) {
+			restoreCreds = http.getCredentialsProvider().getCredentials(midasAuthScope);
+			thisContext = createNewContext();
+		}
+		HttpEntity body = null;
+		try {
+			HttpResponse resp = http.execute(get, thisContext);
+			body = resp.getEntity();
+			switch (resp.getStatusLine().getStatusCode()) {
+			case 200:
+				if (bldr != null) {
+					InputStream is = body.getContent();
+					try {
+						bldr.mergeFrom(is);
+					} finally {
+						is.close();
+					}
+				}
+				return;
+			case 404:
+				throw new ResourceNotFoundException("Server could not find resource for " + url);
+			case 401:
+				throw new UnauthorizedException("Server did not allow us to access url " + url + " with supplied credentials");
+			case 500:
+				throw new IOException("Unable to get object from url '" + url + "', server said: " + EntityUtils.toString(body));
+			default:
+				throw new IOException("Url '" + url + "' replied with status " + resp.getStatusLine().getStatusCode());
+			}
+		} finally {
+			if (restoreCreds != null)
+				http.getCredentialsProvider().setCredentials(midasAuthScope, restoreCreds);
+			if (body != null)
+				EntityUtils.consume(body);
+		}
+	}
+
+	private void putToUrl(GeneratedMessage msg, String url, AbstractMessage.Builder bldr) throws IOException {
+		log.debug("Putting object to " + url);
+		HttpPut put = new HttpPut(url);
+		put.setEntity(new ByteArrayEntity(msg.toByteArray()));
+		HttpEntity body = null;
+		try {
+			HttpResponse resp = http.execute(put, context);
+			body = resp.getEntity();
+			switch (resp.getStatusLine().getStatusCode()) {
+			case 200:
+				if (bldr != null) {
+					InputStream is = body.getContent();
+					try {
+						bldr.mergeFrom(is);
+					} finally {
+						is.close();
+					}
+				}
+				return;
+			default:
+				throw new IOException("Server replied with status " + resp.getStatusLine().getStatusCode() + ": " + EntityUtils.toString(body));
+			}
+		} finally {
+			if (body != null)
+				EntityUtils.consume(body);
+		}
+	}
+
+	private void deleteAtUrl(String url) throws IOException {
+		log.debug("Deleting object at " + url);
+		HttpDelete del = new HttpDelete(url);
+		HttpEntity body = null;
+		try {
+			HttpResponse resp = http.execute(del, context);
+			body = resp.getEntity();
+			if (resp.getStatusLine().getStatusCode() != 200)
+				throw new IOException("Failed to delete object at " + url + ", status code was " + resp.getStatusLine().getStatusCode());
+		} finally {
+			if(body != null)
+				EntityUtils.consume(body);
+		}
+	}
+
+	class FetchTask extends CatchingRunnable {
+		@Override
+		public void doRun() throws Exception {
+			while (true) {
+				Request r;
+				Params p;
+				synchronized (MidasClientService.this) {
+					if (requests.size() == 0) {
+						runningTasks--;
+						return;
+					}
+					r = requests.removeFirst();
+					p = r.getNextParams();
+				}
+				try {
+					switch (p.op) {
+					case Get:
+						if (p.username != null)
+							getFromUrl(p.resultBldr, p.url, p.username, p.password);
+						else
+							getFromUrl(p.resultBldr, p.url);
+						if (p.resultBldr == null)
+							r.success(null);
+						else
+							r.success(p.resultBldr.build());
+						break;
+					case Put:
+						putToUrl(p.sendMsg, p.url, p.resultBldr);
+						if (p.resultBldr == null)
+							r.success(null);
+						else
+							r.success(p.resultBldr.build());
+						break;
+					case Delete:
+						deleteAtUrl(p.url);
+						r.success(null);
+						break;
+					}
+				} catch (Exception e) {
+					log.debug("Caught " + CodeUtil.shortClassName(e.getClass()) + " running " + p.op + " against " + p.url);
+					r.error(p, e);
+				}
+				if (r.remaining() > 0) {
+					synchronized (MidasClientService.this) {
+						requests.addLast(r);
+					}
+				}
+			}
+		}
+	}
+}

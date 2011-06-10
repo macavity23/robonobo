@@ -14,7 +14,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 
 public class PktSender extends CatchingRunnable {
 	/** millisecs */
@@ -99,7 +99,7 @@ public class PktSender extends CatchingRunnable {
 		// DEBUG
 		for (EONConnection testConn : readyConns) {
 			if (testConn == conn)
-				throw new SeekInnerCalmException();
+				throw new Errot();
 		}
 
 		// TODO Annoying that one can't 'reset' an iterator, which means we're doing this object creation every time
@@ -252,7 +252,7 @@ public class PktSender extends CatchingRunnable {
 		public void sendPkt(EONPacket pkt) throws EONException {
 			int payloadSz = pkt.getPayloadSize();
 			if (bytesCredit < payloadSz)
-				throw new SeekInnerCalmException();
+				throw new Errot();
 			PktSender.this.sendPkt(pkt);
 			if (bytesCredit != Integer.MAX_VALUE)
 				bytesCredit -= payloadSz;

@@ -1,12 +1,17 @@
 package com.robonobo.gui.panels;
 
+import static com.robonobo.gui.GuiUtil.*;
+
 import javax.swing.SwingUtilities;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.core.api.model.PlaylistConfig;
+import com.robonobo.core.metadata.PlaylistHandler;
+import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.NewPlaylistTableModel;
 
@@ -27,33 +32,30 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 		final Playlist p = getModel().getPlaylist();
 		p.setTitle(titleField.getText());
 		p.setDescription(descField.getText());
-		final RobonoboController control = frame.getController();
-		control.getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				// Create the new playlist in midas
-				try {
-					p.getOwnerIds().add(control.getMyUser().getUserId());
-					final Playlist updatedP = control.addOrUpdatePlaylist(p);
-					SwingUtilities.invokeLater(new CatchingRunnable() {
-						public void doRun() throws Exception {
-							// A content panel should have been created for the new
-							// playlist - switch to it now
-							frame.getLeftSidebar().selectMyPlaylist(updatedP);
-							// Now that they're not looking, re-init everything with
-							// a new empty playlist
-							Playlist newP = new Playlist();
-							titleField.setText("");
-							descField.setText("");
-							if(iTunesCB != null)
-								iTunesCB.setSelected(false);
-							getModel().update(newP, true);
-						}
-					});
-					control.checkPlaylistUpdate(updatedP.getPlaylistId());
-				} catch (RobonoboException e) {
-					log.error("Error creating playlist", e);
-					return;
-				}
+		// Create the new playlist in midas
+		RobonoboController control = frame.getController();
+		p.getOwnerIds().add(control.getMyUser().getUserId());
+		control.createPlaylist(p, new PlaylistHandler() {
+			public void success(final Playlist newP) {
+				runOnUiThread(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						// A content panel should have been created for the new
+						// playlist - switch to it now
+						frame.getLeftSidebar().selectMyPlaylist(newP);
+						// Now that they're not looking, re-init everything with
+						// a new empty playlist
+						Playlist newP = new Playlist();
+						titleField.setText("");
+						descField.setText("");
+						if(iTunesCB != null)
+							iTunesCB.setSelected(false);
+						getModel().update(newP, true);
+					}
+				});
+			}
+			
+			public void error(long playlistId, Exception ex) {
+				log.error("Error saving new playlist", ex);
 			}
 		});
 	}

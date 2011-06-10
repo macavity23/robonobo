@@ -12,7 +12,8 @@ import java.text.*;
 import java.util.Date;
 import java.util.LinkedList;
 
-import javax.swing.*;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 
 import org.jdesktop.swingx.JXTable;
@@ -20,17 +21,16 @@ import org.jdesktop.swingx.decorator.HighlighterFactory;
 import org.jdesktop.swingx.table.TableColumnModelExt;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
-import com.robonobo.core.api.UserPlaylistListener;
-import com.robonobo.core.api.model.*;
+import com.robonobo.common.exceptions.Errot;
+import com.robonobo.core.api.LoginListener;
+import com.robonobo.core.api.model.User;
 import com.robonobo.core.wang.WangListener;
-import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 @SuppressWarnings("serial")
-public class WangContentPanel extends ContentPanel implements WangListener, UserPlaylistListener {
+public class WangContentPanel extends ContentPanel implements WangListener, LoginListener {
 	static final char WANG_CHAR = 0x65fa;
 	static final int MAX_RECENT_TRANSACTIONS = 16;
 	
@@ -92,7 +92,7 @@ public class WangContentPanel extends ContentPanel implements WangListener, User
 		cm.getColumn(3).setPreferredWidth(545);
 		add(new JScrollPane(table), "1,8,2,8");
 		frame.getController().addWangListener(this);
-		frame.getController().addUserPlaylistListener(this);
+		frame.getController().addLoginListener(this);
 	}
 	
 	protected void requestTopUp() {
@@ -139,27 +139,12 @@ public class WangContentPanel extends ContentPanel implements WangListener, User
 	}
 	
 	@Override
-	public void loggedIn() {
+	public void loginSucceeded(User me) {
 		topUpBtn.setEnabled(true);
 	}
 	
 	@Override
-	public void playlistChanged(Playlist p) {
-		// Do nothing
-	}
-	
-	@Override
-	public void userChanged(User u) {
-		// Do nothing
-	}
-	
-	@Override
-	public void allUsersAndPlaylistsUpdated() {
-		// Do nothing
-	}
-	
-	@Override
-	public void userConfigChanged(UserConfig cfg) {
+	public void loginFailed(String reason) {
 		// Do nothing
 	}
 	
@@ -208,7 +193,7 @@ public class WangContentPanel extends ContentPanel implements WangListener, User
 			case 3:
 				return entry.narration;
 			}
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		}
 		
 		public void add(double creditValue, String narration) {

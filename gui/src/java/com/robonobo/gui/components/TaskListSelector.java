@@ -36,7 +36,7 @@ public class TaskListSelector extends LeftSidebarSelector implements TaskListene
 						tasks.remove(t);
 					else
 						tasks.add(t);
-					setText(numItems(tasks, "task") + " running");
+					setText(numItems(tasks, "pFetcher") + " running");
 					sideBar.showTaskList(tasks.size() > 0);
 				}
 			}

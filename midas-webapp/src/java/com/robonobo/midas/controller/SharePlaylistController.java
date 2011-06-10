@@ -140,6 +140,7 @@ public class SharePlaylistController extends BaseController {
 			MidasInvite invite = midas.createOrUpdateInvite(invitee, authUser, p);
 			sendInvite(invite, authUser, p);
 		}
+		writeToOutput(p.toMsg(), resp);
 	}
 
 	protected void sendNotifyPlaylistShare(User fromUser, User toUser, Playlist p) throws IOException {

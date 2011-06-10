@@ -26,7 +26,7 @@ public abstract class JbossRemotingFacade {
 	public JbossRemotingFacade(final String url, final String remoteSubsystem, String secret) {
 		this.url = url;
 		this.secret = secret;
-		myClass = CodeUtil.friendlyClassName(getClass());
+		myClass = CodeUtil.shortClassName(getClass());
 		startupThread = new Thread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				while(true) {

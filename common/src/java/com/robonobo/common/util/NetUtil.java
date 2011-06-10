@@ -18,6 +18,7 @@ package com.robonobo.common.util;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+import static com.robonobo.common.util.CodeUtil.*;
 
 import java.util.*;
 import java.awt.Desktop;
@@ -36,7 +37,6 @@ public class NetUtil {
 		} catch (SocketException e) {
 			return retSet;
 		}
-
 		while (interfaces.hasMoreElements()) {
 			NetworkInterface thisInterface = interfaces.nextElement();
 			Enumeration<InetAddress> addrs = thisInterface.getInetAddresses();
@@ -47,7 +47,6 @@ public class NetUtil {
 				retSet.add(addr);
 			}
 		}
-
 		return retSet;
 	}
 
@@ -83,50 +82,51 @@ public class NetUtil {
 	 * An adaptation of Dem Pilafian's (public domain) code from http://www.centerkey.com/java/browser/
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static void browse(String url) throws Exception {
-		if (CodeUtil.javaMajorVersion() >= 6) {
-			// Use the library class, only in j6+
-			Desktop.getDesktop().browse(new URI(url));
-		} else {
-			String osName = System.getProperty("os.name");
-			// Mac OS has special Java class
-			if (osName.startsWith("Mac OS")) {
-				Class fileMgr = Class.forName("com.apple.eio.FileManager");
-				Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[] { String.class });
-				openURL.invoke(null, new Object[] { url });
-				return;
-			}
-
-			String[] cmd = null;
-
-			// Windows execs url.dll
-			if (osName.startsWith("Windows")) {
-				cmd = new String[] { "rundll32", "url.dll,FileProtocolHandler", url };
-				// else assume unix/linux: call one of the available browsers
+	public static void browse(String url) throws IOException {
+		try {
+			if (CodeUtil.javaMajorVersion() >= 6) {
+				// Use the library class, only in j6+
+				Desktop.getDesktop().browse(new URI(url));
 			} else {
-				String[] browsers = {
-						// Freedesktop, http://portland.freedesktop.org/xdg-utils-1.0/xdg-open.html
-						"xdg-open",
-						// Debian
-						"sensible-browser",
-						// Otherwise call browsers directly
-						"firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape" };
-				String browser = null;
-				for (int count = 0; count < browsers.length && browser == null; count++) {
-					if (Runtime.getRuntime().exec(new String[] { "which", browsers[count] }).waitFor() == 0)
-						browser = browsers[count];
+				String osName = System.getProperty("os.name");
+				// Mac OS has special Java class
+				if (osName.startsWith("Mac OS")) {
+					Class fileMgr = Class.forName("com.apple.eio.FileManager");
+					Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[] { String.class });
+					openURL.invoke(null, new Object[] { url });
+					return;
 				}
-
-				if (browser == null) {
-					// logger.warning("No web browser found");
-					throw new Exception("Could not find web browser");
+				String[] cmd = null;
+				// Windows execs url.dll
+				if (osName.startsWith("Windows")) {
+					cmd = new String[] { "rundll32", "url.dll,FileProtocolHandler", url };
+					// else assume unix/linux: call one of the available browsers
+				} else {
+					String[] browsers = {
+							// Freedesktop, http://portland.freedesktop.org/xdg-utils-1.0/xdg-open.html
+							"xdg-open",
+							// Debian
+							"sensible-browser",
+							// Otherwise call browsers directly
+							"firefox", "opera", "konqueror", "epiphany", "mozilla", "netscape" };
+					String browser = null;
+					for (int count = 0; count < browsers.length && browser == null; count++) {
+						if (Runtime.getRuntime().exec(new String[] { "which", browsers[count] }).waitFor() == 0)
+							browser = browsers[count];
+					}
+					if (browser == null) {
+						// logger.warning("No web browser found");
+						throw new Exception("Could not find web browser");
+					}
+					cmd = new String[] { browser, url };
 				}
-
-				cmd = new String[] { browser, url };
+				if (Runtime.getRuntime().exec(cmd).waitFor() != 0)
+					throw new Exception("Error opening page: " + url);
 			}
-
-			if (Runtime.getRuntime().exec(cmd).waitFor() != 0)
-				throw new Exception("Error opening page: " + url);
+		} catch (Exception e) {
+			if (javaMajorVersion() >= 6)
+				throw new IOException("Caught ioe browsing to url " + url, e);
+			throw new IOException("Caught " + shortClassName(e.getClass()) + " browsing to url " + url);
 		}
 	}
 }

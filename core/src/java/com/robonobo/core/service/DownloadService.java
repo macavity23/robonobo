@@ -1,29 +1,22 @@
 package com.robonobo.core.service;
 
-import static com.robonobo.common.util.FileUtil.makeFileNameSafe;
-import static com.robonobo.common.util.TimeUtil.now;
+import static com.robonobo.common.util.FileUtil.*;
+import static com.robonobo.common.util.TimeUtil.*;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.StreamVelocity;
-import com.robonobo.core.api.model.DownloadingTrack;
-import com.robonobo.core.api.model.Stream;
+import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
+import com.robonobo.core.metadata.AbstractMetadataService;
 import com.robonobo.core.storage.StorageService;
-import com.robonobo.mina.external.ConnectedNode;
-import com.robonobo.mina.external.MinaControl;
-import com.robonobo.mina.external.MinaListener;
+import com.robonobo.mina.external.*;
 import com.robonobo.mina.external.buffer.PageBuffer;
 import com.robonobo.mina.external.buffer.PageBufferListener;
 
@@ -41,7 +34,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	Log log = LogFactory.getLog(getClass());
 	private DbService db;
 	private MinaControl mina;
-	private MetadataService metadata;
+	private StreamService streams;
 	private StorageService storage;
 	private ShareService share;
 	private EventService event;
@@ -65,7 +58,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 
 	public DownloadService() {
 		addHardDependency("core.mina");
-		addHardDependency("core.metadata");
+		addHardDependency("core.streams");
 		addHardDependency("core.storage");
 		addHardDependency("core.shares");
 	}
@@ -75,7 +68,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		db = rbnb.getDbService();
 		mina = rbnb.getMina();
 		mina.addMinaListener(this);
-		metadata = rbnb.getMetadataService();
+		streams = rbnb.getStreamService();
 		storage = rbnb.getStorageService();
 		share = rbnb.getShareService();
 		event = rbnb.getEventService();
@@ -124,7 +117,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	public void addDownload(String streamId) throws RobonoboException {
 		File dataFile = new File(downloadsDir, makeFileNameSafe(streamId));
 		log.info("Adding download for " + streamId);
-		Stream s = metadata.getStream(streamId);
+		Stream s = streams.getKnownStream(streamId);
 		DownloadingTrack d = new DownloadingTrack(s, dataFile, DownloadStatus.Paused);
 		long startTime = now().getTime();
 		synchronized (this) {
@@ -191,7 +184,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		log.debug("Starting download for " + streamId);
 		DownloadingTrack d = db.getDownload(streamId);
 		if (d == null)
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		if (d.getDownloadStatus() == DownloadStatus.Finished) {
 			log.debug("Not starting finished download " + streamId);
 			return;
@@ -243,7 +236,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	}
 
 	public void receptionCompleted(String streamId) {
-		Stream s = metadata.getStream(streamId);
+		Stream s = streams.getKnownStream(streamId);
 		DownloadingTrack d = db.getDownload(streamId);
 		if (d == null) {
 			log.error("ERROR: no download for completed stream " + s.getStreamId());

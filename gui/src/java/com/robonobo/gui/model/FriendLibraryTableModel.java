@@ -37,11 +37,11 @@ public class FriendLibraryTableModel extends FreeformTrackListTableModel impleme
 	}
 
 	@Override
-	public void libraryChanged(Library lib, Set<String> newTrackSids) {
+	public void libraryChanged(Library lib, Collection<String> newTrackSids) {
 		libraryChanged(lib, newTrackSids, true);
 	}
 
-	public void libraryChanged(Library lib, Set<String> newTrackSids, boolean fireEvent) {
+	public void libraryChanged(Library lib, Collection<String> newTrackSids, boolean fireEvent) {
 		if (lib.getUserId() != this.lib.getUserId())
 			return;
 		List<Track> addTrax = new ArrayList<Track>();

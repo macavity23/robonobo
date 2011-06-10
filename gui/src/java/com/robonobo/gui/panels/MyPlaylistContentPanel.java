@@ -14,11 +14,11 @@ import java.util.*;
 import javax.swing.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.Platform;
+import com.robonobo.core.api.PlaylistListener;
 import com.robonobo.core.api.RobonoboException;
-import com.robonobo.core.api.UserPlaylistListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.RoboFont;
@@ -31,7 +31,7 @@ import com.robonobo.gui.sheets.SharePlaylistSheet;
 import com.robonobo.gui.tasks.ImportFilesTask;
 
 @SuppressWarnings("serial")
-public class MyPlaylistContentPanel extends PlaylistContentPanel implements UserPlaylistListener {
+public class MyPlaylistContentPanel extends PlaylistContentPanel implements PlaylistListener {
 	protected RTextField titleField;
 	protected RTextArea descField;
 	protected RButton saveBtn;
@@ -48,7 +48,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements User
 		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
 		tabPane.setSelectedIndex(0);
 		if (addAsListener())
-			frame.getController().addUserPlaylistListener(this);
+			frame.getController().addPlaylistListener(this);
 	}
 
 	protected MyPlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, PlaylistTableModel model) {
@@ -56,7 +56,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements User
 		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
 		tabPane.setSelectedIndex(0);
 		if (addAsListener())
-			frame.getController().addUserPlaylistListener(this);
+			frame.getController().addPlaylistListener(this);
 	}
 
 	protected boolean addAsListener() {
@@ -85,43 +85,14 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements User
 				Playlist p = getModel().getPlaylist();
 				p.setTitle(titleField.getText());
 				p.setDescription(descField.getText());
-				try {
-					// This creates the playlist's id if it doesn't already
-					// exist, so update the playlist config
-					frame.getController().addOrUpdatePlaylist(p);
-					pc.setPlaylistId(p.getPlaylistId());
-					frame.getController().putPlaylistConfig(pc);
-					frame.getController().checkPlaylistUpdate(p.getPlaylistId());
-				} catch (RobonoboException e) {
-					log.error("Error creating playlist", e);
-				}
+				frame.getController().updatePlaylist(p);
+				frame.getController().putPlaylistConfig(pc);
 			}
 		});
 	}
 
 	protected PlaylistTableModel getModel() {
 		return (PlaylistTableModel) trackList.getModel();
-	}
-
-	@Override
-	public void loggedIn() {
-		// Do nothing
-	}
-
-	@Override
-	public void userChanged(User u) {
-		// Do nothing
-	}
-
-	@Override
-	public void allUsersAndPlaylistsUpdated() {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	@Override
-	public void userConfigChanged(UserConfig cfg) {
-		// Do nothing
 	}
 
 	@Override
@@ -137,7 +108,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements User
 			else if (vis.equals(Playlist.VIS_ME))
 				visMeBtn.setSelected(true);
 			else
-				throw new SeekInnerCalmException("invalid visibility " + vis);
+				throw new Errot("invalid visibility " + vis);
 			getModel().update(p, true);
 		}
 	}
@@ -173,7 +144,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements User
 			try {
 				streamIds = (List<String>) t.getTransferData(StreamTransfer.DATA_FLAVOR);
 			} catch (Exception e) {
-				throw new SeekInnerCalmException();
+				throw new Errot();
 			}
 			tm.addStreams(streamIds, insertRow);
 			return true;

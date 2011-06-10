@@ -12,7 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.TrackListener;
 import com.robonobo.core.api.model.CloudTrack;
@@ -118,7 +118,7 @@ public class PlaylistTableModel extends TrackListTableModel implements TrackList
 	 */
 	public void addStreams(List<String> streamIds, int position) {
 		if (!myPlaylist)
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		synchronized (this) {
 			// First, scan through our playlist and remove any that are in this
 			// list (they're being moved)
@@ -201,7 +201,7 @@ public class PlaylistTableModel extends TrackListTableModel implements TrackList
 	@Override
 	public void deleteTracks(List<String> streamIds) {
 		if(!myPlaylist)
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		p.getStreamIds().removeAll(streamIds);
 		fireTableDataChanged();
 		runPlaylistUpdate();
@@ -217,11 +217,7 @@ public class PlaylistTableModel extends TrackListTableModel implements TrackList
 	}
 
 	protected void runPlaylistUpdate() {
-		controller.getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				controller.addOrUpdatePlaylist(p);
-			}
-		});
+		controller.updatePlaylist(p);
 	}
 
 }

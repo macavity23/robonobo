@@ -5,7 +5,7 @@ import java.util.List;
 import javax.swing.SwingUtilities;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.SearchListener;
 import com.robonobo.core.api.model.*;
@@ -72,6 +72,6 @@ public class SearchResultTableModel extends FreeformTrackListTableModel implemen
 	
 	@Override
 	public void deleteTracks(List<String> streamIds) {
-		throw new SeekInnerCalmException();
+		throw new Errot();
 	}
 }

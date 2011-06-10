@@ -40,11 +40,7 @@ public class DeletePlaylistSheet extends Sheet {
 				frame.getLeftSidebar().selectMyMusic();
 				frame.getController().getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
-						try {
-							frame.getController().nukePlaylist(p);
-						} catch (RobonoboException e) {
-							log.error("Error deleting playlist", e);
-						}
+						frame.getController().deletePlaylist(p);
 					}
 				});
 				DeletePlaylistSheet.this.setVisible(false);

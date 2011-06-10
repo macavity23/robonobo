@@ -6,7 +6,7 @@ import java.util.*;
 import org.apache.commons.logging.Log;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.mina.agoric.AuctionState;
@@ -396,7 +396,7 @@ public class StreamMgr {
 				}
 			}
 			if (streamStat == null)
-				throw new SeekInnerCalmException();
+				throw new Errot();
 			foundSource(sourceStat, streamStat);
 		}
 	}
@@ -406,7 +406,7 @@ public class StreamMgr {
 	 */
 	public synchronized void startBroadcast(String sid) {
 		if (broadcastingSids.contains(sid))
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		log.info("Starting broadcast for stream " + sid);
 		broadcastingSids.add(sid);
 		// If we're already rebroadcasting, this means that we've completed
@@ -442,7 +442,7 @@ public class StreamMgr {
 	 */
 	public synchronized void startRebroadcast(String sid) {
 		if (rebroadcastingSids.contains(sid))
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		rebroadcastingSids.add(sid);
 		log.info("Beginning rebroadcast for stream " + sid);
 		mina.getStreamAdvertiser().advertiseStream(sid);
@@ -453,7 +453,7 @@ public class StreamMgr {
 	 */
 	public synchronized void startReception(String sid) {
 		if (receivingSids.contains(sid))
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		wakePageBuf(sid);
 		// If we're already finished, just start rebroadcasting
 		PageBuffer pageBuf = liveStreams.get(sid);
@@ -487,7 +487,7 @@ public class StreamMgr {
 	 */
 	public synchronized void stopBroadcast(String sid) {
 		if (!broadcastingSids.contains(sid))
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		broadcastingSids.remove(sid);
 		log.info("Stopping broadcast for stream " + sid);
 		deadvertiseStream(sid);
@@ -499,7 +499,7 @@ public class StreamMgr {
 	 */
 	public synchronized void stopRebroadcast(String sid) {
 		if (!rebroadcastingSids.contains(sid))
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		rebroadcastingSids.remove(sid);
 		// If we are broadcasting, it means we completed our reception and
 		// became a broadcaster - so keep our broadcast conns alive, and don't

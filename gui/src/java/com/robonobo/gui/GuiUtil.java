@@ -15,7 +15,7 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 
 public class GuiUtil {
 	public static final int DEFAULT_NUM_SHAKES = 10;
@@ -32,7 +32,7 @@ public class GuiUtil {
 		try {
 			return ImageIO.read(GuiUtil.class.getResource(path));
 		} catch (IOException e) {
-			throw new SeekInnerCalmException(e);
+			throw new Errot(e);
 		}
 	}
 

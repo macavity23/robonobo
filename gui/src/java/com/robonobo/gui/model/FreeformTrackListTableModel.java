@@ -15,7 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.ContiguousBlock;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.TrackListener;
@@ -71,7 +71,7 @@ public abstract class FreeformTrackListTableModel extends TrackListTableModel im
 		// incantation
 		final int newIndex = -Collections.binarySearch(streams, stream, comparator) - 1;
 		if (newIndex < 0)
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		// Update our stream indices
 		for (int i = newIndex; i < streams.size(); i++) {
 			String incSid = streams.get(i).getStreamId();

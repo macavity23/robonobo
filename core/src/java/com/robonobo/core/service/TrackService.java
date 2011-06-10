@@ -10,7 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.AudioPlayer.Status;
 import com.robonobo.core.api.model.*;
@@ -31,7 +31,7 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 	Log log = LogFactory.getLog(getClass());
 	private ShareService share;
 	private DownloadService download;
-	private MetadataService metadata;
+	private StreamService streams;
 	private PlaybackService playback;
 	private EventService event;
 	private MinaControl mina;
@@ -57,7 +57,7 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 	public void startup() throws Exception {
 		share = rbnb.getShareService();
 		download = rbnb.getDownloadService();
-		metadata = rbnb.getMetadataService();
+		streams = rbnb.getStreamService();
 		playback = rbnb.getPlaybackService();
 		event = rbnb.getEventService();
 		mina = rbnb.getMina();
@@ -107,7 +107,7 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				throw new SeekInnerCalmException(e);
+				throw new Errot(e);
 			}
 		}
 			
@@ -119,7 +119,7 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 			t = download.getDownload(streamId);
 			if (t == null) {
 				// Nope - it's in the cloud
-				Stream s = metadata.getStream(streamId);
+				Stream s = streams.getKnownStream(streamId);
 				if (s == null)
 					return null;
 				t = new CloudTrack(s, mina.numSources(streamId));

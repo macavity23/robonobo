@@ -4,7 +4,7 @@ import java.beans.PropertyDescriptor;
 
 import javax.swing.JPanel;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 public abstract class PrefPanel extends JPanel {
@@ -26,13 +26,13 @@ public abstract class PrefPanel extends JPanel {
 		String prop = toks[1];
 		Object config = frame.getController().getConfig(cfgName);
 		if(config == null)
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		try {
 			PropertyDescriptor propDesc = new PropertyDescriptor(prop, config.getClass());
 			Object propVal = propDesc.getReadMethod().invoke(config);
 			return String.valueOf(propVal);
 		} catch (Exception e) {
-			throw new SeekInnerCalmException(e);
+			throw new Errot(e);
 		}
 	}
 
@@ -42,7 +42,7 @@ public abstract class PrefPanel extends JPanel {
 		String prop = toks[1];
 		Object config = frame.getController().getConfig(cfgName);
 		if(config == null)
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		try {
 			PropertyDescriptor propDesc = new PropertyDescriptor(prop, config.getClass());
 			Class<?> propClass = propDesc.getPropertyType();
@@ -53,9 +53,9 @@ public abstract class PrefPanel extends JPanel {
 			else if(propClass.isAssignableFrom(Boolean.class) || propClass.isAssignableFrom(Boolean.TYPE))
 				propDesc.getWriteMethod().invoke(config, Boolean.valueOf(value));
 			else
-				throw new SeekInnerCalmException();
+				throw new Errot();
 		} catch (Exception e) {
-			throw new SeekInnerCalmException(e);
+			throw new Errot(e);
 		}
 	}
 }

@@ -243,6 +243,12 @@
         <dependent-module archiveName="mysql-connector-java-5.0.8-bin.jar" deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common-webapps/lib/mysql-connector-java-5.0.8-bin.jar">
             <dependency-type>uses</dependency-type>
         </dependent-module>
+        <dependent-module archiveName="httpclient-4.1.1.jar" deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common/lib/httpclient-4.1.1.jar">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="httpcore-4.1.jar" deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/common/lib/httpcore-4.1.jar">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
 <property name="java-output-path" value="build/classes"/>
         <property name="context-root" value="midas-webapp"/>
 </wb-module>

@@ -25,7 +25,7 @@ public class ImportITunesTask extends Task {
 
 	@Override
 	public void runTask() throws Exception {
-		log.info("Running import iTunes task");
+		log.info("Running import iTunes pFetcher");
 		statusText = "Reading list of files from iTunes";
 		completion = 0;
 		fireUpdated();
@@ -82,7 +82,7 @@ public class ImportITunesTask extends Task {
 					else
 						p.getStreamIds().add(sh.getStream().getStreamId());
 				}
-				control.addOrUpdatePlaylist(p);
+				control.createPlaylist(p, null);
 			} else {
 				// Update existing playlist - add each track if it's not already in there
 				List<File> tracks = itPls.get(pName);
@@ -94,7 +94,7 @@ public class ImportITunesTask extends Task {
 					else if (!p.getStreamIds().contains(sh.getStream().getStreamId()))
 						p.getStreamIds().add(sh.getStream().getStreamId());
 				}
-				control.addOrUpdatePlaylist(p);
+				control.updatePlaylist(p);
 			}
 		}
 		completion = 1f;

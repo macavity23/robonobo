@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.api.model.Library;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.midas.dao.*;
@@ -139,13 +139,13 @@ public class LocalMidasService implements MidasService {
 	@Override
 	public MidasPlaylist newPlaylist(MidasPlaylist playlist) {
 		if (playlist.getPlaylistId() > 0)
-			throw new SeekInnerCalmException("newPlaylist called with non-new playlist!");
+			throw new Errot("newPlaylist called with non-new playlist!");
 		long newPlaylistId;
 		synchronized (this) {
 			if (lastPlaylistId <= 0)
 				lastPlaylistId = playlistDao.getHighestPlaylistId();
 			if (lastPlaylistId == Long.MAX_VALUE)
-				throw new SeekInnerCalmException("playlist ids wrapped!"); // Unlikely
+				throw new Errot("playlist ids wrapped!"); // Unlikely
 			else
 				lastPlaylistId++;
 			newPlaylistId = lastPlaylistId;
@@ -174,7 +174,7 @@ public class LocalMidasService implements MidasService {
 	@Transactional(rollbackFor = Exception.class)
 	public void savePlaylist(MidasPlaylist playlist) {
 		if (playlist.getPlaylistId() <= 0)
-			throw new SeekInnerCalmException("playlist id is not set");
+			throw new Errot("playlist id is not set");
 		playlistDao.savePlaylist(playlist);
 	}
 

@@ -1,21 +1,20 @@
 package com.robonobo.core.service;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.Set;
 
 import net.sbbi.upnp.impls.InternetGatewayDevice;
 import net.sbbi.upnp.messages.UPNPResponseException;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.*;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.NetUtil;
 import com.robonobo.mina.external.MinaConfig;
 
@@ -25,7 +24,7 @@ public class GatewayService extends AbstractService {
 	Log log = LogFactory.getLog(getClass());
 
 	public GatewayService() {
-		super();
+		addHardDependency("core.http");
 	}
 
 	public String getName() {
@@ -74,7 +73,7 @@ public class GatewayService extends AbstractService {
 				try {
 					myAddr = InetAddress.getByName("127.0.0.1");
 				} catch (UnknownHostException e) {
-					throw new SeekInnerCalmException();
+					throw new Errot();
 				}
 			}
 		}
@@ -124,24 +123,27 @@ public class GatewayService extends AbstractService {
 		log.info("Failed to create UPnP port mapping");
 	}
 
-	private void configureGatewayFromConfig(int publicPort) {
+	private void configureGatewayFromConfig(int publicPort) throws IOException {
 		MinaConfig minaCfg = (MinaConfig) getRobonobo().getConfig("mina");
 		// Port is specified manually
 		minaCfg.setGatewayUdpPort(publicPort);
 		// If lookupGatewayIP is false, we just use whatever IP is in minaconfig.gatewayAddress
 		if(getRobonobo().getConfig().getLookupGatewayIP()) {
 			// Figure out public IP by pinging sonar
-			String ipDetectUrl = getRobonobo().getConfig().getSonarServerUrl() + "ipdetect";
-			GetMethod get = new GetMethod(ipDetectUrl);
-			HttpClient client = new HttpClient();
+			String ipDetectUrl = getRobonobo().getConfig().getSonarUrl() + "ipdetect";
+			HttpGet get = new HttpGet(ipDetectUrl);
+			HttpClient client = rbnb.getHttpService().getClient();
+			HttpEntity body = null;
 			try {
-				int status = client.executeMethod(get);
+				HttpResponse resp = client.execute(get);
+				body = resp.getEntity();
+				int status = resp.getStatusLine().getStatusCode();
 				if (status != HttpStatus.SC_OK) {
 					log.error("IP detect @ " + ipDetectUrl + " returned status " + status + " - port forwarding config failed");
 					minaCfg.setGatewayAddress(null);
 					return;
 				}
-				String myPublicIP = get.getResponseBodyAsString();
+				String myPublicIP = EntityUtils.toString(body);
 				try {
 					InetAddress.getByName(myPublicIP);
 				} catch (Exception e) {
@@ -156,7 +158,8 @@ public class GatewayService extends AbstractService {
 				minaCfg.setGatewayAddress(null);
 				return;
 			} finally {
-				get.releaseConnection();
+				if(body != null)
+					EntityUtils.consume(body);
 			}
 		}
 	}

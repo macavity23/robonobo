@@ -11,8 +11,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
@@ -20,14 +19,14 @@ import javax.swing.*;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.LibraryListener;
-import com.robonobo.core.api.UserPlaylistListener;
+import com.robonobo.core.api.UserListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.MyLibraryTableModel;
 
 @SuppressWarnings("serial")
-public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistListener, LibraryListener {
+public class MyLibraryContentPanel extends ContentPanel implements UserListener, LibraryListener {
 	private RCheckBox shareLibCheckBox;
 	private RLabel addLbl;
 
@@ -35,7 +34,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 		super(f, new MyLibraryTableModel(f));
 		tabPane.insertTab("library", null, new TabPanel(), null, 0);
 		tabPane.setSelectedIndex(0);
-		frame.getController().addUserPlaylistListener(this);
+		frame.getController().addUserListener(this);
 		frame.getController().addLibraryListener(this);
 
 		frame.getController().getExecutor().schedule(new CatchingRunnable() {
@@ -76,21 +75,6 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 		return true;
 	}
 
-	@Override
-	public void loggedIn() {
-		// Do nothing
-	}
-
-	@Override
-	public void playlistChanged(Playlist p) {
-		// Do nothing
-	}
-
-	@Override
-	public void allUsersAndPlaylistsUpdated() {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	public void userChanged(User u) {
@@ -112,7 +96,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 	}
 
 	@Override
-	public void libraryChanged(Library lib, Set<String> newTrackSids) {
+	public void libraryChanged(Library lib, Collection<String> newTrackSids) {
 		// Do nothing
 	}
 

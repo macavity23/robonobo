@@ -1,38 +1,25 @@
 package com.robonobo.wang.client;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.impl.client.DefaultHttpClient;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.TextUtil;
-import com.robonobo.wang.BadCoinException;
-import com.robonobo.wang.InsufficientWangException;
-import com.robonobo.wang.WangConfigException;
-import com.robonobo.wang.WangException;
-import com.robonobo.wang.WangServerException;
-import com.robonobo.wang.beans.BlindedCoin;
-import com.robonobo.wang.beans.Coin;
-import com.robonobo.wang.beans.CoinRequestPrivate;
-import com.robonobo.wang.beans.CoinRequestPublic;
-import com.robonobo.wang.beans.DenominationPublic;
+import com.robonobo.wang.*;
+import com.robonobo.wang.beans.*;
 import com.robonobo.wang.proto.WangProtocol.BlindedCoinListMsg;
+import com.robonobo.wang.proto.WangProtocol.BlindedCoinListMsg.Status;
 import com.robonobo.wang.proto.WangProtocol.CoinListMsg;
 import com.robonobo.wang.proto.WangProtocol.CoinMsg;
 import com.robonobo.wang.proto.WangProtocol.CoinRequestListMsg;
 import com.robonobo.wang.proto.WangProtocol.DenominationListMsg;
 import com.robonobo.wang.proto.WangProtocol.DenominationMsg;
 import com.robonobo.wang.proto.WangProtocol.DepositStatusMsg;
-import com.robonobo.wang.proto.WangProtocol.BlindedCoinListMsg.Status;
 
 public class WangClient {
 	private Log log = LogFactory.getLog(getClass());
@@ -56,9 +43,9 @@ public class WangClient {
 			new DescendingIntComp());
 	private CoinStore coinStore;
 
-	public WangClient(WangConfig config) {
+	public WangClient(WangConfig config, DefaultHttpClient client) {
 		this.config = config;
-		bank = new BankFacade(config.getBankUrl(), config.getAccountEmail(), config.getAccountPwd());
+		bank = new BankFacade(config.getBankUrl(), config.getAccountEmail(), config.getAccountPwd(), client);
 		lucre = new LucreFacade();
 	}
 
@@ -165,7 +152,7 @@ public class WangClient {
 				// rounding
 				if (amtToWithdraw > 0) {
 					if (amtToWithdraw > getDenomValue(smallestDenom))
-						throw new SeekInnerCalmException();
+						throw new Errot();
 					int numSmallest = toWithdraw.containsKey(smallestDenom) ? toWithdraw.get(smallestDenom) : 0;
 					toWithdraw.put(smallestDenom, numSmallest + 1);
 					amtToWithdraw -= getDenomValue(smallestDenom);

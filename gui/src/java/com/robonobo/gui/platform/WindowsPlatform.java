@@ -4,7 +4,7 @@ import java.io.File;
 
 import javax.swing.UIManager;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.itunes.ITunesService;
 import com.robonobo.gui.itunes.windows.WindowsITunesService;
 

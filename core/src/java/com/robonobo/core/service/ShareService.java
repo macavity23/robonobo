@@ -13,7 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.pageio.buffer.FilePageBuffer;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.api.RobonoboException;
@@ -30,7 +30,6 @@ import com.robonobo.spi.FormatSupportProvider;
  * 
  * @author macavity
  */
-@SuppressWarnings("unchecked")
 public class ShareService extends AbstractService {
 	/** Seconds */
 	// public static final int WATCHDIR_CHECK_FREQ = 60 * 10;
@@ -42,7 +41,7 @@ public class ShareService extends AbstractService {
 	EventService event;
 	UserService users;
 	StorageService storage;
-	MetadataService metadata;
+	StreamService streams;
 	PlaybackService playback;
 	MinaControl mina;
 	private Set<String> shareStreamIds;
@@ -51,7 +50,7 @@ public class ShareService extends AbstractService {
 
 	public ShareService() {
 		addHardDependency("core.mina");
-		addHardDependency("core.metadata");
+		addHardDependency("core.streams");
 		addHardDependency("core.storage");
 	}
 
@@ -59,9 +58,9 @@ public class ShareService extends AbstractService {
 	public void startup() throws Exception {
 		db = rbnb.getDbService();
 		event = rbnb.getEventService();
-		users = rbnb.getUsersService();
+		users = rbnb.getUserService();
 		storage = rbnb.getStorageService();
-		metadata = rbnb.getMetadataService();
+		streams = rbnb.getStreamService();
 		playback = rbnb.getPlaybackService();
 		mina = rbnb.getMina();
 		// Keep track of our stream ids, everything else loaded on-demand from the db
@@ -76,9 +75,15 @@ public class ShareService extends AbstractService {
 		watchDirTask.cancel(true);
 	}
 
-	public void addShare(String streamId, File dataFile) throws RobonoboException {
+	/**
+	 * NB The stream referenced by stream id must already have been put into streamservice
+	 * @param streamId
+	 * @param dataFile
+	 * @throws RobonoboException
+	 */
+	public void addShare(Stream s, File dataFile) throws RobonoboException {
+		String streamId = s.getStreamId();
 		log.info("Adding share for id " + streamId + " at " + dataFile.getAbsolutePath());
-		Stream s = metadata.getStream(streamId);
 		SharedTrack sh = db.getShare(streamId);
 		if (sh != null) {
 			log.info("Not adding share for id " + streamId + " - sharing already");
@@ -104,7 +109,7 @@ public class ShareService extends AbstractService {
 		rbnb.getLibraryService().addToLibrary(streamId);
 		event.fireTrackUpdated(s.getStreamId());
 		event.fireMyLibraryUpdated();
-		users.checkPlaylistsForNewShare(sh);
+		rbnb.getPlaylistService().checkPlaylistsForNewShare(sh);
 	}
 
 	private File fileForFinishedDownload(Stream s) {
@@ -126,7 +131,7 @@ public class ShareService extends AbstractService {
 		Stream s = d.getStream();
 		log.debug("Adding share for completed download " + s.getStreamId());
 		if (d.getDownloadStatus() != DownloadStatus.Finished) {
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		}
 		File curFile = d.getFile();
 		File shareFile = fileForFinishedDownload(s);
@@ -151,7 +156,7 @@ public class ShareService extends AbstractService {
 		}
 		startShare(s.getStreamId());
 		event.fireTrackUpdated(s.getStreamId());
-		users.checkPlaylistsForNewShare(sh);
+		rbnb.getPlaylistService().checkPlaylistsForNewShare(sh);
 	}
 
 	public void deleteShare(String streamId) {
@@ -171,10 +176,7 @@ public class ShareService extends AbstractService {
 	}
 
 	private void startShare(String streamId) throws RobonoboException {
-		Stream s = db.getStream(streamId);
-		if (s == null)
-			metadata.putStream(s);
-		mina.startBroadcast(s.getStreamId());
+		mina.startBroadcast(streamId);
 	}
 
 	private void stopShare(String streamId) {
@@ -224,8 +226,8 @@ public class ShareService extends AbstractService {
 							Stream s;
 							try {
 								s = getRobonobo().getFormatService().getStreamForFile(mp3File);
-								metadata.putStream(s);
-								addShare(s.getStreamId(), mp3File);
+								streams.putStream(s);
+								addShare(s, mp3File);
 							} catch (Exception e) {
 								log.error("Error adding file " + mp3File.getAbsolutePath() + ": " + e.getMessage());
 								continue;

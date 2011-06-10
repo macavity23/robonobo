@@ -4,8 +4,7 @@ import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class RobonoboConfig implements Serializable {
-	/** Our thread pool will contain one thread per processor, plus this value */
-	int threadPoolOverhead = 2;
+	int generalThreadPoolSize = 8;
 	int upnpTimeout = 2000; // ms
 	int upnpDefaultPort = 17235;
 	int upnpPortsToTry = 50;
@@ -13,11 +12,14 @@ public class RobonoboConfig implements Serializable {
 	String extraServices = "";
 	/** Comma-sep list of name:class pairs */
 	String extraConfigs = "mina:com.robonobo.mina.external.MinaConfig,wang:com.robonobo.core.wang.RobonoboWangConfig,gui:com.robonobo.gui.GuiConfig";
-	String sonarServerUrl = "http://sonar.robonobo.com/";
-	String metadataServerUrl = "http://midas.robonobo.com/";
-	String metadataServerUsername;
-	String metadataServerPassword;
-   String bugReportUrl = "https://github.com/macavity23/robonobo/issues";
+	String metadataServiceClass = "com.robonobo.core.metadata.MidasFacade";
+	String sonarUrl = "http://sonar.robonobo.com/";
+	String midasUrl = "http://midas.robonobo.com/";
+	String metadataUsername;
+	String metadataPassword;
+	int httpTimeout = 30000; // ms
+	int midasThreadPoolSize = 8;
+	String bugReportUrl = "https://github.com/macavity23/robonobo/issues";
 	String helpUrl = "http://getsatisfaction.com/robonobo";
 	String developerUrl = "https://github.com/macavity23/robonobo";
 	String finishedDownloadsDirectory = null;
@@ -40,7 +42,8 @@ public class RobonoboConfig implements Serializable {
 	String playlistUrlBase = "http://rbnb.co/p/";
 	String websiteUrlBase = "http://robonobo.com/";
 	String mplayerExePath = null;
-
+	String topUpUrl = "http://midas.robonobo.com/users/testing-topup";
+	
 	public RobonoboConfig() {
 	}
 
@@ -48,16 +51,12 @@ public class RobonoboConfig implements Serializable {
 		return bufferAutoSaveFreq;
 	}
 
-	public String getMetadataServerUrl() {
-		return metadataServerUrl;
+	public String getMidasUrl() {
+		return midasUrl;
 	}
 
 	public int getMaxRunningDownloads() {
 		return maxRunningDownloads;
-	}
-
-	public int getThreadPoolOverhead() {
-		return threadPoolOverhead;
 	}
 
 	public int getUpnpDefaultPort() {
@@ -76,16 +75,12 @@ public class RobonoboConfig implements Serializable {
 		this.bufferAutoSaveFreq = bufferAutoSaveFreq;
 	}
 
-	public void setMetadataServerUrl(String defaultMetadataUrl) {
-		this.metadataServerUrl = defaultMetadataUrl;
+	public void setMidasUrl(String defaultMetadataUrl) {
+		this.midasUrl = defaultMetadataUrl;
 	}
 
 	public void setMaxRunningDownloads(int maxRunningDownloads) {
 		this.maxRunningDownloads = maxRunningDownloads;
-	}
-
-	public void setThreadPoolOverhead(int threadPoolOverhead) {
-		this.threadPoolOverhead = threadPoolOverhead;
 	}
 
 	public void setUpnpDefaultPort(int upnpDefaultPort) {
@@ -116,28 +111,28 @@ public class RobonoboConfig implements Serializable {
 		this.dataPageSize = dataPageSize;
 	}
 
-	public String getSonarServerUrl() {
-		return sonarServerUrl;
+	public String getSonarUrl() {
+		return sonarUrl;
 	}
 
-	public void setSonarServerUrl(String sonarServerUrl) {
-		this.sonarServerUrl = sonarServerUrl;
+	public void setSonarUrl(String sonarServerUrl) {
+		this.sonarUrl = sonarServerUrl;
 	}
 
-	public String getMetadataServerUsername() {
-		return metadataServerUsername;
+	public String getMetadataUsername() {
+		return metadataUsername;
 	}
 
-	public void setMetadataServerUsername(String metadataServerUsername) {
-		this.metadataServerUsername = metadataServerUsername;
+	public void setMetadataUsername(String metadataServerUsername) {
+		this.metadataUsername = metadataServerUsername;
 	}
 
-	public String getMetadataServerPassword() {
-		return metadataServerPassword;
+	public String getMetadataPassword() {
+		return metadataPassword;
 	}
 
-	public void setMetadataServerPassword(String metadataServerPassword) {
-		this.metadataServerPassword = metadataServerPassword;
+	public void setMetadataPassword(String metadataServerPassword) {
+		this.metadataPassword = metadataServerPassword;
 	}
 
 	public int getUserUpdateFrequency() {
@@ -266,5 +261,45 @@ public class RobonoboConfig implements Serializable {
 
 	public void setMplayerExePath(String mplayerExePath) {
 		this.mplayerExePath = mplayerExePath;
+	}
+
+	public String getMetadataServiceClass() {
+		return metadataServiceClass;
+	}
+
+	public void setMetadataServiceClass(String metadataServiceClass) {
+		this.metadataServiceClass = metadataServiceClass;
+	}
+
+	public int getGeneralThreadPoolSize() {
+		return generalThreadPoolSize;
+	}
+
+	public void setGeneralThreadPoolSize(int generalThreadPoolSize) {
+		this.generalThreadPoolSize = generalThreadPoolSize;
+	}
+
+	public int getHttpTimeout() {
+		return httpTimeout;
+	}
+
+	public void setHttpTimeout(int midasTimeout) {
+		this.httpTimeout = midasTimeout;
+	}
+
+	public int getMidasThreadPoolSize() {
+		return midasThreadPoolSize;
+	}
+
+	public void setMidasThreadPoolSize(int midasThreadPoolSize) {
+		this.midasThreadPoolSize = midasThreadPoolSize;
+	}
+
+	public String getTopUpUrl() {
+		return topUpUrl;
+	}
+
+	public void setTopUpUrl(String topUpUrl) {
+		this.topUpUrl = topUpUrl;
 	}
 }

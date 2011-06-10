@@ -3,7 +3,7 @@ package com.robonobo.mina.message.handlers;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.mina.message.MessageHolder;
 import com.robonobo.mina.message.proto.MinaProtocol.Bid;
 import com.robonobo.mina.message.proto.MinaProtocol.BidUpdate;
@@ -45,7 +45,7 @@ public class BidUpdateHandler extends AbstractMessageHandler {
 			}
 		}
 		if(myIdx < 0)
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		return bu.getBidAmount(myIdx);
 	}
 }

@@ -15,11 +15,11 @@ import org.doomdark.uuid.UUIDGenerator;
 import org.hsqldb.lib.tar.RB;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.proto.CoreApi.Node;
-import com.robonobo.core.service.AbstractService;
+import com.robonobo.core.service.*;
 import com.robonobo.wang.WangException;
 import com.robonobo.wang.beans.CoinList;
 import com.robonobo.wang.client.WangClient;
@@ -32,10 +32,13 @@ public class WangService extends AbstractService implements CurrencyClient {
 	double cachedBankBalance = 0;
 	Date nextCheckBalanceTime = new Date(0);
 	boolean clientStarted = false;
+	TaskService tasks;
+	UserService users;
 
 	public WangService() {
 		addHardDependency("core.users");
 		addHardDependency("core.tasks");
+		addHardDependency("core.http");
 	}
 
 	public String getName() {
@@ -48,12 +51,12 @@ public class WangService extends AbstractService implements CurrencyClient {
 
 	@Override
 	public void startup() throws Exception {
-		config = (RobonoboWangConfig) getRobonobo().getConfig("wang");
-		File coinStoreDir = new File(getRobonobo().getHomeDir(), "coins");
+		tasks = rbnb.getTaskService();
+		users = rbnb.getUserService();
+		config = (RobonoboWangConfig) rbnb.getConfig("wang");
+		File coinStoreDir = new File(rbnb.getHomeDir(), "coins");
 		coinStoreDir.mkdirs();
 		config.setCoinStoreDir(coinStoreDir.getAbsolutePath());
-		// Start client on successful login
-		getRobonobo().getEventService().addUserPlaylistListener(new LoginListener());
 	}
 
 	private class StartClientTask extends Task {
@@ -66,12 +69,12 @@ public class WangService extends AbstractService implements CurrencyClient {
 			if (client != null)
 				client.stop();
 
-			User me = getRobonobo().getUsersService().getMyUser();
+			User me = users.getMyUser();
 			config.setAccountEmail(me.getEmail());
 			config.setAccountPwd(me.getPassword());
 			statusText = "Initializing client";
 			fireUpdated();
-			client = new WangClient(config);
+			client = new WangClient(config, rbnb.getHttpService().getClient());
 			client.start();
 			clientStarted = true;
 			completion = 0.5f;
@@ -132,7 +135,7 @@ public class WangService extends AbstractService implements CurrencyClient {
 		case MaxRate:
 			return Math.pow(2, config.getMaxRateMaxBid());
 		default:
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		}
 	}
 
@@ -179,15 +182,19 @@ public class WangService extends AbstractService implements CurrencyClient {
 		}
 	}
 
+	public void loggedIn() {
+		rbnb.getTaskService().runTask(new StartClientTask());
+	}
+	
 	private void fireBalanceUpdated() {
-		getRobonobo().getEventService().fireWangBalanceChanged(cachedBankBalance+client.getOnHandBalance());
+		rbnb.getEventService().fireWangBalanceChanged(cachedBankBalance+client.getOnHandBalance());
 	}
 	
 	private void fireAccountActivity(final double creditValue, final String narration) {
-		getRobonobo().getExecutor().execute(new CatchingRunnable() {
+		rbnb.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				updateBalanceIfNecessary(false);
-				getRobonobo().getEventService().fireWangAccountActivity(creditValue, narration);
+				rbnb.getEventService().fireWangAccountActivity(creditValue, narration);
 				fireBalanceUpdated();
 			}
 		});		
@@ -203,38 +210,6 @@ public class WangService extends AbstractService implements CurrencyClient {
 				}
 				nextCheckBalanceTime = timeInFuture(config.getBankBalanceCacheTime() * 1000);
 			}
-		}
-	}
-
-	class LoginListener implements UserPlaylistListener {
-		public void loggedIn() {
-			getRobonobo().getTaskService().runTask(new StartClientTask());
-		}
-
-		public void playlistChanged(Playlist p) {
-			// Do nothing
-		}
-
-		public void userChanged(User u) {
-			// Do nothing
-		}
-		
-		public void libraryUpdated(long userId, Library lib) {
-			// Do nothing
-		}
-		
-		public void libraryChanged(Library lib) {
-			// Do nothing
-		}
-		
-		@Override
-		public void allUsersAndPlaylistsUpdated() {
-			// Do nothing
-		}
-		
-		@Override
-		public void userConfigChanged(UserConfig cfg) {
-			// Do nothing
 		}
 	}
 }

@@ -6,7 +6,7 @@ import java.util.*;
 
 import org.doomdark.uuid.UUIDGenerator;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
@@ -92,7 +92,7 @@ public class TestyTrackListTableModel extends TrackListTableModel {
 	
 	@Override
 	public void deleteTracks(List<String> streamIds) {
-		throw new SeekInnerCalmException();
+		throw new Errot();
 	}
 	
 	class TestyDownloadingTrack extends DownloadingTrack {

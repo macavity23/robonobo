@@ -126,7 +126,7 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 					if ((t.getCompletion() - 1f) == 0f) {
 						if (contentPanelSelected()) {
 							cancelBtn.setText("Clear");
-							// Start a timer to nuke this task
+							// Start a timer to nuke this pFetcher
 							frame.getController().getExecutor().schedule(new CatchingRunnable() {
 								public void doRun() throws Exception {
 									removeTask(t);

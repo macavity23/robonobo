@@ -7,7 +7,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.console.RobonoboConsole;
 
 public class dbquery implements ConsoleCommand {
@@ -81,7 +81,7 @@ public class dbquery implements ConsoleCommand {
 			else if(args[0].equalsIgnoreCase("page"))
 				console.getController().returnPageDbConnection(conn);
 			else
-				throw new SeekInnerCalmException();
+				throw new Errot();
 		}
 	}
 }

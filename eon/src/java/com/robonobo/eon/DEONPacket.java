@@ -21,7 +21,7 @@ package com.robonobo.eon;
 
 import java.nio.ByteBuffer;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 
 public class DEONPacket extends EONPacket {
 
@@ -75,7 +75,7 @@ public class DEONPacket extends EONPacket {
 
 	public void toByteBuffer(ByteBuffer buf) {
 		if (sourceEP == null || destEP == null)
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		// Source Port
 		buf.put((byte) ((sourceEP.getEonPort() & 0xFF00) >> 8));
 		buf.put((byte) (sourceEP.getEonPort() & 0xFF));

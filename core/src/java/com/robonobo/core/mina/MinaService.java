@@ -53,8 +53,7 @@ public class MinaService extends AbstractService {
 		ScheduledThreadPoolExecutor executor = getRobonobo().getExecutor();
 		mina = Mina.newInstance(minaCfg, application, executor);
 		mina.addMinaListener(getRobonobo().getEventService());
-		locator = new SonarNodeLocator();
-		locator.addLocatorUri(getRobonobo().getConfig().getSonarServerUrl());
+		locator = new SonarNodeLocator(getRobonobo().getConfig().getSonarUrl());
 		mina.addNodeLocator(locator);
 
 		mina.setPageBufferProvider(getRobonobo().getStorageService());

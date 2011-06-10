@@ -6,7 +6,7 @@ import java.util.Date;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.TimeUtil;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.AudioPlayer.Status;
@@ -32,6 +32,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 	private final Log log = LogFactory.getLog(getClass());
 	private EventService event;
 	private TrackService tracks;
+	private StreamService streams;
 	private DownloadService download;
 	private MinaControl mina;
 	String currentStreamId;
@@ -39,6 +40,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 	public PlaybackService() {
 		addHardDependency("core.tracks");
 		addHardDependency("core.storage");
+		addHardDependency("core.streams");
 	}
 
 	@Override
@@ -46,6 +48,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		event = rbnb.getEventService();
 		tracks = rbnb.getTrackService();
 		download = rbnb.getDownloadService();
+		streams = rbnb.getStreamService();
 		mina = rbnb.getMina();
 	}
 
@@ -116,13 +119,13 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		}
 		PageBuffer pb = rbnb.getStorageService().getPageBuf(currentStreamId);
 		if (pb == null)
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		// If we already have some of this stream, start playing it straight
 		// away, otherwise ask it to notify us when it gets data, and start
 		// playing
 		status = Status.Buffering;
 		event.firePlaybackStarting();
-		Stream s = rbnb.getMetadataService().getStream(currentStreamId);
+		Stream s = streams.getKnownStream(currentStreamId);
 		if (bufferedEnough(s, pb))
 			startPlaying(s, pb);
 		else {
@@ -139,8 +142,8 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 	 * Called by the pagebuffer when it receives a page - check to see if we have enough data, and start playing if so
 	 */
 	public void gotPage(final PageBuffer pb, long pageNum) {
-		Stream s = rbnb.getMetadataService().getStream(currentStreamId);
 		if (currentStreamId.equals(pb.getStreamId())) {
+			Stream s = streams.getKnownStream(currentStreamId);
 			if (status == Status.Buffering) {
 				if (bufferedEnough(s, pb)) {
 					pb.removeListener(this);
@@ -203,7 +206,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 			if (bytesData >= BYTES_BUFFERED_DATA)
 				return true;
 		}
-		throw new SeekInnerCalmException();
+		throw new Errot();
 	}
 
 	/**
