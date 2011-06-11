@@ -19,9 +19,11 @@ import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
 import com.robonobo.core.api.proto.CoreApi.UserConfigMsg;
 import com.robonobo.core.api.proto.CoreApi.UserMsg;
 import com.robonobo.core.metadata.*;
+import com.robonobo.core.metadata.AbstractMetadataService.RequestFetchOrder;
 
 /**
- * Managers users (me and my friends) and associated playlists. We pull everything down via http on startup (and update it periodically); nothing is persisted locally
+ * Managers users (me and my friends) and associated playlists. We pull everything down via http on startup (and update
+ * it periodically); nothing is persisted locally
  */
 public class UserService extends AbstractService {
 	EventService events;
@@ -34,8 +36,8 @@ public class UserService extends AbstractService {
 	private User me;
 	private UserConfig myUserCfg;
 	/**
-	 * We keep users and playlists in a hashmap, and look them up on demand. This is because they are being updated asynchronously, and so if we kept pointers, they'd go out of
-	 * date.
+	 * We keep users and playlists in a hashmap, and look them up on demand. This is because they are being updated
+	 * asynchronously, and so if we kept pointers, they'd go out of date.
 	 */
 	private Map<String, User> usersByEmail = Collections.synchronizedMap(new HashMap<String, User>());
 	private Map<Long, User> usersById = Collections.synchronizedMap(new HashMap<Long, User>());
@@ -103,7 +105,8 @@ public class UserService extends AbstractService {
 	}
 
 	/**
-	 * This will return immediately (or as soon as the service is started) - to see the result, add a LoginListener before you call this
+	 * This will return immediately (or as soon as the service is started) - to see the result, add a LoginListener
+	 * before you call this
 	 */
 	public void login(String email, String password) {
 		// We get called immediately here, which might be before we've started... wait, if so
@@ -121,7 +124,7 @@ public class UserService extends AbstractService {
 			}
 		}
 		log.info("Attempting login as user " + email);
-		metadata.fetchUser(email, password, new LoginHandler(email, password));
+		metadata.fetchUserForLogin(email, password, new LoginHandler(email, password));
 	}
 
 	class LoginHandler implements UserHandler {
@@ -152,6 +155,9 @@ public class UserService extends AbstractService {
 			events.fireLoginSucceeded(u);
 			events.fireUserChanged(u);
 			metadata.fetchUserConfig(me.getUserId(), new UsrCfgUpdater(null));
+			// Tell our metadata service to load things serially so we get playlists loading one at a time rather than a
+			// big pause then all loading at once
+			metadata.setFetchOrder(RequestFetchOrder.Serial);
 			playlists.refreshMyPlaylists(me);
 			// We want to ensure we fetch all my playlists before any friends - when all my playlists have been fetched,
 			// playlistservice will eventually call fetchFriends() via a convoluted series of callbacks
@@ -260,7 +266,7 @@ public class UserService extends AbstractService {
 
 	class UsrCfgUpdater implements UserConfigHandler {
 		UserConfigHandler onwardHandler;
-		
+
 		public UsrCfgUpdater(UserConfigHandler onwardHandler) {
 			this.onwardHandler = onwardHandler;
 		}
@@ -270,14 +276,14 @@ public class UserService extends AbstractService {
 			log.debug("Got new user config");
 			myUserCfg = uc;
 			events.fireUserConfigChanged(uc);
-			if(onwardHandler != null)
+			if (onwardHandler != null)
 				onwardHandler.success(uc);
 		}
 
 		@Override
 		public void error(long userId, Exception e) {
 			log.error("Error fetching my user config", e);
-			if(onwardHandler != null)
+			if (onwardHandler != null)
 				onwardHandler.error(userId, e);
 		}
 	}

@@ -12,7 +12,7 @@ public class RobonoboConfig implements Serializable {
 	String extraServices = "";
 	/** Comma-sep list of name:class pairs */
 	String extraConfigs = "mina:com.robonobo.mina.external.MinaConfig,wang:com.robonobo.core.wang.RobonoboWangConfig,gui:com.robonobo.gui.GuiConfig";
-	String metadataServiceClass = "com.robonobo.core.metadata.MidasFacade";
+	String metadataServiceClass = "com.robonobo.midas.client.MidasClientService";
 	String sonarUrl = "http://sonar.robonobo.com/";
 	String midasUrl = "http://midas.robonobo.com/";
 	String metadataUsername;

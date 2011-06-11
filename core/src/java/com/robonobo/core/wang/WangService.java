@@ -33,10 +33,8 @@ public class WangService extends AbstractService implements CurrencyClient {
 	Date nextCheckBalanceTime = new Date(0);
 	boolean clientStarted = false;
 	TaskService tasks;
-	UserService users;
 
 	public WangService() {
-		addHardDependency("core.users");
 		addHardDependency("core.tasks");
 		addHardDependency("core.http");
 	}
@@ -52,7 +50,6 @@ public class WangService extends AbstractService implements CurrencyClient {
 	@Override
 	public void startup() throws Exception {
 		tasks = rbnb.getTaskService();
-		users = rbnb.getUserService();
 		config = (RobonoboWangConfig) rbnb.getConfig("wang");
 		File coinStoreDir = new File(rbnb.getHomeDir(), "coins");
 		coinStoreDir.mkdirs();
@@ -69,7 +66,7 @@ public class WangService extends AbstractService implements CurrencyClient {
 			if (client != null)
 				client.stop();
 
-			User me = users.getMyUser();
+			User me = rbnb.getUserService().getMyUser();
 			config.setAccountEmail(me.getEmail());
 			config.setAccountPwd(me.getPassword());
 			statusText = "Initializing client";

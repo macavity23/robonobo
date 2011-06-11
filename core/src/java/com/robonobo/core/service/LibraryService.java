@@ -20,8 +20,8 @@ public class LibraryService extends AbstractService {
 	static final int SEND_UPDATE_TO_SERVER_DELAY = 30;
 	/** secs */
 	static final int FIRE_UI_EVENT_DELAY = 10;
-	private AddBatcher addB = new AddBatcher();
-	private DelBatcher delB = new DelBatcher();
+	private AddBatcher addB;
+	private DelBatcher delB;
 	private Map<Long, Library> libs = new HashMap<Long, Library>();
 	Set<Long> stillFetchingLibs = new HashSet<Long>();
 	UserService users;
@@ -34,7 +34,7 @@ public class LibraryService extends AbstractService {
 		addHardDependency("core.metadata");
 		addHardDependency("core.users");
 		addHardDependency("core.tasks");
-		addHardDependency("core.events");
+		addHardDependency("core.event");
 		addHardDependency("core.streams");
 	}
 
@@ -55,6 +55,8 @@ public class LibraryService extends AbstractService {
 		tasks = rbnb.getTaskService();
 		events = rbnb.getEventService();
 		streams = rbnb.getStreamService();
+		addB = new AddBatcher();
+		delB = new DelBatcher();
 	}
 
 	@Override

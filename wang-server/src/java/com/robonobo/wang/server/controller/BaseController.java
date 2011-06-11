@@ -60,6 +60,7 @@ public abstract class BaseController {
 	
 	protected void send401(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		resp.setContentType("text/html");
+		resp.setHeader("WWW-Authenticate", "Basic realm=\"wang\"");
 		resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		PrintWriter writer = resp.getWriter();
 		writer.write("<html><head><title>401 Unauthorized</title></head><body><h1>401 Unauthorized</h1>"+

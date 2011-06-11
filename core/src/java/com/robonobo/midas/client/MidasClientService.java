@@ -1,5 +1,6 @@
 package com.robonobo.midas.client;
 
+import static com.robonobo.common.util.CodeUtil.*;
 import static com.robonobo.common.util.TextUtil.*;
 import static java.lang.Math.*;
 
@@ -16,7 +17,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.*;
 import org.apache.http.auth.*;
 import org.apache.http.client.AuthCache;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.ByteArrayEntity;
@@ -32,16 +32,11 @@ import com.google.protobuf.GeneratedMessage;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.serialization.*;
-import com.robonobo.common.util.CodeUtil;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.metadata.*;
 
 public class MidasClientService extends AbstractMetadataService {
-	static final Pattern URL_PATTERN = Pattern.compile("^http://([\\w\\.]+?):?(\\d*)/$");
-	/**
-	 * We keep a linkedlist of requests, each of which represents one or more metadata request parameters. We handle one param from a request at a time before moving on to the next
-	 * one, to keep things responsive (some request objects will have many many params)
-	 */
+	static final Pattern URL_PATTERN = Pattern.compile("^http://([\\w\\.]+?):?(\\d*)/.*$");
 	LinkedList<Request> requests = new LinkedList<Request>();
 	DefaultHttpClient http;
 	HttpContext context;
@@ -51,12 +46,24 @@ public class MidasClientService extends AbstractMetadataService {
 	int numThreads;
 	int runningTasks = 0;
 	ExecutorService executor;
+	long nextFetchTaskId = 1;
 
-	public MidasClientService(MidasClientConfig cfg, String username, String password) {
-		this.cfg = cfg;
-		Matcher m = URL_PATTERN.matcher(cfg.getBaseUrl());
+	public MidasClientService() {
+		addHardDependency("core.http");
+	}
+	
+	@Override
+	public String getName() {
+		return "Midas Metadata Service";
+	}
+
+	@Override
+	public void startup() throws Exception {
+		String baseUrl = rbnb.getConfig().getMidasUrl();
+		Matcher m = URL_PATTERN.matcher(baseUrl);
 		if (!m.matches())
-			throw new Errot("midas url "+cfg.getBaseUrl()+"does not match expected pattern");
+			throw new Errot("midas url " + baseUrl + "does not match expected pattern");
+		cfg = new MidasClientConfig(baseUrl);
 		String midasHost = m.group(1);
 		String portStr = m.group(2);
 		int midasPort;
@@ -66,21 +73,14 @@ public class MidasClientService extends AbstractMetadataService {
 			midasPort = Integer.parseInt(portStr);
 		log.debug("Setting up midas http auth scope on " + midasHost + ":" + midasPort);
 		midasAuthScope = new AuthScope(midasHost, midasPort);
-		addHardDependency("core.http");
-	}
-
-	@Override
-	public String getName() {
-		return "Midas Metadata Service";
-	}
-
-	@Override
-	public void startup() throws Exception {
 		// Run midas requests in a different thread pool
 		numThreads = rbnb.getConfig().getMidasThreadPoolSize();
 		executor = Executors.newFixedThreadPool(numThreads);
 		http = rbnb.getHttpService().getClient();
 		context = new BasicHttpContext();
+		// Initially we handle requests serially - makes for a better ux to have the playlists load one at a time rather
+		// than a big pause then they all load at once
+		fetchOrder = RequestFetchOrder.Serial;
 	}
 
 	@Override
@@ -102,6 +102,7 @@ public class MidasClientService extends AbstractMetadataService {
 		authCache.put(new HttpHost(midasAuthScope.getHost(), midasAuthScope.getPort()), basicAuth);
 		BasicHttpContext newContext = new BasicHttpContext();
 		newContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+        newContext.setAttribute("preemptive-auth", basicAuth);
 		return newContext;
 	}
 
@@ -126,8 +127,8 @@ public class MidasClientService extends AbstractMetadataService {
 	}
 
 	@Override
-	public void fetchUser(String email, String password, UserHandler handler) {
-		// TODO Use different creds, grrr
+	public void fetchUserForLogin(String email, String password, UserHandler handler) {
+		addRequest(new LoginRequest(cfg, email, password, handler));
 	}
 
 	@Override
@@ -144,7 +145,7 @@ public class MidasClientService extends AbstractMetadataService {
 	public void fetchPlaylist(long playlistId, PlaylistHandler handler) {
 		addRequest(new GetPlaylistRequest(cfg, playlistId, handler));
 	}
-	
+
 	@Override
 	public void fetchPlaylists(Collection<Long> playlistIds, PlaylistHandler handler) {
 		addRequest(new GetPlaylistRequest(cfg, playlistIds, handler));
@@ -200,20 +201,18 @@ public class MidasClientService extends AbstractMetadataService {
 		}
 	}
 
-	private void getFromUrl(AbstractMessage.Builder<?> bldr, String url) throws IOException, SerializationException {
-		getFromUrl(bldr, url, null, null);
-	}
-
 	private void getFromUrl(AbstractMessage.Builder<?> bldr, String url, String un, String pwd) throws IOException, SerializationException {
 		log.debug("Getting object from " + url);
 		HttpGet get = new HttpGet(url);
 		Credentials restoreCreds = null;
 		HttpContext thisContext = context;
-		// If we are being supplied with a username & password, store our old creds and restore them afterwards, and use a different httpcontext for this request to avoid using
+		// If we are being supplied with a username & password, store our old creds and restore them afterwards, and use
+		// a different httpcontext for this request to avoid using
 		// cached auth
 		if (un != null) {
 			restoreCreds = http.getCredentialsProvider().getCredentials(midasAuthScope);
 			thisContext = createNewContext();
+			http.getCredentialsProvider().setCredentials(midasAuthScope, new UsernamePasswordCredentials(un, pwd));
 		}
 		HttpEntity body = null;
 		try {
@@ -229,6 +228,8 @@ public class MidasClientService extends AbstractMetadataService {
 						is.close();
 					}
 				}
+				context = thisContext;
+				restoreCreds = null;
 				return;
 			case 404:
 				throw new ResourceNotFoundException("Server could not find resource for " + url);
@@ -285,57 +286,67 @@ public class MidasClientService extends AbstractMetadataService {
 			if (resp.getStatusLine().getStatusCode() != 200)
 				throw new IOException("Failed to delete object at " + url + ", status code was " + resp.getStatusLine().getStatusCode());
 		} finally {
-			if(body != null)
+			if (body != null)
 				EntityUtils.consume(body);
 		}
 	}
 
 	class FetchTask extends CatchingRunnable {
+		long taskId;
+
+		public FetchTask() {
+			synchronized (MidasClientService.this) {
+				taskId = nextFetchTaskId++;
+			}
+		}
+
+		@Override
+		public String toString() {
+			return "Midas fetcher " + taskId;
+		}
+
 		@Override
 		public void doRun() throws Exception {
+			log.debug(this + " starting");
 			while (true) {
 				Request r;
 				Params p;
 				synchronized (MidasClientService.this) {
 					if (requests.size() == 0) {
 						runningTasks--;
+						log.debug(this + " stopping");
 						return;
 					}
 					r = requests.removeFirst();
 					p = r.getNextParams();
+					if (r.remaining() > 0) {
+						if (fetchOrder == RequestFetchOrder.Serial)
+							requests.addFirst(r);
+						else
+							requests.addLast(r); // Parallel
+					}
 				}
+				log.debug(this + " running " + p.op + " for " + p.url);
 				try {
 					switch (p.op) {
 					case Get:
-						if (p.username != null)
-							getFromUrl(p.resultBldr, p.url, p.username, p.password);
-						else
-							getFromUrl(p.resultBldr, p.url);
-						if (p.resultBldr == null)
-							r.success(null);
-						else
-							r.success(p.resultBldr.build());
+						getFromUrl(p.resultBldr, p.url, p.username, p.password);
 						break;
 					case Put:
 						putToUrl(p.sendMsg, p.url, p.resultBldr);
-						if (p.resultBldr == null)
-							r.success(null);
-						else
-							r.success(p.resultBldr.build());
 						break;
 					case Delete:
 						deleteAtUrl(p.url);
-						r.success(null);
 						break;
 					}
+					log.debug(this + " ran successful " + p.op + " for " + p.url);
+					if (p.resultBldr == null)
+						r.success(null);
+					else
+						r.success(p.resultBldr.build());
 				} catch (Exception e) {
-					log.debug("Caught " + CodeUtil.shortClassName(e.getClass()) + " running " + p.op + " against " + p.url);
+					log.debug(this + " caught " + shortClassName(e.getClass()) + " running " + p.op + " for " + p.url + " with msg: " + e.getMessage());
 					r.error(p, e);
-				}
-				if (r.remaining() > 0) {
-					synchronized (MidasClientService.this) {
-						requests.addLast(r);
-					}
 				}
 			}
 		}

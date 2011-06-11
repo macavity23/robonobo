@@ -11,6 +11,7 @@ import com.robonobo.core.api.*;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
 import com.robonobo.core.metadata.*;
+import com.robonobo.core.metadata.AbstractMetadataService.RequestFetchOrder;
 
 public class PlaylistService extends AbstractService {
 	Map<Long, Playlist> playlists = new HashMap<Long, Playlist>();
@@ -26,7 +27,7 @@ public class PlaylistService extends AbstractService {
 	public PlaylistService() {
 		addHardDependency("core.db");
 		addHardDependency("core.metadata");
-		addHardDependency("core.events");
+		addHardDependency("core.event");
 		addHardDependency("core.tasks");
 		addHardDependency("core.streams");
 		addHardDependency("core.tracks");
@@ -202,7 +203,9 @@ public class PlaylistService extends AbstractService {
 		}
 
 		void onCompletion() {
-			// Now we've done all users and playlists - update libraries
+			// Now we've done all users and playlists - tell our metadata service to load stuff in parallel now to avoid
+			// requests getting stuck behind all our friends' libraries loading
+			metadata.setFetchOrder(RequestFetchOrder.Parallel);
 			rbnb.getLibraryService().updateLibraries();
 		}
 	}
@@ -245,7 +248,8 @@ public class PlaylistService extends AbstractService {
 	public void checkPlaylistUpdate(long plId) {
 		Set<Long> plIds = new HashSet<Long>();
 		plIds.add(plId);
-		PlaylistFetcher fetcher = new PlaylistFetcher(plIds) {};
+		PlaylistFetcher fetcher = new PlaylistFetcher(plIds) {
+		};
 		metadata.fetchPlaylist(plId, fetcher);
 	}
 
@@ -271,7 +275,8 @@ public class PlaylistService extends AbstractService {
 	}
 
 	/**
-	 * The handler will be called back with the updated playlist, which will have a playlist id set, or else with an errot
+	 * The handler will be called back with the updated playlist, which will have a playlist id set, or else with an
+	 * errot
 	 */
 	public void createPlaylist(Playlist p, final PlaylistHandler handler) {
 		log.debug("Creating new playlist with title " + p.getTitle());
@@ -356,7 +361,7 @@ public class PlaylistService extends AbstractService {
 
 	public void getOrFetchPlaylist(long playlistId, final PlaylistHandler handler) {
 		Playlist p = getExistingPlaylist(playlistId);
-		if(p != null) {
+		if (p != null) {
 			handler.success(p);
 			return;
 		}
@@ -367,13 +372,13 @@ public class PlaylistService extends AbstractService {
 				}
 				handler.success(p);
 			}
-			
+
 			public void error(long playlistId, Exception ex) {
 				handler.error(playlistId, ex);
 			}
 		});
 	}
-	
+
 	public synchronized Playlist getMyPlaylistByTitle(String title) {
 		Long plId = myPlaylistIdsByTitle.get(title);
 		if (plId == null)

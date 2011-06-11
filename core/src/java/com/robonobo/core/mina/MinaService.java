@@ -23,6 +23,7 @@ public class MinaService extends AbstractService {
 		addHardDependency("core.gateway");
 		addHardDependency("core.event");
 		addHardDependency("core.wang");
+		addHardDependency("core.http");
 	}
 
 	public String getName() {
@@ -54,6 +55,7 @@ public class MinaService extends AbstractService {
 		mina = Mina.newInstance(minaCfg, application, executor);
 		mina.addMinaListener(getRobonobo().getEventService());
 		locator = new SonarNodeLocator(getRobonobo().getConfig().getSonarUrl());
+		locator.setHttpClient(rbnb.getHttpService().getClient());
 		mina.addNodeLocator(locator);
 
 		mina.setPageBufferProvider(getRobonobo().getStorageService());

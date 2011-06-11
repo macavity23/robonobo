@@ -22,10 +22,6 @@ public class MidasClientConfig implements Serializable {
 		this.baseUrl = baseUrl;
 	}
 
-	public String getBaseUrl() {
-		return baseUrl;
-	}
-	
 	public String getPlaylistUrl(long playlistId) {
 		return baseUrl + "playlists/" + Long.toHexString(playlistId);
 	}

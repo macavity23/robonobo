@@ -13,7 +13,6 @@ import org.apache.http.*;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.ByteArrayEntity;
@@ -36,7 +35,7 @@ import com.robonobo.wang.proto.WangProtocol.DenominationListMsg;
 import com.robonobo.wang.proto.WangProtocol.DepositStatusMsg;
 
 public class BankFacade {
-	static final Pattern URL_PATTERN = Pattern.compile("^http://([\\w\\.]+?):?(\\d*)/$");
+	static final Pattern URL_PATTERN = Pattern.compile("^http://([\\w\\.]+?):?(\\d*)/.*$");
 	private String baseUrl;
 	private DefaultHttpClient client;
 	Log log = LogFactory.getLog(getClass());
@@ -44,6 +43,7 @@ public class BankFacade {
 
 	public BankFacade(String baseUrl, String userEmail, String password, DefaultHttpClient client) {
 		this.baseUrl = baseUrl;
+		this.client = client;
 		if (!baseUrl.endsWith("/"))
 			baseUrl += "/";
 		Matcher m = URL_PATTERN.matcher(baseUrl);
