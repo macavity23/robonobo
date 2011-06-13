@@ -5,13 +5,12 @@ import java.util.Random;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.PropertyConfigurator;
 
+import com.robonobo.common.http.PreemptiveHttpClient;
 import com.robonobo.wang.client.WangClient;
 import com.robonobo.wang.client.WangConfig;
 import com.robonobo.wang.proto.WangProtocol.CoinListMsg;
-import com.robonobo.wang.proto.WangProtocol.CoinMsg;
 
 /**
  * Hits the wang server with many repeated withdrawal and deposit requests
@@ -94,7 +93,7 @@ public class WangSoakTester {
 			try {
 				while (true) {
 					log.info("Starting new client");
-					WangClient client = new WangClient(cfg, new DefaultHttpClient());
+					WangClient client = new WangClient(cfg, new PreemptiveHttpClient());
 					client.start();
 					for (int i = 0; i < TRANS_PER_CLIENT; i++) {
 						double amt = getTransAmt();

@@ -23,4 +23,11 @@ public class Params {
 		this.url = url;
 		this.obj = obj;
 	}
+	
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer("P[");
+		sb.append(op).append(",").append(sendMsg).append(",").append(resultBldr).append(",").append(url).append(",").append(obj).append(",").append(username).append(",").append(password).append("]");
+		return sb.toString();
+	}
 }

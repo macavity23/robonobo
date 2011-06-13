@@ -9,6 +9,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.http.PreemptiveHttpClient;
 import com.robonobo.common.util.TextUtil;
 import com.robonobo.wang.*;
 import com.robonobo.wang.beans.*;
@@ -43,7 +44,7 @@ public class WangClient {
 			new DescendingIntComp());
 	private CoinStore coinStore;
 
-	public WangClient(WangConfig config, DefaultHttpClient client) {
+	public WangClient(WangConfig config, PreemptiveHttpClient client) {
 		this.config = config;
 		bank = new BankFacade(config.getBankUrl(), config.getAccountEmail(), config.getAccountPwd(), client);
 		lucre = new LucreFacade();

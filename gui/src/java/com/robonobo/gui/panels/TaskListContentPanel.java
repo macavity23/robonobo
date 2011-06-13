@@ -78,7 +78,7 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 		public TaskPanel(Task task) {
 			this.t = task;
 
-			double[][] cellSizen = { { 10, 200, 10, TableLayout.FILL, 10, 80, 10 }, { 10, 25, 10, 25, 10, 1 } };
+			double[][] cellSizen = { { 10, 300, 10, TableLayout.FILL, 10, 80, 10 }, { 10, 25, 10, 25, 10, 1 } };
 			setLayout(new TableLayout(cellSizen));
 
 			titleLbl = new RLabel18B(t.getTitle());

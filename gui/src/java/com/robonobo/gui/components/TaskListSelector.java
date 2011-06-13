@@ -11,7 +11,6 @@ import javax.swing.SwingUtilities;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.Task;
 import com.robonobo.core.api.TaskListener;
-import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.panels.LeftSidebar;
@@ -36,7 +35,7 @@ public class TaskListSelector extends LeftSidebarSelector implements TaskListene
 						tasks.remove(t);
 					else
 						tasks.add(t);
-					setText(numItems(tasks, "pFetcher") + " running");
+					setText(numItems(tasks, "Task") + " running");
 					sideBar.showTaskList(tasks.size() > 0);
 				}
 			}

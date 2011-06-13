@@ -64,7 +64,8 @@ public class StreamService extends AbstractService {
 			else if (handler != null)
 				handler.success(s);
 		}
-		metadata.fetchStreams(lookupSids, new AddToDbHandler(handler));
+		if(lookupSids.size() > 0)
+			metadata.fetchStreams(lookupSids, new AddToDbHandler(handler));
 	}
 	
 	class AddToDbHandler implements StreamHandler {

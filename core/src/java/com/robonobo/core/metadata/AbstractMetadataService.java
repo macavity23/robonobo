@@ -25,7 +25,7 @@ public abstract class AbstractMetadataService extends AbstractService {
 		return "core.metadata";
 	}
 
-	public abstract void updateCredentials(String username, String password);
+	public abstract void setCredentials(String username, String password);
 
 	public abstract void fetchStreams(Collection<String> sids, StreamHandler handler);
 

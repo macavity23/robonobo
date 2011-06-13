@@ -26,6 +26,7 @@ import org.apache.http.util.EntityUtils;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.GeneratedMessage;
 import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.http.PreemptiveHttpClient;
 import com.robonobo.wang.WangServerException;
 import com.robonobo.wang.proto.WangProtocol.BalanceMsg;
 import com.robonobo.wang.proto.WangProtocol.BlindedCoinListMsg;
@@ -37,11 +38,12 @@ import com.robonobo.wang.proto.WangProtocol.DepositStatusMsg;
 public class BankFacade {
 	static final Pattern URL_PATTERN = Pattern.compile("^http://([\\w\\.]+?):?(\\d*)/.*$");
 	private String baseUrl;
-	private DefaultHttpClient client;
+	private PreemptiveHttpClient client;
 	Log log = LogFactory.getLog(getClass());
-	HttpContext context;
+	private String bankHost;
+	private int bankPort;
 
-	public BankFacade(String baseUrl, String userEmail, String password, DefaultHttpClient client) {
+	public BankFacade(String baseUrl, String userEmail, String password, PreemptiveHttpClient client) {
 		this.baseUrl = baseUrl;
 		this.client = client;
 		if (!baseUrl.endsWith("/"))
@@ -49,9 +51,8 @@ public class BankFacade {
 		Matcher m = URL_PATTERN.matcher(baseUrl);
 		if (!m.matches())
 			throw new Errot("bank url " + baseUrl + "does not match expected pattern");
-		String bankHost = m.group(1);
+		bankHost = m.group(1);
 		String portStr = m.group(2);
-		int bankPort;
 		if (isEmpty(portStr))
 			bankPort = 80;
 		else
@@ -59,11 +60,6 @@ public class BankFacade {
 		log.debug("Setting up bank http auth scope on " + bankHost + ":" + bankPort);
 		AuthScope bankAuthScope = new AuthScope(bankHost, bankPort);
 		client.getCredentialsProvider().setCredentials(bankAuthScope, new UsernamePasswordCredentials(userEmail, password));
-		AuthCache authCache = new BasicAuthCache();
-		BasicScheme basicAuth = new BasicScheme();
-		authCache.put(new HttpHost(bankHost, bankPort), basicAuth);
-		context = new BasicHttpContext();
-		context.setAttribute(ClientContext.AUTH_CACHE, authCache);
 	}
 
 	public DenominationListMsg getDenominations() throws WangServerException {
@@ -103,6 +99,7 @@ public class BankFacade {
 			}
 			HttpEntity body = null;
 			try {
+				HttpContext context = client.newPreemptiveContext(new HttpHost(bankHost, bankPort));
 				HttpResponse resp = client.execute(request, context);
 				body = resp.getEntity();
 				int statusCode = resp.getStatusLine().getStatusCode();

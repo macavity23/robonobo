@@ -118,6 +118,7 @@ public class PlaylistService extends AbstractService {
 			if (waitingForPlaylists.size() == 0) {
 				// We've got all our playlists - now get the streams (if any)
 				streamsToFetch = waitingForStreams.size();
+				onStreamUpdate(0, streamsToFetch);
 				if (streamsToFetch > 0) {
 					for (Long plId : plIds) {
 						Playlist p;
@@ -128,7 +129,6 @@ public class PlaylistService extends AbstractService {
 							streams.fetchStreams(p.getStreamIds(), new StreamFetcher(p, this));
 					}
 				}
-				onStreamUpdate(0, streamsToFetch);
 			}
 		}
 
@@ -151,7 +151,7 @@ public class PlaylistService extends AbstractService {
 
 		public PlaylistsRefreshTask(Set<Long> plIds) {
 			this.plIds = plIds;
-			title = getTitle();
+			title = titleName();
 			fetcher = new PlaylistFetcher(plIds) {
 				void onStreamUpdate(int done, int total) {
 					if (done == total) {
@@ -162,6 +162,8 @@ public class PlaylistService extends AbstractService {
 						statusText = "Fetching details of playlist track " + (done + 1) + " of " + total;
 					}
 					fireUpdated();
+					if(completion == 1)
+						onCompletion();
 				}
 			};
 		}

@@ -130,16 +130,12 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 			lPanel.add(Box.createVerticalStrut(5));
 
 			shareLibCheckBox = new RCheckBox("Share library with friends");
-			shareLibCheckBox.addItemListener(new ItemListener() {
-				public void itemStateChanged(final ItemEvent e) {
+			shareLibCheckBox.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					final boolean sel = shareLibCheckBox.isSelected();
 					frame.getController().getExecutor().execute(new CatchingRunnable() {
-						@Override
 						public void doRun() throws Exception {
-							if (e.getStateChange() == ItemEvent.SELECTED) {
-								frame.getController().saveUserConfigItem("sharelibrary", "true");
-							} else if (e.getStateChange() == ItemEvent.DESELECTED) {
-								frame.getController().saveUserConfigItem("sharelibrary", "false");
-							}
+							frame.getController().saveUserConfigItem("sharelibrary", sel ? "true" : "false");
 						}
 					});
 				}

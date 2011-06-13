@@ -14,12 +14,14 @@ import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.serialization.*;
 import com.robonobo.core.api.*;
+import com.robonobo.core.api.config.RobonoboConfig;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
 import com.robonobo.core.api.proto.CoreApi.UserConfigMsg;
 import com.robonobo.core.api.proto.CoreApi.UserMsg;
 import com.robonobo.core.metadata.*;
 import com.robonobo.core.metadata.AbstractMetadataService.RequestFetchOrder;
+import com.robonobo.core.wang.RobonoboWangConfig;
 
 /**
  * Managers users (me and my friends) and associated playlists. We pull everything down via http on startup (and update
@@ -140,16 +142,21 @@ public class UserService extends AbstractService {
 		public void success(User u) {
 			log.info("Login as " + email + " successful");
 			resetUpdateTask();
-			metadata.updateCredentials(email, password);
-			rbnb.getConfig().setMetadataUsername(email);
-			rbnb.getConfig().setMetadataPassword(password);
+			metadata.setCredentials(email, password);
+			RobonoboConfig rbnbCfg = rbnb.getConfig();
+			rbnbCfg.setMetadataUsername(email);
+			rbnbCfg.setMetadataPassword(password);
+			RobonoboWangConfig wangCfg = (RobonoboWangConfig) rbnb.getConfig("wang");
+			wangCfg.setAccountEmail(email);
+			wangCfg.setAccountPwd(password);
 			rbnb.saveConfig();
-			// Reload everything again
+			// Reload all our users
 			synchronized (UserService.this) {
 				usersByEmail.clear();
 				usersById.clear();
 				usersByEmail.put(email, u);
 				usersById.put(u.getUserId(), u);
+				u.setPassword(password);
 				me = u;
 			}
 			events.fireLoginSucceeded(u);
@@ -161,7 +168,7 @@ public class UserService extends AbstractService {
 			playlists.refreshMyPlaylists(me);
 			// We want to ensure we fetch all my playlists before any friends - when all my playlists have been fetched,
 			// playlistservice will eventually call fetchFriends() via a convoluted series of callbacks
-			if (rbnb.getConfig().isAgoric())
+			if (rbnbCfg.isAgoric())
 				rbnb.getWangService().loggedIn();
 		}
 

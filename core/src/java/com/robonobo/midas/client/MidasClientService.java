@@ -22,7 +22,6 @@ import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
@@ -31,6 +30,7 @@ import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.GeneratedMessage;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.http.PreemptiveHttpClient;
 import com.robonobo.common.serialization.*;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.metadata.*;
@@ -38,8 +38,7 @@ import com.robonobo.core.metadata.*;
 public class MidasClientService extends AbstractMetadataService {
 	static final Pattern URL_PATTERN = Pattern.compile("^http://([\\w\\.]+?):?(\\d*)/.*$");
 	LinkedList<Request> requests = new LinkedList<Request>();
-	DefaultHttpClient http;
-	HttpContext context;
+	PreemptiveHttpClient http;
 	Log log = LogFactory.getLog(getClass());
 	private MidasClientConfig cfg;
 	AuthScope midasAuthScope;
@@ -47,11 +46,12 @@ public class MidasClientService extends AbstractMetadataService {
 	int runningTasks = 0;
 	ExecutorService executor;
 	long nextFetchTaskId = 1;
+	Map<Long, FetchTask> fetchTasks = new HashMap<Long, MidasClientService.FetchTask>();
 
 	public MidasClientService() {
 		addHardDependency("core.http");
 	}
-	
+
 	@Override
 	public String getName() {
 		return "Midas Metadata Service";
@@ -77,9 +77,8 @@ public class MidasClientService extends AbstractMetadataService {
 		numThreads = rbnb.getConfig().getMidasThreadPoolSize();
 		executor = Executors.newFixedThreadPool(numThreads);
 		http = rbnb.getHttpService().getClient();
-		context = new BasicHttpContext();
 		// Initially we handle requests serially - makes for a better ux to have the playlists load one at a time rather
-		// than a big pause then they all load at once
+		// than a big pause then all at once
 		fetchOrder = RequestFetchOrder.Serial;
 	}
 
@@ -89,21 +88,15 @@ public class MidasClientService extends AbstractMetadataService {
 	}
 
 	@Override
-	public void updateCredentials(String username, String password) {
+	public void setCredentials(String username, String password) {
 		// Set these details on our http client
 		http.getCredentialsProvider().setCredentials(midasAuthScope, new UsernamePasswordCredentials(username, password));
-		// Start a new http context to use these new creds
-		context = createNewContext();
-	}
-
-	private BasicHttpContext createNewContext() {
-		AuthCache authCache = new BasicAuthCache();
-		BasicScheme basicAuth = new BasicScheme();
-		authCache.put(new HttpHost(midasAuthScope.getHost(), midasAuthScope.getPort()), basicAuth);
-		BasicHttpContext newContext = new BasicHttpContext();
-		newContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
-        newContext.setAttribute("preemptive-auth", basicAuth);
-		return newContext;
+		// Tell our fetchers to refresh their httpcontexts (which contain cached creds)
+		synchronized (this) {
+			for (FetchTask ft : fetchTasks.values()) {
+				ft.refreshContext = true;
+			}
+		}
 	}
 
 	@Override
@@ -196,27 +189,25 @@ public class MidasClientService extends AbstractMetadataService {
 		requests.addFirst(r);
 		int numToStart = min(r.remaining(), (numThreads - runningTasks));
 		runningTasks += numToStart;
+		log.debug("Midas client added request with "+r.remaining()+" urls remaining: starting "+numToStart+" fetchers");
 		for (int i = 0; i < numToStart; i++) {
 			executor.execute(new FetchTask());
 		}
 	}
 
-	private void getFromUrl(AbstractMessage.Builder<?> bldr, String url, String un, String pwd) throws IOException, SerializationException {
+	private void getFromUrl(HttpContext context, AbstractMessage.Builder<?> bldr, String url, String un, String pwd) throws IOException, SerializationException {
 		log.debug("Getting object from " + url);
 		HttpGet get = new HttpGet(url);
 		Credentials restoreCreds = null;
-		HttpContext thisContext = context;
 		// If we are being supplied with a username & password, store our old creds and restore them afterwards, and use
-		// a different httpcontext for this request to avoid using
-		// cached auth
+		// a different httpcontext for this request to avoid using cached auth
 		if (un != null) {
 			restoreCreds = http.getCredentialsProvider().getCredentials(midasAuthScope);
-			thisContext = createNewContext();
 			http.getCredentialsProvider().setCredentials(midasAuthScope, new UsernamePasswordCredentials(un, pwd));
 		}
 		HttpEntity body = null;
 		try {
-			HttpResponse resp = http.execute(get, thisContext);
+			HttpResponse resp = http.execute(get, context);
 			body = resp.getEntity();
 			switch (resp.getStatusLine().getStatusCode()) {
 			case 200:
@@ -228,8 +219,6 @@ public class MidasClientService extends AbstractMetadataService {
 						is.close();
 					}
 				}
-				context = thisContext;
-				restoreCreds = null;
 				return;
 			case 404:
 				throw new ResourceNotFoundException("Server could not find resource for " + url);
@@ -248,7 +237,7 @@ public class MidasClientService extends AbstractMetadataService {
 		}
 	}
 
-	private void putToUrl(GeneratedMessage msg, String url, AbstractMessage.Builder bldr) throws IOException {
+	private void putToUrl(HttpContext context, GeneratedMessage msg, String url, AbstractMessage.Builder bldr) throws IOException {
 		log.debug("Putting object to " + url);
 		HttpPut put = new HttpPut(url);
 		put.setEntity(new ByteArrayEntity(msg.toByteArray()));
@@ -276,7 +265,7 @@ public class MidasClientService extends AbstractMetadataService {
 		}
 	}
 
-	private void deleteAtUrl(String url) throws IOException {
+	private void deleteAtUrl(HttpContext context, String url) throws IOException {
 		log.debug("Deleting object at " + url);
 		HttpDelete del = new HttpDelete(url);
 		HttpEntity body = null;
@@ -293,10 +282,13 @@ public class MidasClientService extends AbstractMetadataService {
 
 	class FetchTask extends CatchingRunnable {
 		long taskId;
+		HttpContext context;
+		boolean refreshContext = true;
 
 		public FetchTask() {
 			synchronized (MidasClientService.this) {
 				taskId = nextFetchTaskId++;
+				fetchTasks.put(taskId, this);
 			}
 		}
 
@@ -309,16 +301,24 @@ public class MidasClientService extends AbstractMetadataService {
 		public void doRun() throws Exception {
 			log.debug(this + " starting");
 			while (true) {
+				if (refreshContext) {
+					log.debug(this + " refreshing httpcontext");
+					context = http.newPreemptiveContext(new HttpHost(midasAuthScope.getHost(), midasAuthScope.getPort()));
+					refreshContext = false;
+				}
 				Request r;
 				Params p;
 				synchronized (MidasClientService.this) {
 					if (requests.size() == 0) {
 						runningTasks--;
 						log.debug(this + " stopping");
+						fetchTasks.remove(taskId);
 						return;
 					}
 					r = requests.removeFirst();
 					p = r.getNextParams();
+					if(p == null)
+						continue;
 					if (r.remaining() > 0) {
 						if (fetchOrder == RequestFetchOrder.Serial)
 							requests.addFirst(r);
@@ -330,13 +330,18 @@ public class MidasClientService extends AbstractMetadataService {
 				try {
 					switch (p.op) {
 					case Get:
-						getFromUrl(p.resultBldr, p.url, p.username, p.password);
+						// If we are passing different credentials, use a different httpcontext to avoid reusing the old
+						// ones
+						HttpContext c = context;
+						if (p.username != null)
+							c = http.newPreemptiveContext(new HttpHost(midasAuthScope.getHost(), midasAuthScope.getPort()));
+						getFromUrl(c, p.resultBldr, p.url, p.username, p.password);
 						break;
 					case Put:
-						putToUrl(p.sendMsg, p.url, p.resultBldr);
+						putToUrl(context, p.sendMsg, p.url, p.resultBldr);
 						break;
 					case Delete:
-						deleteAtUrl(p.url);
+						deleteAtUrl(context, p.url);
 						break;
 					}
 					log.debug(this + " ran successful " + p.op + " for " + p.url);

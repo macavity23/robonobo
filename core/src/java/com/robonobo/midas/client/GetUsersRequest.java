@@ -29,7 +29,7 @@ public class GetUsersRequest implements Request {
 	@Override
 	public Params getNextParams() {
 		Long uid = uids.pop();
-		return new Params(Operation.Get, null, StreamMsg.newBuilder(), cfg.getUserUrl(uid), uid);
+		return new Params(Operation.Get, null, UserMsg.newBuilder(), cfg.getUserUrl(uid), uid);
 	}
 
 	@Override
