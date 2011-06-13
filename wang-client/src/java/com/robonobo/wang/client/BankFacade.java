@@ -9,15 +9,12 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.*;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.AuthCache;
 import org.apache.http.client.methods.*;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
@@ -53,8 +50,9 @@ public class BankFacade {
 			throw new Errot("bank url " + baseUrl + "does not match expected pattern");
 		bankHost = m.group(1);
 		String portStr = m.group(2);
+		// Note that the httpclient preemptive auth breaks if we set this to 80, instead we have to use -1 :-P :-P :-P
 		if (isEmpty(portStr))
-			bankPort = 80;
+			bankPort = -1;
 		else
 			bankPort = Integer.parseInt(portStr);
 		log.debug("Setting up bank http auth scope on " + bankHost + ":" + bankPort);
@@ -99,7 +97,8 @@ public class BankFacade {
 			}
 			HttpEntity body = null;
 			try {
-				HttpContext context = client.newPreemptiveContext(new HttpHost(bankHost, bankPort));
+				// We use a new context each time as basichttpcontext is not thread safe
+				HttpContext context = new BasicHttpContext();
 				HttpResponse resp = client.execute(request, context);
 				body = resp.getEntity();
 				int statusCode = resp.getStatusLine().getStatusCode();

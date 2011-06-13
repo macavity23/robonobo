@@ -95,16 +95,16 @@ public class RobonoboInstance implements Robonobo {
 			Class<?> cl = Class.forName(metadataServiceClass);
 			AbstractMetadataService svc = (AbstractMetadataService) cl.newInstance();
 			serviceMgr.registerService(svc);
-		} catch(ClassNotFoundException e) {
-			throw new RuntimeException("Could not find metadata service class '"+metadataServiceClass+"'", e);
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException("Could not find metadata service class '" + metadataServiceClass + "'", e);
 		} catch (InstantiationException e) {
-			throw new RuntimeException("Error instantiating metadata service class '"+metadataServiceClass+"'", e);
+			throw new RuntimeException("Error instantiating metadata service class '" + metadataServiceClass + "'", e);
 		} catch (IllegalAccessException e) {
-			throw new RuntimeException("Error instantiating metadata service class '"+metadataServiceClass+"'", e);
-		} catch(ClassCastException e) {
-			throw new RuntimeException("Metadata service class '"+metadataServiceClass+"' defined in config does not extend com.robonobo.core.metadata.AbstractMetadataServicew", e);
+			throw new RuntimeException("Error instantiating metadata service class '" + metadataServiceClass + "'", e);
+		} catch (ClassCastException e) {
+			throw new RuntimeException("Metadata service class '" + metadataServiceClass
+					+ "' defined in config does not extend com.robonobo.core.metadata.AbstractMetadataServicew", e);
 		}
-
 		if (getConfig().isAgoric())
 			serviceMgr.registerService(new WangService());
 		if (Platform.getPlatform().iTunesAvailable())
@@ -178,7 +178,6 @@ public class RobonoboInstance implements Robonobo {
 				throw new IOException("Error loading config class " + cfgClassName);
 			}
 		}
-
 		// First time through, set the default download dir
 		if (getConfig().getFinishedDownloadsDirectory() == null) {
 			File dd = Platform.getPlatform().getDefaultDownloadDirectory();
@@ -186,21 +185,20 @@ public class RobonoboInstance implements Robonobo {
 			String ddPath = dd.getAbsolutePath();
 			getConfig().setFinishedDownloadsDirectory(ddPath);
 		}
-
 		saveConfig();
 	}
 
 	public boolean isDevVersion() {
 		return version.toLowerCase().startsWith("dev");
 	}
-	
+
 	private void setHomeDir() {
 		if (System.getenv().containsKey("ROBOHOME"))
 			homeDir = new File(System.getenv("ROBOHOME"));
 		else {
 			homeDir = Platform.getPlatform().getDefaultHomeDirectory();
 			// Use a different homedir for development versions, try to avoid fucking things up too badly
-			if(isDevVersion()) {
+			if (isDevVersion()) {
 				String dirName = homeDir.getName() + "-dev";
 				homeDir = new File(homeDir.getParentFile(), dirName);
 			}
@@ -238,8 +236,7 @@ public class RobonoboInstance implements Robonobo {
 		thisApplication.setName("robonobo");
 		thisApplication.setPublisher("The robonobo project");
 		thisApplication.setHomeUri("http://robonobo.com");
-		log.info(thisApplication.getName() + "/" + thisApplication.getVersion() + " (" + thisApplication.getPublisher()
-				+ ") " + thisApplication.getHomeUri());
+		log.info(thisApplication.getName() + "/" + thisApplication.getVersion() + " (" + thisApplication.getPublisher() + ") " + thisApplication.getHomeUri());
 	}
 
 	public Application getApplication() {
@@ -273,7 +270,7 @@ public class RobonoboInstance implements Robonobo {
 	public PlaylistService getPlaylistService() {
 		return (PlaylistService) serviceMgr.getService("core.playlists");
 	}
-	
+
 	public PlaybackService getPlaybackService() {
 		return (PlaybackService) serviceMgr.getService("core.playback");
 	}
@@ -302,10 +299,9 @@ public class RobonoboInstance implements Robonobo {
 		return (DbService) serviceMgr.getService("core.db");
 	}
 
-//	public MetadataService getMetadataService() {
-//		return (MetadataService) serviceMgr.getService("core.metadata");
-//	}
-
+	// public MetadataService getMetadataService() {
+	// return (MetadataService) serviceMgr.getService("core.metadata");
+	// }
 	public AbstractMetadataService getMetadataService() {
 		return (AbstractMetadataService) serviceMgr.getService("core.metadata");
 	}
@@ -313,11 +309,11 @@ public class RobonoboInstance implements Robonobo {
 	public HttpService getHttpService() {
 		return (HttpService) serviceMgr.getService("core.http");
 	}
-	
+
 	public StreamService getStreamService() {
 		return (StreamService) serviceMgr.getService("core.streams");
 	}
-	
+
 	public MinaControl getMina() {
 		return ((MinaService) getServiceMgr().getService("core.mina")).getMina();
 	}
@@ -359,7 +355,6 @@ public class RobonoboInstance implements Robonobo {
 		if (!logDir.exists())
 			logDir.mkdir();
 		System.setProperty("robo.log.dir", logDir.getAbsolutePath());
-
 		// If there isn't a log4j properties file in our homedir, copy one from
 		// the jar
 		try {
@@ -376,7 +371,6 @@ public class RobonoboInstance implements Robonobo {
 				is.close();
 				os.close();
 			}
-
 			PropertyConfigurator.configureAndWatch(log4jCfgFile.getAbsolutePath());
 			log = LogFactory.getLog(getClass());
 			log.fatal("O HAI!  robonobo starting using homedir " + homeDir.getAbsolutePath());
@@ -387,8 +381,7 @@ public class RobonoboInstance implements Robonobo {
 				}
 			});
 		} catch (Exception e) {
-			System.err.println("Error: Unable to initialize log4j logging (caught " + e.getClass().getName() + ": "
-					+ e.getMessage() + ")");
+			System.err.println("Error: Unable to initialize log4j logging (caught " + e.getClass().getName() + ": " + e.getMessage() + ")");
 		}
 	}
 

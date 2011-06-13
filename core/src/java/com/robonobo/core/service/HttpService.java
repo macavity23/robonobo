@@ -3,16 +3,11 @@ package com.robonobo.core.service;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.*;
-import org.apache.http.auth.*;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.*;
-import org.apache.http.protocol.ExecutionContext;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 import com.robonobo.common.http.PreemptiveHttpClient;

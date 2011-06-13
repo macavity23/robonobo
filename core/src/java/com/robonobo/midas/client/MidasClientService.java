@@ -16,12 +16,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.*;
 import org.apache.http.auth.*;
-import org.apache.http.client.AuthCache;
 import org.apache.http.client.methods.*;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
@@ -67,8 +63,9 @@ public class MidasClientService extends AbstractMetadataService {
 		String midasHost = m.group(1);
 		String portStr = m.group(2);
 		int midasPort;
-		if (isEmpty(portStr))
-			midasPort = 80;
+		// Note that the httpclient preemptive auth breaks if we set this to 80, instead we have to use -1 :-P :-P :-P
+		if (isEmpty(portStr) || portStr.equals("80"))
+			midasPort = -1;
 		else
 			midasPort = Integer.parseInt(portStr);
 		log.debug("Setting up midas http auth scope on " + midasHost + ":" + midasPort);
@@ -189,7 +186,7 @@ public class MidasClientService extends AbstractMetadataService {
 		requests.addFirst(r);
 		int numToStart = min(r.remaining(), (numThreads - runningTasks));
 		runningTasks += numToStart;
-		log.debug("Midas client added request with "+r.remaining()+" urls remaining: starting "+numToStart+" fetchers");
+		log.debug("Midas client added request with " + r.remaining() + " urls remaining: starting " + numToStart + " fetchers");
 		for (int i = 0; i < numToStart; i++) {
 			executor.execute(new FetchTask());
 		}
@@ -317,7 +314,7 @@ public class MidasClientService extends AbstractMetadataService {
 					}
 					r = requests.removeFirst();
 					p = r.getNextParams();
-					if(p == null)
+					if (p == null)
 						continue;
 					if (r.remaining() > 0) {
 						if (fetchOrder == RequestFetchOrder.Serial)
