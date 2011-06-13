@@ -161,6 +161,11 @@ public class UserService extends AbstractService {
 			}
 			events.fireLoginSucceeded(u);
 			events.fireUserChanged(u);
+			if(rbnb.getMina().isConnectedToSupernode()) {
+				rbnb.setStatus(RobonoboStatus.Connected);
+				events.fireStatusChanged();
+			}
+				
 			metadata.fetchUserConfig(me.getUserId(), new UsrCfgUpdater(null));
 			// Tell our metadata service to load things serially so we get playlists loading one at a time rather than a
 			// big pause then all loading at once

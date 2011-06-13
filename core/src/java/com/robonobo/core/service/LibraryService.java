@@ -193,7 +193,7 @@ public class LibraryService extends AbstractService {
 			streamsToFetch = waitingForStreams.size();
 			statusText = "Fetching track 1 of " + streamsToFetch;
 			fireUpdated();
-			streams.fetchStreams(unknownTracks.keySet(), new StreamFetcher(nLib, unknownTracks, this));
+			streams.fetchStreams(unknownTracks.keySet(), new StreamFetcher(cLib, unknownTracks, this));
 		}
 
 		public void error(long userId, Exception e) {

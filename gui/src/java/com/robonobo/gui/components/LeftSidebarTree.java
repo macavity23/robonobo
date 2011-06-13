@@ -26,6 +26,8 @@ public class LeftSidebarTree extends JTree implements LeftSidebarComponent {
 	public LeftSidebarTree(TreeModel newModel, RobonoboFrame f) {
 		super(newModel);
 		this.frame = f;
+		// Single click expands/collapses
+		setToggleClickCount(1);
 		// Fill up width, but not height
 		setMaximumSize(new Dimension(Integer.MAX_VALUE, getMaximumSize().height));
 		addTreeExpansionListener(new TreeExpansionListener() {

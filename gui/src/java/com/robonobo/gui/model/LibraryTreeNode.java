@@ -34,10 +34,6 @@ public class LibraryTreeNode extends SelectableTreeNode {
 		return -1;
 	}
 
-	public Library getLib() {
-		return lib;
-	}
-
 	public void setLib(final Library lib, boolean isSelected) {
 		this.lib = lib;
 		// If we're selected, don't show any unseen tracks
