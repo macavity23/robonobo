@@ -2,6 +2,7 @@ package com.robonobo.midas.client;
 
 import java.util.Date;
 
+import com.robonobo.core.api.model.Library;
 import com.robonobo.core.api.proto.CoreApi.LibraryMsg;
 import com.robonobo.core.metadata.LibraryHandler;
 import com.robonobo.midas.client.Params.Operation;
@@ -35,8 +36,9 @@ public class GetLibraryRequest implements Request {
 
 	@Override
 	public void success(Object obj) {
+		LibraryMsg msg = (LibraryMsg) obj;
 		if(handler != null)
-			handler.success(null);
+			handler.success(new Library(msg));
 	}
 
 	@Override

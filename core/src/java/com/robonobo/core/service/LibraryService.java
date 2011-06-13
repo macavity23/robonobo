@@ -188,6 +188,7 @@ public class LibraryService extends AbstractService {
 				return;
 			}
 			// Get the rest of our streams
+			waitingForStreams = new HashSet<String>();
 			waitingForStreams.addAll(unknownTracks.keySet());
 			streamsToFetch = waitingForStreams.size();
 			statusText = "Fetching track 1 of " + streamsToFetch;
@@ -231,7 +232,9 @@ public class LibraryService extends AbstractService {
 		}
 
 		public void success(Stream s) {
-			add(s.getStreamId());
+			String sid = s.getStreamId();
+			add(sid);
+			task.streamUpdated(sid);
 		}
 
 		public void error(String streamId, Exception ex) {
