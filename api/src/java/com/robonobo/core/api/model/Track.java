@@ -7,7 +7,7 @@ public abstract class Track {
 		None, Queued, Downloading, Starting, Playing, Paused
 	};
 
-	protected Stream stream;
+	public Stream stream;
 	protected PlaybackStatus playbackStatus;
 	protected TransferStatus transferStatus;
 	private int dlRate, ulRate;
@@ -26,7 +26,7 @@ public abstract class Track {
 	}
 
 	public void setPlaybackStatus(PlaybackStatus playbackStatus) {
-		this.playbackStatus = playbackStatus;
+		 this.playbackStatus = playbackStatus;
 	}
 
 	/**

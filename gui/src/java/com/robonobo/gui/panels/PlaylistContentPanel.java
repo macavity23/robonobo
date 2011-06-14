@@ -8,25 +8,22 @@ import java.awt.datatransfer.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.*;
+import javax.swing.JPanel;
 
-import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.util.NetUtil;
-import com.robonobo.core.api.model.*;
-import com.robonobo.gui.GuiUtil;
+import com.robonobo.core.api.model.Playlist;
+import com.robonobo.core.api.model.PlaylistConfig;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.PlaylistTableModel;
-import com.robonobo.gui.sheets.PostToFacebookSheet;
-import com.robonobo.gui.sheets.PostToTwitterSheet;
 
+@SuppressWarnings("serial")
 public abstract class PlaylistContentPanel extends ContentPanel implements ClipboardOwner {
 	protected RobonoboFrame frame;
 	protected Playlist p;
 	protected PlaylistConfig pc;
 
 	public PlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, boolean myPlaylist) {
-		super(frame, new PlaylistTableModel(frame.getController(), p, myPlaylist));
+		super(frame, PlaylistTableModel.create(frame, p, myPlaylist));
 		this.p = p;
 		this.pc = pc;
 		this.frame = frame;
@@ -39,6 +36,10 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 		this.frame = frame;
 	}
 
+	protected PlaylistTableModel getModel() {
+		return (PlaylistTableModel) getTrackList().getModel();
+	}
+	
 	class PlaylistToolsPanel extends JPanel {
 		public PlaylistToolsPanel() {
 			double[][] cellSizen = { {35, 5, 215, 5, 30, 5, 30, 5, 90}, { 25 } };

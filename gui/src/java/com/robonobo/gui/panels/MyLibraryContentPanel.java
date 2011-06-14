@@ -15,6 +15,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
+import javax.swing.text.Document;
+import javax.swing.text.PlainDocument;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
@@ -29,9 +31,16 @@ import com.robonobo.gui.model.MyLibraryTableModel;
 public class MyLibraryContentPanel extends ContentPanel implements UserListener, LibraryListener {
 	private RCheckBox shareLibCheckBox;
 	private RLabel addLbl;
+	private Document searchDoc;
 
 	public MyLibraryContentPanel(RobonoboFrame f) {
-		super(f, new MyLibraryTableModel(f));
+		this(f, new PlainDocument());
+	}
+	
+	private MyLibraryContentPanel(RobonoboFrame f, Document searchDoc) {
+		super(f, MyLibraryTableModel.create(f, searchDoc));
+		this.searchDoc = searchDoc;
+		
 		tabPane.insertTab("library", null, new TabPanel(), null, 0);
 		tabPane.setSelectedIndex(0);
 		frame.getController().addUserListener(this);
@@ -119,7 +128,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 			lPanel.setLayout(new BoxLayout(lPanel, BoxLayout.Y_AXIS));
 			lPanel.add(Box.createVerticalStrut(5));
 
-			TrackListSearchPanel sp = new TrackListSearchPanel(frame, trackList);
+			TrackListSearchPanel sp = new TrackListSearchPanel(frame, trackList, searchDoc);
 			sp.setAlignmentX(Component.LEFT_ALIGNMENT);
 			lPanel.add(sp);
 			lPanel.add(Box.createVerticalStrut(15));

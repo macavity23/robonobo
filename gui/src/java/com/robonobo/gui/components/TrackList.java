@@ -14,8 +14,7 @@ import java.util.regex.Pattern;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumn;
+import javax.swing.table.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,6 +23,8 @@ import org.jdesktop.swingx.decorator.*;
 import org.jdesktop.swingx.decorator.SortOrder;
 import org.jdesktop.swingx.table.TableColumnExt;
 import org.jdesktop.swingx.table.TableColumnModelExt;
+
+import ca.odell.glazedlists.swing.TableComparatorChooser;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
@@ -35,7 +36,7 @@ import com.robonobo.gui.*;
 import com.robonobo.gui.components.base.RBoldMenuItem;
 import com.robonobo.gui.components.base.RMenuItem;
 import com.robonobo.gui.frames.RobonoboFrame;
-import com.robonobo.gui.model.TrackListTableModel;
+import com.robonobo.gui.model.*;
 import com.robonobo.gui.panels.MyPlaylistContentPanel;
 
 @SuppressWarnings("serial")
@@ -93,34 +94,20 @@ public class TrackList extends JPanel {
 		table.getColumn(10).setCellRenderer(tr);
 		table.getColumn(11).setCellRenderer(tr);
 		table.getColumn(12).setCellRenderer(tr);
-		// NOTE disabling sorting for now as it causes massive performance hits when tracks are being inserted
+		
+		// These incantations make it compatible with glazedlist which does its own sorting inside the model
 		table.setSortable(false);
-		// Render table header as not bold and with sorting arrows
-		// NOTE massively irritating bug in java5 (maybe mac only, but they're the only ones stuck on j5 anyway) that
-		// renders the table header as white if we set a custom renderer here. So we only do it in java 6+ - means that
-		// java5 users don't see the sorting arrow, but it's better than a white header
-		if (javaMajorVersion() >= 6) {
-			table.getTableHeader().setDefaultRenderer(new DefaultTableCellRenderer() {
-				ImageIcon ascSortIcon = GuiUtil.createImageIcon("/icon/arrow_up.png", null);
-				ImageIcon descSortIcon = GuiUtil.createImageIcon("/icon/arrow_down.png", null);
-
-				public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-					JLabel result = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-					result.setFont(RoboFont.getFont(12, false));
-					result.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 0));
-					SortOrder so = TrackList.this.table.getSortOrder(column);
-					if (so.isSorted()) {
-						if (so.isAscending())
-							setIcon(ascSortIcon);
-						else
-							setIcon(descSortIcon);
-					} else
-						result.setIcon(null);
-					result.setHorizontalTextPosition(SwingConstants.LEFT);
-					return result;
-				}
-			});
+		table.getTableHeader().setDefaultRenderer(new JTableHeader().getDefaultRenderer());
+		table.getTableHeader().setFont(RoboFont.getFont(13, false));
+		table.setAutoCreateRowSorter(false);
+		table.setRowSorter(null);
+		// Set up glazedlist auto table sorter
+		if(model instanceof GlazedTrackListTableModel) {
+			GlazedTrackListTableModel gtltm = (GlazedTrackListTableModel) model;
+			if(gtltm.canSort())
+				TableComparatorChooser.install(table, gtltm.getSortedList(), TableComparatorChooser.SINGLE_COLUMN);
 		}
+		
 		TableColumnModelExt cm = (TableColumnModelExt) table.getColumnModel();
 		cm.getColumn(0).setPreferredWidth(22); // Status icon
 		cm.getColumn(1).setPreferredWidth(187); // Title
@@ -180,20 +167,6 @@ public class TrackList extends JPanel {
 			scrollPane.getViewport().addChangeListener(viewportListener);
 		}
 		add(scrollPane, "0,0");
-	}
-
-	public void filterTracks(String filterStr) {
-		table.clearSelection();
-		if (filterStr == null || filterStr.length() == 0) {
-			table.setFilters(null);
-		} else {
-			final String lcf = filterStr.toLowerCase();
-			// Only include rows that have a matching title, artist, album or
-			// year
-			final int[] cols = { 1, 2, 3, 7 };
-			table.setFilters(new FilterPipeline(new MultiColumnPatternFilter(lcf, Pattern.CASE_INSENSITIVE, cols)));
-		}
-		updateViewport();
 	}
 
 	public TrackListTableModel getModel() {

@@ -31,7 +31,7 @@ import com.robonobo.gui.GuiUtil;
  * 
  */
 @SuppressWarnings("serial")
-public abstract class FreeformTrackListTableModel extends TrackListTableModel implements TrackListener {
+public abstract class FreeformTrackListTableModel extends AbstractTrackListTableModel implements TrackListener {
 	protected Log log = LogFactory.getLog(getClass());
 	protected RobonoboController control;
 	/**
@@ -48,13 +48,6 @@ public abstract class FreeformTrackListTableModel extends TrackListTableModel im
 	public FreeformTrackListTableModel(RobonoboController controller) {
 		this.control = controller;
 		controller.addTrackListener(this);
-	}
-
-	public void tracksUpdated(Collection<String> streamIds) {
-		// Could do something smarter here, but probably don't need to
-		for (String streamId : streamIds) {
-			trackUpdated(streamId);
-		}
 	}
 
 	protected void add(Track t) {

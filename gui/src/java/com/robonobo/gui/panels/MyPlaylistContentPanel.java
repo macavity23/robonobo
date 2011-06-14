@@ -18,8 +18,8 @@ import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.PlaylistListener;
-import com.robonobo.core.api.RobonoboException;
-import com.robonobo.core.api.model.*;
+import com.robonobo.core.api.model.Playlist;
+import com.robonobo.core.api.model.PlaylistConfig;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.base.*;
@@ -91,10 +91,6 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		});
 	}
 
-	protected PlaylistTableModel getModel() {
-		return (PlaylistTableModel) trackList.getModel();
-	}
-
 	@Override
 	public void playlistChanged(Playlist p) {
 		if (p.equals(getModel().getPlaylist())) {
@@ -109,7 +105,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				visMeBtn.setSelected(true);
 			else
 				throw new Errot("invalid visibility " + vis);
-			getModel().update(p, true);
+			getModel().update(p);
 		}
 	}
 

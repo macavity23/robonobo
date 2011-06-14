@@ -95,6 +95,11 @@ public class LibraryTreeNode extends SelectableTreeNode {
 					frame.getController().markAllAsSeen(lib);
 				// Activate this panel so it can find sources
 				TrackList trackList = frame.getMainPanel().getContentPanel(contentPanelName()).getTrackList();
+				
+				// DEBUG
+				if(!(trackList.getModel() instanceof FriendLibraryTableModel))
+					return;
+				
 				FriendLibraryTableModel model = (FriendLibraryTableModel) trackList.getModel();
 				model.activate();
 				trackList.updateViewport();

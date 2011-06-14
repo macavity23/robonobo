@@ -11,8 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.*;
 
@@ -26,9 +24,8 @@ import com.robonobo.common.util.FileUtil;
 import com.robonobo.common.util.NetUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.RobonoboController;
-import com.robonobo.core.api.*;
-import com.robonobo.core.api.model.Playlist;
-import com.robonobo.core.api.model.UserConfig;
+import com.robonobo.core.api.TrackListener;
+import com.robonobo.core.api.model.*;
 import com.robonobo.core.metadata.UserConfigHandler;
 import com.robonobo.gui.*;
 import com.robonobo.gui.panels.*;
@@ -36,12 +33,11 @@ import com.robonobo.gui.preferences.PrefDialog;
 import com.robonobo.gui.sheets.*;
 import com.robonobo.gui.tasks.ImportFilesTask;
 import com.robonobo.gui.tasks.ImportITunesTask;
-import com.robonobo.mina.external.ConnectedNode;
 import com.robonobo.mina.external.HandoverHandler;
 
 @SuppressWarnings("serial")
 public class RobonoboFrame extends SheetableFrame implements TrackListener {
-	private RobonoboController control;
+	public RobonoboController control;
 	private String[] cmdLineArgs;
 	private JMenuBar menuBar;
 	private MainPanel mainPanel;
@@ -211,12 +207,12 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	@Override
-	public void trackUpdated(String streamId) {
+	public void trackUpdated(String streamId, Track t) {
 		// Do nothing
 	}
 
 	@Override
-	public void tracksUpdated(Collection<String> streamIds) {
+	public void tracksUpdated(Collection<Track> trax) {
 		// Do nothing
 	}
 

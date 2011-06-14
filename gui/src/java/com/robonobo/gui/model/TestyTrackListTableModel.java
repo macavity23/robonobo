@@ -13,7 +13,7 @@ import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
 import com.robonobo.core.api.model.SharedTrack.ShareStatus;
 
 @SuppressWarnings("serial")
-public class TestyTrackListTableModel extends TrackListTableModel {
+public class TestyTrackListTableModel extends AbstractTrackListTableModel {
 	Map<String, Track> trax = new HashMap<String, Track>();
 	List<String> traxOrder = new ArrayList<String>();
 	

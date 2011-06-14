@@ -15,8 +15,8 @@ import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.PlaylistListener;
 import com.robonobo.core.api.RobonoboException;
-import com.robonobo.core.api.model.*;
-import com.robonobo.gui.GuiUtil;
+import com.robonobo.core.api.model.Playlist;
+import com.robonobo.core.api.model.PlaylistConfig;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -51,6 +51,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 					updateFields();
 				}
 			});
+			getModel().update(p);
 		}
 	}
 

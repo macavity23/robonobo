@@ -51,23 +51,23 @@ public class EventService extends AbstractService implements MinaListener {
 	public synchronized void addUserListener(UserListener l) {
 		ulList.add(l);
 	}
-	
+
 	public synchronized void removeUserListener(UserListener l) {
 		ulList.remove(l);
 	}
-	
+
 	public synchronized void addPlaylistListener(PlaylistListener l) {
 		plList.add(l);
 	}
-	
+
 	public synchronized void removePlaylistListener(PlaylistListener l) {
 		plList.remove(l);
 	}
-	
+
 	public synchronized void addLoginListener(LoginListener l) {
 		liList.add(l);
 	}
-	
+
 	public synchronized void removeLoginListener(LoginListener l) {
 		liList.remove(l);
 	}
@@ -75,42 +75,45 @@ public class EventService extends AbstractService implements MinaListener {
 	public synchronized void addLibraryListener(LibraryListener l) {
 		llList.add(l);
 	}
-	
+
 	public synchronized void removeLibraryListener(LibraryListener l) {
 		llList.remove(l);
 	}
-	
+
 	public synchronized void addWangListener(WangListener l) {
 		wList.add(l);
 	}
-	
+
 	public synchronized void removeWangListener(WangListener l) {
 		wList.remove(l);
 	}
-	
+
 	public synchronized void addTransferSpeedListener(TransferSpeedListener l) {
 		tsList.add(l);
 	}
-	
+
 	public synchronized void removeTransferSpeedListener(TransferSpeedListener l) {
 		tsList.remove(l);
 	}
-	
+
 	public synchronized void addTaskListener(TaskListener l) {
 		tlList.add(l);
 	}
-	
+
 	public synchronized void removeTaskListener(TaskListener l) {
 		tlList.remove(l);
 	}
-	
+
 	public void fireTrackUpdated(String streamId) {
 		TrackListener[] arr;
 		synchronized (this) {
 			arr = getTrArr();
 		}
-		for (TrackListener listener : arr) {
-			listener.trackUpdated(streamId);
+		if (arr.length > 0) {
+			Track t = rbnb.getTrackService().getTrack(streamId);
+			for (TrackListener listener : arr) {
+				listener.trackUpdated(streamId, t);
+			}
 		}
 	}
 
@@ -119,8 +122,12 @@ public class EventService extends AbstractService implements MinaListener {
 		synchronized (this) {
 			arr = getTrArr();
 		}
+		List<Track> trax = new ArrayList<Track>();
+		for (String sid : streamIds) {
+			trax.add(rbnb.getTrackService().getTrack(sid));
+		}
 		for (TrackListener listener : arr) {
-			listener.tracksUpdated(streamIds);
+			listener.tracksUpdated(trax);
 		}
 	}
 
@@ -133,7 +140,7 @@ public class EventService extends AbstractService implements MinaListener {
 			listener.allTracksLoaded();
 		}
 	}
-	
+
 	public void firePlaybackStarted() {
 		PlaybackListener[] arr;
 		synchronized (this) {
@@ -338,9 +345,9 @@ public class EventService extends AbstractService implements MinaListener {
 	}
 
 	public void nodeConnected(ConnectedNode node) {
-		if(node.isSupernode()) {
+		if (node.isSupernode()) {
 			minaSupernodes++;
-			if(minaSupernodes > 0 && getRobonobo().getUserService().isLoggedIn()) {
+			if (minaSupernodes > 0 && getRobonobo().getUserService().isLoggedIn()) {
 				getRobonobo().setStatus(RobonoboStatus.Connected);
 				fireStatusChanged();
 			}
@@ -354,7 +361,7 @@ public class EventService extends AbstractService implements MinaListener {
 				rbnb.setStatus(RobonoboStatus.NotConnected);
 				fireStatusChanged();
 			}
-			if(minaSupernodes > 0)
+			if (minaSupernodes > 0)
 				minaSupernodes--;
 		}
 		fireConnectionLost(node);
@@ -369,7 +376,7 @@ public class EventService extends AbstractService implements MinaListener {
 			listener.balanceChanged(newBalance);
 		}
 	}
-	
+
 	public void fireWangAccountActivity(double creditValue, String narration) {
 		WangListener[] arr;
 		synchronized (this) {
@@ -377,9 +384,9 @@ public class EventService extends AbstractService implements MinaListener {
 		}
 		for (WangListener listener : arr) {
 			listener.accountActivity(creditValue, narration);
-		}	
+		}
 	}
-	
+
 	public void fireNewTransferSpeeds(Map<String, TransferSpeed> speedsByStream, Map<String, TransferSpeed> speedsByNode) {
 		TransferSpeedListener[] arr;
 		synchronized (this) {
@@ -467,10 +474,10 @@ public class EventService extends AbstractService implements MinaListener {
 
 	public void receptionConnsChanged(String streamId) {
 		DownloadingTrack d = rbnb.getDownloadService().getDownload(streamId);
-		if(d != null)
+		if (d != null)
 			fireTrackUpdated(streamId);
 	}
-	
+
 	@Override
 	public void shutdown() throws Exception {
 	}

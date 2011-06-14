@@ -2,52 +2,35 @@ package com.robonobo.gui.model;
 
 import java.util.List;
 
-import javax.swing.SwingUtilities;
+import ca.odell.glazedlists.*;
 
-import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
-import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.SearchListener;
 import com.robonobo.core.api.model.*;
+import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.mina.external.FoundSourceListener;
 
 @SuppressWarnings("serial")
-public class SearchResultTableModel extends FreeformTrackListTableModel implements SearchListener, FoundSourceListener {
-
-	public SearchResultTableModel(RobonoboController controller) {
-		super(controller);
+public class SearchResultTableModel extends GlazedTrackListTableModel implements SearchListener, FoundSourceListener {
+	public static SearchResultTableModel create(RobonoboFrame frame) {
+		BasicEventList<Track> el = new BasicEventList<Track>();
+		SortedList<Track> sl = new SortedList<Track>(el, new TrackComparator());
+		return new SearchResultTableModel(frame, el, sl);
 	}
 
-	public void trackUpdated(String streamId) {
-		int updateIndex = -1;
-		synchronized (this) {
-			if (streamIndices.containsKey(streamId))
-				updateIndex = streamIndices.get(streamId);
-		}
-		if (updateIndex >= 0) {
-			if (SwingUtilities.isEventDispatchThread())
-				fireTableRowsUpdated(updateIndex, updateIndex);
-			else {
-				final int i = updateIndex;
-				SwingUtilities.invokeLater(new CatchingRunnable() {
-					public void doRun() throws Exception {
-						fireTableRowsUpdated(i, i);
-					}
-				});
-			}
-		}
-	}
-
-	public void allTracksLoaded() {
-		// Do nothing
+	private SearchResultTableModel(RobonoboFrame frame, EventList<Track> el, SortedList<Track> sl) {
+		super(frame, el, sl, null);
 	}
 
 	public void die() {
-		for (Stream s : streams) {
-			control.stopFindingSources(s.getStreamId(), this);
+		readLock.lock();
+		try {
+			for (Track t : eventList) {
+				control.stopFindingSources(t.stream.streamId, this);
+			}
+		} finally {
+			readLock.unlock();
 		}
-		streams.clear();
-		streamIndices.clear();
 	}
 
 	public void gotNumberOfResults(int numResults) {
@@ -62,14 +45,15 @@ public class SearchResultTableModel extends FreeformTrackListTableModel implemen
 	}
 
 	public void foundBroadcaster(String streamId, String nodeId) {
-		trackUpdated(streamId);
+		Track t = frame.control.getTrack(streamId);
+		trackUpdated(streamId, t);
 	}
-	
+
 	@Override
 	public boolean allowDelete() {
 		return false;
 	}
-	
+
 	@Override
 	public void deleteTracks(List<String> streamIds) {
 		throw new Errot();

@@ -344,13 +344,13 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	}
 
 	@Override
-	public synchronized void tracksUpdated(Collection<String> streamIds) {
+	public synchronized void tracksUpdated(Collection<Track> streamIds) {
 		if (playingStream != null && streamIds.contains(playingStream.getStreamId()))
 			updateDataAvailable();
 	}
 
 	@Override
-	public synchronized void trackUpdated(String streamId) {
+	public synchronized void trackUpdated(String streamId, Track t) {
 		if (playingStream != null && playingStream.getStreamId().equals(streamId))
 			updateDataAvailable();
 	}

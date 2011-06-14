@@ -2,26 +2,18 @@ package com.robonobo.gui.components;
 
 import static com.robonobo.gui.RoboColor.*;
 
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
+import javax.swing.*;
 
-import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.ActiveSearchListModel;
 import com.robonobo.gui.model.SearchResultTableModel;
-import com.robonobo.gui.panels.*;
+import com.robonobo.gui.panels.ContentPanel;
+import com.robonobo.gui.panels.LeftSidebar;
 
 @SuppressWarnings("serial")
 public class ActiveSearchList extends LeftSidebarList {
@@ -32,7 +24,7 @@ public class ActiveSearchList extends LeftSidebarList {
 	ActiveSearchListModel aslm;
 
 	public ActiveSearchList(LeftSidebar sideBar, final RobonoboFrame frame) {
-		super(sideBar, frame, new ActiveSearchListModel(frame.getController()));
+		super(sideBar, frame, new ActiveSearchListModel(frame));
 		aslm = (ActiveSearchListModel) getModel();
 		setCellRenderer(new CellRenderer());
 		addMouseListener(new MouseListener());
