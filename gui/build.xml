@@ -70,6 +70,7 @@
 			<fatjar.filesource path="${classes.dir}" relpath="." />
 			<fatjar.jarsource file="${basedir}/lib/robolaf.jar" relpath="." />
 			<fatjar.jarsource file="${basedir}/lib/swingx-0.9.7.jar" relpath="." />
+			<fatjar.jarsource file="${basedir}/lib/glazedlists-1.8.0.jar" relpath="." />
 
 			<fatjar.filesource path="../console/target/classes" relpath="." />
 			<fatjar.filesource path="../plugin-mp3/target/classes" relpath="." />

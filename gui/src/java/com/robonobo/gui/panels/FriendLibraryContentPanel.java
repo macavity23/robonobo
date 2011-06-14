@@ -35,7 +35,7 @@ public class FriendLibraryContentPanel extends ContentPanel {
 			innerP.setLayout(new BoxLayout(innerP, BoxLayout.Y_AXIS));
 			innerP.add(Box.createVerticalStrut(5));
 
-			TrackListSearchPanel sp = new TrackListSearchPanel(frame, trackList, searchTextDoc);
+			TrackListSearchPanel sp = new TrackListSearchPanel(frame, trackList, "library", searchTextDoc);
 			sp.setAlignmentX(Component.LEFT_ALIGNMENT);
 			innerP.add(sp);
 			add(innerP, "1,0");

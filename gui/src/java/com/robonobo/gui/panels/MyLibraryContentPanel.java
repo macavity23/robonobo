@@ -128,7 +128,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 			lPanel.setLayout(new BoxLayout(lPanel, BoxLayout.Y_AXIS));
 			lPanel.add(Box.createVerticalStrut(5));
 
-			TrackListSearchPanel sp = new TrackListSearchPanel(frame, trackList, searchDoc);
+			TrackListSearchPanel sp = new TrackListSearchPanel(frame, trackList, "library", searchDoc);
 			sp.setAlignmentX(Component.LEFT_ALIGNMENT);
 			lPanel.add(sp);
 			lPanel.add(Box.createVerticalStrut(15));
@@ -138,7 +138,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 			lPanel.add(optsLbl);
 			lPanel.add(Box.createVerticalStrut(5));
 
-			shareLibCheckBox = new RCheckBox("Share library with friends");
+			shareLibCheckBox = new RCheckBox("Allow friends to see library");
 			shareLibCheckBox.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					final boolean sel = shareLibCheckBox.isSelected();
