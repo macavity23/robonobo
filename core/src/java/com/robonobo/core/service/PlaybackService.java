@@ -321,6 +321,10 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 	public synchronized void stopIfCurrentlyPlaying(String streamId) {
 		if (player != null && currentStreamId.equals(streamId))
 			stop();
+		else {
+			// Fire stopped anyway, they were probably just buffering
+			event.firePlaybackStopped();
+		}
 	}
 
 	public String getName() {
