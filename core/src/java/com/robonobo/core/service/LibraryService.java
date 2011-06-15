@@ -80,11 +80,18 @@ public class LibraryService extends AbstractService {
 
 	void updateLibraries() {
 		if (stillFetchingLibs.size() == 0)
-			rbnb.getExecutor().execute(new LibrariesUpdater());
+			tasks.runTask(new LibrariesUpdateTask());
 	}
 
-	class LibrariesUpdater extends CatchingRunnable {
-		public void doRun() throws Exception {
+	class LibrariesUpdateTask extends Task {
+		public LibrariesUpdateTask() {
+			title = "Loading libraries";
+		}
+
+		@Override
+		public void runTask() throws Exception {
+			statusText = "Loading friends' library details";
+			fireUpdated();
 			Set<Long> friendIds = new HashSet<Long>(rbnb.getUserService().getMyUser().getFriendIds());
 			// Clean out any ex-friends - your tunes sucked anyway! :-P
 			synchronized (LibraryService.this) {
@@ -95,8 +102,12 @@ public class LibraryService extends AbstractService {
 						it.remove();
 				}
 			}
+			int done = 0;
 			for (long friendId : friendIds) {
 				User friend = users.getUser(friendId);
+				statusText = "Loading details for " + friend.getEmail();
+				completion = ((float) done) / friendIds.size();
+				fireUpdated();
 				Library cLib;
 				Set<String> sidsForUi = new HashSet<String>();
 				synchronized (LibraryService.this) {
@@ -123,6 +134,9 @@ public class LibraryService extends AbstractService {
 				Date lastUpdated = (cLib == null) ? null : cLib.getLastUpdated();
 				tasks.runTask(new LibraryUpdateTask(friend, cLib, lastUpdated));
 			}
+			statusText = "Done.";
+			completion = 1f;
+			fireUpdated();
 		}
 	}
 
@@ -213,7 +227,7 @@ public class LibraryService extends AbstractService {
 				statusText = "Done.";
 			} else {
 				completion = ((float) streamsDone) / streamsToFetch;
-				statusText = "Fetching track "+(streamsDone+1)+" of "+streamsToFetch;
+				statusText = "Fetching track " + (streamsDone + 1) + " of " + streamsToFetch;
 			}
 			fireUpdated();
 		}
@@ -275,7 +289,7 @@ public class LibraryService extends AbstractService {
 				public void success(Library l) {
 					log.debug("Successfully added tracks to my library");
 				}
-				
+
 				public void error(long userId, Exception e) {
 					log.error("Error adding to my library", e);
 				}
@@ -301,7 +315,7 @@ public class LibraryService extends AbstractService {
 				public void success(Library l) {
 					log.debug("Successfully removed tracks from my library");
 				}
-				
+
 				public void error(long userId, Exception e) {
 					log.error("Error deleting from my library", e);
 				}
