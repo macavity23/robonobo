@@ -21,9 +21,13 @@ class TrackListSearchPanel extends JPanel {
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 		RLabel searchLbl = new RLabel16B("Search "+lblName);
 		add(searchLbl);
-		add(Box.createHorizontalStrut(5));
+		add(Box.createHorizontalStrut(10));
 		searchField = new RTextField(searchDoc, "", 50);
 		searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
 		add(searchField);
+	}
+	
+	public RTextField getSearchField() {
+		return searchField;
 	}
 }

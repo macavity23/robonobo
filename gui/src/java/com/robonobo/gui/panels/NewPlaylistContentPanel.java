@@ -2,6 +2,8 @@ package com.robonobo.gui.panels;
 
 import static com.robonobo.gui.GuiUtil.*;
 
+import javax.swing.JComponent;
+
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.model.Playlist;
@@ -26,6 +28,11 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 		});
 	}
 
+	@Override
+	public JComponent defaultComponent() {
+		return titleField;
+	}
+	
 	@Override
 	protected void savePlaylist() {
 		final Playlist p = getModel().getPlaylist();

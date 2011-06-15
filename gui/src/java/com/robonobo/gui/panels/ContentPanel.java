@@ -86,6 +86,11 @@ public abstract class ContentPanel extends JPanel {
 		return trackList;
 	}
 
+	/** If non-null, this will be focused when the contentpanel is shown */
+	public JComponent defaultComponent() {
+		return null;
+	}
+	
 	/**
 	 * For dropping stuff onto the tracklist - default impl can't import nothin
 	 */
