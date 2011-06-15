@@ -48,9 +48,12 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 
 	@Override
 	public void trackUpdated(String streamId, Track t) {
-		// Date added = lib.getTracks().get(streamId);
-		// TODO Date added - need to think about this one as the track object will be re-used
-		super.trackUpdated(streamId, t);
+		if (containsTrack(streamId)) {
+			// We can't add our date to this track as it will be re-used in other places - clone it instead
+			t = t.clone();
+			t.setDateAdded(lib.getTracks().get(streamId));
+			super.trackUpdated(streamId, t);
+		}
 	}
 
 	@Override
@@ -59,7 +62,10 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 			return;
 		List<Track> addTrax = new ArrayList<Track>();
 		for (String sid : newTrackSids) {
-			addTrax.add(control.getTrack(sid));
+			Track t = control.getTrack(sid);
+			Date da = lib.getTracks().get(t.stream.streamId);
+			t.setDateAdded(da);
+			addTrax.add(t);
 		}
 		this.lib = lib;
 		add(addTrax);

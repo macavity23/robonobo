@@ -199,6 +199,15 @@ public abstract class GlazedTrackListTableModel extends EventTableModel<Track> i
 		return getElementAt(index).stream.streamId;
 	}
 
+	public boolean containsTrack(String sid) {
+		updateLock.lock();
+		try {
+			return trackIndices.containsKey(sid);
+		} finally {
+			updateLock.unlock();
+		}
+	}
+	
 	private EventList<Track> viewList() {
 		if (filterList != null)
 			return filterList;
