@@ -185,6 +185,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 			log.info("Audio player started playback");
 			status = Status.Playing;
 			event.firePlaybackStarted();
+			event.fireTrackUpdated(currentStreamId);
 		}
 	}
 

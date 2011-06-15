@@ -73,20 +73,9 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 		return true;
 	}
 
-	
 	@Override
 	public void deleteTracks(List<String> streamIds) {
-		updateLock.lock();
-		try {
-			for (String sid : streamIds) {
-				Integer idx = trackIndices.get(sid);
-				if (idx != null) {
-					eventList.remove((int) idx);
-				}
-			}
-		} finally {
-			updateLock.unlock();
-		}
+		super.deleteTracks(streamIds);
 		for (String sid : streamIds) {
 			Track t = control.getTrack(sid);
 			try {

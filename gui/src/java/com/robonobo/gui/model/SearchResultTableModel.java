@@ -38,9 +38,6 @@ public class SearchResultTableModel extends GlazedTrackListTableModel implements
 	}
 
 	public void foundResult(final Stream s) {
-		// Ignore duplicates
-		if(getTrackIndex(s.streamId) >= 0)
-			return;
 		Track t = control.getTrack(s.getStreamId());
 		add(t);
 		if (t instanceof CloudTrack)

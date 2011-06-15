@@ -32,11 +32,8 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	private static final String NEXT_TOOLTIP = "Next track";
 	private static final String PREV_TOOLTIP = "Previous track";
 	private static final String DELETE_TOOLTIP = "Delete selected tracks";
-
-	/**
-	 * If we're within this time (ms) after the start of a track, calling prev() goes to the previous track (otherwise,
-	 * returns to the start of the current one)
-	 */
+	/** If we're within this time (ms) after the start of a track, calling prev() goes to the previous track (otherwise,
+	 * returns to the start of the current one) */
 	public static final int PREV_TRACK_GRACE_PERIOD = 5000;
 
 	enum PlayState {
@@ -48,7 +45,6 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	ImageIcon dloadIcon = createImageIcon("/icon/play_download.png", DOWNLOAD_TOOLTIP);
 	ImageIcon playIcon = createImageIcon("/icon/play_play.png", PLAY_TOOLTIP);
 	ImageIcon pauseIcon = createImageIcon("/icon/play_pause.png", PAUSE_TOOLTIP);
-
 	RobonoboFrame frame;
 	RobonoboController control;
 	RLabel titleLbl, artistLbl, albumLbl;
@@ -61,12 +57,12 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	boolean checkedNextTrack = false;
 	boolean seeking = false;
 	Log log = LogFactory.getLog(getClass());
+	String prevSid, nextSid;
 
 	public PlaybackPanel(final RobonoboFrame frame) {
 		this.frame = frame;
 		control = frame.getController();
 		setLayout(new BorderLayout());
-
 		setName("playback.background.panel");
 		setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		setBackground(MID_GRAY);
@@ -104,10 +100,8 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		final JPanel playerPanel = new JPanel(new BorderLayout(5, 5));
 		add(playerPanel, BorderLayout.EAST);
 		playerPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 8));
-
 		playbackProgress = new PlaybackProgressBar(frame);
 		playbackProgress.lock();
-
 		playerPanel.add(playbackProgress, BorderLayout.NORTH);
 		final JPanel playerCtrlPanel = new JPanel(new BorderLayout());
 		playerPanel.add(playerCtrlPanel, BorderLayout.CENTER);
@@ -115,7 +109,6 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		final JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
 		playerCtrlPanel.add(buttonsPanel, BorderLayout.WEST);
 		buttonsPanel.setOpaque(false);
-		
 		prevBtn = new RRoundButton();
 		prevBtn.setIcon(prevIcon);
 		prevBtn.setToolTipText(PREV_TOOLTIP);
@@ -126,7 +119,6 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 			}
 		});
 		buttonsPanel.add(prevBtn);
-
 		dloadBtn = new RRoundButton();
 		dloadBtn.setIcon(dloadIcon);
 		dloadBtn.setToolTipText(DOWNLOAD_TOOLTIP);
@@ -149,14 +141,12 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 			}
 		});
 		buttonsPanel.add(dloadBtn);
-
 		playPauseBtn = new RRoundButton();
 		playPauseBtn.setIcon(playIcon);
 		playPauseBtn.setToolTipText(PLAY_TOOLTIP);
 		playPauseBtn.setPreferredSize(new Dimension(50, 50));
 		playPauseBtn.addActionListener(new PlayPauseListener());
 		buttonsPanel.add(playPauseBtn);
-
 		nextBtn = new RRoundButton();
 		nextBtn.setIcon(nextIcon);
 		nextBtn.setToolTipText(NEXT_TOOLTIP);
@@ -167,50 +157,46 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 			}
 		});
 		buttonsPanel.add(nextBtn);
-
 		buttonsPanel.add(Box.createHorizontalStrut(50));
-
 		delBtn = new RSquareDelButton();
 		delBtn.setToolTipText(DELETE_TOOLTIP);
 		delBtn.setPreferredSize(new Dimension(40, 40));
 		delBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				TrackList tl = frame.getMainPanel().currentContentPanel().getTrackList();
-				if(tl != null)
+				if (tl != null)
 					tl.deleteSelectedTracks();
 			}
 		});
 		buttonsPanel.add(delBtn);
-
-		checkButtonsEnabled();
+		// checkButtonsEnabled();
+		checkPlayPauseDeleteEnabled();
+		updateNextPrev();
 		control.addPlaybackListener(this);
 		control.addTrackListener(this);
 	}
 
 	public void trackSelectionChanged() {
-		checkButtonsEnabled();
+		// checkButtonsEnabled();
+		checkPlayPauseDeleteEnabled();
 		doRepaint();
 	}
 
 	public void next() {
-		String nextStreamId = null;
-		synchronized (this) {
-			nextStreamId = playingTrackList.getNextStreamId(playingStream.getStreamId());
-		}
-		if (nextStreamId != null)
-			control.play(nextStreamId);
+		// Grab a copy of the sid to avoid a miniscule chance of it changing while this is called
+		String sid = nextSid;
+		if (sid != null)
+			control.play(sid);
 	}
 
 	public void prev() {
 		// If we're near the beginning of our track, go back to the previous track, else go back to the start of this
 		// one
 		if (playbackProgress.getTrackPosition() < PREV_TRACK_GRACE_PERIOD) {
-			String prevStreamId = null;
-			synchronized (this) {
-				prevStreamId = playingTrackList.getPrevStreamId(playingStream.getStreamId());
-			}
-			if (prevStreamId != null)
-				control.play(prevStreamId);
+			// Grab a copy of the sid to avoid a miniscule chance of it changing while this is called
+			String sid = prevSid;
+			if (sid != null)
+				control.play(sid);
 		} else {
 			String sid = playingStream.getStreamId();
 			TrackList t = playingTrackList;
@@ -238,8 +224,10 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 			playPauseBtn.setIcon(playIcon);
 			playPauseBtn.setToolTipText(PLAY_TOOLTIP);
 		}
-		checkButtonsEnabled();
-		doRepaint();
+		// checkButtonsEnabled();
+		checkPlayPauseDeleteEnabled();
+		// This causes a repaint
+		updateNextPrev();
 	}
 
 	@Override
@@ -257,11 +245,13 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 				playbackProgress.setTrackPosition(0);
 				updateDataAvailable();
 			}
+			updateNextPrev();
 		}
 		playPauseBtn.setIcon(pauseIcon);
 		playPauseBtn.setToolTipText(PAUSE_TOOLTIP);
 		playbackProgress.starting();
-		checkButtonsEnabled();
+		// checkButtonsEnabled();
+		checkPlayPauseDeleteEnabled();
 		doRepaint();
 	}
 
@@ -271,7 +261,8 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		playPauseBtn.setIcon(pauseIcon);
 		playPauseBtn.setToolTipText(PAUSE_TOOLTIP);
 		playbackProgress.play();
-		checkButtonsEnabled();
+		// checkButtonsEnabled();
+		checkPlayPauseDeleteEnabled();
 		doRepaint();
 	}
 
@@ -285,12 +276,9 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		playbackProgress.setTrackPosition(positionMs);
 		String preFetchStreamId = null;
 		synchronized (this) {
-			if (!checkedNextTrack
-					&& positionMs > (playingStream.getDuration() - control.getConfig().getDownloadCacheTime() * 1000)) {
+			if (!checkedNextTrack && positionMs > (playingStream.getDuration() - control.getConfig().getDownloadCacheTime() * 1000)) {
 				// Pre-download next track if necessary
-				String nextStreamId = playingTrackList.getNextStreamId(playingStream.getStreamId());
-				if (nextStreamId != null)
-					preFetchStreamId = nextStreamId;
+				preFetchStreamId = nextSid;
 				checkedNextTrack = true;
 			}
 		}
@@ -303,21 +291,19 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		state = PlayState.Paused;
 		playPauseBtn.setIcon(playIcon);
 		playPauseBtn.setToolTipText(PLAY_TOOLTIP);
-		checkButtonsEnabled();
+		// checkButtonsEnabled();
+		checkPlayPauseDeleteEnabled();
 		doRepaint();
 		playbackProgress.pause();
 	}
 
 	@Override
 	public void playbackCompleted() {
-		String nextStreamId = null;
-		synchronized (this) {
-			if (playingTrackList != null)
-				nextStreamId = playingTrackList.getNextStreamId(playingStream.getStreamId());
-		}
-		if (nextStreamId != null) {
-			checkButtonsEnabled();
-			control.play(nextStreamId);
+		String sid = nextSid;
+		if (sid != null) {
+			// checkButtonsEnabled();
+			checkPlayPauseDeleteEnabled();
+			control.play(sid);
 		} else
 			playbackStopped();
 	}
@@ -355,7 +341,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 			updateDataAvailable();
 	}
 
-	public void play() {
+	public void playSelectedTracks() {
 		playingTrackList = frame.getMainPanel().currentContentPanel().getTrackList();
 		playingContentPanel = frame.getMainPanel().currentContentPanelName();
 		List<String> selSids = playingTrackList.getSelectedStreamIds();
@@ -371,10 +357,36 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	}
 
 	public void trackListPanelChanged() {
-		checkButtonsEnabled();
+		// checkButtonsEnabled();
+		checkPlayPauseDeleteEnabled();
 	}
 
-	private void checkButtonsEnabled() {
+	private void updateNextPrev() {
+		if (playingTrackList == null || playingStream == null) {
+			prevSid = nextSid = null;
+			prevBtn.setEnabled(false);
+			nextBtn.setEnabled(false);
+			doRepaint();
+			return;
+		}
+		// getPrevAndNextSids might have to iterate over tracklist (10^4 trax) so fire off a thread
+		frame.control.getExecutor().execute(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				if (playingTrackList == null || playingStream == null)
+					prevSid = nextSid = null;
+				else {
+					String[] arr = playingTrackList.getPrevAndNextSids(playingStream.streamId);
+					prevSid = arr[0];
+					nextSid = arr[1];
+				}
+				prevBtn.setEnabled(prevSid != null);
+				nextBtn.setEnabled(nextSid != null);
+				doRepaint();
+			}
+		});
+	}
+
+	private void checkPlayPauseDeleteEnabled() {
 		boolean tracksSelected = false;
 		boolean allowDownload = false;
 		boolean allowDel = false;
@@ -388,21 +400,13 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 					Track t = control.getTrack(sid);
 					if (t instanceof CloudTrack) {
 						allowDownload = true;
-							break;
+						break;
 					}
 				}
 				allowDel = tl.getModel().allowDelete() && tracksSelected;
 			}
 		}
 		synchronized (this) {
-			// [Dis|En]able next/prev buttons
-			if (playingTrackList == null || playingStream == null) {
-				nextBtn.setEnabled(false);
-				prevBtn.setEnabled(false);
-			} else {
-				nextBtn.setEnabled(playingTrackList.getNextStreamId(playingStream.getStreamId()) != null);
-				prevBtn.setEnabled(playingTrackList.getPrevStreamId(playingStream.getStreamId()) != null);
-			}
 			dloadBtn.setEnabled(allowDownload);
 			delBtn.setEnabled(allowDel);
 			// Enable play/pause button unless we are stopped and there are no tracks selected
@@ -433,7 +437,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		public void actionPerformed(ActionEvent e) {
 			switch (state) {
 			case Stopped:
-				play();
+				playSelectedTracks();
 				break;
 			case Starting: // fall through
 			case Playing:

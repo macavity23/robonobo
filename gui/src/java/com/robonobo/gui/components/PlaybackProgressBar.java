@@ -14,20 +14,16 @@ import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.frames.RobonoboFrame;
 
-/**
- * Maintains two 'progress' indicators. The first, 'availableData', displays how much data we have downloaded by means
+/** Maintains two 'progress' indicators. The first, 'availableData', displays how much data we have downloaded by means
  * of a light blue bar, and is the limit to how far we can seek by dragging the slider. The second, 'trackPosition', is
  * our playback position within the track and displayed by means of the slider position.
  * 
- * @author macavity
- * 
- */
+ * @author macavity */
 @SuppressWarnings("serial")
 public class PlaybackProgressBar extends JProgressBar {
 	private static final int TOTAL_WIDTH = 325;
 	private static final int SLIDER_TOTAL_WIDTH = 65;
 	private static final int SLIDER_OPAQUE_WIDTH = 62;
-
 	private RobonoboFrame frame;
 	// Locked means no current track - can't drag slider, no progress indicators
 	private boolean locked = true;
@@ -35,10 +31,8 @@ public class PlaybackProgressBar extends JProgressBar {
 	/** In reference to the slider thumb */
 	private Point mouseDownPt;
 	private List<Listener> listeners;
-
 	private JButton sliderThumb;
 	private JLabel startLabel, endLabel;
-
 	private long trackLengthMs;
 	private long trackPositionMs;
 	private float dataAvailable;
@@ -53,30 +47,25 @@ public class PlaybackProgressBar extends JProgressBar {
 		setMinimum(0);
 		setMaximum(TOTAL_WIDTH);
 		setPreferredSize(new Dimension(325, 24));
-
 		// Absolute positioning of elements
 		setLayout(null);
-
 		sliderThumb = new JButton();
 		sliderThumb.setName("robonobo.playback.progressbar.thumb");
 		sliderThumb.setFont(RoboFont.getFont(11, false));
 		sliderThumb.setFocusable(false);
 		sliderThumb.setLocation(0, 0);
 		add(sliderThumb);
-
 		startLabel = new JLabel("-0:00");
 		startLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 		startLabel.setSize(startLabel.getPreferredSize());
 		startLabel.setFont(RoboFont.getFont(11, false));
 		startLabel.setForeground(Color.WHITE);
 		add(startLabel);
-
 		endLabel = new JLabel();
 		endLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));
 		endLabel.setSize(endLabel.getPreferredSize());
 		endLabel.setFont(RoboFont.getFont(11, false));
 		add(endLabel);
-
 		addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
 				// auto adjust thumb size
@@ -88,12 +77,11 @@ public class PlaybackProgressBar extends JProgressBar {
 				endLabel.setLocation(getWidth() - endLabel.getWidth(), ((getHeight() - endLabel.getHeight()) / 2) + 1);
 			}
 		});
-
 		// mouse event processing
 		sliderThumb.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
 				// Don't allow seeking while we're still in initial buffering
-				if(!started)
+				if (!started)
 					return;
 				dragging = true;
 				mouseDownPt = e.getPoint();
@@ -116,7 +104,7 @@ public class PlaybackProgressBar extends JProgressBar {
 		sliderThumb.addMouseMotionListener(new MouseMotionAdapter() {
 			public void mouseDragged(MouseEvent e) {
 				// Don't allow seeking while we're still in initial buffering
-				if(!started)
+				if (!started)
 					return;
 				// Get position relative to progress bar
 				Point progressBarPos = SwingUtilities.convertPoint(sliderThumb, e.getPoint(), PlaybackProgressBar.this);
@@ -136,7 +124,6 @@ public class PlaybackProgressBar extends JProgressBar {
 				setTrackPosition(trackPos, true);
 			}
 		});
-
 		addListener(new Listener() {
 			@Override
 			public void sliderReleased(long trackPositionMs) {
@@ -145,10 +132,8 @@ public class PlaybackProgressBar extends JProgressBar {
 		});
 	}
 
-	/**
-	 * pos = 0, trackPosition = 0 <br/>
-	 * pos = (maximum - thumbWidth), trackPosition = trackLength
-	 */
+	/** pos = 0, trackPosition = 0 <br/>
+	 * pos = (maximum - thumbWidth), trackPosition = trackLength */
 	private void setThumbPosition(int pos) {
 		if (pos < 0)
 			pos = 0;
@@ -159,9 +144,16 @@ public class PlaybackProgressBar extends JProgressBar {
 
 	public void starting() {
 		started = false;
+		setThumbPosition(0);
+		SwingUtilities.invokeLater(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				sliderThumb.setForeground(Color.BLACK);
+				sliderThumb.setName("robonobo.playback.progressbar.thumb");
+			}
+		});
 		startThumbTextFlashing();
 	}
-	
+
 	public void play() {
 		started = true;
 		stopThumbTextFlashing();
@@ -214,9 +206,7 @@ public class PlaybackProgressBar extends JProgressBar {
 		listeners.remove(listener);
 	}
 
-	/**
-	 * Locks the component until setTrackLength() is called
-	 */
+	/** Locks the component until setTrackLength() is called */
 	public void lock() {
 		locked = true;
 		setEndText("");
@@ -246,13 +236,12 @@ public class PlaybackProgressBar extends JProgressBar {
 			return;
 		// pos = 0, trackPosition = 0
 		// pos = (maximum - thumbWidth), trackPosition = trackLength
-		// TODO This method gets called a lot - check the calculated text and only fire the update if it's changed
 		int thumbPos = (int) ((getMaximum() - SLIDER_OPAQUE_WIDTH) * ((float) positionMs / trackLengthMs));
 		setSliderText(newSliderText);
 		long msLeft = trackLengthMs - trackPositionMs;
 		setStartText("-" + timeLblFromMs(msLeft));
 		setThumbPosition(thumbPos);
-		log.debug("Progress bar setting pos: "+positionMs);
+		log.debug("Progress bar setting pos: " + positionMs);
 		doRepaint();
 	}
 

@@ -41,9 +41,8 @@ import com.robonobo.gui.panels.MyPlaylistContentPanel;
 
 @SuppressWarnings("serial")
 public class TrackList extends JPanel {
-	/**
-	 * If the track list has more than this many tracks, we show a helpful message while we create/change it as the ui might hang for a second or two
-	 */
+	/** If the track list has more than this many tracks, we show a helpful message while we create/change it as the ui
+	 * might hang for a second or two */
 	public static final int TRACKLIST_SIZE_THRESHOLD = 64;
 	JScrollPane scrollPane;
 	JXTable table;
@@ -94,7 +93,6 @@ public class TrackList extends JPanel {
 		table.getColumn(10).setCellRenderer(tr);
 		table.getColumn(11).setCellRenderer(tr);
 		table.getColumn(12).setCellRenderer(tr);
-		
 		// These incantations make it compatible with glazedlist which does its own sorting inside the model
 		table.setSortable(false);
 		table.getTableHeader().setDefaultRenderer(new JTableHeader().getDefaultRenderer());
@@ -102,12 +100,11 @@ public class TrackList extends JPanel {
 		table.setAutoCreateRowSorter(false);
 		table.setRowSorter(null);
 		// Set up glazedlist auto table sorter
-		if(model instanceof GlazedTrackListTableModel) {
+		if (model instanceof GlazedTrackListTableModel) {
 			GlazedTrackListTableModel gtltm = (GlazedTrackListTableModel) model;
-			if(gtltm.canSort())
+			if (gtltm.canSort())
 				TableComparatorChooser.install(table, gtltm.getSortedList(), TableComparatorChooser.SINGLE_COLUMN);
 		}
-		
 		TableColumnModelExt cm = (TableColumnModelExt) table.getColumnModel();
 		cm.getColumn(0).setPreferredWidth(22); // Status icon
 		cm.getColumn(1).setPreferredWidth(187); // Title
@@ -131,7 +128,7 @@ public class TrackList extends JPanel {
 		table.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					frame.getPlaybackPanel().play();
+					frame.getPlaybackPanel().playSelectedTracks();
 					e.consume();
 				}
 			}
@@ -182,7 +179,7 @@ public class TrackList extends JPanel {
 	}
 
 	public List<String> getSelectedStreamIds() {
-		int[] selRows = getSelectedRowsAsPerModel();
+		int[] selRows = table.getSelectedRows();
 		List<String> result = new ArrayList<String>(selRows.length);
 		for (int row : selRows) {
 			String sid = model.getStreamId(row);
@@ -193,7 +190,7 @@ public class TrackList extends JPanel {
 	}
 
 	public List<Track> getSelectedTracks() {
-		int[] selRows = getSelectedRowsAsPerModel();
+		int[] selRows = table.getSelectedRows();
 		List<Track> result = new ArrayList<Track>(selRows.length);
 		for (int row : selRows) {
 			// This might be null if we are in the middle of deleting rows
@@ -208,50 +205,26 @@ public class TrackList extends JPanel {
 		table.removeRowSelectionInterval(0, table.getRowCount() - 1);
 	}
 
-	public String getNextStreamId(String curStreamId) {
-		int modelIndex = model.getTrackIndex(curStreamId);
-		if (modelIndex < 0)
-			return null;
-		int tblIndex = table.convertRowIndexToView(modelIndex);
-		if (tblIndex >= table.getRowCount() - 1)
-			return null;
-		int nextModelIndex = table.convertRowIndexToModel(tblIndex + 1);
-		return model.getStreamId(nextModelIndex);
-	}
-
-	public String getPrevStreamId(String curStreamId) {
-		int modelIndex = model.getTrackIndex(curStreamId);
-		if (modelIndex < 0)
-			return null;
-		int tblIndex = table.convertRowIndexToView(modelIndex);
-		if (tblIndex <= 0)
-			return null;
-		int prevModelIndex = table.convertRowIndexToModel(tblIndex - 1);
-		return model.getStreamId(prevModelIndex);
+	/** Returns String[2], first is prev sid, second is next sid, either might be null - we get both at the same time to
+	 * avoid iterating over the list twice */
+	public String[] getPrevAndNextSids(String currentSid) {
+		String[] result = new String[2];
+		int idx = model.getTrackIndex(currentSid);
+		if (idx < 0)
+			return result;
+		int sz = model.getRowCount();
+		if (idx > 0)
+			result[0] = model.getStreamId(idx - 1);
+		if (idx < (sz - 1))
+			result[1] = model.getStreamId(idx + 1);
+		return result;
 	}
 
 	public void scrollTableToStream(String streamId) {
-		int modelIndex = model.getTrackIndex(streamId);
-		if (modelIndex < 0)
+		int idx = model.getTrackIndex(streamId);
+		if(idx < 0)
 			return;
-		int viewIndex = table.convertRowIndexToView(modelIndex);
-		if (viewIndex < 0 || viewIndex >= table.getRowCount() - 1)
-			return;
-		table.scrollRowToVisible(viewIndex);
-	}
-
-	protected String getStreamIdAtRow(int viewIndex) {
-		int modelIndex = table.convertRowIndexToModel(viewIndex);
-		return model.getStreamId(modelIndex);
-	}
-
-	public int[] getSelectedRowsAsPerModel() {
-		int[] tableRows = table.getSelectedRows();
-		int[] modelRows = new int[tableRows.length];
-		for (int i = 0; i < tableRows.length; i++) {
-			modelRows[i] = table.convertRowIndexToModel(tableRows[i]);
-		}
-		return modelRows;
+		table.scrollRowToVisible(idx);
 	}
 
 	public void deleteSelectedTracks() {
@@ -339,7 +312,7 @@ public class TrackList extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			String action = e.getActionCommand();
 			if (action.equals("play"))
-				frame.getPlaybackPanel().play();
+				frame.getPlaybackPanel().playSelectedTracks();
 			else if (action.equals("download")) {
 				for (Track t : getSelectedTracks()) {
 					if (t instanceof CloudTrack) {
@@ -452,10 +425,8 @@ public class TrackList extends JPanel {
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			if (value instanceof DownloadingTransferStatus) {
-				DownloadingTransferStatus dStat = (DownloadingTransferStatus) value;
 				// Show a progress bar with how much we're downloading
-				String streamId = getStreamIdAtRow(row);
-				DownloadingTrack d = (DownloadingTrack) model.getTrack(model.getTrackIndex(streamId));
+				DownloadingTrack d = (DownloadingTrack) model.getTrack(row);
 				if (d == null)
 					return new JLabel();
 				long streamSz = d.getStream().getSize();

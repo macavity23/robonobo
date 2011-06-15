@@ -20,31 +20,28 @@ public interface TrackListTableModel extends TableModel {
 	// By default we hide the track num and stream id
 	public int[] hiddenCols();
 
-	/**
-	 * Return true in a subclass to have onScroll() called every time the track list is scrolled (as long as wantScrollEventsNow() returns true)
-	 */
+	/** Return true in a subclass to have onScroll() called every time the track list is scrolled (as long as
+	 * wantScrollEventsNow() returns true) */
 	public boolean wantScrollEventsEver();
 
-	/**
-	 * Return true in a subclass to have onScroll() called with the in-view indexen (wantScrollEventsEver() must also return true)
-	 */
+	/** Return true in a subclass to have onScroll() called with the in-view indexen (wantScrollEventsEver() must also
+	 * return true) */
 	public boolean wantScrollEventsNow();
 
-	/**
-	 * @param indexen
+	/** @param indexen
 	 *            The items currently in-viewport (model indexes, not view). Note this is called on the UI thread, so be
-	 *            thrifty with your cycles!
-	 */
+	 *            thrifty with your cycles! */
 	public void onScroll(int[] indexen);
 
 	public Track getTrack(int index);
 
 	public String getStreamId(int index);
 
-	public int getTrackIndex(String streamId);
-
 	/** Are we allowed to delete tracks from this tracklist? */
 	public boolean allowDelete();
 
 	public void deleteTracks(List<String> streamIds);
+
+	/** This might have to iterate the tracklist, so call it sparingly! */
+	public int getTrackIndex(String sid);
 }

@@ -59,4 +59,18 @@ public abstract class Track {
 	public void setDateAdded(Date dateAdded) {
 		this.dateAdded = dateAdded;
 	}
+	
+	/** Tracks will equal() each other if they have the same stream id, even if they are different classes */
+	@Override
+	public boolean equals(Object o) {
+		if(!(o instanceof Track))
+			return false;
+		Track t = (Track) o;
+		return stream.streamId.equals(t.stream.streamId);
+	}
+	
+	@Override
+	public int hashCode() {
+		return stream.streamId.hashCode();
+	}
 }
