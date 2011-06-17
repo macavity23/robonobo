@@ -3,6 +3,7 @@ package com.robonobo.gui.sheets;
 import static com.robonobo.gui.GuiUtil.*;
 import info.clearthought.layout.TableLayout;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,8 +13,7 @@ import javax.swing.*;
 
 import com.robonobo.core.Platform;
 import com.robonobo.core.itunes.ITunesService;
-import com.robonobo.gui.GuiUtil;
-import com.robonobo.gui.RoboColor;
+import com.robonobo.gui.*;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 
@@ -25,37 +25,31 @@ public class WelcomeSheet extends Sheet {
 	public WelcomeSheet(RobonoboFrame rFrame) {
 		super(rFrame);
 		boolean haveITunes = Platform.getPlatform().iTunesAvailable();
-		Dimension size = new Dimension(600, (haveITunes ? 500: 400));
+		Dimension size = new Dimension(600, (haveITunes ? 500 : 400));
 		setPreferredSize(size);
 		setSize(size);
 		double[][] cellSizen = {
 				{ 20, TableLayout.FILL, 20 },
-				{ 20 /* sp */, 55 /* logo */, 25 /* title */, 5 /* sp */, 20 /* blurb */, 10 /* sp */,
-						25 /* filechoose */, 10 /* sp */, 50 /* blurb */, 0 /* sp */, (haveITunes ? 30 : 0) /* title */, (haveITunes ? 10 : 0) /* sp */,
-						(haveITunes ? 30 : 0) /* btn */, (haveITunes ? 30 : 0) /* sp */, 30 /* title */, 10 /* sp */, 30 /* btn */, 20 /* sp */, 1 /* sep */,
-						10 /* sp */, 30 /* btn */, 5 /* sp */, 30 /* cb */, 10 /* sp */} };
+				{ 20 /* sp */, 55 /* logo */, 25 /* title */, 10 /* sp */, 15 /* blurb */, 8 /* sp */, 25 /* filechoose */, 10 /* sp */, 50 /* blurb */, 0 /* sp */,
+						(haveITunes ? 30 : 0) /* title */, (haveITunes ? 10 : 0) /* sp */, (haveITunes ? 30 : 0) /* btn */, (haveITunes ? 30 : 0) /* sp */, 30 /* title */,
+						10 /* sp */, 30 /* btn */, 20 /* sp */, 1 /* sep */, 10 /* sp */, 30 /* btn */, 5 /* sp */, 30 /* cb */, 10 /* sp */} };
 		setLayout(new TableLayout(cellSizen));
 		setName("playback.background.panel");
-
 		RLabel imgLbl = new RIconLabel(createImageIcon("/rbnb-logo_mid-grey-bg.png", null));
 		add(imgLbl, "1,1,l,t");
 		RLabel titleLbl = new RLabel24B("Welcome");
 		add(titleLbl, "1,2");
-		RLabel dloadBlurb = new RLabel12("<html><p>" + "robonobo will store your downloaded music in this folder:"
-				+ "</p></html>");
-		add(dloadBlurb, "1,4");
+		JPanel dloadBlurb = new LineBreakTextPanel("robonobo will store your downloaded music in this folder:", RoboFont.getFont(12, false), new Dimension(540, 15));
+		add(dloadBlurb, "1,4,l,t");
 		FileChoosePanel filePanel = new FileChoosePanel();
 		add(filePanel, "1,6");
-		RLabel shareBlurb = new RLabel12(
-				"<html><p>"
-						+ "Before you can share your music and playlists with your friends, you must add tracks to your robonobo music library. "
-						+ (haveITunes ? "You can add tracks from iTunes, or else you can add them from MP3 files on your computer."
-								: "You can add tracks from MP3 files on your computer.") + "</p></html>");
+		String shareText = "Before you can share your music and playlists with your friends, you must add tracks to your robonobo music library. "
+				+ (haveITunes ? "You can add tracks from iTunes, or else you can add them from MP3 files on your computer." : "You can add tracks from MP3 files on your computer.");
+		JPanel shareBlurb = new LineBreakTextPanel(shareText, RoboFont.getFont(12, false), new Dimension(540, 50));
 		add(shareBlurb, "1,8,l,t");
 		if (haveITunes) {
 			RLabel iTunesTitle = new RLabel18B("Share Tracks/Playlists from iTunes");
 			add(iTunesTitle, "1,10");
-
 			RButton iTunesBtn = new RGlassButton("Share from iTunes...");
 			iTunesBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
