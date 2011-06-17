@@ -2,16 +2,16 @@ package com.robonobo.midas.client;
 
 import com.robonobo.core.api.model.User;
 import com.robonobo.core.api.proto.CoreApi.UserMsg;
-import com.robonobo.core.metadata.UserHandler;
+import com.robonobo.core.metadata.UserCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class LoginRequest implements Request {
 	private MidasClientConfig cfg;
 	private String email;
 	private String password;
-	private UserHandler handler;
+	private UserCallback handler;
 
-	public LoginRequest(MidasClientConfig cfg, String email, String password, UserHandler handler) {
+	public LoginRequest(MidasClientConfig cfg, String email, String password, UserCallback handler) {
 		this.cfg = cfg;
 		this.email = email;
 		this.password = password;

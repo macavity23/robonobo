@@ -2,15 +2,15 @@ package com.robonobo.midas.client;
 
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
-import com.robonobo.core.metadata.PlaylistHandler;
+import com.robonobo.core.metadata.PlaylistCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class PutPlaylistRequest implements Request {
 	MidasClientConfig cfg;
 	Playlist p;
-	PlaylistHandler handler;
+	PlaylistCallback handler;
 
-	public PutPlaylistRequest(MidasClientConfig cfg, Playlist p, PlaylistHandler handler) {
+	public PutPlaylistRequest(MidasClientConfig cfg, Playlist p, PlaylistCallback handler) {
 		this.cfg = cfg;
 		this.p = p;
 		this.handler = handler;

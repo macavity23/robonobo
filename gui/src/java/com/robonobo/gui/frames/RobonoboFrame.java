@@ -26,7 +26,7 @@ import com.robonobo.core.Platform;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.TrackListener;
 import com.robonobo.core.api.model.*;
-import com.robonobo.core.metadata.UserConfigHandler;
+import com.robonobo.core.metadata.UserConfigCallback;
 import com.robonobo.gui.*;
 import com.robonobo.gui.panels.*;
 import com.robonobo.gui.preferences.PrefDialog;
@@ -323,7 +323,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		if (uc == null || uc.getItem("facebookId") == null) {
 			// We don't seem to be registered for facebook - fetch a fresh copy of the usercfg from midas in
 			// case they've recently added themselves to fb, but GTFOTUT
-			control.fetchMyUserConfig(new UserConfigHandler() {
+			control.fetchMyUserConfig(new UserConfigCallback() {
 				public void success(UserConfig freshUc) {
 					if (freshUc.getItem("facebookId") == null) {
 						// They haven't associated their facebook account with their rbnb one... open a browser window on the page to do so
@@ -356,7 +356,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		if (uc == null || uc.getItem("twitterId") == null) {
 			// We don't seem to be registered for twitter - fetch a fresh copy of the usercfg from midas in
 			// case they've recently added themselves, but GTFOTUT
-			control.fetchMyUserConfig(new UserConfigHandler() {
+			control.fetchMyUserConfig(new UserConfigCallback() {
 				public void success(UserConfig freshUc) {
 					if (freshUc.getItem("twitterId") == null) {
 						// They haven't associated their twitter account with their rbnb one...open a browser window on the page to do so

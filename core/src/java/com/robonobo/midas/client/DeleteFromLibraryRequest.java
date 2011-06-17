@@ -1,7 +1,7 @@
 package com.robonobo.midas.client;
 
 import com.robonobo.core.api.model.Library;
-import com.robonobo.core.metadata.LibraryHandler;
+import com.robonobo.core.metadata.LibraryCallback;
 
 /**
  * Just extends AddToLibReq as midas handles both adds & dels via http PUT as DELETE doesn't get the body passed through
@@ -9,7 +9,7 @@ import com.robonobo.core.metadata.LibraryHandler;
  *
  */
 public class DeleteFromLibraryRequest extends AddToLibraryRequest {
-	public DeleteFromLibraryRequest(MidasClientConfig cfg, long userId, Library lib, LibraryHandler handler) {
+	public DeleteFromLibraryRequest(MidasClientConfig cfg, long userId, Library lib, LibraryCallback handler) {
 		super(cfg, userId, lib, handler);
 	}
 

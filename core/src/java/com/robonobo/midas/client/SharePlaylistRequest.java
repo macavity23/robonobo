@@ -2,7 +2,7 @@ package com.robonobo.midas.client;
 
 import java.util.Collection;
 
-import com.robonobo.core.metadata.PlaylistHandler;
+import com.robonobo.core.metadata.PlaylistCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class SharePlaylistRequest implements Request {
@@ -11,9 +11,9 @@ public class SharePlaylistRequest implements Request {
 	private Long plId;
 	private Collection<Long> friendIds;
 	private Collection<String> emails;
-	private PlaylistHandler handler;
+	private PlaylistCallback handler;
 
-	public SharePlaylistRequest(MidasClientConfig cfg, long playlistId, Collection<Long> shareFriendIds, Collection<String> friendEmails, PlaylistHandler handler) {
+	public SharePlaylistRequest(MidasClientConfig cfg, long playlistId, Collection<Long> shareFriendIds, Collection<String> friendEmails, PlaylistCallback handler) {
 		this.cfg = cfg;
 		this.plId = playlistId;
 		this.friendIds = shareFriendIds;

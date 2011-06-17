@@ -1,16 +1,16 @@
 package com.robonobo.midas.client;
 
 import com.robonobo.core.api.model.Library;
-import com.robonobo.core.metadata.LibraryHandler;
+import com.robonobo.core.metadata.LibraryCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class AddToLibraryRequest implements Request {
 	protected MidasClientConfig cfg;
 	protected Long userId;
 	protected Library lib;
-	protected LibraryHandler handler;
+	protected LibraryCallback handler;
 
-	public AddToLibraryRequest(MidasClientConfig cfg, long userId, Library lib, LibraryHandler handler) {
+	public AddToLibraryRequest(MidasClientConfig cfg, long userId, Library lib, LibraryCallback handler) {
 		this.cfg = cfg;
 		this.userId = userId;
 		this.lib = lib;

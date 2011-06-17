@@ -45,7 +45,7 @@ public class SearchService extends AbstractService {
 		metadata.search(query, startResult, new Handler(listener));
 	}
 
-	class Handler implements SearchHandler, StreamHandler {
+	class Handler implements SearchCallback, StreamCallback {
 		private SearchListener listener;
 
 		public Handler(SearchListener listener) {

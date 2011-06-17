@@ -5,21 +5,21 @@ import java.util.Stack;
 
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
-import com.robonobo.core.metadata.PlaylistHandler;
+import com.robonobo.core.metadata.PlaylistCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class GetPlaylistRequest implements Request {
 	MidasClientConfig cfg;
 	Stack<Long> plIds = new Stack<Long>();
-	PlaylistHandler handler;
+	PlaylistCallback handler;
 	
-	public GetPlaylistRequest(MidasClientConfig cfg, Collection<Long> plIds, PlaylistHandler handler) {
+	public GetPlaylistRequest(MidasClientConfig cfg, Collection<Long> plIds, PlaylistCallback handler) {
 		this.cfg = cfg;
 		this.plIds.addAll(plIds);
 		this.handler = handler;
 	}
 
-	public GetPlaylistRequest(MidasClientConfig cfg, long plId, PlaylistHandler handler) {
+	public GetPlaylistRequest(MidasClientConfig cfg, long plId, PlaylistCallback handler) {
 		this.cfg = cfg;
 		this.plIds.add(plId);
 		this.handler = handler;

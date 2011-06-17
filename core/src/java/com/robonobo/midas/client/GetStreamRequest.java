@@ -4,15 +4,15 @@ import java.util.*;
 
 import com.robonobo.core.api.model.Stream;
 import com.robonobo.core.api.proto.CoreApi.StreamMsg;
-import com.robonobo.core.metadata.StreamHandler;
+import com.robonobo.core.metadata.StreamCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class GetStreamRequest implements Request {
 	MidasClientConfig cfg;
-	private StreamHandler handler;
+	private StreamCallback handler;
 	private Stack<String> sids = new Stack<String>();
 	
-	public GetStreamRequest(MidasClientConfig cfg, Collection<String> sids, StreamHandler handler) {
+	public GetStreamRequest(MidasClientConfig cfg, Collection<String> sids, StreamCallback handler) {
 		this.cfg = cfg;
 		this.sids.addAll(sids);
 		this.handler = handler;

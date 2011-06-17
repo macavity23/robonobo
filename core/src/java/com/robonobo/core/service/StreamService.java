@@ -6,7 +6,7 @@ import java.util.*;
 
 import com.robonobo.core.api.model.Stream;
 import com.robonobo.core.metadata.AbstractMetadataService;
-import com.robonobo.core.metadata.StreamHandler;
+import com.robonobo.core.metadata.StreamCallback;
 
 public class StreamService extends AbstractService {
 	AbstractMetadataService metadata;
@@ -55,7 +55,7 @@ public class StreamService extends AbstractService {
 	 * Fetches metadata from our remote metadata service. Returns immediately - if you want to be informed when the
 	 * stream has been fetched, pass in a handler
 	 */
-	public void fetchStreams(Collection<String> sids, StreamHandler handler) {
+	public void fetchStreams(Collection<String> sids, StreamCallback handler) {
 		List<String> lookupSids = new ArrayList<String>();
 		for (String sid : sids) {
 			Stream s = getKnownStream(sid);
@@ -68,9 +68,9 @@ public class StreamService extends AbstractService {
 			metadata.fetchStreams(lookupSids, new AddToDbHandler(handler));
 	}
 	
-	class AddToDbHandler implements StreamHandler {
-		StreamHandler onwardHandler;
-		public AddToDbHandler(StreamHandler onwardHandler) {
+	class AddToDbHandler implements StreamCallback {
+		StreamCallback onwardHandler;
+		public AddToDbHandler(StreamCallback onwardHandler) {
 			this.onwardHandler = onwardHandler;
 		}
 

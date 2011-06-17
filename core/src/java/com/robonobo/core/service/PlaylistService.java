@@ -5,11 +5,10 @@ import java.util.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
-import com.robonobo.common.serialization.SerializationException;
 import com.robonobo.core.Platform;
-import com.robonobo.core.api.*;
+import com.robonobo.core.api.RobonoboException;
+import com.robonobo.core.api.Task;
 import com.robonobo.core.api.model.*;
-import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
 import com.robonobo.core.metadata.*;
 import com.robonobo.core.metadata.AbstractMetadataService.RequestFetchOrder;
 
@@ -77,7 +76,7 @@ public class PlaylistService extends AbstractService {
 			tasks.runTask(new RefreshFriendPlaylistsTask(plIds));
 	}
 
-	abstract class PlaylistFetcher implements PlaylistHandler {
+	abstract class PlaylistFetcher implements PlaylistCallback {
 		Set<Long> waitingForPlaylists = new HashSet<Long>();
 		Set<String> waitingForStreams = new HashSet<String>();
 		Set<Long> plIds;
@@ -212,7 +211,7 @@ public class PlaylistService extends AbstractService {
 		}
 	}
 
-	class StreamFetcher implements StreamHandler {
+	class StreamFetcher implements StreamCallback {
 		Playlist p;
 		Set<String> waitingForSids = new HashSet<String>();
 		PlaylistFetcher pFetcher;
@@ -265,7 +264,7 @@ public class PlaylistService extends AbstractService {
 			}
 			playlists.put(p.getPlaylistId(), p);
 		}
-		metadata.updatePlaylist(p, new PlaylistHandler() {
+		metadata.updatePlaylist(p, new PlaylistCallback() {
 			public void success(Playlist newP) {
 				log.info("Updated playlist id " + newP.getPlaylistId() + " successfully");
 			}
@@ -280,9 +279,9 @@ public class PlaylistService extends AbstractService {
 	 * The handler will be called back with the updated playlist, which will have a playlist id set, or else with an
 	 * errot
 	 */
-	public void createPlaylist(Playlist p, final PlaylistHandler handler) {
+	public void createPlaylist(Playlist p, final PlaylistCallback handler) {
 		log.debug("Creating new playlist with title " + p.getTitle());
-		metadata.updatePlaylist(p, new PlaylistHandler() {
+		metadata.updatePlaylist(p, new PlaylistCallback() {
 			public void success(Playlist newP) {
 				log.debug("Successfully created new playlist id " + newP.getPlaylistId());
 				synchronized (PlaylistService.this) {
@@ -361,13 +360,13 @@ public class PlaylistService extends AbstractService {
 		return playlists.get(playlistId);
 	}
 
-	public void getOrFetchPlaylist(long playlistId, final PlaylistHandler handler) {
+	public void getOrFetchPlaylist(long playlistId, final PlaylistCallback handler) {
 		Playlist p = getExistingPlaylist(playlistId);
 		if (p != null) {
 			handler.success(p);
 			return;
 		}
-		metadata.fetchPlaylist(playlistId, new PlaylistHandler() {
+		metadata.fetchPlaylist(playlistId, new PlaylistCallback() {
 			public void success(Playlist p) {
 				synchronized (PlaylistService.this) {
 					playlists.put(p.getPlaylistId(), p);
@@ -407,7 +406,7 @@ public class PlaylistService extends AbstractService {
 		rbnb.getUserService().playlistDeleted(p);
 		if (firePlaylistUpdate)
 			events.firePlaylistChanged(p);
-		metadata.deletePlaylist(p, new PlaylistHandler() {
+		metadata.deletePlaylist(p, new PlaylistCallback() {
 			public void success(Playlist p) {
 				log.debug("Successfully deleted playlist " + plId);
 			}
@@ -419,7 +418,7 @@ public class PlaylistService extends AbstractService {
 	}
 
 	public void sharePlaylist(final Playlist p, final Set<Long> friendIds, Set<String> emails) throws IOException, RobonoboException {
-		metadata.sharePlaylist(p, friendIds, emails, new PlaylistHandler() {
+		metadata.sharePlaylist(p, friendIds, emails, new PlaylistCallback() {
 			public void success(Playlist newP) {
 				log.debug("Successfully shared playlist " + p.getPlaylistId());
 				synchronized (PlaylistService.this) {
@@ -436,7 +435,7 @@ public class PlaylistService extends AbstractService {
 
 	public void postPlaylistUpdateToService(final String service, final long playlistId, String msg) {
 		log.debug("Posting playlist update for playlist " + playlistId + " to service " + service);
-		metadata.postPlaylistUpdateToService(service, playlistId, msg, new PlaylistHandler() {
+		metadata.postPlaylistUpdateToService(service, playlistId, msg, new PlaylistCallback() {
 			public void success(Playlist isnull) {
 				log.debug("Successfully posted playlist update for playlist " + playlistId + " to service " + service);
 			}

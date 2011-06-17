@@ -24,8 +24,8 @@ import com.robonobo.common.serialization.UnauthorizedException;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.config.RobonoboConfig;
 import com.robonobo.core.api.model.*;
-import com.robonobo.core.metadata.PlaylistHandler;
-import com.robonobo.core.metadata.UserConfigHandler;
+import com.robonobo.core.metadata.PlaylistCallback;
+import com.robonobo.core.metadata.UserConfigCallback;
 import com.robonobo.core.wang.WangListener;
 import com.robonobo.mina.external.*;
 
@@ -397,7 +397,7 @@ public class RobonoboController {
 		return inst.getUserService().getMyUserConfig();
 	}
 	
-	public void fetchMyUserConfig(UserConfigHandler handler) {
+	public void fetchMyUserConfig(UserConfigCallback handler) {
 		inst.getUserService().refreshMyUserConfig(handler);
 	}
 	
@@ -425,7 +425,7 @@ public class RobonoboController {
 		return inst.getUserService().getUser(userId);
 	}
 
-	public void getOrFetchPlaylist(long playlistId, PlaylistHandler handler) {
+	public void getOrFetchPlaylist(long playlistId, PlaylistCallback handler) {
 		inst.getPlaylistService().getOrFetchPlaylist(playlistId, handler);
 	}
 	
@@ -453,7 +453,7 @@ public class RobonoboController {
 		inst.getPlaylistService().updatePlaylist(p);
 	}
 	
-	public void createPlaylist(Playlist p, PlaylistHandler handler) {
+	public void createPlaylist(Playlist p, PlaylistCallback handler) {
 		inst.getPlaylistService().createPlaylist(p, handler);
 	}
 	

@@ -4,16 +4,16 @@ import java.util.Date;
 
 import com.robonobo.core.api.model.Library;
 import com.robonobo.core.api.proto.CoreApi.LibraryMsg;
-import com.robonobo.core.metadata.LibraryHandler;
+import com.robonobo.core.metadata.LibraryCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class GetLibraryRequest implements Request {
 	private MidasClientConfig cfg;
 	private Long userId;
 	private Date lastUpdated;
-	private LibraryHandler handler;
+	private LibraryCallback handler;
 
-	public GetLibraryRequest(MidasClientConfig cfg, long userId, Date lastUpdated, LibraryHandler handler) {
+	public GetLibraryRequest(MidasClientConfig cfg, long userId, Date lastUpdated, LibraryCallback handler) {
 		this.cfg = cfg;
 		this.userId = userId;
 		this.lastUpdated = lastUpdated;

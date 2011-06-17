@@ -6,21 +6,21 @@ import java.util.Stack;
 import com.robonobo.core.api.model.User;
 import com.robonobo.core.api.proto.CoreApi.StreamMsg;
 import com.robonobo.core.api.proto.CoreApi.UserMsg;
-import com.robonobo.core.metadata.UserHandler;
+import com.robonobo.core.metadata.UserCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class GetUsersRequest implements Request {
 	MidasClientConfig cfg;
-	private UserHandler handler;
+	private UserCallback handler;
 	private Stack<Long> uids = new Stack<Long>();
 	
-	public GetUsersRequest(MidasClientConfig cfg, Collection<Long> uids, UserHandler handler) {
+	public GetUsersRequest(MidasClientConfig cfg, Collection<Long> uids, UserCallback handler) {
 		this.cfg = cfg;
 		this.uids.addAll(uids);
 		this.handler = handler;
 	}
 
-	public GetUsersRequest(MidasClientConfig cfg, long uid, UserHandler handler) {
+	public GetUsersRequest(MidasClientConfig cfg, long uid, UserCallback handler) {
 		this.cfg = cfg;
 		this.uids.add(uid);
 		this.handler = handler;

@@ -129,7 +129,7 @@ public class UserService extends AbstractService {
 		metadata.fetchUserForLogin(email, password, new LoginHandler(email, password));
 	}
 
-	class LoginHandler implements UserHandler {
+	class LoginHandler implements UserCallback {
 		String email;
 		String password;
 
@@ -194,7 +194,7 @@ public class UserService extends AbstractService {
 		UserConfig cfg = new UserConfig();
 		cfg.setUserId(me.getUserId());
 		cfg.getItems().put(itemName, itemValue);
-		metadata.updateUserConfig(cfg, new UserConfigHandler() {
+		metadata.updateUserConfig(cfg, new UserConfigCallback() {
 			public void success(UserConfig uc) {
 				synchronized (UserService.this) {
 					myUserCfg = uc;
@@ -221,7 +221,7 @@ public class UserService extends AbstractService {
 		return myUserCfg;
 	}
 
-	public void refreshMyUserConfig(UserConfigHandler handler) {
+	public void refreshMyUserConfig(UserConfigCallback handler) {
 		metadata.fetchUserConfig(me.getUserId(), handler);
 	}
 
@@ -276,10 +276,10 @@ public class UserService extends AbstractService {
 		}
 	}
 
-	class UsrCfgUpdater implements UserConfigHandler {
-		UserConfigHandler onwardHandler;
+	class UsrCfgUpdater implements UserConfigCallback {
+		UserConfigCallback onwardHandler;
 
-		public UsrCfgUpdater(UserConfigHandler onwardHandler) {
+		public UsrCfgUpdater(UserConfigCallback onwardHandler) {
 			this.onwardHandler = onwardHandler;
 		}
 
@@ -300,7 +300,7 @@ public class UserService extends AbstractService {
 		}
 	}
 
-	class FriendFetchTask extends Task implements UserHandler {
+	class FriendFetchTask extends Task implements UserCallback {
 		User u;
 		int usersDone = 0;
 		Set<Long> playlistIds = new HashSet<Long>();
@@ -367,7 +367,7 @@ public class UserService extends AbstractService {
 				return;
 			}
 			log.info("Running user update");
-			metadata.fetchUser(me.getUserId(), new UserHandler() {
+			metadata.fetchUser(me.getUserId(), new UserCallback() {
 				public void success(User u) {
 					log.debug("Successfully retrieved my user details");
 					completion = 1f;

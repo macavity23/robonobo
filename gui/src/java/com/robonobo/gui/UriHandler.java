@@ -10,7 +10,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.model.Playlist;
-import com.robonobo.core.metadata.PlaylistHandler;
+import com.robonobo.core.metadata.PlaylistCallback;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 public class UriHandler {
@@ -34,7 +34,7 @@ public class UriHandler {
 			}
 			if (objType.equalsIgnoreCase("playlist")) {
 				final long pId = Long.parseLong(objId, 16);
-				frame.getController().getOrFetchPlaylist(pId, new PlaylistHandler() {
+				frame.getController().getOrFetchPlaylist(pId, new PlaylistCallback() {
 					public void success(final Playlist p) {
 						runOnUiThread(new CatchingRunnable() {
 							public void doRun() throws Exception {

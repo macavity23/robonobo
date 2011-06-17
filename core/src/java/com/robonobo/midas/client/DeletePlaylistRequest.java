@@ -1,14 +1,14 @@
 package com.robonobo.midas.client;
 
-import com.robonobo.core.metadata.PlaylistHandler;
+import com.robonobo.core.metadata.PlaylistCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class DeletePlaylistRequest implements Request {
 	MidasClientConfig cfg;
 	Long plId;
-	PlaylistHandler handler;
+	PlaylistCallback handler;
 	
-	public DeletePlaylistRequest(MidasClientConfig cfg, Long plId, PlaylistHandler handler) {
+	public DeletePlaylistRequest(MidasClientConfig cfg, Long plId, PlaylistCallback handler) {
 		this.cfg = cfg;
 		this.plId = plId;
 		this.handler = handler;

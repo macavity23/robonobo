@@ -140,7 +140,7 @@ public class LibraryService extends AbstractService {
 		}
 	}
 
-	class LibraryUpdateTask extends Task implements LibraryHandler {
+	class LibraryUpdateTask extends Task implements LibraryCallback {
 		private Date lastUpdate;
 		private Library cLib;
 		private User friend;
@@ -233,7 +233,7 @@ public class LibraryService extends AbstractService {
 		}
 	}
 
-	class StreamFetcher extends Batcher<String> implements StreamHandler {
+	class StreamFetcher extends Batcher<String> implements StreamCallback {
 		Library lib;
 		Map<String, Date> streamsToFetch;
 		LibraryUpdateTask task;
@@ -247,6 +247,7 @@ public class LibraryService extends AbstractService {
 
 		public void success(Stream s) {
 			String sid = s.getStreamId();
+			lib.getTracks().put(sid, streamsToFetch.get(sid));
 			add(sid);
 			task.streamUpdated(sid);
 		}
@@ -285,7 +286,7 @@ public class LibraryService extends AbstractService {
 				lib.getTracks().put(t.streamId, t.dateAdded);
 			}
 			User me = rbnb.getUserService().getMyUser();
-			metadata.addToLibrary(me.getUserId(), lib, new LibraryHandler() {
+			metadata.addToLibrary(me.getUserId(), lib, new LibraryCallback() {
 				public void success(Library l) {
 					log.debug("Successfully added tracks to my library");
 				}
@@ -311,7 +312,7 @@ public class LibraryService extends AbstractService {
 				lib.getTracks().put(sid, null);
 			}
 			User me = rbnb.getUserService().getMyUser();
-			metadata.deleteFromLibrary(me.getUserId(), lib, new LibraryHandler() {
+			metadata.deleteFromLibrary(me.getUserId(), lib, new LibraryCallback() {
 				public void success(Library l) {
 					log.debug("Successfully removed tracks from my library");
 				}

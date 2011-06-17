@@ -8,7 +8,7 @@ import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.core.api.model.PlaylistConfig;
-import com.robonobo.core.metadata.PlaylistHandler;
+import com.robonobo.core.metadata.PlaylistCallback;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.NewPlaylistTableModel;
 
@@ -41,7 +41,7 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 		// Create the new playlist in midas
 		RobonoboController control = frame.getController();
 		p.getOwnerIds().add(control.getMyUser().getUserId());
-		control.createPlaylist(p, new PlaylistHandler() {
+		control.createPlaylist(p, new PlaylistCallback() {
 			public void success(final Playlist newP) {
 				runOnUiThread(new CatchingRunnable() {
 					public void doRun() throws Exception {

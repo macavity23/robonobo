@@ -2,15 +2,15 @@ package com.robonobo.midas.client;
 
 import com.robonobo.core.api.model.UserConfig;
 import com.robonobo.core.api.proto.CoreApi.UserConfigMsg;
-import com.robonobo.core.metadata.UserConfigHandler;
+import com.robonobo.core.metadata.UserConfigCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class GetUserConfigRequest implements Request {
 	MidasClientConfig cfg;
 	long uid;
-	UserConfigHandler handler;
+	UserConfigCallback handler;
 	
-	public GetUserConfigRequest(MidasClientConfig cfg, long uid, UserConfigHandler handler) {
+	public GetUserConfigRequest(MidasClientConfig cfg, long uid, UserConfigCallback handler) {
 		this.cfg = cfg;
 		this.uid = uid;
 		this.handler = handler;

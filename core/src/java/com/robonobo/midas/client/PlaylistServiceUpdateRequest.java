@@ -1,6 +1,6 @@
 package com.robonobo.midas.client;
 
-import com.robonobo.core.metadata.PlaylistHandler;
+import com.robonobo.core.metadata.PlaylistCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class PlaylistServiceUpdateRequest implements Request {
@@ -8,9 +8,9 @@ public class PlaylistServiceUpdateRequest implements Request {
 	String service;
 	long playlistId;
 	String msg;
-	PlaylistHandler handler;
+	PlaylistCallback handler;
 
-	public PlaylistServiceUpdateRequest(MidasClientConfig cfg, String service, long playlistId, String msg, PlaylistHandler handler) {
+	public PlaylistServiceUpdateRequest(MidasClientConfig cfg, String service, long playlistId, String msg, PlaylistCallback handler) {
 		this.cfg = cfg;
 		this.service = service;
 		this.playlistId = playlistId;

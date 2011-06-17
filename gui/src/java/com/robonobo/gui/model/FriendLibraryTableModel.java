@@ -30,7 +30,6 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 			Date added = e.getValue();
 			Track t = frame.control.getTrack(sid);
 			t.setDateAdded(added);
-			// TODO this will get overwritten - fix dateadded
 			trax.add(t);
 		}
 		EventList<Track> el = GlazedLists.eventList(trax);
@@ -44,12 +43,13 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	private FriendLibraryTableModel(RobonoboFrame frame, Library lib, EventList<Track> el, SortedList<Track> sl, FilterList<Track> fl) {
 		super(frame, el, sl, fl);
 		this.lib = lib;
+		frame.control.addLibraryListener(this);
 	}
 
 	@Override
 	public void trackUpdated(String streamId, Track t) {
 		if (containsTrack(streamId)) {
-			// We can't add our date to this track as it will be re-used in other places - clone it instead
+			// We can't set our date on this track as it will be re-used in other places - clone it instead
 			t = t.clone();
 			t.setDateAdded(lib.getTracks().get(streamId));
 			super.trackUpdated(streamId, t);

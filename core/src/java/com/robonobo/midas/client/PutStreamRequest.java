@@ -4,21 +4,21 @@ import java.util.Collection;
 import java.util.Stack;
 
 import com.robonobo.core.api.model.Stream;
-import com.robonobo.core.metadata.StreamHandler;
+import com.robonobo.core.metadata.StreamCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class PutStreamRequest implements Request {
 	MidasClientConfig cfg;
-	StreamHandler handler;
+	StreamCallback handler;
 	Stack<Stream> streams = new Stack<Stream>();
 
-	public PutStreamRequest(MidasClientConfig cfg, Collection<Stream> streams, StreamHandler handler) {
+	public PutStreamRequest(MidasClientConfig cfg, Collection<Stream> streams, StreamCallback handler) {
 		this.cfg = cfg;
 		this.handler = handler;
 		this.streams.addAll(streams);
 	}
 
-	public PutStreamRequest(MidasClientConfig cfg, Stream s, StreamHandler handler) {
+	public PutStreamRequest(MidasClientConfig cfg, Stream s, StreamCallback handler) {
 		this.cfg = cfg;
 		this.handler = handler;
 		this.streams.add(s);

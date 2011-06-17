@@ -2,16 +2,16 @@ package com.robonobo.midas.client;
 
 import com.robonobo.common.util.TextUtil;
 import com.robonobo.core.api.proto.CoreApi.SearchResponse;
-import com.robonobo.core.metadata.SearchHandler;
+import com.robonobo.core.metadata.SearchCallback;
 import com.robonobo.midas.client.Params.Operation;
 
 public class SearchRequest implements Request {
 	private MidasClientConfig cfg;
 	private String query;
 	private int firstResult;
-	private SearchHandler handler;
+	private SearchCallback handler;
 
-	public SearchRequest(MidasClientConfig cfg, String query, int firstResult, SearchHandler handler) {
+	public SearchRequest(MidasClientConfig cfg, String query, int firstResult, SearchCallback handler) {
 		this.cfg = cfg;
 		this.query = query;
 		this.firstResult = firstResult;
