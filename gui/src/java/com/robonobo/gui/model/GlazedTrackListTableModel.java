@@ -13,8 +13,7 @@ import ca.odell.glazedlists.*;
 import ca.odell.glazedlists.swing.EventTableModel;
 import ca.odell.glazedlists.util.concurrent.Lock;
 
-import com.robonobo.common.util.FileUtil;
-import com.robonobo.common.util.TimeUtil;
+import com.robonobo.common.util.*;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.TrackListener;
 import com.robonobo.core.api.model.Stream;
@@ -49,7 +48,7 @@ public abstract class GlazedTrackListTableModel extends EventTableModel<Track> i
 		updateLock = eventList.getReadWriteLock().writeLock();
 		control.addTrackListener(this);
 		// Build our initial trackindices list
-		int i=0;
+		int i = 0;
 		for (Track t : el) {
 			trackIndices.put(t.stream.streamId, i++);
 		}
@@ -185,14 +184,14 @@ public abstract class GlazedTrackListTableModel extends EventTableModel<Track> i
 
 	@Override
 	public Track getTrack(int index) {
-		if(index >= viewList().size())
+		if (index >= viewList().size())
 			return null;
 		return getElementAt(index);
 	}
 
 	@Override
 	public String getStreamId(int index) {
-		if(index >= viewList().size())
+		if (index >= viewList().size())
 			return null;
 		return getElementAt(index).stream.streamId;
 	}
@@ -205,7 +204,7 @@ public abstract class GlazedTrackListTableModel extends EventTableModel<Track> i
 			updateLock.unlock();
 		}
 	}
-	
+
 	private EventList<Track> viewList() {
 		if (filterList != null)
 			return filterList;
@@ -278,15 +277,29 @@ public abstract class GlazedTrackListTableModel extends EventTableModel<Track> i
 		// This will only be called if allowDelete() returns true
 		updateLock.lock();
 		try {
+			ContiguousBlockList blockList = new ContiguousBlockList();
+			// Figure out our indices to delete before we do it, so they stay valid
 			for (String sid : streamIds) {
 				Integer delIdx = trackIndices.remove(sid);
-				if (delIdx != null) {
-					eventList.remove((int) delIdx);
-					// Bump track indices down for everyone above us
-					for (int i = delIdx; i < eventList.size(); i++) {
-						String bumpSid = eventList.get(i).stream.streamId;
-						trackIndices.put(bumpSid, i);
-					}
+				if (delIdx != null)
+					blockList.add(delIdx);
+			}
+			List<int[]> blox = blockList.getAllBlocks();
+			// Remove the tracks, highest first to keep indices valid
+			for (int i = blox.size() - 1; i >= 0; i--) {
+				int[] block = blox.get(i);
+				int blockStart = block[0];
+				int blockEnd = block[1];
+				for (int j = blockEnd; j >= blockStart; j--) {
+					eventList.remove(j);
+				}
+			}
+			// Bump down the trackIndices for every track above the lowest contiguous block of deleted tracks
+			if (blox.size() > 0) {
+				int bumpAbove = blox.get(0)[1];
+				for (int i = eventList.size() - 1; i > bumpAbove; i--) {
+					String bumpSid = eventList.get(i).stream.streamId;
+					trackIndices.put(bumpSid, i);
 				}
 			}
 		} finally {

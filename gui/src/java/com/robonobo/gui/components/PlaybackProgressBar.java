@@ -241,7 +241,6 @@ public class PlaybackProgressBar extends JProgressBar {
 		long msLeft = trackLengthMs - trackPositionMs;
 		setStartText("-" + timeLblFromMs(msLeft));
 		setThumbPosition(thumbPos);
-		log.debug("Progress bar setting pos: " + positionMs);
 		doRepaint();
 	}
 

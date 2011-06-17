@@ -29,11 +29,9 @@ import com.robonobo.core.metadata.UserConfigCallback;
 import com.robonobo.core.wang.WangListener;
 import com.robonobo.mina.external.*;
 
-/**
- * Main external-facing Robonobo class
+/** Main external-facing Robonobo class
  * 
- * @author macavity
- */
+ * @author macavity */
 public class RobonoboController {
 	private RobonoboInstance inst;
 	private Log log;
@@ -122,19 +120,19 @@ public class RobonoboController {
 	public void addTaskListener(TaskListener l) {
 		inst.getEventService().addTaskListener(l);
 	}
-	
+
 	public void removeTaskListener(TaskListener l) {
 		inst.getEventService().removeTaskListener(l);
 	}
-	
+
 	public void addNodeFilter(NodeFilter nf) {
 		inst.getMina().addNodeFilter(nf);
 	}
-	
+
 	public void removeNodeFilter(NodeFilter nf) {
 		inst.getMina().removeNodeFilter(nf);
 	}
-	
+
 	public RobonoboStatus getStatus() {
 		return inst.getStatus();
 	}
@@ -155,20 +153,16 @@ public class RobonoboController {
 		}
 	}
 
-	/**
-	 * Notifies that this streamId is going to be played shortly and should be downloaded/prioritized as necessary 
-	 */
+	/** Notifies that this streamId is going to be played shortly and should be downloaded/prioritized as necessary */
 	public void preFetch(String streamId) {
 		inst.getDownloadService().preFetch(streamId);
 	}
-	
+
 	public void addDownload(String streamId) throws RobonoboException {
 		inst.getDownloadService().addDownload(streamId);
 	}
 
-	/**
-	 * Spawns off a thread to download any tracks that are not already being downloaded or shared - returns immediately
-	 */
+	/** Spawns off a thread to download any tracks that are not already being downloaded or shared - returns immediately */
 	public void spawnNecessaryDownloads(final Collection<String> streamIds) {
 		getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
@@ -214,6 +208,10 @@ public class RobonoboController {
 		inst.getDownloadService().deleteDownload(streamId);
 	}
 
+	public void deleteDownloads(List<String> sids) throws RobonoboException {
+		inst.getDownloadService().deleteDownloads(sids);
+	}
+
 	public void deleteShare(String streamId) throws RobonoboException {
 		inst.getShareService().deleteShare(streamId);
 	}
@@ -221,7 +219,7 @@ public class RobonoboController {
 	public int getNumSharesAndDownloads() {
 		return inst.getDbService().numSharesAndDownloads();
 	}
-	
+
 	public String getMyNodeId() {
 		return inst.getMina().getMyNodeId();
 	}
@@ -284,9 +282,7 @@ public class RobonoboController {
 		return inst.getTrackService().getTrack(streamId);
 	}
 
-	/**
-	 * Download must already be added
-	 */
+	/** Download must already be added */
 	public void startDownload(String streamId) throws RobonoboException {
 		try {
 			inst.getDownloadService().startDownload(streamId);
@@ -303,10 +299,8 @@ public class RobonoboController {
 		return inst.getMina().numSources(streamId);
 	}
 
-	/**
-	 * @param streamId
-	 * @return
-	 */
+	/** @param streamId
+	 * @return */
 	public Set<String> getSources(String streamId) {
 		return inst.getMina().getSources(streamId);
 	}
@@ -340,10 +334,8 @@ public class RobonoboController {
 		inst.getPlaybackService().pause();
 	}
 
-	/**
-	 * @param ms
-	 *            Position in the stream to seek to, as millisecs from stream start
-	 */
+	/** @param ms
+	 *            Position in the stream to seek to, as millisecs from stream start */
 	public void seek(long ms) {
 		inst.getPlaybackService().seek(ms);
 	}
@@ -382,9 +374,8 @@ public class RobonoboController {
 		inst.getDbService().deleteWatchDir(dir);
 	}
 
-	/**
-	 * Attempts to login with the supplied details. This method returns immediately - to know the result, add a LoginListener before you call this
-	 */
+	/** Attempts to login with the supplied details. This method returns immediately - to know the result, add a
+	 * LoginListener before you call this */
 	public void login(String email, String password) {
 		inst.getUserService().login(email, password);
 	}
@@ -396,11 +387,11 @@ public class RobonoboController {
 	public UserConfig getMyUserConfig() {
 		return inst.getUserService().getMyUserConfig();
 	}
-	
+
 	public void fetchMyUserConfig(UserConfigCallback handler) {
 		inst.getUserService().refreshMyUserConfig(handler);
 	}
-	
+
 	public double getBankBalance() throws RobonoboException {
 		try {
 			return inst.getWangService().getBankBalance();
@@ -428,7 +419,7 @@ public class RobonoboController {
 	public void getOrFetchPlaylist(long playlistId, PlaylistCallback handler) {
 		inst.getPlaylistService().getOrFetchPlaylist(playlistId, handler);
 	}
-	
+
 	public Playlist getKnownPlaylist(long playlistId) {
 		return inst.getPlaylistService().getExistingPlaylist(playlistId);
 	}
@@ -436,15 +427,15 @@ public class RobonoboController {
 	public Playlist getMyPlaylistByTitle(String title) {
 		return inst.getPlaylistService().getMyPlaylistByTitle(title);
 	}
-	
+
 	public void postPlaylistServiceUpdate(final String service, final long playlistId, final String msg) {
 		getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				inst.getPlaylistService().postPlaylistUpdateToService(service, playlistId, msg);
 			}
-		});		
+		});
 	}
-	
+
 	public void checkUsersUpdate() {
 		inst.getUserService().checkAllUsersUpdate();
 	}
@@ -452,11 +443,11 @@ public class RobonoboController {
 	public void updatePlaylist(Playlist p) {
 		inst.getPlaylistService().updatePlaylist(p);
 	}
-	
+
 	public void createPlaylist(Playlist p, PlaylistCallback handler) {
 		inst.getPlaylistService().createPlaylist(p, handler);
 	}
-	
+
 	public void sharePlaylist(Playlist p, Set<Long> friendIds, Set<String> emails) throws RobonoboException {
 		try {
 			inst.getPlaylistService().sharePlaylist(p, friendIds, emails);
@@ -484,11 +475,11 @@ public class RobonoboController {
 	public void saveUserConfigItem(String itemName, String itemVal) {
 		inst.getUserService().saveUserConfigItem(itemName, itemVal);
 	}
-	
+
 	public void runTask(Task t) {
 		inst.getTaskService().runTask(t);
 	}
-	
+
 	public RobonoboConfig getConfig() {
 		return inst.getConfig();
 	}
@@ -508,19 +499,19 @@ public class RobonoboController {
 	public int numUnseenTracks(Library lib) {
 		return inst.getDbService().numUnseenTracks(lib);
 	}
-	
+
 	public void markAllAsSeen(Playlist p) {
 		inst.getDbService().markAllAsSeen(p);
 	}
-	
-	public void markAllAsSeen(Library lib)  {
+
+	public void markAllAsSeen(Library lib) {
 		inst.getDbService().markAllAsSeen(lib);
 	}
-	
+
 	public void requestTopUp() throws IOException {
 		inst.getHttpService().requestTopUp();
 	}
-	
+
 	public String getUpdateMessage() throws RobonoboException {
 		try {
 			return inst.getHttpService().getUpdateMessage();
@@ -528,35 +519,27 @@ public class RobonoboController {
 			throw new RobonoboException(e);
 		}
 	}
-	
+
 	public void setHandoverHandler(HandoverHandler handler) {
 		inst.getMina().setHandoverHandler(handler);
 	}
-	
-	/**
-	 * For debugging only
-	 */
+
+	/** For debugging only */
 	public Connection getMetadataDbConnection() throws SQLException {
 		return inst.getDbService().getConnection();
 	}
 
-	/**
-	 * For debugging only
-	 */
+	/** For debugging only */
 	public void returnMetadataDbConnection(Connection conn) {
 		inst.getDbService().returnConnection(conn);
 	}
 
-	/**
-	 * For debugging only
-	 */
+	/** For debugging only */
 	public Connection getPageDbConnection() throws SQLException {
 		return inst.getStorageService().getPageDbConnection();
 	}
 
-	/**
-	 * For debugging only
-	 */
+	/** For debugging only */
 	public void returnPageDbConnection(Connection conn) throws SQLException {
 		inst.getStorageService().returnPageDbConnection(conn);
 	}

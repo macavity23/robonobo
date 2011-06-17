@@ -16,7 +16,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
-import com.robonobo.common.util.ContiguousBlock;
+import com.robonobo.common.util.ContiguousBlockList;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.TrackListener;
 import com.robonobo.core.api.model.Stream;
@@ -97,7 +97,7 @@ public abstract class FreeformTrackListTableModel extends AbstractTrackListTable
 			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					// Keep track of which indices have been added so we can fire as few events as possible 
-					ContiguousBlock cb = new ContiguousBlock();
+					ContiguousBlockList cb = new ContiguousBlockList();
 					synchronized (FreeformTrackListTableModel.this) {
 						for (Track t : trax) {
 							int idx = doAdd(t);
@@ -157,7 +157,7 @@ public abstract class FreeformTrackListTableModel extends AbstractTrackListTable
 			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					// Keep track of which indices have been removed so we can fire as few events as possible 
-					ContiguousBlock cb = new ContiguousBlock();
+					ContiguousBlockList cb = new ContiguousBlockList();
 					synchronized (FreeformTrackListTableModel.this) {
 						for (Track t : trax) {
 							int idx = doRemove(t);

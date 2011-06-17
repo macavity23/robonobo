@@ -1,5 +1,7 @@
 package com.robonobo.gui.model;
 
+import static com.robonobo.common.util.CodeUtil.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +11,7 @@ import ca.odell.glazedlists.*;
 import ca.odell.glazedlists.swing.TextComponentMatcherEditor;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.util.CodeUtil;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.components.TrackList;
@@ -35,11 +38,14 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 		updateLock.lock();
 		try {
 			Integer idx = trackIndices.get(streamId);
-			if (idx != null)
+			if (idx != null) {
+				log.debug("MLTM has index, updating " + streamId);
 				eventList.set(idx, t);
-			else {
-				if ((t instanceof SharedTrack) || (t instanceof DownloadingTrack))
+			} else {
+				if ((t instanceof SharedTrack) || (t instanceof DownloadingTrack)) {
+					log.debug("MLTM updating " + streamId + " for new " + shortClassName(t.getClass()));
 					add(t);
+				}
 			}
 		} finally {
 			updateLock.unlock();
@@ -75,17 +81,22 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 
 	@Override
 	public void deleteTracks(List<String> streamIds) {
+		log.debug("MLTM deleting tracks");
 		super.deleteTracks(streamIds);
-		for (String sid : streamIds) {
-			Track t = control.getTrack(sid);
-			try {
+		// We delete downloads all at once to avoid starting downloads we're about to delete
+		List<String> dlSids = new ArrayList<String>();
+		try {
+			for (String sid : streamIds) {
+				Track t = control.getTrack(sid);
 				if (t instanceof DownloadingTrack)
-					control.deleteDownload(sid);
+					dlSids.add(sid);
 				else if (t instanceof SharedTrack)
 					control.deleteShare(sid);
-			} catch (RobonoboException ex) {
-				log.error("Error deleting share/download", ex);
 			}
+			control.deleteDownloads(dlSids);
+		} catch (RobonoboException ex) {
+			log.error("Error deleting share/download", ex);
 		}
+		log.debug("MLTM finished deleting tracks");
 	}
 }

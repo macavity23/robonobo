@@ -167,6 +167,31 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		startMoreDownloads();
 	}
 
+	/**
+	 * Delete in a batch to avoid starting downloads you're about to delete
+	 */
+	public void deleteDownloads(List<String> sids) throws RobonoboException {
+		for (String sid : sids) {
+			log.info("Deleting download for stream " + sid);
+			playback.stopIfCurrentlyPlaying(sid);
+			mina.stopReception(sid);
+			db.deleteDownload(sid);
+			// If we have started sharing this stream, don't nuke the pagebuf
+			if (db.getShare(sid) == null)
+				storage.nukePageBuf(sid);
+			// TODO This two-way sync is nasty, refactor to use locks or something clearer
+			synchronized (dPriority) {
+				dPriority.remove(sid);
+			}
+			synchronized (this) {
+				downloadStreamIds.remove(sid);
+			}
+			event.fireTrackUpdated(sid);
+		}
+		updatePriorities();
+		startMoreDownloads();
+	}
+	
 	public void pauseDownload(String streamId) {
 		log.debug("Pausing download for " + streamId);
 		DownloadingTrack d = db.getDownload(streamId);
