@@ -164,6 +164,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 			downloadStreamIds.remove(streamId);
 		}
 		event.fireTrackUpdated(streamId);
+		event.fireMyLibraryUpdated();
 		startMoreDownloads();
 	}
 
@@ -189,6 +190,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 			event.fireTrackUpdated(sid);
 		}
 		updatePriorities();
+		event.fireMyLibraryUpdated();
 		startMoreDownloads();
 	}
 	

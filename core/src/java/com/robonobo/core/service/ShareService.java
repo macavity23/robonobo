@@ -173,6 +173,7 @@ public class ShareService extends AbstractService {
 		}
 		rbnb.getLibraryService().delFromLibrary(streamId);
 		event.fireTrackUpdated(streamId);
+		event.fireMyLibraryUpdated();
 	}
 
 	private void startShare(String streamId) throws RobonoboException {
