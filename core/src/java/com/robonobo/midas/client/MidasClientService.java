@@ -43,6 +43,7 @@ public class MidasClientService extends AbstractMetadataService {
 	ExecutorService executor;
 	long nextFetchTaskId = 1;
 	Map<Long, FetchTask> fetchTasks = new HashMap<Long, MidasClientService.FetchTask>();
+	boolean stopped = false;
 
 	public MidasClientService() {
 		addHardDependency("core.http");
@@ -81,6 +82,7 @@ public class MidasClientService extends AbstractMetadataService {
 
 	@Override
 	public void shutdown() throws Exception {
+		stopped = true;
 		executor.shutdownNow();
 	}
 
@@ -347,6 +349,8 @@ public class MidasClientService extends AbstractMetadataService {
 					else
 						r.success(p.resultBldr.build());
 				} catch (Exception e) {
+					if(stopped)
+						return;
 					log.debug(this + " caught " + shortClassName(e.getClass()) + " running " + p.op + " for " + p.url + " with msg: " + e.getMessage());
 					r.error(p, e);
 				}

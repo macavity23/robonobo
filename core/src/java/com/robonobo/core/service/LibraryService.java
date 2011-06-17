@@ -184,13 +184,18 @@ public class LibraryService extends AbstractService {
 			Map<String, Date> unknownTracks = rbnb.getDbService().getUnknownStreamsInLibrary(friendId);
 			// Any of these new tracks we know about from other sources, punt them up to the ui
 			Set<String> newSidsForUi = new HashSet<String>();
-			for (Entry<String, Date> entry : newTrax.entrySet()) {
-				String sid = entry.getKey();
-				Date dateAdded = entry.getValue();
-				if (!unknownTracks.containsKey(sid)) {
-					cLib.getTracks().put(sid, dateAdded);
-					newSidsForUi.add(sid);
+			cLib.updateLock.lock();
+			try {
+				for (Entry<String, Date> entry : newTrax.entrySet()) {
+					String sid = entry.getKey();
+					Date dateAdded = entry.getValue();
+					if (!unknownTracks.containsKey(sid)) {
+						cLib.getTracks().put(sid, dateAdded);
+						newSidsForUi.add(sid);
+					}
 				}
+			} finally {
+				cLib.updateLock.unlock();
 			}
 			if (newSidsForUi.size() > 0)
 				events.fireLibraryChanged(cLib, newSidsForUi);
@@ -247,7 +252,12 @@ public class LibraryService extends AbstractService {
 
 		public void success(Stream s) {
 			String sid = s.getStreamId();
-			lib.getTracks().put(sid, streamsToFetch.get(sid));
+			lib.updateLock.lock();
+			try {
+				lib.getTracks().put(sid, streamsToFetch.get(sid));
+			} finally {
+				lib.updateLock.unlock();
+			}
 			add(sid);
 			task.streamUpdated(sid);
 		}

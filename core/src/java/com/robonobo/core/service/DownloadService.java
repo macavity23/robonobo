@@ -150,7 +150,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	
 	public void deleteDownload(String streamId) throws RobonoboException {
 		log.info("Deleting download for stream " + streamId);
-		playback.stopIfCurrentlyPlaying(streamId);
+		playback.stopForDeletedStream(streamId);
 		mina.stopReception(streamId);
 		db.deleteDownload(streamId);
 		// If we have started sharing this stream, don't nuke the pagebuf
@@ -174,7 +174,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	public void deleteDownloads(List<String> sids) throws RobonoboException {
 		for (String sid : sids) {
 			log.info("Deleting download for stream " + sid);
-			playback.stopIfCurrentlyPlaying(sid);
+			playback.stopForDeletedStream(sid);
 			mina.stopReception(sid);
 			db.deleteDownload(sid);
 			// If we have started sharing this stream, don't nuke the pagebuf

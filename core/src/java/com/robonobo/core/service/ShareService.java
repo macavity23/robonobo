@@ -161,7 +161,7 @@ public class ShareService extends AbstractService {
 
 	public void deleteShare(String streamId) {
 		log.info("Deleting share for stream " + streamId);
-		playback.stopIfCurrentlyPlaying(streamId);
+		playback.stopForDeletedStream(streamId);
 		SharedTrack share = db.getShare(streamId);
 		if (share == null)
 			return;

@@ -17,15 +17,10 @@ import com.robonobo.mina.external.buffer.*;
 
 public class PlaybackService extends AbstractService implements AudioPlayerListener, PageBufferListener {
 	private AudioPlayer.Status status = Status.Stopped;
-
-	/**
-	 * If we're within this time (secs) after the start of a track, calling prev() goes to the previous track
-	 * (otherwise, returns to the start of the current one)
-	 */
+	/** If we're within this time (secs) after the start of a track, calling prev() goes to the previous track
+	 * (otherwise, returns to the start of the current one) */
 	public static final int PREV_TRACK_GRACE_PERIOD = 5;
-	/**
-	 * How much data do we need before we start playing?
-	 */
+	/** How much data do we need before we start playing? */
 	public static final int BYTES_BUFFERED_DATA = 256000;
 	private AudioPlayer player;
 	private Date playStartTime;
@@ -61,9 +56,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		return status;
 	}
 
-	/**
-	 * Passing streamId = null is the same as passing the currently playing stream
-	 */
+	/** Passing streamId = null is the same as passing the currently playing stream */
 	public synchronized void play(String streamId) {
 		if (streamId == null)
 			streamId = currentStreamId;
@@ -138,9 +131,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		// Do nothing
 	}
 
-	/**
-	 * Called by the pagebuffer when it receives a page - check to see if we have enough data, and start playing if so
-	 */
+	/** Called by the pagebuffer when it receives a page - check to see if we have enough data, and start playing if so */
 	public void gotPage(final PageBuffer pb, long pageNum) {
 		if (currentStreamId.equals(pb.getStreamId())) {
 			Stream s = streams.getKnownStream(currentStreamId);
@@ -176,9 +167,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		tracks.notifyPlayingTrackChange(currentStreamId);
 	}
 
-	/**
-	 * This is called by the audioplayer when it starts playback
-	 */
+	/** This is called by the audioplayer when it starts playback */
 	@Override
 	public void playbackStarted() {
 		if (status == Status.Buffering || status == Status.Starting) {
@@ -190,8 +179,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 	}
 
 	private AudioPlayer getAudioPlayer(Stream s, PageBuffer pb) {
-		return getRobonobo().getFormatService().getFormatSupportProvider(s.getMimeType())
-				.getAudioPlayer(s, pb, getRobonobo().getExecutor());
+		return getRobonobo().getFormatService().getFormatSupportProvider(s.getMimeType()).getAudioPlayer(s, pb, getRobonobo().getExecutor());
 	}
 
 	// Do we have enough buffered data to start playing?
@@ -210,9 +198,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		throw new Errot();
 	}
 
-	/**
-	 * Returns the current stream that is playing/paused, or null if none
-	 */
+	/** Returns the current stream that is playing/paused, or null if none */
 	public String getCurrentStreamId() {
 		return currentStreamId;
 	}
@@ -240,10 +226,8 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		event.firePlaybackPaused();
 	}
 
-	/**
-	 * @param ms
-	 *            Position to seek to, measured from the start of the stream
-	 */
+	/** @param ms
+	 *            Position to seek to, measured from the start of the stream */
 	public synchronized void seek(long ms) {
 		if (player != null) {
 			event.fireSeekStarted();
@@ -272,17 +256,20 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		}
 	}
 
+	public synchronized void stopForDeletedStream(String streamId) {
+		if (streamId.equals(currentStreamId))
+			stop();
+	}
+
 	public void stop() {
-		String stoppedStreamId;
 		synchronized (this) {
 			if (player != null)
 				player.stop();
 			player = null;
 			status = Status.Stopped;
-			stoppedStreamId = currentStreamId;
 			currentStreamId = null;
 		}
-		tracks.notifyPlayingTrackChange(stoppedStreamId);
+		tracks.notifyPlayingTrackChange(null);
 		event.firePlaybackStopped();
 	}
 
@@ -292,8 +279,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 			status = Status.Stopped;
 		}
 		log.debug("Finished playback");
-		String justFinStreamId = currentStreamId;
-		tracks.notifyPlayingTrackChange(justFinStreamId);
+		tracks.notifyPlayingTrackChange(null);
 		event.firePlaybackCompleted();
 	}
 
@@ -316,15 +302,6 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		}
 		event.fireTrackUpdated(errStreamId);
 		event.firePlaybackError(myErr);
-	}
-
-	public synchronized void stopIfCurrentlyPlaying(String streamId) {
-		if (player != null && currentStreamId.equals(streamId))
-			stop();
-		else {
-			// Fire stopped anyway, they were probably just buffering
-			event.firePlaybackStopped();
-		}
 	}
 
 	public String getName() {

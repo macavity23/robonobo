@@ -24,10 +24,16 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	boolean activated = false;
 
 	public static FriendLibraryTableModel create(RobonoboFrame frame, Library lib, Document searchTextDoc) {
-		// Copy our list of tracks to avoid iterating through them as they are updated
-		Map<String, Date> tMap = new HashMap<String, Date>(lib.getTracks());
+		// Take a copy of the lib's tracks to avoid concurrency problems as we iterate through
+		Map<String, Date> mapCopy;
+		lib.updateLock.lock();
+		try {
+			mapCopy = new HashMap<String, Date>(lib.getTracks());
+		} finally {
+			lib.updateLock.unlock();
+		}
 		List<Track> trax = new ArrayList<Track>();
-		for (Entry<String, Date> e : tMap.entrySet()) {
+		for (Entry<String, Date> e : mapCopy.entrySet()) {
 			String sid = e.getKey();
 			Date added = e.getValue();
 			Track t = frame.control.getTrack(sid);

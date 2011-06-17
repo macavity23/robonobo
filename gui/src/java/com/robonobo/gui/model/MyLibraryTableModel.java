@@ -82,7 +82,6 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 	@Override
 	public void deleteTracks(List<String> streamIds) {
 		log.debug("MLTM deleting tracks");
-		super.deleteTracks(streamIds);
 		// We delete downloads all at once to avoid starting downloads we're about to delete
 		List<String> dlSids = new ArrayList<String>();
 		try {
@@ -97,6 +96,7 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 		} catch (RobonoboException ex) {
 			log.error("Error deleting share/download", ex);
 		}
+		super.deleteTracks(streamIds);
 		log.debug("MLTM finished deleting tracks");
 	}
 }
