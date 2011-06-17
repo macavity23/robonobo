@@ -207,6 +207,18 @@ public class UserService extends AbstractService {
 		});
 	}
 
+	public void addFriends(final Collection<String> emails) {
+		metadata.addFriends(emails, new GeneralCallback() {
+			public void success() {
+				log.info("Successfully sent friend request to "+emails.size()+" friends");
+			}
+			
+			public void error(Exception e) {
+				log.error("Error adding friends", e);
+			}
+		});
+	}
+	
 	public boolean isLoggedIn() {
 		return me != null;
 	}

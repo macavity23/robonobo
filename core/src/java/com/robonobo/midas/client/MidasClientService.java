@@ -99,88 +99,93 @@ public class MidasClientService extends AbstractMetadataService {
 	}
 
 	@Override
-	public void fetchStreams(Collection<String> sids, StreamCallback handler) {
-		addRequest(new GetStreamRequest(cfg, sids, handler));
+	public void fetchStreams(Collection<String> sids, StreamCallback callback) {
+		addRequest(new GetStreamRequest(cfg, sids, callback));
 	}
 
 	@Override
-	public void putStream(Stream s, StreamCallback handler) {
-		addRequest(new PutStreamRequest(cfg, s, handler));
+	public void putStream(Stream s, StreamCallback callback) {
+		addRequest(new PutStreamRequest(cfg, s, callback));
 	}
 
 	@Override
-	public void fetchUser(long userId, UserCallback handler) {
-		addRequest(new GetUsersRequest(cfg, userId, handler));
+	public void fetchUser(long userId, UserCallback callback) {
+		addRequest(new GetUsersRequest(cfg, userId, callback));
 	}
 
 	@Override
-	public void fetchUsers(Collection<Long> userIds, UserCallback handler) {
-		addRequest(new GetUsersRequest(cfg, userIds, handler));
+	public void fetchUsers(Collection<Long> userIds, UserCallback callback) {
+		addRequest(new GetUsersRequest(cfg, userIds, callback));
 	}
 
 	@Override
-	public void fetchUserForLogin(String email, String password, UserCallback handler) {
-		addRequest(new LoginRequest(cfg, email, password, handler));
+	public void fetchUserForLogin(String email, String password, UserCallback callback) {
+		addRequest(new LoginRequest(cfg, email, password, callback));
 	}
 
 	@Override
-	public void fetchUserConfig(long userId, UserConfigCallback handler) {
-		addRequest(new GetUserConfigRequest(cfg, userId, handler));
+	public void fetchUserConfig(long userId, UserConfigCallback callback) {
+		addRequest(new GetUserConfigRequest(cfg, userId, callback));
 	}
 
 	@Override
-	public void updateUserConfig(UserConfig uc, UserConfigCallback handler) {
-		addRequest(new PutUserConfigRequest(cfg, uc, handler));
+	public void updateUserConfig(UserConfig uc, UserConfigCallback callback) {
+		addRequest(new PutUserConfigRequest(cfg, uc, callback));
 	}
 
 	@Override
-	public void fetchPlaylist(long playlistId, PlaylistCallback handler) {
-		addRequest(new GetPlaylistRequest(cfg, playlistId, handler));
+	public void fetchPlaylist(long playlistId, PlaylistCallback callback) {
+		addRequest(new GetPlaylistRequest(cfg, playlistId, callback));
 	}
 
 	@Override
-	public void fetchPlaylists(Collection<Long> playlistIds, PlaylistCallback handler) {
-		addRequest(new GetPlaylistRequest(cfg, playlistIds, handler));
+	public void fetchPlaylists(Collection<Long> playlistIds, PlaylistCallback callback) {
+		addRequest(new GetPlaylistRequest(cfg, playlistIds, callback));
 	}
 
 	@Override
-	public void updatePlaylist(Playlist p, PlaylistCallback handler) {
-		addRequest(new PutPlaylistRequest(cfg, p, handler));
+	public void updatePlaylist(Playlist p, PlaylistCallback callback) {
+		addRequest(new PutPlaylistRequest(cfg, p, callback));
 	}
 
 	@Override
-	public void postPlaylistUpdateToService(String service, long playlistId, String msg, PlaylistCallback handler) {
-		addRequest(new PlaylistServiceUpdateRequest(cfg, service, playlistId, msg, handler));
+	public void postPlaylistUpdateToService(String service, long playlistId, String msg, PlaylistCallback callback) {
+		addRequest(new PlaylistServiceUpdateRequest(cfg, service, playlistId, msg, callback));
 	}
 
 	@Override
-	public void deletePlaylist(Playlist p, PlaylistCallback handler) {
-		addRequest(new DeletePlaylistRequest(cfg, p.getPlaylistId(), handler));
+	public void deletePlaylist(Playlist p, PlaylistCallback callback) {
+		addRequest(new DeletePlaylistRequest(cfg, p.getPlaylistId(), callback));
 	}
 
 	@Override
-	public void sharePlaylist(Playlist p, Collection<Long> shareFriendIds, Collection<String> friendEmails, PlaylistCallback handler) {
-		addRequest(new SharePlaylistRequest(cfg, p.getPlaylistId(), shareFriendIds, friendEmails, handler));
+	public void sharePlaylist(Playlist p, Collection<Long> shareFriendIds, Collection<String> friendEmails, PlaylistCallback callback) {
+		addRequest(new SharePlaylistRequest(cfg, p.getPlaylistId(), shareFriendIds, friendEmails, callback));
 	}
 
 	@Override
-	public void fetchLibrary(long userId, Date lastUpdated, LibraryCallback handler) {
-		addRequest(new GetLibraryRequest(cfg, userId, lastUpdated, handler));
+	public void addFriends(Collection<String> friendEmails, GeneralCallback callback) {
+		addRequest(new AddFriendsRequest(cfg, friendEmails, callback));
+	}
+	
+	@Override
+	public void fetchLibrary(long userId, Date lastUpdated, LibraryCallback callback) {
+		addRequest(new GetLibraryRequest(cfg, userId, lastUpdated, callback));
 	}
 
 	@Override
-	public void addToLibrary(long userId, Library addedLib, LibraryCallback handler) {
-		addRequest(new AddToLibraryRequest(cfg, userId, addedLib, handler));
+	public void addToLibrary(long userId, Library addedLib, LibraryCallback callback) {
+		addRequest(new AddToLibraryRequest(cfg, userId, addedLib, callback));
 	}
 
 	@Override
-	public void deleteFromLibrary(long userId, Library delLib, LibraryCallback handler) {
-		addRequest(new DeleteFromLibraryRequest(cfg, userId, delLib, handler));
+	public void deleteFromLibrary(long userId, Library delLib, LibraryCallback callback) {
+		addRequest(new DeleteFromLibraryRequest(cfg, userId, delLib, callback));
 	}
 
 	@Override
-	public void search(String query, int firstResult, SearchCallback handler) {
-		addRequest(new SearchRequest(cfg, query, firstResult, handler));
+	public void search(String query, int firstResult, SearchCallback callback) {
+		addRequest(new SearchRequest(cfg, query, firstResult, callback));
 	}
 
 	private synchronized void addRequest(Request r) {

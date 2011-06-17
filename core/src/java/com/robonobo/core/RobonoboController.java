@@ -448,6 +448,10 @@ public class RobonoboController {
 		inst.getPlaylistService().createPlaylist(p, handler);
 	}
 
+	public void addFriends(Collection<String> emails) {
+		inst.getUserService().addFriends(emails);
+	}
+	
 	public void sharePlaylist(Playlist p, Set<Long> friendIds, Set<String> emails) throws RobonoboException {
 		try {
 			inst.getPlaylistService().sharePlaylist(p, friendIds, emails);

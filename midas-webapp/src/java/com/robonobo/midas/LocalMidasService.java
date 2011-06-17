@@ -1,10 +1,11 @@
 package com.robonobo.midas;
 
+import static com.robonobo.common.util.TimeUtil.*;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 
-import org.apache.commons.collections.MapIterator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,6 @@ import com.robonobo.midas.dao.*;
 import com.robonobo.midas.model.*;
 import com.robonobo.remote.service.MidasService;
 import com.twmacinta.util.MD5;
-
-import static com.robonobo.common.util.TimeUtil.*;
 
 @Service("midas")
 public class LocalMidasService implements MidasService {
@@ -44,7 +43,6 @@ public class LocalMidasService implements MidasService {
 	@Autowired
 	private UserDao userDao;
 	Log log = LogFactory.getLog(getClass());
-
 	private long lastPlaylistId = -1;
 
 	@Transactional(readOnly = true)
@@ -62,7 +60,7 @@ public class LocalMidasService implements MidasService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public MidasUser createUser(MidasUser user) {
-		log.info("Creating user "+user.getEmail());
+		log.info("Creating user " + user.getEmail());
 		user.setVerified(true);
 		user.setUpdated(now());
 		return userDao.create(user);
@@ -89,7 +87,6 @@ public class LocalMidasService implements MidasService {
 			}
 		} else
 			result = null;
-
 		return result;
 	}
 
@@ -134,7 +131,7 @@ public class LocalMidasService implements MidasService {
 	public List<MidasPlaylist> getRecentPlaylists(long maxAgeMs) {
 		return playlistDao.getRecentPlaylists(maxAgeMs);
 	}
-	
+
 	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public MidasPlaylist newPlaylist(MidasPlaylist playlist) {
@@ -163,7 +160,7 @@ public class LocalMidasService implements MidasService {
 			}
 		}
 		// Only announce public playlists to twitter
-		if(playlist.getVisibility().equals(Playlist.VIS_ALL)) {
+		if (playlist.getVisibility().equals(Playlist.VIS_ALL)) {
 			long userId = (Long) playlist.getOwnerIds().toArray()[0];
 			MidasUserConfig muc = userConfigDao.getUserConfig(userId);
 			twitter.postPlaylistCreateToTwitter(muc, playlist);
@@ -211,7 +208,8 @@ public class LocalMidasService implements MidasService {
 			result.setInviteCode(generateEmailCode(email));
 		}
 		result.getFriendIds().add(friend.getUserId());
-		result.getPlaylistIds().add(pl.getPlaylistId());
+		if(pl != null)
+			result.getPlaylistIds().add(pl.getPlaylistId());
 		result.setUpdated(now());
 		inviteDao.save(result);
 		return result;
@@ -227,7 +225,8 @@ public class LocalMidasService implements MidasService {
 			result.setRequesteeId(requestee.getUserId());
 			result.setRequestCode(generateEmailCode(requestee.getEmail()));
 		}
-		result.getPlaylistIds().add(pl.getPlaylistId());
+		if (pl != null)
+			result.getPlaylistIds().add(pl.getPlaylistId());
 		result.setUpdated(now());
 		friendRequestDao.save(result);
 		return result;

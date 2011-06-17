@@ -155,6 +155,8 @@ E track plays
 
 Friends/Facebook/Twitter
 =====================
+TODO add friends
+
 D share playlist with user B
 E user B receives invite email
 D as user B, accept invite, register via facebook
