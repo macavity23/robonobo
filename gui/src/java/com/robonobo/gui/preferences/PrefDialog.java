@@ -107,12 +107,12 @@ public class PrefDialog extends JDialog {
 		JPanel ap = new JPanel();
 		ap.setLayout(new BoxLayout(ap, BoxLayout.Y_AXIS));
 		ap.setName("playback.background.panel");
-		StringPrefPanel suPanel = new StringPrefPanel(frame, "robo.sonarServerUrl", "Node Locator URL");
+		StringPrefPanel suPanel = new StringPrefPanel(frame, "robo.sonarUrl", "Node Locator URL");
 		prefPanels.add(suPanel);
 		ap.add(suPanel);
 		ap.add(vertSpacer());
 
-		StringPrefPanel muPanel = new StringPrefPanel(frame, "robo.metadataServerUrl", "Metadata Server URL");
+		StringPrefPanel muPanel = new StringPrefPanel(frame, "robo.midasUrl", "Metadata Server URL");
 		prefPanels.add(muPanel);
 		ap.add(muPanel);
 		ap.add(vertSpacer());
