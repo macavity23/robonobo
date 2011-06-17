@@ -2,7 +2,6 @@ package com.robonobo.gui.model;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,10 +61,7 @@ class TrackTableFormat implements TableFormat<Track> {
 			}
 			return FileUtil.humanReadableSize(rate) + "/s";
 		case 11:
-			Date addDate = t.getDateAdded();
-			if (addDate == null)
-				return null;
-			return df.format(t.getDateAdded());
+			return t.getDateAdded();
 		case 12:
 			return s.getStreamId();
 		}

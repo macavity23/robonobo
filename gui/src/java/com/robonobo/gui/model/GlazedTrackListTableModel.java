@@ -84,9 +84,10 @@ public abstract class GlazedTrackListTableModel extends EventTableModel<Track> i
 		case 7:
 		case 9:
 		case 10:
-		case 11:
 		case 12:
 			return String.class;
+		case 11:
+			return Date.class;
 		case 4:
 			return Integer.class;
 		default:
@@ -131,10 +132,7 @@ public abstract class GlazedTrackListTableModel extends EventTableModel<Track> i
 			}
 			return FileUtil.humanReadableSize(rate) + "/s";
 		case 11:
-			Date addDate = t.getDateAdded();
-			if (addDate == null)
-				return null;
-			return df.format(t.getDateAdded());
+			return t.getDateAdded();
 		case 12:
 			return s.getStreamId();
 		}

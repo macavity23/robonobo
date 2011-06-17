@@ -1,15 +1,15 @@
 package com.robonobo.gui.components;
 
-import static com.robonobo.common.util.CodeUtil.*;
 import static com.robonobo.gui.GuiUtil.*;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -19,8 +19,8 @@ import javax.swing.table.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jdesktop.swingx.JXTable;
-import org.jdesktop.swingx.decorator.*;
-import org.jdesktop.swingx.decorator.SortOrder;
+import org.jdesktop.swingx.decorator.HighlighterFactory;
+import org.jdesktop.swingx.decorator.PatternFilter;
 import org.jdesktop.swingx.table.TableColumnExt;
 import org.jdesktop.swingx.table.TableColumnModelExt;
 
@@ -36,11 +36,13 @@ import com.robonobo.gui.*;
 import com.robonobo.gui.components.base.RBoldMenuItem;
 import com.robonobo.gui.components.base.RMenuItem;
 import com.robonobo.gui.frames.RobonoboFrame;
-import com.robonobo.gui.model.*;
+import com.robonobo.gui.model.GlazedTrackListTableModel;
+import com.robonobo.gui.model.TrackListTableModel;
 import com.robonobo.gui.panels.MyPlaylistContentPanel;
 
 @SuppressWarnings("serial")
 public class TrackList extends JPanel {
+	static DateFormat dateAddedFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 	/** If the track list has more than this many tracks, we show a helpful message while we create/change it as the ui
 	 * might hang for a second or two */
 	public static final int TRACKLIST_SIZE_THRESHOLD = 64;
@@ -91,9 +93,9 @@ public class TrackList extends JPanel {
 		table.getColumn(8).setCellRenderer(new TransferStatusCellRenderer());
 		table.getColumn(9).setCellRenderer(tr);
 		table.getColumn(10).setCellRenderer(tr);
-		table.getColumn(11).setCellRenderer(tr);
+		table.getColumn(11).setCellRenderer(new DateRenderer());
 		table.getColumn(12).setCellRenderer(tr);
-		// These incantations make it compatible with glazedlist which does its own sorting inside the model
+		// These incantations make the table compatible with glazedlist which does its own sorting inside the model
 		table.setSortable(false);
 		table.getTableHeader().setDefaultRenderer(new JTableHeader().getDefaultRenderer());
 		table.getTableHeader().setFont(RoboFont.getFont(13, false));
@@ -222,7 +224,7 @@ public class TrackList extends JPanel {
 
 	public void scrollTableToStream(String streamId) {
 		int idx = model.getTrackIndex(streamId);
-		if(idx < 0)
+		if (idx < 0)
 			return;
 		table.scrollRowToVisible(idx);
 	}
@@ -369,7 +371,24 @@ public class TrackList extends JPanel {
 
 		@Override
 		protected void paintComponent(Graphics g) {
-			GuiUtil.makeTextLookLessRubbish(g);
+			makeTextLookLessRubbish(g);
+			super.paintComponent(g);
+		}
+	}
+
+	class DateRenderer extends DefaultTableCellRenderer {
+		Font font = RoboFont.getFont(13, false);
+
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+			String valStr = (value == null) ? "" : dateAddedFormat.format(value);
+			Component result = super.getTableCellRendererComponent(table, valStr, isSelected, hasFocus, row, column);
+			result.setFont(font);
+			return result;
+		}
+
+		@Override
+		protected void paintComponent(Graphics g) {
+			makeTextLookLessRubbish(g);
 			super.paintComponent(g);
 		}
 	}
