@@ -1,5 +1,7 @@
 package com.robonobo.gui.components;
 
+import static com.robonobo.gui.GuiUtil.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -11,6 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.frames.RobonoboFrame;
 
@@ -252,7 +255,7 @@ public class PlaybackProgressBar extends JProgressBar {
 		// Colour in progress bar value to illustrate seek limit - take into account thumb width
 		if (this.dataAvailable != available) {
 			this.dataAvailable = available;
-			SwingUtilities.invokeLater(new CatchingRunnable() {
+			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					int max = getMaximum() - SLIDER_OPAQUE_WIDTH;
 					int val = SLIDER_OPAQUE_WIDTH + (int) (available * max);

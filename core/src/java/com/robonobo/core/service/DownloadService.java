@@ -209,7 +209,6 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		}
 		PageBuffer pb = storage.getPageBuf(streamId);
 		d.setPageBuf(pb);
-		pb.addListener(this);
 		startDownload(d, pb);
 		d.setDownloadStatus(DownloadStatus.Downloading);
 		db.putDownload(d);
@@ -218,6 +217,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 
 	private void startDownload(DownloadingTrack d, PageBuffer pb) throws RobonoboException {
 		d.setPageBuf(pb);
+		pb.addListener(this);
 		mina.startReception(d.getStream().getStreamId(), StreamVelocity.LowestCost);
 		if (d.getDownloadStatus() != DownloadStatus.Downloading) {
 			d.setDownloadStatus(DownloadStatus.Downloading);
