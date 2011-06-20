@@ -32,7 +32,7 @@ public class StreamAdvertiser extends RateLimitedBatcher<String> {
 	/**
 	 * @syncpriority 140
 	 */
-	public void advertiseStreams(Collection<String> sids) {
+ 	public void advertiseStreams(Collection<String> sids) {
 		if (mina.getCCM().haveSupernode() || mina.getCCM().haveLocalConn())
 			addAll(sids);
 	}

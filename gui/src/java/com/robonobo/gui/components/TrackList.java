@@ -24,6 +24,8 @@ import org.jdesktop.swingx.decorator.PatternFilter;
 import org.jdesktop.swingx.table.TableColumnExt;
 import org.jdesktop.swingx.table.TableColumnModelExt;
 
+import ca.odell.glazedlists.matchers.MatcherEditor;
+import ca.odell.glazedlists.matchers.MatcherEditor.Event;
 import ca.odell.glazedlists.swing.TableComparatorChooser;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
@@ -102,10 +104,20 @@ public class TrackList extends JPanel {
 		table.setAutoCreateRowSorter(false);
 		table.setRowSorter(null);
 		// Set up glazedlist auto table sorter
+		scrollPane = new JScrollPane(table);
+		if(model.wantScrollEventsEver())
+			viewportListener = new ViewportListener();
 		if (model instanceof GlazedTrackListTableModel) {
 			GlazedTrackListTableModel gtltm = (GlazedTrackListTableModel) model;
-			if (gtltm.canSort())
-				TableComparatorChooser.install(table, gtltm.getSortedList(), TableComparatorChooser.SINGLE_COLUMN);
+			if (gtltm.canSort()) {
+				TableComparatorChooser<Track> tcc = TableComparatorChooser.install(table, gtltm.getSortedList(), TableComparatorChooser.SINGLE_COLUMN);
+				if(viewportListener != null)
+					tcc.addSortActionListener(viewportListener);
+			}
+			MatcherEditor<Track> matchEdit = gtltm.getMatcherEditor();
+			if(matchEdit != null && viewportListener != null) {
+				matchEdit.addMatcherEditorListener(viewportListener);
+			}
 		}
 		TableColumnModelExt cm = (TableColumnModelExt) table.getColumnModel();
 		cm.getColumn(0).setPreferredWidth(22); // Status icon
@@ -160,11 +172,8 @@ public class TrackList extends JPanel {
 				popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
 		});
-		scrollPane = new JScrollPane(table);
-		if (model.wantScrollEventsEver()) {
-			viewportListener = new ViewportListener();
+		if (viewportListener != null)
 			scrollPane.getViewport().addChangeListener(viewportListener);
-		}
 		add(scrollPane, "0,0");
 	}
 
@@ -250,7 +259,7 @@ public class TrackList extends JPanel {
 		if (viewportListener != null) {
 			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					viewportListener.checkViewportAndFire();
+					viewportListener.viewportChanged();
 				}
 			});
 		}
@@ -507,8 +516,9 @@ public class TrackList extends JPanel {
 		}
 	}
 
-	class ViewportListener implements ChangeListener {
+	class ViewportListener implements ChangeListener, ActionListener, MatcherEditor.Listener<Track> {
 		int firstRow = -1, lastRow = -1;
+		boolean modelChanged = false;
 		JViewport v;
 
 		public ViewportListener() {
@@ -516,27 +526,45 @@ public class TrackList extends JPanel {
 		}
 
 		public void stateChanged(ChangeEvent e) {
-			checkViewportAndFire();
+			// Called when the table is scrolled
+			viewportChanged();
 		}
 
-		public void checkViewportAndFire() {
+		public void actionPerformed(ActionEvent e) {
+			// Called when the table is resorted
+			modelChanged = true;
+			viewportChanged();
+		}
+		
+		public void changedMatcher(Event<Track> matcherEvent) {
+			// Called when the table is filtered
+			modelChanged = true;
+			viewportChanged();
+		}
+		
+		public void viewportChanged() {
 			if (!model.wantScrollEventsNow())
 				return;
 			Point viewPos = v.getViewPosition();
 			Dimension viewSz = v.getExtentSize();
+			int rowHeight = table.getRowHeight();
+			int rowsInViewport = viewSz.height / rowHeight + 1;
+			if(rowsInViewport > model.getRowCount())
+				rowsInViewport = model.getRowCount();
 			int newFirstRow = table.rowAtPoint(viewPos);
-			int newLastRow = table.rowAtPoint(new Point(viewPos.x, viewPos.y + viewSz.height));
-			if (newFirstRow == firstRow && newLastRow == lastRow)
+			if (newFirstRow < 0)
 				return;
-			if (newFirstRow < 0 || newLastRow < 0)
+			int newLastRow = newFirstRow + rowsInViewport - 1;
+			if ((!modelChanged) && newFirstRow == firstRow && newLastRow == lastRow)
 				return;
+			modelChanged = false;
 			firstRow = newFirstRow;
 			lastRow = newLastRow;
 			int[] modelIdxs = new int[lastRow - firstRow + 1];
 			for (int i = 0; i < modelIdxs.length; i++) {
 				modelIdxs[i] = table.convertRowIndexToModel(firstRow + i);
 			}
-			getModel().onScroll(modelIdxs);
+			model.onScroll(modelIdxs);
 		}
 	}
 }

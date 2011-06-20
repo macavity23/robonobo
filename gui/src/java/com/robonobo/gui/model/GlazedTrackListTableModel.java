@@ -10,6 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import ca.odell.glazedlists.*;
+import ca.odell.glazedlists.matchers.MatcherEditor;
 import ca.odell.glazedlists.swing.EventTableModel;
 import ca.odell.glazedlists.util.concurrent.Lock;
 
@@ -58,6 +59,11 @@ public abstract class GlazedTrackListTableModel extends EventTableModel<Track> i
 		return true;
 	}
 
+	public MatcherEditor<Track> getMatcherEditor() {
+		// Return your filtering editor here to get notified of scroll events when the tracklist is filtered
+		return null;
+	}
+	
 	public SortedList<Track> getSortedList() {
 		return sortedList;
 	}

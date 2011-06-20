@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 import javax.swing.text.Document;
 
 import ca.odell.glazedlists.*;
+import ca.odell.glazedlists.matchers.MatcherEditor;
 import ca.odell.glazedlists.swing.TextComponentMatcherEditor;
 
 import com.robonobo.common.concurrent.Batcher;
@@ -22,6 +23,7 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	static final long SCROLL_DELAY = 1000;
 	private TrackScrollBatcher scrollBatcher = new TrackScrollBatcher();
 	boolean activated = false;
+	MatcherEditor<Track> matchEdit;
 
 	public static FriendLibraryTableModel create(RobonoboFrame frame, Library lib, Document searchTextDoc) {
 		// Take a copy of the lib's tracks to avoid concurrency problems as we iterate through
@@ -45,15 +47,21 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 		TextComponentMatcherEditor<Track> matchEdit = new TextComponentMatcherEditor<Track>(searchTextDoc, new TrackFilterator());
 		matchEdit.setLive(true);
 		FilterList<Track> fl = new FilterList<Track>(sl, matchEdit);
-		return new FriendLibraryTableModel(frame, lib, el, sl, fl);
+		return new FriendLibraryTableModel(frame, lib, el, sl, fl, matchEdit);
 	}
 
-	private FriendLibraryTableModel(RobonoboFrame frame, Library lib, EventList<Track> el, SortedList<Track> sl, FilterList<Track> fl) {
+	private FriendLibraryTableModel(RobonoboFrame frame, Library lib, EventList<Track> el, SortedList<Track> sl, FilterList<Track> fl, MatcherEditor<Track> matchEdit) {
 		super(frame, el, sl, fl);
 		this.lib = lib;
+		this.matchEdit = matchEdit;
 		frame.control.addLibraryListener(this);
 	}
 
+	@Override
+	public MatcherEditor<Track> getMatcherEditor() {
+		return matchEdit;
+	}
+	
 	@Override
 	public void trackUpdated(String streamId, Track t) {
 		if (containsTrack(streamId)) {
@@ -116,8 +124,9 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 			for (int i = 0; i < viewIndexen.length; i++) {
 				int sIdx = viewIndexen[i];
 				if (sIdx >= 0) {
-					Track t = filterList.get(i);
-					scrollBatcher.add(t.stream.streamId);
+					Track t = filterList.get(sIdx);
+					String sid = t.stream.streamId;
+					scrollBatcher.add(sid);
 				}
 			}
 		} finally {
@@ -134,8 +143,9 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 		protected void runBatch(Collection<String> sids) throws Exception {
 			for (String sid : sids) {
 				Track t = control.getTrack(sid);
-				if (t instanceof CloudTrack)
+				if (t instanceof CloudTrack) {
 					control.findSources(sid, FriendLibraryTableModel.this);
+				}
 			}
 		}
 	}
