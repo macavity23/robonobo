@@ -39,13 +39,13 @@ public class WelcomeSheet extends Sheet {
 		add(imgLbl, "1,1,l,t");
 		RLabel titleLbl = new RLabel24B("Welcome");
 		add(titleLbl, "1,2");
-		JPanel dloadBlurb = new LineBreakTextPanel("robonobo will store your downloaded music in this folder:", RoboFont.getFont(12, false), new Dimension(540, 15));
+		JPanel dloadBlurb = new LineBreakTextPanel("robonobo will store your downloaded music in this folder:", RoboFont.getFont(13, false), new Dimension(540, 15));
 		add(dloadBlurb, "1,4,l,t");
 		FileChoosePanel filePanel = new FileChoosePanel();
 		add(filePanel, "1,6");
 		String shareText = "Before you can share your music and playlists with your friends, you must add tracks to your robonobo music library. "
 				+ (haveITunes ? "You can add tracks from iTunes, or else you can add them from MP3 files on your computer." : "You can add tracks from MP3 files on your computer.");
-		JPanel shareBlurb = new LineBreakTextPanel(shareText, RoboFont.getFont(12, false), new Dimension(540, 50));
+		JPanel shareBlurb = new LineBreakTextPanel(shareText, RoboFont.getFont(13, false), new Dimension(540, 50));
 		add(shareBlurb, "1,8,l,t");
 		if (haveITunes) {
 			RLabel iTunesTitle = new RLabel18B("Share Tracks/Playlists from iTunes");

@@ -40,7 +40,8 @@ public class LineBreakTextPanel extends JPanel {
 			y += textLayout.getAscent();
 			x = 0;
 			textLayout.draw(g, x, y);
-			y += textLayout.getDescent() + textLayout.getLeading();
+			// Add 1 to make spacing nicer
+			y += textLayout.getDescent() + textLayout.getLeading() + 1;
 		}
 	}
 }
