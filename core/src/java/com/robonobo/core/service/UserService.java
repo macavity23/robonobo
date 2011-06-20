@@ -170,11 +170,13 @@ public class UserService extends AbstractService {
 			// Tell our metadata service to load things serially so we get playlists loading one at a time rather than a
 			// big pause then all loading at once
 			metadata.setFetchOrder(RequestFetchOrder.Serial);
-			playlists.refreshMyPlaylists(me);
-			// We want to ensure we fetch all my playlists before any friends - when all my playlists have been fetched,
-			// playlistservice will eventually call fetchFriends() via a convoluted series of callbacks
 			if (rbnbCfg.isAgoric())
 				rbnb.getWangService().loggedIn();
+			// If we have any playlists, fetch them now (fetchFriends() will be called when they're done)
+			if(me.getPlaylistIds().size() > 0)
+				playlists.refreshMyPlaylists(me);
+			else
+				fetchFriends();
 		}
 
 		@Override

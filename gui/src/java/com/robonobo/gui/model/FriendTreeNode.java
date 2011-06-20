@@ -27,7 +27,6 @@ public class FriendTreeNode extends SelectableTreeNode {
 
 	@Override
 	public boolean wantSelect() {
-		System.out.println("flarp!");
 		return false;
 	}
 	
