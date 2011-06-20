@@ -74,15 +74,17 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	}
 
 	public void activate() {
-		activated = true;
-		readLock.lock();
-		try {
-			for (Track t : eventList) {
-				if (t instanceof CloudTrack)
-					control.findSources(t.stream.streamId, this);
+		if (!activated) {
+			activated = true;
+			readLock.lock();
+			try {
+				for (Track t : eventList) {
+					if (t instanceof CloudTrack)
+						control.findSources(t.stream.streamId, this);
+				}
+			} finally {
+				readLock.unlock();
 			}
-		} finally {
-			readLock.unlock();
 		}
 	}
 
@@ -118,10 +120,8 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 		trackUpdated(sid, t);
 	}
 
-	/**
-	 * If any of these streams are already in this playlist, they will be removed before being added in their new
-	 * position
-	 */
+	/** If any of these streams are already in this playlist, they will be removed before being added in their new
+	 * position */
 	public void addStreams(List<String> streamIds, int position) {
 		if (!myPlaylist)
 			throw new Errot();

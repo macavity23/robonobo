@@ -38,14 +38,11 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 		updateLock.lock();
 		try {
 			Integer idx = trackIndices.get(streamId);
-			if (idx != null) {
-				log.debug("MLTM has index, updating " + streamId);
+			if (idx != null)
 				eventList.set(idx, t);
-			} else {
-				if ((t instanceof SharedTrack) || (t instanceof DownloadingTrack)) {
-					log.debug("MLTM updating " + streamId + " for new " + shortClassName(t.getClass()));
+			else {
+				if ((t instanceof SharedTrack) || (t instanceof DownloadingTrack))
 					add(t);
-				}
 			}
 		} finally {
 			updateLock.unlock();
@@ -81,7 +78,6 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 
 	@Override
 	public void deleteTracks(List<String> streamIds) {
-		log.debug("MLTM deleting tracks");
 		// We delete downloads all at once to avoid starting downloads we're about to delete
 		List<String> dlSids = new ArrayList<String>();
 		try {
@@ -97,6 +93,5 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 			log.error("Error deleting share/download", ex);
 		}
 		super.deleteTracks(streamIds);
-		log.debug("MLTM finished deleting tracks");
 	}
 }
