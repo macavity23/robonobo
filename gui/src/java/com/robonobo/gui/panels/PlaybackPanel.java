@@ -279,11 +279,21 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 			if (!checkedNextTrack && positionMs > (playingStream.getDuration() - control.getConfig().getDownloadCacheTime() * 1000)) {
 				// Pre-download next track if necessary
 				preFetchStreamId = nextSid;
+				if(preFetchStreamId == null)
+					log.debug("Not prefetching - no next stream");
+				else
+					log.debug("Prefetching next stream "+preFetchStreamId);
 				checkedNextTrack = true;
 			}
 		}
-		if (preFetchStreamId != null)
-			control.preFetch(preFetchStreamId);
+		if (preFetchStreamId != null) {
+			final String fetchSid = preFetchStreamId;
+			control.getExecutor().execute(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					control.preFetch(fetchSid);
+				}
+			});
+		}
 	}
 
 	@Override

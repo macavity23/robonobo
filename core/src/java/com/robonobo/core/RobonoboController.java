@@ -153,8 +153,11 @@ public class RobonoboController {
 		}
 	}
 
-	/** Notifies that this streamId is going to be played shortly and should be downloaded/prioritized as necessary */
-	public void preFetch(String streamId) {
+	/** Notifies that this streamId is going to be played shortly and should be downloaded/prioritized as necessary 
+	 * @throws RobonoboException */
+	public void preFetch(String streamId) throws RobonoboException {
+		if(inst.getShareService().getShare(streamId) != null)
+			return;
 		inst.getDownloadService().preFetch(streamId);
 	}
 
