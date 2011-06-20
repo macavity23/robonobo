@@ -171,7 +171,7 @@ D make new playlist, add same tracks
 D share playlist with user B
 E user B receives email
 D login as user B
-E playlist is there
+E playlist is there and boldified in list
 
 D register as user C through rbnb site
 D log into app as user C, restart app

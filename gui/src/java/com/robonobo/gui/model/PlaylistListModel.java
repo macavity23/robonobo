@@ -1,7 +1,6 @@
 package com.robonobo.gui.model;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.model.Playlist;
@@ -10,6 +9,7 @@ import com.robonobo.core.api.model.Playlist;
 public class PlaylistListModel extends SortedListModel<Playlist> {
 	RobonoboController control;
 	Set<Long> plIds = new HashSet<Long>();
+	Map<Long, Integer> unseenMap = new HashMap<Long, Integer>();
 
 	public PlaylistListModel(RobonoboController control) {
 		this.control = control;
@@ -29,15 +29,35 @@ public class PlaylistListModel extends SortedListModel<Playlist> {
 		return list.indexOf(p);
 	}
 	
+	public int numUnseen(int index) {
+		Playlist p = get(index);
+		Long plId = p.getPlaylistId();
+		Integer result = unseenMap.get(plId);
+		if(result == null)
+			return 0;
+		return result;
+	}
+	
+	public void markAllAsSeen(int index) {
+		Playlist p = get(index);
+		Long plId = p.getPlaylistId();
+		unseenMap.put(plId, 0);
+	}
+	
 	@Override
 	public void insertSorted(Playlist p) {
-		plIds.add(p.getPlaylistId());
+		long plId = p.getPlaylistId();
+		plIds.add(plId);
+		int unseen = control.numUnseenTracks(p);
+		unseenMap.put(plId, unseen);
 		super.insertSorted(p);
 	}
 	
 	@Override
 	public void remove(Playlist p) {
-		plIds.remove(p.getPlaylistId());
+		long plId = p.getPlaylistId();
+		plIds.remove(plId);
+		unseenMap.remove(plId);
 		super.remove(p);
 	}
 	

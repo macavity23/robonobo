@@ -264,6 +264,7 @@ public class PlaylistService extends AbstractService {
 			}
 			playlists.put(p.getPlaylistId(), p);
 		}
+		db.markAllAsSeen(p);
 		metadata.updatePlaylist(p, new PlaylistCallback() {
 			public void success(Playlist newP) {
 				log.info("Updated playlist id " + newP.getPlaylistId() + " successfully");
@@ -288,6 +289,7 @@ public class PlaylistService extends AbstractService {
 					playlists.put(newP.getPlaylistId(), newP);
 					myPlaylistIdsByTitle.put(newP.getTitle(), newP.getPlaylistId());
 				}
+				db.markAllAsSeen(newP);
 				// Fire our user as updated first, then the playlist
 				rbnb.getUserService().playlistCreated(newP);
 				events.firePlaylistChanged(newP);

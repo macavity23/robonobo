@@ -4,8 +4,7 @@ import static com.robonobo.gui.GuiUtil.*;
 import static com.robonobo.gui.RoboColor.*;
 import static javax.swing.SwingUtilities.*;
 
-import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
@@ -20,6 +19,7 @@ import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.model.*;
+import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.base.RLabel12;
 import com.robonobo.gui.components.base.RMenuItem;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -159,6 +159,11 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 	@Override
 	protected void itemSelected(int index) {
 		frame.getMainPanel().selectContentPanel("playlist/" + getModel().getPlaylistAt(index).getPlaylistId());
+		int unseen = getModel().numUnseen(index);
+		if(unseen > 0) {
+			frame.getController().markAllAsSeen(getModel().getPlaylistAt(index));
+			getModel().markAllAsSeen(index);
+		}
 	}
 
 	class PopupMenu extends JPopupMenu implements ActionListener {
@@ -207,11 +212,24 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 
 	class CellRenderer extends DefaultListRenderer {
 		JLabel lbl = new ItemLbl();
-
+		Font normalFont, boldFont;
+		
+		public CellRenderer() {
+			normalFont = RoboFont.getFont(12, false);
+			boldFont = RoboFont.getFont(12, true);
+		}
+		
 		@Override
 		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
 				boolean cellHasFocus) {
-			lbl.setText((String) value);
+			String text = (String) value;
+			int unseen = getModel().numUnseen(index);
+			if(unseen > 0) {
+				text = text + "[" + unseen+ "]";
+				lbl.setFont(boldFont);
+			} else
+				lbl.setFont(normalFont);
+			lbl.setText(text);
 			lbl.setIcon(playlistIcon);
 			if (isSelected) {
 				lbl.setBackground(LIGHT_GRAY);
