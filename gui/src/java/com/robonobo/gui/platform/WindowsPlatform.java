@@ -1,10 +1,8 @@
 package com.robonobo.gui.platform;
 
 import java.io.File;
+import java.io.IOException;
 
-import javax.swing.UIManager;
-
-import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.itunes.ITunesService;
 import com.robonobo.gui.itunes.windows.WindowsITunesService;
 
@@ -28,5 +26,19 @@ public class WindowsPlatform extends UnknownPlatform {
 	@Override
 	public ITunesService getITunesService() {
 		return new WindowsITunesService();
+	}
+	
+	@Override
+	public String fileManagerName() {
+		return "Explorer";
+	}
+	
+	@Override
+	public void showFileInFileManager(File file) {
+		try {
+			Runtime.getRuntime().exec("Explorer /select,"+file.getAbsolutePath());
+		} catch (IOException e) {
+			log.error("Error showing "+file.getAbsolutePath()+" in explorer", e);
+		}
 	}
 }
