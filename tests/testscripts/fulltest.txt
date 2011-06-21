@@ -240,6 +240,9 @@ D download track
 E track downloads
 D as track is downloading, hit play
 E track plays
+D wait for track to download
+D right-click track, select 'show in finder/explorer'
+E finder/explorer opens
 
 D go to friend's playlist (>4 items), hit download automatically
 E all items in playlist download successfully
