@@ -21,7 +21,7 @@ public class GatewayPrefPanel extends PrefPanel {
 	
 	public GatewayPrefPanel(RobonoboFrame frame) {
 		super(frame);
-		double[][] cellSizen = { { 5, TableLayout.FILL, 5, 180, 5, 45, 5 }, { 25, 5, 25, 5, 25 } };
+		double[][] cellSizen = { { 5, TableLayout.FILL, 5, 200, 5, 45, 5 }, { 25, 5, 25, 5, 25 } };
 		setLayout(new TableLayout(cellSizen));
 		RLabel ipLbl = new RLabel12("Router IP address and port");
 		add(ipLbl, "1,0");

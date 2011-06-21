@@ -42,7 +42,7 @@ public class SharePlaylistSheet extends Sheet {
 		this.p = p;
 		control = frame.getController();
 		setPreferredSize(size);
-		double[][] cellSizen = { { 10, 150, 5, 270, 10 }, { 10, 25, 5, 50, 5, 20, 5, 100, 10, 25, 10, 30, 10 } };
+		double[][] cellSizen = { { 10, 170, 5, 250, 10 }, { 10, 25, 5, 50, 5, 20, 5, 100, 10, 25, 10, 30, 10 } };
 		setLayout(new TableLayout(cellSizen));
 		setName("playback.background.panel");
 		RLabel titleLbl = new RLabel16B("Share playlist '"+p.getTitle()+"':");

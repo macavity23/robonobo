@@ -30,12 +30,12 @@ public class AddFriendsSheet extends Sheet {
 	public AddFriendsSheet(RobonoboFrame frame) {
 		super(frame);
 		setPreferredSize(size);
-		double[][] cellSizen = { { 10, 70, 5, 270, 10 }, { 10, 25, 10, 30, 10, 25, 10, 30, 10 } };
+		double[][] cellSizen = { { 10, 90, 5, 250, 10 }, { 10, 25, 10, 30, 10, 25, 10, 30, 10 } };
 		setLayout(new TableLayout(cellSizen));
 		setName("playback.background.panel");
 		RLabel titleLbl = new RLabel16B("Add friends");
 		add(titleLbl, "1,1,3,1");
-		JPanel blurb = new LineBreakTextPanel("Enter your friends' email addresses below to invite them to robonobo:", RoboFont.getFont(12, false), new Dimension(345, 30));
+		JPanel blurb = new LineBreakTextPanel("Enter your friends' email addresses below to invite them to robonobo:", RoboFont.getFont(13, false), new Dimension(345, 30));
 		add(blurb, "1,3,3,3");
 		RLabel newFriendLbl = new RLabel12("New friends:");
 		add(newFriendLbl, "1,5");
