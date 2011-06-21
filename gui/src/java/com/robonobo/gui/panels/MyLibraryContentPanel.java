@@ -124,7 +124,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 
 	class TabPanel extends JPanel {
 		public TabPanel() {
-			double[][] cellSizen = { { 10, 400, TableLayout.FILL, 200, 70 }, { TableLayout.FILL } };
+			double[][] cellSizen = { { 10, 400, TableLayout.FILL, 240, 30 }, { TableLayout.FILL } };
 			setLayout(new TableLayout(cellSizen));
 			JPanel lPanel = new JPanel();
 			lPanel.setLayout(new BoxLayout(lPanel, BoxLayout.Y_AXIS));
