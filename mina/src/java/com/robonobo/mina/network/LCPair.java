@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.robonobo.common.concurrent.Attempt;
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.mina.agoric.AuctionState;
 import com.robonobo.mina.external.buffer.Page;
@@ -98,7 +98,7 @@ public class LCPair extends ConnectionPair {
 	 */
 	protected void startListening() {
 		if (setupFinished)
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		setupFinished = true;
 		if (startAttempt != null)
 			startAttempt.cancel();

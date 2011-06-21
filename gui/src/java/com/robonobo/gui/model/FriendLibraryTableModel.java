@@ -1,96 +1,101 @@
 package com.robonobo.gui.model;
 
 import java.util.*;
+import java.util.Map.Entry;
 
-import javax.swing.SwingUtilities;
+import javax.swing.text.Document;
+
+import ca.odell.glazedlists.*;
+import ca.odell.glazedlists.matchers.MatcherEditor;
+import ca.odell.glazedlists.swing.TextComponentMatcherEditor;
 
 import com.robonobo.common.concurrent.Batcher;
-import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.LibraryListener;
 import com.robonobo.core.api.model.*;
+import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.mina.external.FoundSourceListener;
 
 @SuppressWarnings("serial")
-public class FriendLibraryTableModel extends FreeformTrackListTableModel implements LibraryListener,
-		FoundSourceListener {
+public class FriendLibraryTableModel extends GlazedTrackListTableModel implements LibraryListener, FoundSourceListener {
 	private Library lib;
 	// Because we might have very many tracks in a friend's library, we don't look up sources for them straight away -
 	// instead we look them up as the user scrolls - but we batch them for performance
 	static final long SCROLL_DELAY = 1000;
 	private TrackScrollBatcher scrollBatcher = new TrackScrollBatcher();
-	private boolean activated = false;
+	boolean activated = false;
+	MatcherEditor<Track> matchEdit;
 
-	public FriendLibraryTableModel(RobonoboController controller, Library lib) {
-		super(controller);
-		controller.addLibraryListener(this);
+	public static FriendLibraryTableModel create(RobonoboFrame frame, Library lib, Document searchTextDoc) {
+		// Take a copy of the lib's tracks to avoid concurrency problems as we iterate through
+		Map<String, Date> mapCopy;
+		lib.updateLock.lock();
+		try {
+			mapCopy = new HashMap<String, Date>(lib.getTracks());
+		} finally {
+			lib.updateLock.unlock();
+		}
+		List<Track> trax = new ArrayList<Track>();
+		for (Entry<String, Date> e : mapCopy.entrySet()) {
+			String sid = e.getKey();
+			Date added = e.getValue();
+			Track t = frame.control.getTrack(sid);
+			t.setDateAdded(added);
+			trax.add(t);
+		}
+		EventList<Track> el = GlazedLists.eventList(trax);
+		SortedList<Track> sl = new SortedList<Track>(el, new TrackComparator());
+		TextComponentMatcherEditor<Track> matchEdit = new TextComponentMatcherEditor<Track>(searchTextDoc, new TrackFilterator());
+		matchEdit.setLive(true);
+		FilterList<Track> fl = new FilterList<Track>(sl, matchEdit);
+		return new FriendLibraryTableModel(frame, lib, el, sl, fl, matchEdit);
+	}
+
+	private FriendLibraryTableModel(RobonoboFrame frame, Library lib, EventList<Track> el, SortedList<Track> sl, FilterList<Track> fl, MatcherEditor<Track> matchEdit) {
+		super(frame, el, sl, fl);
 		this.lib = lib;
-		libraryChanged(lib, lib.getTracks().keySet(), false);
+		this.matchEdit = matchEdit;
+		frame.control.addLibraryListener(this);
 	}
 
 	@Override
-	public Track getTrack(int index) {
-		// We set the 'date added' to the time it was added to the library
-		Track t = super.getTrack(index);
-		t.setDateAdded(lib.getTracks().get(t.getStream().getStreamId()));
-		return t;
+	public MatcherEditor<Track> getMatcherEditor() {
+		return matchEdit;
+	}
+	
+	@Override
+	public void trackUpdated(String streamId, Track t) {
+		if (containsTrack(streamId)) {
+			// We can't set our date on this track as it will be re-used in other places - clone it instead
+			t = t.clone();
+			t.setDateAdded(lib.getTracks().get(streamId));
+			super.trackUpdated(streamId, t);
+		}
 	}
 
 	@Override
-	public void libraryChanged(Library lib, Set<String> newTrackSids) {
-		libraryChanged(lib, newTrackSids, true);
-	}
-
-	public void libraryChanged(Library lib, Set<String> newTrackSids, boolean fireEvent) {
+	public void libraryChanged(Library lib, Collection<String> newTrackSids) {
 		if (lib.getUserId() != this.lib.getUserId())
 			return;
 		List<Track> addTrax = new ArrayList<Track>();
 		for (String sid : newTrackSids) {
-			addTrax.add(control.getTrack(sid));
+			Track t = control.getTrack(sid);
+			Date da = lib.getTracks().get(t.stream.streamId);
+			t.setDateAdded(da);
+			addTrax.add(t);
 		}
-		add(addTrax, fireEvent);
 		this.lib = lib;
+		add(addTrax);
 	}
 
 	@Override
 	public void myLibraryUpdated() {
 		// Do nothing
 	}
-	
-	public void activate() {
-		activated = true;
-	}
 
-	public synchronized void foundBroadcaster(String streamId, String nodeId) {
-		if (!streamIndices.containsKey(streamId))
-			return;
-		trackUpdated(streamId);
-	}
-
-	@Override
-	public void trackUpdated(String streamId) {
-		int index = -1;
-		boolean shouldAdd = false;
-		if (lib.getTracks().keySet().contains(streamId)) {
-			// We want this one
-			synchronized (this) {
-				if (streamIndices.containsKey(streamId))
-					index = streamIndices.get(streamId);
-				else
-					shouldAdd = true;
-			}
-		}
-		if (shouldAdd)
-			add(control.getTrack(streamId));
-		else if (index >= 0) {
-			// Updated
-			final int findex = index;
-			SwingUtilities.invokeLater(new CatchingRunnable() {
-				public void doRun() throws Exception {
-					fireTableRowsUpdated(findex, findex);
-				}
-			});
-		}
+	public void foundBroadcaster(String sid, String nodeId) {
+		// Get a fresh track to include this new broadcaster
+		Track t = control.getTrack(sid);
+		trackUpdated(sid, t);
 	}
 
 	@Override
@@ -103,28 +108,30 @@ public class FriendLibraryTableModel extends FreeformTrackListTableModel impleme
 		return true;
 	}
 
+	public void activate() {
+		activated = true;
+	}
+
 	@Override
 	public boolean wantScrollEventsNow() {
 		return activated;
 	}
-	
+
 	@Override
-	public synchronized void onScroll(int[] indexen) {
-		for (int i = 0; i < indexen.length; i++) {
-			int sIdx = indexen[i];
-			if(sIdx >= 0)
-				scrollBatcher.add(streams.get(sIdx).getStreamId());
+	public void onScroll(int[] viewIndexen) {
+		readLock.lock();
+		try {
+			for (int i = 0; i < viewIndexen.length; i++) {
+				int sIdx = viewIndexen[i];
+				if (sIdx >= 0) {
+					Track t = filterList.get(sIdx);
+					String sid = t.stream.streamId;
+					scrollBatcher.add(sid);
+				}
+			}
+		} finally {
+			readLock.unlock();
 		}
-	}
-
-	@Override
-	public void allTracksLoaded() {
-		// Do nothing
-	}
-
-	@Override
-	public void deleteTracks(List<String> streamIds) {
-		// Never called
 	}
 
 	class TrackScrollBatcher extends Batcher<String> {
@@ -136,8 +143,9 @@ public class FriendLibraryTableModel extends FreeformTrackListTableModel impleme
 		protected void runBatch(Collection<String> sids) throws Exception {
 			for (String sid : sids) {
 				Track t = control.getTrack(sid);
-				if (t instanceof CloudTrack)
+				if (t instanceof CloudTrack) {
 					control.findSources(sid, FriendLibraryTableModel.this);
+				}
 			}
 		}
 	}

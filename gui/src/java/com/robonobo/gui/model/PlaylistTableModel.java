@@ -1,125 +1,134 @@
 package com.robonobo.gui.model;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.swing.SwingUtilities;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import ca.odell.glazedlists.EventList;
+import ca.odell.glazedlists.GlazedLists;
+
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
-import com.robonobo.core.RobonoboController;
-import com.robonobo.core.api.TrackListener;
-import com.robonobo.core.api.model.CloudTrack;
-import com.robonobo.core.api.model.Playlist;
-import com.robonobo.core.api.model.Track;
+import com.robonobo.common.exceptions.Errot;
+import com.robonobo.core.api.model.*;
+import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.mina.external.FoundSourceListener;
 
 @SuppressWarnings("serial")
-public class PlaylistTableModel extends TrackListTableModel implements TrackListener, FoundSourceListener {
-	private RobonoboController controller;
+public class PlaylistTableModel extends GlazedTrackListTableModel implements FoundSourceListener {
+	private static final int[] PLAYLIST_HIDDEN_COLS = new int[] { 4, 11, 12 };
 	private Playlist p;
 	private boolean myPlaylist;
 	/** Are we actively looking for sources for streams on this playlist? */
 	private boolean activated = false;
-	private Map<String, Integer> streamIndices = new HashMap<String, Integer>();
 	Log log = LogFactory.getLog(getClass());
 
-	public PlaylistTableModel(RobonoboController controller, Playlist p, boolean myPlaylist) {
-		this.controller = controller;
-		this.myPlaylist = myPlaylist;
-		controller.addTrackListener(this);
-		update(p, false);
+	public static PlaylistTableModel create(RobonoboFrame frame, Playlist p, boolean myPlaylist) {
+		List<Track> trax = new ArrayList<Track>();
+		for (String sid : p.getStreamIds()) {
+			trax.add(frame.control.getTrack(sid));
+		}
+		EventList<Track> el = GlazedLists.eventList(trax);
+		return new PlaylistTableModel(frame, p, myPlaylist, el);
 	}
 
-	public void update(Playlist p, boolean fireChangedEvent) {
+	public PlaylistTableModel(RobonoboFrame frame, Playlist p, boolean myPlaylist, EventList<Track> el) {
+		super(frame, el, null, null);
+		this.p = p;
+		this.myPlaylist = myPlaylist;
+		int i = 0;
+		for (String sid : p.getStreamIds()) {
+			trackIndices.put(sid, i++);
+		}
+		if (myPlaylist) {
+			control.getExecutor().execute(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					activate();
+				}
+			});
+		}
+	}
+
+	@Override
+	public boolean canSort() {
+		return false;
+	}
+
+	public void update(Playlist p) {
 		Playlist oldP = this.p;
 		this.p = p;
 		// Any items on the old list that aren't on the new, stop finding
 		// sources for them
-		if (oldP != null) {
-			for (String streamId : oldP.getStreamIds()) {
-				if (!p.getStreamIds().contains(streamId))
-					controller.stopFindingSources(streamId, this);
-			}
+		for (String streamId : oldP.getStreamIds()) {
+			if (!p.getStreamIds().contains(streamId))
+				control.stopFindingSources(streamId, this);
 		}
-		synchronized (this) {
-			updateStreamIndices();
+		updateLock.lock();
+		try {
+			regenEventList();
+		} finally {
+			updateLock.unlock();
 		}
-		if(myPlaylist || activated) {
-			controller.getExecutor().execute(new CatchingRunnable() {
-				public void doRun() throws Exception {
-					activate();					
-				}
-			});
-		}
-		if (fireChangedEvent)
-			fireTableDataChanged();
+		if (myPlaylist || activated)
+			activate();
 	}
 
 	public void activate() {
-		activated = true;
-		for (String streamId : p.getStreamIds()) {
-			Track t = controller.getTrack(streamId);
-			if (t instanceof CloudTrack)
-				controller.findSources(streamId, this);
+		if (!activated) {
+			activated = true;
+			readLock.lock();
+			try {
+				for (Track t : eventList) {
+					if (t instanceof CloudTrack)
+						control.findSources(t.stream.streamId, this);
+				}
+			} finally {
+				readLock.unlock();
+			}
 		}
 	}
 
 	public void nuke() {
-		controller.removeTrackListener(this);
+		control.removeTrackListener(this);
 		for (String streamId : p.getStreamIds()) {
-			controller.stopFindingSources(streamId, this);
+			control.stopFindingSources(streamId, this);
+		}
+	}
+
+	@Override
+	public void trackUpdated(String streamId, Track t) {
+		super.trackUpdated(streamId, t);
+		if (activated || myPlaylist) {
+			updateLock.lock();
+			try {
+				if (trackIndices.containsKey(streamId))
+					control.findSources(streamId, this);
+			} finally {
+				updateLock.unlock();
+			}
 		}
 	}
 
 	// Hide 'Added to Library' as well as streamid and track num
 	public int[] hiddenCols() {
-		return new int[] { 4, 11, 12 };
+		return PLAYLIST_HIDDEN_COLS;
 	}
 
-
-	@Override
-	public synchronized int getTrackIndex(String streamId) {
-		if (streamIndices.containsKey(streamId))
-			return streamIndices.get(streamId);
-		return -1;
+	public void foundBroadcaster(String sid, String nodeId) {
+		// Get a fresh track to include this new broadcaster
+		Track t = control.getTrack(sid);
+		trackUpdated(sid, t);
 	}
 
-	@Override
-	public synchronized String getStreamId(int index) {
-		return p.getStreamIds().get(index);
-	}
-
-	@Override
-	public synchronized Track getTrack(int index) {
-		return controller.getTrack(p.getStreamIds().get(index));
-	}
-
-	@Override
-	public synchronized int numTracks() {
-		return p.getStreamIds().size();
-	}
-
-	public synchronized void foundBroadcaster(String streamId, String nodeId) {
-		if (!streamIndices.containsKey(streamId))
-			return;
-		trackUpdated(streamId);
-	}
-
-	/**
-	 * If any of these streams are already in this playlist, they will be removed before being added in their new
-	 * position
-	 */
+	/** If any of these streams are already in this playlist, they will be removed before being added in their new
+	 * position */
 	public void addStreams(List<String> streamIds, int position) {
 		if (!myPlaylist)
-			throw new SeekInnerCalmException();
-		synchronized (this) {
+			throw new Errot();
+		updateLock.lock();
+		try {
+			// Rather than buggering about inside our eventlist, we re-order the playlist and then just re-add the whole
+			// list again
 			// First, scan through our playlist and remove any that are in this
 			// list (they're being moved)
 			for (Iterator<String> iter = p.getStreamIds().iterator(); iter.hasNext();) {
@@ -129,63 +138,25 @@ public class PlaylistTableModel extends TrackListTableModel implements TrackList
 			}
 			if (position > p.getStreamIds().size())
 				position = p.getStreamIds().size();
+			// Put the new streams in the right spot
 			p.getStreamIds().addAll(position, streamIds);
-			updateStreamIndices();
+			// Now regenerate our tracks
+			regenEventList();
+		} finally {
+			updateLock.unlock();
 		}
-		SwingUtilities.invokeLater(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				fireTableDataChanged();
-			}
-		});
 		runPlaylistUpdate();
 	}
 
-	public void removeStreamIds(List<String> streamIds) {
-		synchronized (this) {
-			for (String sid : streamIds) {
-				p.getStreamIds().remove(sid);
-				controller.stopFindingSources(sid, this);
-			}
-			updateStreamIndices();
+	/** Must only be called from inside updateLock */
+	protected void regenEventList() {
+		eventList.clear();
+		trackIndices.clear();
+		int i = 0;
+		for (String sid : p.getStreamIds()) {
+			eventList.add(control.getTrack(sid));
+			trackIndices.put(sid, i++);
 		}
-		SwingUtilities.invokeLater(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				fireTableDataChanged();
-			}
-		});
-		runPlaylistUpdate();
-	}
-
-	public void tracksUpdated(Collection<String> streamIds) {
-		// Could do something smarter here, but probably don't need to
-		for (String streamId : streamIds) {
-			trackUpdated(streamId);
-		}
-	}
-
-	public void trackUpdated(final String streamId) {
-		synchronized (this) {
-			if (!streamIndices.containsKey(streamId))
-				return;
-		}
-		SwingUtilities.invokeLater(new CatchingRunnable() {
-			@Override
-			public void doRun() throws Exception {
-				int rowIndex;
-				synchronized (PlaylistTableModel.this) {
-					rowIndex = (streamIndices.containsKey(streamId)) ? streamIndices.get(streamId) : -1;
-				}
-				if (rowIndex >= 0)
-					fireTableRowsUpdated(rowIndex, rowIndex);
-			}
-		});
-		Track t = controller.getTrack(streamId);
-		if (t instanceof CloudTrack)
-			controller.findSources(streamId, this);
-	}
-
-	public void allTracksLoaded() {
-		// Do nothing
 	}
 
 	public Playlist getPlaylist() {
@@ -200,28 +171,22 @@ public class PlaylistTableModel extends TrackListTableModel implements TrackList
 
 	@Override
 	public void deleteTracks(List<String> streamIds) {
-		if(!myPlaylist)
-			throw new SeekInnerCalmException();
-		p.getStreamIds().removeAll(streamIds);
-		fireTableDataChanged();
-		runPlaylistUpdate();
-	}
-	
-	/** Must only be called from inside sync block */
-	private void updateStreamIndices() {
-		streamIndices.clear();
-		for (int i = 0; i < numTracks(); i++) {
-			String streamId = p.getStreamIds().get(i);
-			streamIndices.put(streamId, i);
+		if (!myPlaylist)
+			throw new Errot();
+		updateLock.lock();
+		try {
+			for (String sid : streamIds) {
+				p.getStreamIds().remove(sid);
+				control.stopFindingSources(sid, this);
+			}
+			regenEventList();
+		} finally {
+			updateLock.unlock();
 		}
+		runPlaylistUpdate();
 	}
 
 	protected void runPlaylistUpdate() {
-		controller.getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				controller.addOrUpdatePlaylist(p);
-			}
-		});
+		control.updatePlaylist(p);
 	}
-
 }

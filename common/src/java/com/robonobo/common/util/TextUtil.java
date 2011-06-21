@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 
 /**
  * Assorted text utils
@@ -216,7 +216,7 @@ public class TextUtil {
 		try {
 			return URLEncoder.encode(input, "utf-8");
 		} catch (UnsupportedEncodingException e) {
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		}
 	}
 
@@ -236,7 +236,7 @@ public class TextUtil {
 		try {
 			return URLDecoder.decode(input, "utf-8");
 		} catch (UnsupportedEncodingException e) {
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		}
 	}
 

@@ -11,12 +11,11 @@ import com.robonobo.core.api.Robonobo;
 import com.robonobo.spi.RuntimeService;
 
 
-@SuppressWarnings("unchecked")
 abstract public class AbstractService implements RuntimeService {
-	boolean running = false;
-	Map deps = new HashMap();
-	RobonoboInstance rbnb;
-	Log log = LogFactory.getLog(getClass());
+	protected boolean running = false;
+	protected Map<String, Boolean> deps = new HashMap<String, Boolean>();
+	protected RobonoboInstance rbnb;
+	protected Log log = LogFactory.getLog(getClass());
 
 	public AbstractService() {
 		super();
@@ -46,7 +45,7 @@ abstract public class AbstractService implements RuntimeService {
 		deps.remove(need);
 	}
 
-	public Map getDependencies() {
+	public Map<String, Boolean> getDependencies() {
 		return deps;
 	}
 

@@ -3,7 +3,7 @@ package com.robonobo.gui;
 public class GuiConfig {
 	private boolean showWelcomePanel = true;
 	private boolean confirmExit = true;
-	/** After a task finishes, it will be removed from the task list after this many seconds */
+	/** After a pFetcher finishes, it will be removed from the pFetcher list after this many seconds */
 	private int zombieTaskLifetime = 300;
 	
 	public GuiConfig() {

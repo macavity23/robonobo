@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
 
 public class Playlist implements Comparable<Playlist> {
@@ -32,7 +32,7 @@ public class Playlist implements Comparable<Playlist> {
 		description = msg.getDescription();
 		String vis = msg.getVisibility();
 		if((!vis.equals(VIS_ALL)) && (!vis.equals(VIS_FRIENDS)) && (!vis.equals(VIS_ME)))
-			throw new SeekInnerCalmException("invalid visibility: "+vis);
+			throw new Errot("invalid visibility: "+vis);
 		visibility = vis;
 		streamIds.addAll(msg.getStreamIdList());
 		ownerIds.addAll(msg.getOwnerIdList());

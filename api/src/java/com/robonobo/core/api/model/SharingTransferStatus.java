@@ -5,4 +5,11 @@ public class SharingTransferStatus implements TransferStatus {
 	public String toString() {
 		return "Sharing";
 	}
+	
+	@Override
+	public int compareTo(TransferStatus ts) {
+		if(ts instanceof SharingTransferStatus)
+			return 0;
+		return 1;
+	}
 }

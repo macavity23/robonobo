@@ -17,7 +17,7 @@ public abstract class Task extends CatchingRunnable {
 	protected String title;
 	protected String statusText;
 	/** 0 - 1 */
-	protected float completion;
+	protected float completion = 0;
 	protected boolean cancelRequested;
 	protected Log log = LogFactory.getLog(getClass());
 	

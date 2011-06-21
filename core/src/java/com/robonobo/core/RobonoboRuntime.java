@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import org.apache.log4j.BasicConfigurator;
 
 import com.robonobo.common.concurrent.Attempt;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.serialization.ConfigBeanSerializer;
 import com.robonobo.eon.*;
 import com.robonobo.mina.external.MinaConfig;
@@ -84,7 +84,7 @@ public class RobonoboRuntime {
 			try {
 				theirSockAddr = new EonSocketAddress(theirUdpPort, 1);
 			} catch (UnknownHostException e) {
-				throw new SeekInnerCalmException();
+				throw new Errot();
 			}
 			conn.bind();
 			conn.sendTo(theirSockAddr, arg.getBytes());

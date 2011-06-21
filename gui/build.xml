@@ -17,7 +17,7 @@
 		<format property="timestamp" pattern="yyMMddHHmm" />
 	</tstamp>
 
-	<property name="version" value="0.5.1" />
+	<property name="version" value="DEV-${timestamp}" />
 
 	<target name="build" depends="compile-all" />
 
@@ -70,6 +70,7 @@
 			<fatjar.filesource path="${classes.dir}" relpath="." />
 			<fatjar.jarsource file="${basedir}/lib/robolaf.jar" relpath="." />
 			<fatjar.jarsource file="${basedir}/lib/swingx-0.9.7.jar" relpath="." />
+			<fatjar.jarsource file="${basedir}/lib/glazedlists-1.8.0.jar" relpath="." />
 
 			<fatjar.filesource path="../console/target/classes" relpath="." />
 			<fatjar.filesource path="../plugin-mp3/target/classes" relpath="." />
@@ -95,7 +96,8 @@
 			<fatjar.jarsource file="../common/lib/jug-1.1.2.jar" relpath="." />
 			<fatjar.jarsource file="../common/lib/log4j-1.2.13.jar" relpath="." />
 			<fatjar.jarsource file="../common/lib/commons-logging-1.0.3.jar" relpath="." />
-			<fatjar.jarsource file="../common/lib/commons-httpclient-3.0.jar" relpath="." />
+			<fatjar.jarsource file="../common/lib/httpclient-4.1.1.jar" relpath="." />
+			<fatjar.jarsource file="../common/lib/httpcore-4.1.jar" relpath="." />
 			<fatjar.jarsource file="../common/lib/commons-codec-1.2.jar" relpath="." />
 			<fatjar.jarsource file="../common/lib/protobuf-java-2.3.0.jar" relpath="." />
 			<fatjar.jarsource file="../common/lib/twmacinta-fastmd5.jar" relpath="." />

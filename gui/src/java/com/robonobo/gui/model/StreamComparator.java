@@ -34,19 +34,19 @@ public class StreamComparator implements Comparator<Stream> {
 	}
 	
 	private static int compareByArtist(Stream s1, Stream s2) {
-		return compareStrings(s1.getAttrValue("artist"), s2.getAttrValue("artist"));		
+		return compareStrings(s1.artist, s2.artist);		
 	}
 
 	private static int compareByAlbum(Stream s1, Stream s2) {
-		return compareStrings(s1.getAttrValue("album"), s2.getAttrValue("album"));
+		return compareStrings(s1.album, s2.album);
 	}
 	
 	private static int compareByTitle(Stream s1, Stream s2) {
-		return compareStrings(s1.getTitle(), s2.getTitle());
+		return compareStrings(s1.title, s2.title);
 	}
 	
 	private static int compareByStreamId(Stream s1, Stream s2) {
-		return compareStrings(s1.getStreamId(), s2.getStreamId());
+		return compareStrings(s1.streamId, s2.streamId);
 	}
 	
 	private static int compareStrings(String s1, String s2) {
@@ -64,36 +64,6 @@ public class StreamComparator implements Comparator<Stream> {
 	}
 	
 	private static int compareByTrackNum(Stream s1, Stream s2) {
-		String s1TrackStr = s1.getAttrValue("track");
-		String s2TrackStr = s2.getAttrValue("track");
-		if(isNonEmpty(s1TrackStr)) {
-			if(isNonEmpty(s2TrackStr))
-				return compareTrackNums(s1TrackStr, s2TrackStr);
-			else
-				return 1;
-		} else {
-			if(isNonEmpty(s2TrackStr))
-				return -1;
-			else
-				return 0;
-		}
-	}
-	
-	private static int compareTrackNums(String s1, String s2) {
-		Matcher m = trackNumPat.matcher(s1);
-		Integer i1 = m.find() ? Integer.parseInt(m.group()) : null;
-		m = trackNumPat.matcher(s2);
-		Integer i2 = m.find() ? Integer.parseInt(m.group()) : null;
-		if(i1 != null) {
-			if(i2 != null)
-				return i1.compareTo(i2);
-			else
-				return 1;
-		} else {
-			if(i2 != null)
-				return -1;
-			else
-				return 0;
-		}
+		return (s1.track - s2.track);
 	}
 }

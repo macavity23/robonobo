@@ -462,7 +462,9 @@ public class CCMgr {
 			}
 			mina.getBadNodeList().markNodeAsGood(cc.getNodeId());
 			if (cc.getNode().getSupernode()) {
-				mina.getStreamAdvertiser().advertiseStreams(mina.getStreamMgr().getAdvertisingStreamIds());
+				List<String> advertSids = mina.getStreamMgr().getAdvertisingStreamIds();
+				if(advertSids.size() > 0)
+					mina.getStreamAdvertiser().advertiseStreams(advertSids);
 				List<String> wantingSources = mina.getSourceMgr().sidsWantingSources();
 				if (wantingSources.size() > 0)
 					cc.sendMessage("WantSource", WantSource.newBuilder().addAllStreamId(wantingSources).build());

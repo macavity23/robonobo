@@ -1,4 +1,3 @@
-
 package com.robonobo.gui.sheets;
 
 import static com.robonobo.common.util.TextUtil.*;
@@ -21,7 +20,6 @@ import com.robonobo.gui.frames.RobonoboFrame;
 @SuppressWarnings("serial")
 public abstract class PostUpdateSheet extends Sheet {
 	private static final Pattern ENDS_WITH_WHITESPACE = Pattern.compile("^.*(\\s+)$");
-
 	protected Playlist p;
 	private String playlistUrl;
 	private RTextArea msgText;
@@ -35,8 +33,7 @@ public abstract class PostUpdateSheet extends Sheet {
 		this.p = pl;
 		playlistUrl = frame.getController().getConfig().getPlaylistUrlBase() + Long.toHexString(p.getPlaylistId());
 		boolean showCharLimit = (charLimit() > 0);
-		double[][] cellSizen = { { 10, 300, 10 },
-				{ 10, 20, 5, showCharLimit ? 80 : 100, 5, showCharLimit ? 20 : 0, 0, 20, 5, 30, 10 } };
+		double[][] cellSizen = { { 10, 300, 10 }, { 10, 20, 5, showCharLimit ? 80 : 100, 5, showCharLimit ? 20 : 0, 0, 20, 5, 30, 10 } };
 		setLayout(new TableLayout(cellSizen));
 		setName("playback.background.panel");
 		add(new RLabel14B("Post playlist update to " + getServiceName()), "1,1");
@@ -82,7 +79,9 @@ public abstract class PostUpdateSheet extends Sheet {
 	/** <0 for no limit */
 	protected abstract int charLimit();
 
-	public abstract void postUpdate();
+	public void postUpdate() {
+		frame.getController().postPlaylistServiceUpdate(getServiceName().toLowerCase(), p.getPlaylistId(), getMsg());
+	}
 
 	private String truncateTitle(String title) {
 		if (charLimit() < 0)
@@ -96,12 +95,12 @@ public abstract class PostUpdateSheet extends Sheet {
 		msgText.requestFocusInWindow();
 		msgText.selectAll();
 	}
-	
+
 	@Override
 	public JButton defaultButton() {
 		return postBtn;
 	}
-	
+
 	class ButtonPanel extends JPanel {
 		public ButtonPanel() {
 			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -132,10 +131,10 @@ public abstract class PostUpdateSheet extends Sheet {
 		public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
 			String text = msgText.getText() + str;
 			int textLen = text.length();
-			if(!ENDS_WITH_WHITESPACE.matcher(text).matches())
+			if (!ENDS_WITH_WHITESPACE.matcher(text).matches())
 				textLen++;
 			textLen += playlistUrl.length();
-			if(textLen <= charLimit())
+			if (textLen <= charLimit())
 				super.insertString(offs, str, a);
 		}
 	}

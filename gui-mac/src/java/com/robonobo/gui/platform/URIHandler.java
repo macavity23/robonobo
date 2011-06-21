@@ -5,14 +5,10 @@ import com.apple.eawt.OpenURIHandler;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 public class URIHandler implements OpenURIHandler {
-	private RobonoboFrame frame;
-	
-	public URIHandler(RobonoboFrame frame) {
-		this.frame = frame;
+	public URIHandler() {
 	}
-
 	public void openURI(OpenURIEvent e) {
 		String uriStr = e.getURI().toString();
-		frame.openRbnbUri(uriStr);
+		RobonoboFrame.getInstance().openRbnbUri(uriStr);
 	}
 }

@@ -18,9 +18,4 @@ public class PostToTwitterSheet extends PostUpdateSheet {
 	protected int charLimit() {
 		return 140;
 	}
-
-	@Override
-	public void postUpdate() {
-		frame.getController().postTwitterUpdate(p.getPlaylistId(), getMsg());
-	}
 }

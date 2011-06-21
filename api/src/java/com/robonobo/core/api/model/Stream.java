@@ -1,21 +1,22 @@
 package com.robonobo.core.api.model;
 
 import java.awt.image.BufferedImage;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.robonobo.common.util.TimeUtil;
 import com.robonobo.core.api.proto.CoreApi.StreamAttributeMsg;
 import com.robonobo.core.api.proto.CoreApi.StreamMsg;
 
 public class Stream implements Comparable<Stream> {
-	private static final long serialVersionUID = 1L;
+	protected static Pattern trackNumPat = Pattern.compile("^(\\d+)");
+	private static final String ARTIST = "artist";
+	private static final String ALBUM = "album";
+	private static final String TRACK = "track";
 	protected String mimeType;
-	protected String streamId;
-	protected String title;
+	public String streamId;
+	public String title;
 	protected String description = "";
 	protected BufferedImage thumbnail;
 	protected Set<StreamAttribute> attributes = new HashSet<StreamAttribute>();
@@ -24,6 +25,16 @@ public class Stream implements Comparable<Stream> {
 	/** Millisecs */
 	protected long duration;
 	protected Date updated;
+	/**
+	 * These are kept as attributes but we keep a field too for fast retrieval, Streams are used often for sorting and
+	 * such
+	 */
+	public String artist;
+	public String album;
+	/**
+	 * Also kept as an attribute - this will be -1 if the attribute is not present
+	 */
+	public int track = -1;
 
 	public Stream() {
 	}
@@ -231,6 +242,12 @@ public class Stream implements Comparable<Stream> {
 			attributes.add(a);
 			attrMap.put(key, a);
 		}
+		if (key.equals(ARTIST))
+			artist = value;
+		else if (key.equals(ALBUM))
+			album = value;
+		else if(key.equals(TRACK))
+			track = trackFromStr(value);
 	}
 
 	public String getAttrValue(String key) {
@@ -247,10 +264,26 @@ public class Stream implements Comparable<Stream> {
 		return streamId.compareTo(o.streamId);
 	}
 
+	public String getArtist() {
+		return artist;
+	}
+
+	public String getAlbum() {
+		return album;
+	}
+
+	public int getTrack() {
+		return track;
+	}
+
+	private static int trackFromStr(String trackStr) {
+		Matcher m = trackNumPat.matcher(trackStr);
+		return m.find() ? Integer.parseInt(m.group()) : -1;
+	}
+
 	private String truncate(String str, int maxLen) {
 		if (str.length() <= maxLen)
 			return str;
 		return str.substring(0, maxLen);
 	}
-
 }

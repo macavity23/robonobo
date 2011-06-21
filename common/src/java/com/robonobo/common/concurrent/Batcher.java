@@ -13,7 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * For tasks that might be run one-at-a-time or many-after-each-other, when you
  * want to batch up the many- case into a single process or object. Waits an
- * amount of time, then calls the runBatch method.
+ * amount of time, then calls the runBatch method on an executor thread.
  * 
  * To implement, subclass with the generic class T and implement the runBatch()
  * method

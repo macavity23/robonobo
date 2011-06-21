@@ -1,5 +1,6 @@
 package com.robonobo.gui.panels;
 
+import static com.robonobo.gui.GuiUtil.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.ComponentOrientation;
@@ -12,15 +13,16 @@ import javax.swing.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
+import com.robonobo.core.api.PlaylistListener;
 import com.robonobo.core.api.RobonoboException;
-import com.robonobo.core.api.UserPlaylistListener;
-import com.robonobo.core.api.model.*;
+import com.robonobo.core.api.model.Playlist;
+import com.robonobo.core.api.model.PlaylistConfig;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 @SuppressWarnings("serial")
-public class OtherPlaylistContentPanel extends PlaylistContentPanel implements UserPlaylistListener {
+public class OtherPlaylistContentPanel extends PlaylistContentPanel implements PlaylistListener {
 	RLabel titleField;
 	RTextPane descField;
 	RButton saveBtn;
@@ -32,27 +34,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements U
 		super(frame, p, pc, false);
 		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
 		tabPane.setSelectedIndex(0);
-		frame.getController().addUserPlaylistListener(this);
-	}
-
-	@Override
-	public void loggedIn() {
-		// Do nothing
-	}
-
-	@Override
-	public void allUsersAndPlaylistsUpdated() {
-		// Do nothing
-	}
-	
-	@Override
-	public void userChanged(User u) {
-		// Do nothing
-	}
-
-	@Override
-	public void userConfigChanged(UserConfig cfg) {
-		// Do nothing
+		frame.getController().addPlaylistListener(this);
 	}
 
 	@Override
@@ -64,11 +46,12 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements U
 				return;
 			}
 			this.p = p;
-			SwingUtilities.invokeLater(new CatchingRunnable() {
+			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					updateFields();
 				}
 			});
+			getModel().update(p);
 		}
 	}
 

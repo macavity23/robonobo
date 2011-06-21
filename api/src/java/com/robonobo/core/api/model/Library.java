@@ -1,6 +1,8 @@
 package com.robonobo.core.api.model;
 
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.robonobo.core.api.proto.CoreApi.LibraryMsg;
 import com.robonobo.core.api.proto.CoreApi.LibraryTrackMsg;
@@ -10,6 +12,8 @@ public class Library {
 	private long userId = -1;
 	/** This is used client-side only - not serialized or meaningful to the server */
 	Date lastUpdated = null;
+	/** Lock on this before you alter or iterate through the track map */
+	public Lock updateLock = new ReentrantLock();
 
 	public Library() {
 	}

@@ -11,5 +11,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/console"/>
 	<classpathentry kind="lib" path="lib/swingx-0.9.7.jar" sourcepath="/home/macavity/src/mirror/swingx-0.9.7-src/src/java"/>
 	<classpathentry kind="lib" path="lib/robolaf.jar"/>
+	<classpathentry kind="lib" path="lib/glazedlists-1.8.0.jar" sourcepath="/Users/macavity/Downloads/glazedlists-1.8.0-source_java15/source"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

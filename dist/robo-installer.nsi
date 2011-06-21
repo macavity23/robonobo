@@ -54,14 +54,45 @@ DirText "This will install robonobo on your computer."
 !insertmacro MUI_LANGUAGE "English"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Detect previous version and offer to uninstall
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Function .onInit
+ 
+  ReadRegStr $R0 HKLM \
+  "Software\Microsoft\Windows\CurrentVersion\Uninstall\robonobo" \
+  "UninstallString"
+  StrCmp $R0 "" done
+ 
+  MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+  "robonobo is already installed. $\n$\nClick `OK` to remove the \
+  previous version or `Cancel` to cancel this upgrade." \
+  IDOK uninst
+  Abort
+ 
+;Run the uninstaller
+uninst:
+  ClearErrors
+  ExecWait '$R0 /S _?=$INSTDIR' ;Do not copy the uninstaller to a temp file
+ 
+  IfErrors no_remove_uninstaller done
+
+  no_remove_uninstaller:
+ 
+done:
+ 
+FunctionEnd
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Installer sections
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Section "robonobo" SecRbnb
 Call GetJRE
 Pop $R0
-MessageBox MB_ICONSTOP "Got java: $R0" 
+;MessageBox MB_ICONSTOP "Got java: $R0" 
 SetOutPath $INSTDIR
 File target\dist\robonobo-${VERSION}.exe
+; Put our start menu items under All Users - because vista/7 'helpfully' copies it there anyway, and then it doesn't get uninstalled
+SetShellVarContext all
 CreateShortCut "$SMPROGRAMS\robonobo.lnk" "$INSTDIR\robonobo-${VERSION}.exe"
 WriteUninstaller $INSTDIR\uninstall.exe
 WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\robonobo" "DisplayName" "robonobo - a music sharing application"
@@ -86,6 +117,8 @@ LangString DESC_SecRbnb ${LANG_ENGLISH} "The robonobo application"
 ;; Uninstaller
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Section "Uninstall"
+; Put our start menu items under All Users - because vista/7 'helpfully' copies it there anyway, and then it doesn't get uninstalled
+SetShellVarContext all
 Delete $INSTDIR\uninstall.exe
 Delete $INSTDIR\robonobo-${VERSION}.exe
 Delete "$SMPROGRAMS\robonobo.lnk"

@@ -183,7 +183,7 @@ public class MacITunesService extends ITunesService {
 	}
 	
 	@Override
-	public void syncPlaylist(User u, Playlist p) throws IOException {
+	public synchronized void syncPlaylist(User u, Playlist p) throws IOException {
 		checkReady();
 		createRobonoboFolder();
 		log.debug("Syncing with iTunes: user " + u.getEmail() + ", playlist '" + p.getTitle() + "'");

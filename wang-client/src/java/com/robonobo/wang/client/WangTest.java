@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.PropertyConfigurator;
 
 import com.robonobo.common.concurrent.SafetyNet;
+import com.robonobo.common.http.PreemptiveHttpClient;
 import com.robonobo.common.util.ExceptionEvent;
 import com.robonobo.common.util.ExceptionListener;
 import com.robonobo.wang.proto.WangProtocol.CoinListMsg;
@@ -22,7 +23,7 @@ public class WangTest {
 		cfg.setBankUrl("http://localhost:8080/wang-server");
 		cfg.setAccountEmail("macavity@well.com");
 		cfg.setAccountPwd("foo");
-		WangClient client = new WangClient(cfg);
+		WangClient client = new WangClient(cfg, new PreemptiveHttpClient());
 		log.info("Starting client");
 		client.start();
 		log.info("My balance: " + client.getAccurateBankBalance() + " (in bank), " + client.getOnHandBalance() + " (in hand)");

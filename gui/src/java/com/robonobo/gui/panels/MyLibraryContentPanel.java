@@ -11,33 +11,40 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
+import javax.swing.text.Document;
+import javax.swing.text.PlainDocument;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.LibraryListener;
-import com.robonobo.core.api.UserPlaylistListener;
+import com.robonobo.core.api.UserListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.MyLibraryTableModel;
 
 @SuppressWarnings("serial")
-public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistListener, LibraryListener {
+public class MyLibraryContentPanel extends ContentPanel implements UserListener, LibraryListener {
 	private RCheckBox shareLibCheckBox;
 	private RLabel addLbl;
+	private Document searchDoc;
+	private TrackListSearchPanel searchPanel;
 
 	public MyLibraryContentPanel(RobonoboFrame f) {
-		super(f, new MyLibraryTableModel(f));
+		this(f, new PlainDocument());
+	}
+
+	private MyLibraryContentPanel(RobonoboFrame f, Document searchDoc) {
+		super(f, MyLibraryTableModel.create(f, searchDoc));
+		this.searchDoc = searchDoc;
 		tabPane.insertTab("library", null, new TabPanel(), null, 0);
 		tabPane.setSelectedIndex(0);
-		frame.getController().addUserPlaylistListener(this);
+		frame.getController().addUserListener(this);
 		frame.getController().addLibraryListener(this);
-
 		frame.getController().getExecutor().schedule(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				final String updateMsg = frame.getController().getUpdateMessage();
@@ -53,6 +60,11 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 		}, 10, TimeUnit.SECONDS);
 	}
 
+	@Override
+	public JComponent defaultComponent() {
+		return searchPanel.getSearchField();
+	}
+	
 	@Override
 	public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
 		return Platform.getPlatform().canDnDImport(transferFlavors);
@@ -77,22 +89,6 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 	}
 
 	@Override
-	public void loggedIn() {
-		// Do nothing
-	}
-
-	@Override
-	public void playlistChanged(Playlist p) {
-		// Do nothing
-	}
-
-	@Override
-	public void allUsersAndPlaylistsUpdated() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void userChanged(User u) {
 		// Do nothing
 	}
@@ -112,7 +108,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 	}
 
 	@Override
-	public void libraryChanged(Library lib, Set<String> newTrackSids) {
+	public void libraryChanged(Library lib, Collection<String> newTrackSids) {
 		// Do nothing
 	}
 
@@ -128,34 +124,27 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 
 	class TabPanel extends JPanel {
 		public TabPanel() {
-			double[][] cellSizen = { { 10, 300, 100, 300, TableLayout.FILL }, { TableLayout.FILL } };
+			double[][] cellSizen = { { 10, 400, TableLayout.FILL, 240, 30 }, { TableLayout.FILL } };
 			setLayout(new TableLayout(cellSizen));
-
 			JPanel lPanel = new JPanel();
 			lPanel.setLayout(new BoxLayout(lPanel, BoxLayout.Y_AXIS));
 			lPanel.add(Box.createVerticalStrut(5));
-
-			TrackListSearchPanel sp = new TrackListSearchPanel(frame, trackList);
-			sp.setAlignmentX(Component.LEFT_ALIGNMENT);
-			lPanel.add(sp);
+			searchPanel = new TrackListSearchPanel(frame, trackList, "library", searchDoc);
+			searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+			searchPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+			lPanel.add(searchPanel);
 			lPanel.add(Box.createVerticalStrut(15));
-
 			RLabel optsLbl = new RLabel16B("Library options");
 			optsLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 			lPanel.add(optsLbl);
 			lPanel.add(Box.createVerticalStrut(5));
-
-			shareLibCheckBox = new RCheckBox("Share library with friends");
-			shareLibCheckBox.addItemListener(new ItemListener() {
-				public void itemStateChanged(final ItemEvent e) {
+			shareLibCheckBox = new RCheckBox("Allow friends to see library");
+			shareLibCheckBox.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					final boolean sel = shareLibCheckBox.isSelected();
 					frame.getController().getExecutor().execute(new CatchingRunnable() {
-						@Override
 						public void doRun() throws Exception {
-							if (e.getStateChange() == ItemEvent.SELECTED) {
-								frame.getController().saveUserConfigItem("sharelibrary", "true");
-							} else if (e.getStateChange() == ItemEvent.DESELECTED) {
-								frame.getController().saveUserConfigItem("sharelibrary", "false");
-							}
+							frame.getController().saveUserConfigItem("sharelibrary", sel ? "true" : "false");
 						}
 					});
 				}
@@ -166,15 +155,12 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 			shareLibCheckBox.setEnabled(false);
 			lPanel.add(shareLibCheckBox);
 			add(lPanel, "1,0");
-
 			JPanel rPanel = new JPanel();
 			rPanel.setLayout(new BoxLayout(rPanel, BoxLayout.Y_AXIS));
-			rPanel.add(Box.createVerticalStrut(5));
-
+			rPanel.add(Box.createVerticalStrut(10));
 			addLbl = new RLabel16B("Add to library (0 tracks)");
 			rPanel.add(addLbl);
 			rPanel.add(Box.createVerticalStrut(10));
-
 			RButton shareFilesBtn = new RGlassButton("Add from files...");
 			shareFilesBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -184,7 +170,6 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 			shareFilesBtn.setMaximumSize(new Dimension(200, 30));
 			rPanel.add(shareFilesBtn);
 			rPanel.add(Box.createVerticalStrut(10));
-
 			if (Platform.getPlatform().iTunesAvailable()) {
 				RButton shareITunesBtn = new RGlassButton("Add from iTunes...");
 				shareITunesBtn.addActionListener(new ActionListener() {
@@ -198,12 +183,12 @@ public class MyLibraryContentPanel extends ContentPanel implements UserPlaylistL
 			add(rPanel, "3,0");
 			onStartup();
 		}
-		
+
 		private void onStartup() {
 			// Deal with concurrency issues arising from controller and ui starting independently
 			frame.getController().getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					if(frame.getController().haveAllSharesStarted())
+					if (frame.getController().haveAllSharesStarted())
 						myLibraryUpdated();
 				}
 			});

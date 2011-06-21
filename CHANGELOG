@@ -9,4 +9,17 @@
 * UI performance enhancements & fixes
 * Incremental library loading
 * Eager detection of NAT Traversal
-* 'Show in Finder' in tracklist popup menus
+
+0.5.2
+
+* Various non-functional fixes
+
+0.5.3
+
+* Refactoring of metadata classes to allow plugins to provide their own metadata services
+* Midas metadata now loads asynchronously and much faster
+* Filtering/sorting tracklists now lightning fast thanks to GlazedLists
+* 'Add friends' functionality
+* Can now right-click on shared tracks and show in finder/explorer
+* Pre-downloads next track on tracklist when approaching end of playing track
+

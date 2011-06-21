@@ -16,7 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.TextUtil;
 import com.robonobo.common.util.TimeUtil;
 import com.robonobo.core.api.model.Playlist;

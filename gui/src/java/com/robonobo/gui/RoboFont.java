@@ -14,7 +14,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.ByteUtil;
 
 /**
@@ -82,7 +82,7 @@ public class RoboFont {
 			baseBoldFont = onePoint.deriveFont(Font.BOLD, 12);
 			derivedBoldFonts.put(12, baseBoldFont);
 		} catch (Exception e) {
-			throw new SeekInnerCalmException(e);
+			throw new Errot(e);
 		}
 	}
 

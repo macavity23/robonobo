@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.api.model.Library;
 import com.robonobo.core.api.model.UserConfig;
 import com.robonobo.core.api.proto.CoreApi.LibraryMsg;

@@ -155,6 +155,8 @@ E track plays
 
 Friends/Facebook/Twitter
 =====================
+TODO add friends
+
 D share playlist with user B
 E user B receives invite email
 D as user B, accept invite, register via facebook
@@ -169,7 +171,7 @@ D make new playlist, add same tracks
 D share playlist with user B
 E user B receives email
 D login as user B
-E playlist is there
+E playlist is there and boldified in list
 
 D register as user C through rbnb site
 D log into app as user C, restart app
@@ -238,6 +240,9 @@ D download track
 E track downloads
 D as track is downloading, hit play
 E track plays
+D wait for track to download
+D right-click track, select 'show in finder/explorer'
+E finder/explorer opens
 
 D go to friend's playlist (>4 items), hit download automatically
 E all items in playlist download successfully

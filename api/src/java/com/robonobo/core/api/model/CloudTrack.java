@@ -9,6 +9,16 @@ public class CloudTrack extends Track {
 		this.numSources = numSources;
 	}
 	
+	public CloudTrack(CloudTrack t) {
+		super(t);
+		numSources = t.numSources;
+	}
+	
+	@Override
+	public CloudTrack clone() {
+		return new CloudTrack(this);
+	}
+	
 	public int getNumSources() {
 		return numSources;
 	}

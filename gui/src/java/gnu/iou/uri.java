@@ -45,7 +45,7 @@ package gnu.iou;
  * scheme class of component. </dd>
  * 
  * <dt><code><b>//</b>host<b>/</b></code></dt>
- * <dd> The host class of component may have username, password,
+ * <dd> The host class of component may have email, password,
  * hostname and port number subcomponents. </dd>
  * 
  * <dt><code>path</code></dt>
@@ -242,7 +242,7 @@ public class uri
      */
     public final static int TYPE_HOST        = 0x0002;
     /**
-     * Reference host username subcomponent.  Note that Type Host
+     * Reference host email subcomponent.  Note that Type Host
      * supports only four parts.
      */
     public final static int TYPE_HOST_USER   = 0x0002+0x0100;

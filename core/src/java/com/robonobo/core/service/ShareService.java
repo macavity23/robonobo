@@ -13,7 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.pageio.buffer.FilePageBuffer;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.api.RobonoboException;
@@ -25,24 +25,20 @@ import com.robonobo.mina.external.MinaControl;
 import com.robonobo.mina.external.buffer.PageBuffer;
 import com.robonobo.spi.FormatSupportProvider;
 
-/**
- * Responsible for translating mina Broadcasts to robonobo Shares
+/** Responsible for translating mina Broadcasts to robonobo Shares
  * 
- * @author macavity
- */
-@SuppressWarnings("unchecked")
+ * @author macavity */
 public class ShareService extends AbstractService {
 	/** Seconds */
 	// public static final int WATCHDIR_CHECK_FREQ = 60 * 10;
 	public static final int WATCHDIR_CHECK_FREQ = 30;
 	public static final int WATCHDIR_INITIAL_WAIT = 30;
-
 	Log log = LogFactory.getLog(getClass());
 	DbService db;
 	EventService event;
 	UserService users;
 	StorageService storage;
-	MetadataService metadata;
+	StreamService streams;
 	PlaybackService playback;
 	MinaControl mina;
 	private Set<String> shareStreamIds;
@@ -51,7 +47,7 @@ public class ShareService extends AbstractService {
 
 	public ShareService() {
 		addHardDependency("core.mina");
-		addHardDependency("core.metadata");
+		addHardDependency("core.streams");
 		addHardDependency("core.storage");
 	}
 
@@ -59,15 +55,14 @@ public class ShareService extends AbstractService {
 	public void startup() throws Exception {
 		db = rbnb.getDbService();
 		event = rbnb.getEventService();
-		users = rbnb.getUsersService();
+		users = rbnb.getUserService();
 		storage = rbnb.getStorageService();
-		metadata = rbnb.getMetadataService();
+		streams = rbnb.getStreamService();
 		playback = rbnb.getPlaybackService();
 		mina = rbnb.getMina();
 		// Keep track of our stream ids, everything else loaded on-demand from the db
 		shareStreamIds = db.getShares();
-		watchDirTask = getRobonobo().getExecutor().scheduleWithFixedDelay(new WatchDirChecker(), WATCHDIR_INITIAL_WAIT,
-				WATCHDIR_CHECK_FREQ, TimeUnit.SECONDS);
+		watchDirTask = getRobonobo().getExecutor().scheduleWithFixedDelay(new WatchDirChecker(), WATCHDIR_INITIAL_WAIT, WATCHDIR_CHECK_FREQ, TimeUnit.SECONDS);
 	}
 
 	@Override
@@ -76,9 +71,14 @@ public class ShareService extends AbstractService {
 		watchDirTask.cancel(true);
 	}
 
-	public void addShare(String streamId, File dataFile) throws RobonoboException {
+	/** NB The stream referenced by stream id must already have been put into streamservice
+	 * 
+	 * @param streamId
+	 * @param dataFile
+	 * @throws RobonoboException */
+	public void addShare(Stream s, File dataFile) throws RobonoboException {
+		String streamId = s.getStreamId();
 		log.info("Adding share for id " + streamId + " at " + dataFile.getAbsolutePath());
-		Stream s = metadata.getStream(streamId);
 		SharedTrack sh = db.getShare(streamId);
 		if (sh != null) {
 			log.info("Not adding share for id " + streamId + " - sharing already");
@@ -104,7 +104,7 @@ public class ShareService extends AbstractService {
 		rbnb.getLibraryService().addToLibrary(streamId);
 		event.fireTrackUpdated(s.getStreamId());
 		event.fireMyLibraryUpdated();
-		users.checkPlaylistsForNewShare(sh);
+		rbnb.getPlaylistService().checkPlaylistsForNewShare(sh);
 	}
 
 	private File fileForFinishedDownload(Stream s) {
@@ -115,8 +115,7 @@ public class ShareService extends AbstractService {
 		if (album == null)
 			album = "Unknown Album";
 		String sep = File.separator;
-		File targetDir = new File(rbnb.getConfig().getFinishedDownloadsDirectory() + sep + makeFileNameSafe(artist)
-				+ sep + makeFileNameSafe(album));
+		File targetDir = new File(rbnb.getConfig().getFinishedDownloadsDirectory() + sep + makeFileNameSafe(artist) + sep + makeFileNameSafe(album));
 		targetDir.mkdirs();
 		String fileExt = rbnb.getFormatService().getFormatSupportProvider(s.getMimeType()).getDefaultFileExtension();
 		return new File(targetDir, makeFileNameSafe(s.getTitle()) + "." + fileExt);
@@ -126,7 +125,7 @@ public class ShareService extends AbstractService {
 		Stream s = d.getStream();
 		log.debug("Adding share for completed download " + s.getStreamId());
 		if (d.getDownloadStatus() != DownloadStatus.Finished) {
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		}
 		File curFile = d.getFile();
 		File shareFile = fileForFinishedDownload(s);
@@ -151,12 +150,12 @@ public class ShareService extends AbstractService {
 		}
 		startShare(s.getStreamId());
 		event.fireTrackUpdated(s.getStreamId());
-		users.checkPlaylistsForNewShare(sh);
+		rbnb.getPlaylistService().checkPlaylistsForNewShare(sh);
 	}
 
 	public void deleteShare(String streamId) {
 		log.info("Deleting share for stream " + streamId);
-		playback.stopIfCurrentlyPlaying(streamId);
+		playback.stopForDeletedStream(streamId);
 		SharedTrack share = db.getShare(streamId);
 		if (share == null)
 			return;
@@ -168,13 +167,11 @@ public class ShareService extends AbstractService {
 		}
 		rbnb.getLibraryService().delFromLibrary(streamId);
 		event.fireTrackUpdated(streamId);
+		event.fireMyLibraryUpdated();
 	}
 
 	private void startShare(String streamId) throws RobonoboException {
-		Stream s = db.getStream(streamId);
-		if (s == null)
-			metadata.putStream(s);
-		mina.startBroadcast(s.getStreamId());
+		mina.startBroadcast(streamId);
 	}
 
 	private void stopShare(String streamId) {
@@ -224,8 +221,8 @@ public class ShareService extends AbstractService {
 							Stream s;
 							try {
 								s = getRobonobo().getFormatService().getStreamForFile(mp3File);
-								metadata.putStream(s);
-								addShare(s.getStreamId(), mp3File);
+								streams.putStream(s);
+								addShare(s, mp3File);
 							} catch (Exception e) {
 								log.error("Error adding file " + mp3File.getAbsolutePath() + ": " + e.getMessage());
 								continue;
@@ -254,7 +251,7 @@ public class ShareService extends AbstractService {
 		for (String sid : arr) {
 			// We don't cache the page buffer unless we need it (there could be 10^4+), just look it up to make sure
 			// it's kosher
-			FilePageBuffer pb = storage.getPageBuf(sid);
+			FilePageBuffer pb = storage.getPageBuf(sid, false);
 			if (pb == null) {
 				// Errot
 				log.error("Found null pagebuf when starting share for " + sid + " - deleting share");
@@ -265,8 +262,7 @@ public class ShareService extends AbstractService {
 			// a removable drive that will come back later
 			File file = pb.getFile();
 			if (!file.exists() || !file.canRead()) {
-				log.error("Could not find or read from file " + file.getAbsolutePath() + " for stream " + sid
-						+ " - not starting share");
+				log.error("Could not find or read from file " + file.getAbsolutePath() + " for stream " + sid + " - not starting share");
 				synchronized (this) {
 					shareStreamIds.remove(sid);
 				}
@@ -274,7 +270,8 @@ public class ShareService extends AbstractService {
 			}
 			shareSids.add(sid);
 		}
-		getRobonobo().getMina().startBroadcasts(shareSids);
+		if(shareSids.size() > 0)
+			rbnb.getMina().startBroadcasts(shareSids);
 		log.debug("Start Share thread finished: started " + shareSids.size() + " shares");
 	}
 

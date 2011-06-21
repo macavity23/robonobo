@@ -12,7 +12,7 @@ import org.apache.commons.logging.Log;
 import com.google.protobuf.ByteString;
 import com.robonobo.common.concurrent.Attempt;
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.NumberUtil;
 import com.robonobo.core.api.CurrencyException;
 import com.robonobo.core.api.StreamVelocity;
@@ -274,7 +274,7 @@ public class BuyMgr {
 			accountsInProgress.remove(sellerNodeId);
 			AuctionState as = asMap.get(sellerNodeId);
 			if (as == null)
-				throw new SeekInnerCalmException();
+				throw new Errot();
 			timeUntilBid = as.getBidsOpen();
 		}
 		if (timeUntilBid <= 0)

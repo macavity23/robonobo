@@ -43,14 +43,16 @@ public class UserConfigController extends BaseController {
 		readFromInput(b, req);
 		MidasUserConfig newCfg = new MidasUserConfig(b.build());
 		MidasUserConfig curCfg = midas.getUserConfig(authUser);
-		if (curCfg == null)
+		if (curCfg == null) {
 			midas.putUserConfig(newCfg);
-		else {
+			curCfg = newCfg;
+		} else {
 			// User has existing config - add/replace items from the serialized one
 			for (String iName : newCfg.getItems().keySet()) {
 				curCfg.getItems().put(iName, newCfg.getItems().get(iName));
 			}
 			midas.putUserConfig(curCfg);
 		}
+		writeToOutput(curCfg.toMsg(), resp);
 	}
 }

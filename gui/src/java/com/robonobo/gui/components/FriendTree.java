@@ -27,7 +27,7 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 	static final Dimension MAX_LVL2_SZ = new Dimension(135, Integer.MAX_VALUE);
 
 	LeftSidebar sideBar;
-	ImageIcon rootIcon, friendIcon, playlistIcon, libraryIcon;
+	ImageIcon rootIcon, addFriendsIcon, friendIcon, playlistIcon, libraryIcon;
 	Font normalFont, boldFont;
 
 	public FriendTree(LeftSidebar sb, RobonoboFrame frame) {
@@ -42,6 +42,7 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 		collapseRow(0);
 
 		rootIcon = createImageIcon("/icon/friends.png", null);
+		addFriendsIcon = createImageIcon("/icon/add_friends.png", null);
 		friendIcon = createImageIcon("/icon/friend.png", null);
 		playlistIcon = createImageIcon("/icon/playlist.png", null);
 		libraryIcon = createImageIcon("/icon/home.png", null);
@@ -54,9 +55,16 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 				TreePath tp = e.getNewLeadSelectionPath();
 				if (tp == null)
 					return;
-				if (!(tp.getLastPathComponent() instanceof SelectableTreeNode))
+				Object selNode = tp.getLastPathComponent();
+				if(selNode instanceof ButtonTreeNode) {
+					ButtonTreeNode btn = (ButtonTreeNode) selNode;
+					btn.onClick();
+					setSelectionPath(e.getOldLeadSelectionPath());
 					return;
-				SelectableTreeNode stn = (SelectableTreeNode) tp.getLastPathComponent();
+				}
+				if (!(selNode instanceof SelectableTreeNode))
+					return;
+				SelectableTreeNode stn = (SelectableTreeNode) selNode;
 				if (stn.wantSelect()) {
 					sideBar.clearSelectionExcept(FriendTree.this);
 					if (stn.handleSelect())
@@ -118,6 +126,11 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 					lbl.setFont(boldFont);
 				} else
 					lbl.setFont(normalFont);
+			} else if(node instanceof AddFriendsTreeNode) {
+				lbl.setIcon(addFriendsIcon);
+				lbl.setMaximumSize(MAX_LVL1_SZ);
+				lbl.setPreferredSize(MAX_LVL1_SZ);
+				lbl.setFont(normalFont);
 			} else if (node.getParent() == null) {
 				lbl.setIcon(rootIcon);
 				lbl.setMaximumSize(MAX_LVL0_SZ);

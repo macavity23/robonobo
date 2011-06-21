@@ -9,7 +9,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.List;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 
 public class StreamTransfer implements Transferable {
 	public static DataFlavor DATA_FLAVOR;
@@ -21,7 +21,7 @@ public class StreamTransfer implements Transferable {
 			flavors = new DataFlavor[1];
 			flavors[0] = DATA_FLAVOR;
 		} catch (ClassNotFoundException e) {
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		}
 	}
 

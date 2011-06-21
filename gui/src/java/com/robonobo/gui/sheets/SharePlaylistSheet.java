@@ -7,7 +7,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.*;
 import java.util.*;
-import java.util.regex.Pattern;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -30,7 +29,7 @@ import com.robonobo.gui.frames.RobonoboFrame;
 public class SharePlaylistSheet extends Sheet {
 	private static final String DEFAULT_EMAILS = "Email1, email2...";
 	private Playlist p;
-	private Dimension size = new Dimension(445, 230);
+	private Dimension size = new Dimension(445, 305);
 	private JList friendList;
 	private RTextField emailField;
 	private RButton shareBtn;
@@ -43,13 +42,17 @@ public class SharePlaylistSheet extends Sheet {
 		this.p = p;
 		control = frame.getController();
 		setPreferredSize(size);
-		double[][] cellSizen = { { 10, 150, 5, 270, 10 }, { 10, 25, 10, 100, 10, 25, 10, 30, 10 } };
+		double[][] cellSizen = { { 10, 170, 5, 250, 10 }, { 10, 25, 5, 50, 5, 20, 5, 100, 10, 25, 10, 30, 10 } };
 		setLayout(new TableLayout(cellSizen));
 		setName("playback.background.panel");
-		RLabel titleLbl = new RLabel14B("Share playlist '"+p.getTitle()+"' with:");
+		RLabel titleLbl = new RLabel16B("Share playlist '"+p.getTitle()+"':");
 		add(titleLbl, "1,1,3,1");
+		String blurbText = "When you share a playlist with friends, they will be notified by email. They will be able to update the playlist, and you will see any changes they make.";
+		LineBreakTextPanel blurbPnl = new LineBreakTextPanel(blurbText, RoboFont.getFont(13, false), new Dimension(425, 50));
+		add(blurbPnl, "1,3,3,3");
+		add(new RLabel14B("Share with:"), "1,5,3,5");
 		RLabel exFriendLbl = new RLabel12("Existing friends:");
-		add(exFriendLbl, "1,3,l,t");
+		add(exFriendLbl, "1,7,l,t");
 		Vector<UserWrapper> friends = new Vector<UserWrapper>();
 		for (Long friendId : control.getMyUser().getFriendIds()) {
 			User user = control.getUser(friendId);
@@ -65,10 +68,10 @@ public class SharePlaylistSheet extends Sheet {
 				shareBtn.setEnabled(targetSelected());
 			}
 		});
-		add(new JScrollPane(friendList), "3,3");
+		add(new JScrollPane(friendList), "3,7");
 
 		RLabel newFriendLbl = new RLabel12("New friends:");
-		add(newFriendLbl, "1,5");
+		add(newFriendLbl, "1,9");
 		emailField = new RTextField(DEFAULT_EMAILS);
 		emailField.addKeyListener(new KeyAdapter() {
 			public void keyReleased(KeyEvent e) {
@@ -81,7 +84,7 @@ public class SharePlaylistSheet extends Sheet {
 					emailField.setText("");
 			}
 		});
-		add(emailField, "3,5");
+		add(emailField, "3,9");
 
 //		int invitesLeft = control.getMyUser().getInvitesLeft();
 //		if (invitesLeft <= 0)
@@ -89,7 +92,7 @@ public class SharePlaylistSheet extends Sheet {
 //		RLabel inviteLbl = new RLabel12(numItems(invitesLeft, "invite") + " left");
 //		add(inviteLbl, "1,7");
 
-		add(new ButtonPanel(), "3,7,r,t");
+		add(new ButtonPanel(), "3,11,r,t");
 	}
 	
 	@Override

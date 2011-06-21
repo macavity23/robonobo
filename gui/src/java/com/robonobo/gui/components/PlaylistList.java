@@ -4,8 +4,7 @@ import static com.robonobo.gui.GuiUtil.*;
 import static com.robonobo.gui.RoboColor.*;
 import static javax.swing.SwingUtilities.*;
 
-import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
@@ -17,10 +16,10 @@ import javax.swing.*;
 import org.jdesktop.swingx.renderer.DefaultListRenderer;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.Platform;
-import com.robonobo.core.api.UserPlaylistListener;
+import com.robonobo.core.api.*;
 import com.robonobo.core.api.model.*;
+import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.base.RLabel12;
 import com.robonobo.gui.components.base.RMenuItem;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -32,7 +31,7 @@ import com.robonobo.gui.sheets.DeletePlaylistSheet;
 import com.robonobo.gui.sheets.SharePlaylistSheet;
 
 @SuppressWarnings("serial")
-public class PlaylistList extends LeftSidebarList implements UserPlaylistListener {
+public class PlaylistList extends LeftSidebarList implements UserListener, PlaylistListener, LoginListener {
 	private static final int MAX_LBL_WIDTH = 170;
 
 	ImageIcon playlistIcon;
@@ -46,7 +45,9 @@ public class PlaylistList extends LeftSidebarList implements UserPlaylistListene
 		setAlignmentX(0.0f);
 		setMaximumSize(new Dimension(65535, 65535));
 		// We do the listener stuff here rather than in the model as we may need to reselect or resize as a consequence
-		frame.getController().addUserPlaylistListener(this);
+		frame.getController().addUserListener(this);
+		frame.getController().addPlaylistListener(this);
+		frame.getController().addLoginListener(this);
 		setTransferHandler(new DnDHandler());
 		addMouseListener(new MouseAdapter() {
 			@Override
@@ -82,26 +83,25 @@ public class PlaylistList extends LeftSidebarList implements UserPlaylistListene
 	}
 
 	@Override
-	public void loggedIn() {
-		invokeLater(new CatchingRunnable() {
+	public void loginSucceeded(User me) {
+		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				getModel().clear();
 			}
 		});
 	}
-
+	
 	@Override
-	public void allUsersAndPlaylistsUpdated() {
-		// TODO Auto-generated method stub
-
+	public void loginFailed(String reason) {
+		// Do nothing
 	}
-
+	
 	@Override
 	public void userChanged(final User u) {
+		if (u.getUserId() != frame.getController().getMyUser().getUserId())
+			return;
 		invokeLater(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				if (u.getUserId() != frame.getController().getMyUser().getUserId())
-					return;
 
 				Playlist selP = (getSelectedIndex() < 0) ? null : getModel().getPlaylistAt(getSelectedIndex());
 				boolean selPGone = false;
@@ -134,10 +134,10 @@ public class PlaylistList extends LeftSidebarList implements UserPlaylistListene
 
 	@Override
 	public void playlistChanged(final Playlist p) {
-		invokeLater(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				Long plId = p.getPlaylistId();
-				if (frame.getController().getMyUser().getPlaylistIds().contains(plId)) {
+		Long plId = p.getPlaylistId();
+		if (frame.getController().getMyUser().getPlaylistIds().contains(plId)) {
+			invokeLater(new CatchingRunnable() {
+				public void doRun() throws Exception {
 					Playlist selP = (getSelectedIndex() < 0) ? null : getModel().getPlaylistAt(getSelectedIndex());
 					boolean needReselect = p.equals(selP);
 					getModel().remove(p);
@@ -147,8 +147,8 @@ public class PlaylistList extends LeftSidebarList implements UserPlaylistListene
 						setSelectedIndex(idx);
 					}
 				}
-			}
-		});
+			});		
+		}
 	}
 
 	@Override
@@ -159,6 +159,11 @@ public class PlaylistList extends LeftSidebarList implements UserPlaylistListene
 	@Override
 	protected void itemSelected(int index) {
 		frame.getMainPanel().selectContentPanel("playlist/" + getModel().getPlaylistAt(index).getPlaylistId());
+		int unseen = getModel().numUnseen(index);
+		if(unseen > 0) {
+			frame.getController().markAllAsSeen(getModel().getPlaylistAt(index));
+			getModel().markAllAsSeen(index);
+		}
 	}
 
 	class PopupMenu extends JPopupMenu implements ActionListener {
@@ -207,11 +212,24 @@ public class PlaylistList extends LeftSidebarList implements UserPlaylistListene
 
 	class CellRenderer extends DefaultListRenderer {
 		JLabel lbl = new ItemLbl();
-
+		Font normalFont, boldFont;
+		
+		public CellRenderer() {
+			normalFont = RoboFont.getFont(12, false);
+			boldFont = RoboFont.getFont(12, true);
+		}
+		
 		@Override
 		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
 				boolean cellHasFocus) {
-			lbl.setText((String) value);
+			String text = (String) value;
+			int unseen = getModel().numUnseen(index);
+			if(unseen > 0) {
+				text = text + "[" + unseen+ "]";
+				lbl.setFont(boldFont);
+			} else
+				lbl.setFont(normalFont);
+			lbl.setText(text);
 			lbl.setIcon(playlistIcon);
 			if (isSelected) {
 				lbl.setBackground(LIGHT_GRAY);

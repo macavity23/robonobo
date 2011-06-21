@@ -78,7 +78,7 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 		public TaskPanel(Task task) {
 			this.t = task;
 
-			double[][] cellSizen = { { 10, 200, 10, TableLayout.FILL, 10, 80, 10 }, { 10, 25, 10, 25, 10, 1 } };
+			double[][] cellSizen = { { 10, 300, 10, TableLayout.FILL, 10, 80, 10 }, { 10, 25, 10, 25, 10, 1 } };
 			setLayout(new TableLayout(cellSizen));
 
 			titleLbl = new RLabel18B(t.getTitle());
@@ -126,7 +126,7 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 					if ((t.getCompletion() - 1f) == 0f) {
 						if (contentPanelSelected()) {
 							cancelBtn.setText("Clear");
-							// Start a timer to nuke this task
+							// Start a timer to nuke this pFetcher
 							frame.getController().getExecutor().schedule(new CatchingRunnable() {
 								public void doRun() throws Exception {
 									removeTask(t);

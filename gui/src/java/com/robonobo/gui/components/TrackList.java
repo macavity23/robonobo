@@ -6,24 +6,28 @@ import static com.robonobo.gui.GuiUtil.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumn;
+import javax.swing.table.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jdesktop.swingx.JXTable;
-import org.jdesktop.swingx.decorator.*;
-import org.jdesktop.swingx.decorator.SortOrder;
+import org.jdesktop.swingx.decorator.HighlighterFactory;
+import org.jdesktop.swingx.decorator.PatternFilter;
 import org.jdesktop.swingx.table.TableColumnExt;
 import org.jdesktop.swingx.table.TableColumnModelExt;
+
+import ca.odell.glazedlists.matchers.MatcherEditor;
+import ca.odell.glazedlists.matchers.MatcherEditor.Event;
+import ca.odell.glazedlists.swing.TableComparatorChooser;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
@@ -35,17 +39,16 @@ import com.robonobo.gui.*;
 import com.robonobo.gui.components.base.RBoldMenuItem;
 import com.robonobo.gui.components.base.RMenuItem;
 import com.robonobo.gui.frames.RobonoboFrame;
+import com.robonobo.gui.model.GlazedTrackListTableModel;
 import com.robonobo.gui.model.TrackListTableModel;
 import com.robonobo.gui.panels.MyPlaylistContentPanel;
 
 @SuppressWarnings("serial")
 public class TrackList extends JPanel {
-	/**
-	 * If the track list has more than this many tracks, we show a helpful message while we create/change it as the ui
-	 * might hang for a second or two
-	 */
+	static DateFormat dateAddedFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	/** If the track list has more than this many tracks, we show a helpful message while we create/change it as the ui
+	 * might hang for a second or two */
 	public static final int TRACKLIST_SIZE_THRESHOLD = 64;
-
 	JScrollPane scrollPane;
 	JXTable table;
 	TrackListTableModel model;
@@ -80,7 +83,6 @@ public class TrackList extends JPanel {
 				frame.getPlaybackPanel().trackSelectionChanged();
 			}
 		});
-
 		// Cell renderers
 		table.getColumn(0).setCellRenderer(new PlaybackStatusRenderer());
 		TextRenderer tr = new TextRenderer();
@@ -94,41 +96,32 @@ public class TrackList extends JPanel {
 		table.getColumn(8).setCellRenderer(new TransferStatusCellRenderer());
 		table.getColumn(9).setCellRenderer(tr);
 		table.getColumn(10).setCellRenderer(tr);
-		table.getColumn(11).setCellRenderer(tr);
+		table.getColumn(11).setCellRenderer(new DateRenderer());
 		table.getColumn(12).setCellRenderer(tr);
-
-		// NOTE disabling sorting for now as it causes massive performance hits when tracks are being inserted
+		// These incantations make the table compatible with glazedlist which does its own sorting inside the model
 		table.setSortable(false);
-
-		// Render table header as not bold and with sorting arrows
-		// NOTE massively irritating bug in java5 (maybe mac only, but they're the only ones stuck on j5 anyway) that
-		// renders the table header as white if we set a custom renderer here. So we only do it in java 6+ - means that
-		// java5 users don't see the sorting arrow, but it's better than a white header
-		if (javaMajorVersion() >= 6) {
-			table.getTableHeader().setDefaultRenderer(new DefaultTableCellRenderer() {
-				ImageIcon ascSortIcon = GuiUtil.createImageIcon("/icon/arrow_up.png", null);
-				ImageIcon descSortIcon = GuiUtil.createImageIcon("/icon/arrow_down.png", null);
-
-				public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-						boolean hasFocus, int row, int column) {
-					JLabel result = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
-							row, column);
-					result.setFont(RoboFont.getFont(12, false));
-					result.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 0));
-					SortOrder so = TrackList.this.table.getSortOrder(column);
-					if (so.isSorted()) {
-						if (so.isAscending())
-							setIcon(ascSortIcon);
-						else
-							setIcon(descSortIcon);
-					} else
-						result.setIcon(null);
-					result.setHorizontalTextPosition(SwingConstants.LEFT);
-					return result;
-				}
-			});
+		table.getTableHeader().setDefaultRenderer(new JTableHeader().getDefaultRenderer());
+		table.getTableHeader().setFont(RoboFont.getFont(13, false));
+		// These throw NoSuchMethodError on j5
+		if(javaMajorVersion() >= 6) {
+			table.setAutoCreateRowSorter(false);
+			table.setRowSorter(null);
 		}
-
+		// Set up glazedlist auto table sorter
+		scrollPane = new JScrollPane(table);
+		if(model.wantScrollEventsEver())
+			viewportListener = new ViewportListener();
+		if (model instanceof GlazedTrackListTableModel) {
+			GlazedTrackListTableModel gtltm = (GlazedTrackListTableModel) model;
+			if (gtltm.canSort()) {
+				TableComparatorChooser<Track> tcc = TableComparatorChooser.install(table, gtltm.getSortedList(), TableComparatorChooser.SINGLE_COLUMN);
+				if(viewportListener != null)
+					tcc.addSortActionListener(viewportListener);
+			}
+			MatcherEditor<Track> matchEdit = gtltm.getMatcherEditor();
+			if(matchEdit != null && viewportListener != null)
+				matchEdit.addMatcherEditorListener(viewportListener);
+		}
 		TableColumnModelExt cm = (TableColumnModelExt) table.getColumnModel();
 		cm.getColumn(0).setPreferredWidth(22); // Status icon
 		cm.getColumn(1).setPreferredWidth(187); // Title
@@ -143,18 +136,16 @@ public class TrackList extends JPanel {
 		cm.getColumn(10).setPreferredWidth(80); // Upload
 		cm.getColumn(11).setPreferredWidth(140); // Date Added
 		cm.getColumn(12).setPreferredWidth(300); // Stream Id
-
 		int[] hiddenCols = model.hiddenCols();
 		List<TableColumn> cols = cm.getColumns(true);
 		for (int i = 0; i < hiddenCols.length; i++) {
 			TableColumnExt colExt = (TableColumnExt) cols.get(hiddenCols[i]);
 			colExt.setVisible(false);
 		}
-
 		table.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					frame.getPlaybackPanel().play();
+					frame.getPlaybackPanel().playSelectedTracks();
 					e.consume();
 				}
 			}
@@ -184,27 +175,9 @@ public class TrackList extends JPanel {
 				popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
 		});
-
-		scrollPane = new JScrollPane(table);
-		if (model.wantScrollEventsEver()) {
-			viewportListener = new ViewportListener();
+		if (viewportListener != null)
 			scrollPane.getViewport().addChangeListener(viewportListener);
-		}
 		add(scrollPane, "0,0");
-	}
-
-	public void filterTracks(String filterStr) {
-		table.clearSelection();
-		if (filterStr == null || filterStr.length() == 0) {
-			table.setFilters(null);
-		} else {
-			final String lcf = filterStr.toLowerCase();
-			// Only include rows that have a matching title, artist, album or
-			// year
-			final int[] cols = { 1, 2, 3, 7 };
-			table.setFilters(new FilterPipeline(new MultiColumnPatternFilter(lcf, Pattern.CASE_INSENSITIVE, cols)));
-		}
-		updateViewport();
 	}
 
 	public TrackListTableModel getModel() {
@@ -220,7 +193,7 @@ public class TrackList extends JPanel {
 	}
 
 	public List<String> getSelectedStreamIds() {
-		int[] selRows = getSelectedRowsAsPerModel();
+		int[] selRows = table.getSelectedRows();
 		List<String> result = new ArrayList<String>(selRows.length);
 		for (int row : selRows) {
 			String sid = model.getStreamId(row);
@@ -231,7 +204,7 @@ public class TrackList extends JPanel {
 	}
 
 	public List<Track> getSelectedTracks() {
-		int[] selRows = getSelectedRowsAsPerModel();
+		int[] selRows = table.getSelectedRows();
 		List<Track> result = new ArrayList<Track>(selRows.length);
 		for (int row : selRows) {
 			// This might be null if we are in the middle of deleting rows
@@ -246,50 +219,26 @@ public class TrackList extends JPanel {
 		table.removeRowSelectionInterval(0, table.getRowCount() - 1);
 	}
 
-	public String getNextStreamId(String curStreamId) {
-		int modelIndex = model.getTrackIndex(curStreamId);
-		if (modelIndex < 0)
-			return null;
-		int tblIndex = table.convertRowIndexToView(modelIndex);
-		if (tblIndex >= table.getRowCount() - 1)
-			return null;
-		int nextModelIndex = table.convertRowIndexToModel(tblIndex + 1);
-		return model.getStreamId(nextModelIndex);
-	}
-
-	public String getPrevStreamId(String curStreamId) {
-		int modelIndex = model.getTrackIndex(curStreamId);
-		if (modelIndex < 0)
-			return null;
-		int tblIndex = table.convertRowIndexToView(modelIndex);
-		if (tblIndex <= 0)
-			return null;
-		int prevModelIndex = table.convertRowIndexToModel(tblIndex - 1);
-		return model.getStreamId(prevModelIndex);
+	/** Returns String[2], first is prev sid, second is next sid, either might be null - we get both at the same time to
+	 * avoid iterating over the list twice */
+	public String[] getPrevAndNextSids(String currentSid) {
+		String[] result = new String[2];
+		int idx = model.getTrackIndex(currentSid);
+		if (idx < 0)
+			return result;
+		int sz = model.getRowCount();
+		if (idx > 0)
+			result[0] = model.getStreamId(idx - 1);
+		if (idx < (sz - 1))
+			result[1] = model.getStreamId(idx + 1);
+		return result;
 	}
 
 	public void scrollTableToStream(String streamId) {
-		int modelIndex = model.getTrackIndex(streamId);
-		if (modelIndex < 0)
+		int idx = model.getTrackIndex(streamId);
+		if (idx < 0)
 			return;
-		int viewIndex = table.convertRowIndexToView(modelIndex);
-		if (viewIndex < 0 || viewIndex >= table.getRowCount() - 1)
-			return;
-		table.scrollRowToVisible(viewIndex);
-	}
-
-	protected String getStreamIdAtRow(int viewIndex) {
-		int modelIndex = table.convertRowIndexToModel(viewIndex);
-		return model.getStreamId(modelIndex);
-	}
-
-	public int[] getSelectedRowsAsPerModel() {
-		int[] tableRows = table.getSelectedRows();
-		int[] modelRows = new int[tableRows.length];
-		for (int i = 0; i < tableRows.length; i++) {
-			modelRows[i] = table.convertRowIndexToModel(tableRows[i]);
-		}
-		return modelRows;
+		table.scrollRowToVisible(idx);
 	}
 
 	public void deleteSelectedTracks() {
@@ -313,7 +262,7 @@ public class TrackList extends JPanel {
 		if (viewportListener != null) {
 			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					viewportListener.checkViewportAndFire();
+					viewportListener.viewportChanged();
 				}
 			});
 		}
@@ -349,11 +298,13 @@ public class TrackList extends JPanel {
 			newPl.addActionListener(this);
 			plMenu.add(newPl);
 			for (long plId : frame.getController().getMyUser().getPlaylistIds()) {
-				Playlist p = frame.getController().getPlaylist(plId);
-				RMenuItem pmi = new RMenuItem(p.getTitle());
-				pmi.setActionCommand("pl-" + p.getPlaylistId());
-				pmi.addActionListener(this);
-				plMenu.add(pmi);
+				Playlist p = frame.getController().getKnownPlaylist(plId);
+				if (p != null) {
+					RMenuItem pmi = new RMenuItem(p.getTitle());
+					pmi.setActionCommand("pl-" + p.getPlaylistId());
+					pmi.addActionListener(this);
+					plMenu.add(pmi);
+				}
 			}
 			add(plMenu);
 			if (model.allowDelete()) {
@@ -363,8 +314,8 @@ public class TrackList extends JPanel {
 				add(del);
 			}
 			String fileManagerName = Platform.getPlatform().fileManagerName();
-			if(needShow && fileManagerName != null) {
-				RMenuItem show = new RMenuItem("Show in "+fileManagerName);
+			if (needShow && fileManagerName != null) {
+				RMenuItem show = new RMenuItem("Show in " + fileManagerName);
 				show.setActionCommand("show");
 				show.addActionListener(this);
 				add(show);
@@ -375,7 +326,7 @@ public class TrackList extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			String action = e.getActionCommand();
 			if (action.equals("play"))
-				frame.getPlaybackPanel().play();
+				frame.getPlaybackPanel().playSelectedTracks();
 			else if (action.equals("download")) {
 				for (Track t : getSelectedTracks()) {
 					if (t instanceof CloudTrack) {
@@ -387,25 +338,23 @@ public class TrackList extends JPanel {
 					}
 				}
 			} else if (action.equals("newpl")) {
-				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel()
-						.getContentPanel("newplaylist");
+				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel().getContentPanel("newplaylist");
 				cp.addTracks(getSelectedStreamIds());
 			} else if (action.startsWith("pl-")) {
 				long plId = Long.parseLong(action.substring(3));
-				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel().getContentPanel(
-						"playlist/" + plId);
+				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel().getContentPanel("playlist/" + plId);
 				cp.addTracks(getSelectedStreamIds());
 			} else if (action.equals("delete")) {
 				frame.getMainPanel().currentContentPanel().getTrackList().deleteSelectedTracks();
-			} else if(action.equals("show")) {
+			} else if (action.equals("show")) {
 				File showFile = null;
 				for (Track t : getSelectedTracks()) {
 					if (t instanceof SharedTrack) {
-						showFile = ((SharedTrack)t).getFile();
+						showFile = ((SharedTrack) t).getFile();
 						break;
 					}
 				}
-				if(showFile != null) {
+				if (showFile != null) {
 					final File finalFile = showFile;
 					frame.getController().getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
@@ -422,8 +371,7 @@ public class TrackList extends JPanel {
 		Font plainFont = RoboFont.getFont(13, false);
 		Font boldFont = RoboFont.getFont(13, true);
 
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-				boolean hasFocus, int row, int column) {
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			Component result = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			((JComponent) result).setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 0));
 			if (column == 1)
@@ -435,15 +383,31 @@ public class TrackList extends JPanel {
 
 		@Override
 		protected void paintComponent(Graphics g) {
-			GuiUtil.makeTextLookLessRubbish(g);
+			makeTextLookLessRubbish(g);
+			super.paintComponent(g);
+		}
+	}
+
+	class DateRenderer extends DefaultTableCellRenderer {
+		Font font = RoboFont.getFont(13, false);
+
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+			String valStr = (value == null) ? "" : dateAddedFormat.format(value);
+			Component result = super.getTableCellRendererComponent(table, valStr, isSelected, hasFocus, row, column);
+			result.setFont(font);
+			return result;
+		}
+
+		@Override
+		protected void paintComponent(Graphics g) {
+			makeTextLookLessRubbish(g);
 			super.paintComponent(g);
 		}
 	}
 
 	class PlaybackStatusRenderer extends DefaultTableCellRenderer {
 		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-				boolean hasFocus, int row, int column) {
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			lbl.setText(null);
 			lbl.setHorizontalAlignment(JLabel.CENTER);
@@ -489,14 +453,11 @@ public class TrackList extends JPanel {
 			pBarPnl.add(pBar);
 		}
 
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-				boolean hasFocus, int row, int column) {
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 			JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			if (value instanceof DownloadingTransferStatus) {
-				DownloadingTransferStatus dStat = (DownloadingTransferStatus) value;
 				// Show a progress bar with how much we're downloading
-				String streamId = getStreamIdAtRow(row);
-				DownloadingTrack d = (DownloadingTrack) model.getTrack(model.getTrackIndex(streamId));
+				DownloadingTrack d = (DownloadingTrack) model.getTrack(row);
 				if (d == null)
 					return new JLabel();
 				long streamSz = d.getStream().getSize();
@@ -558,8 +519,9 @@ public class TrackList extends JPanel {
 		}
 	}
 
-	class ViewportListener implements ChangeListener {
+	class ViewportListener implements ChangeListener, ActionListener, MatcherEditor.Listener<Track> {
 		int firstRow = -1, lastRow = -1;
+		boolean modelChanged = false;
 		JViewport v;
 
 		public ViewportListener() {
@@ -567,27 +529,45 @@ public class TrackList extends JPanel {
 		}
 
 		public void stateChanged(ChangeEvent e) {
-			checkViewportAndFire();
+			// Called when the table is scrolled
+			viewportChanged();
 		}
 
-		public void checkViewportAndFire() {
+		public void actionPerformed(ActionEvent e) {
+			// Called when the table is resorted
+			modelChanged = true;
+			viewportChanged();
+		}
+		
+		public void changedMatcher(Event<Track> matcherEvent) {
+			// Called when the table is filtered
+			modelChanged = true;
+			viewportChanged();
+		}
+		
+		public void viewportChanged() {
 			if (!model.wantScrollEventsNow())
 				return;
 			Point viewPos = v.getViewPosition();
 			Dimension viewSz = v.getExtentSize();
+			int rowHeight = table.getRowHeight();
+			int rowsInViewport = viewSz.height / rowHeight + 1;
+			if(rowsInViewport > model.getRowCount())
+				rowsInViewport = model.getRowCount();
 			int newFirstRow = table.rowAtPoint(viewPos);
-			int newLastRow = table.rowAtPoint(new Point(viewPos.x, viewPos.y + viewSz.height));
-			if (newFirstRow == firstRow && newLastRow == lastRow)
+			if (newFirstRow < 0)
 				return;
-			if (newFirstRow < 0 || newLastRow < 0)
+			int newLastRow = newFirstRow + rowsInViewport - 1;
+			if ((!modelChanged) && newFirstRow == firstRow && newLastRow == lastRow)
 				return;
+			modelChanged = false;
 			firstRow = newFirstRow;
 			lastRow = newLastRow;
 			int[] modelIdxs = new int[lastRow - firstRow + 1];
 			for (int i = 0; i < modelIdxs.length; i++) {
 				modelIdxs[i] = table.convertRowIndexToModel(firstRow + i);
 			}
-			getModel().onScroll(modelIdxs);
+			model.onScroll(modelIdxs);
 		}
 	}
 }

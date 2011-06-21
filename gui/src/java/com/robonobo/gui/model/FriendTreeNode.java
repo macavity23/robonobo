@@ -32,13 +32,13 @@ public class FriendTreeNode extends SelectableTreeNode {
 	
 	@Override
 	public boolean handleSelect() {
-		// frame.getContentHolder().bringPanelToFront("friend-"+friend.getEmail());
-		// return true;
 		return false;
 	}
 
 	@Override
 	public int compareTo(SortableTreeNode o) {
+		if(!(o instanceof FriendTreeNode))
+			return 1;
 		FriendTreeNode other = (FriendTreeNode) o;
 		return friend.getFriendlyName().compareTo(other.getFriend().getFriendlyName());
 	}	

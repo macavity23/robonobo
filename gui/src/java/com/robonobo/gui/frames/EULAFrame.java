@@ -10,7 +10,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.swing.*;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 
@@ -70,7 +70,7 @@ public class EULAFrame extends JFrame {
 			}
 			is.close();
 		} catch (IOException e) {
-			throw new SeekInnerCalmException(e);
+			throw new Errot(e);
 		}
 		return sb.toString();
 	}

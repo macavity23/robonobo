@@ -34,10 +34,6 @@ public class LibraryTreeNode extends SelectableTreeNode {
 		return -1;
 	}
 
-	public Library getLib() {
-		return lib;
-	}
-
 	public void setLib(final Library lib, boolean isSelected) {
 		this.lib = lib;
 		// If we're selected, don't show any unseen tracks
@@ -83,7 +79,7 @@ public class LibraryTreeNode extends SelectableTreeNode {
 					activatePanel(hadUnseen);
 				}
 			};
-			if(lib.getTracks().size() < TrackList.TRACKLIST_SIZE_THRESHOLD)
+			if (lib.getTracks().size() < TrackList.TRACKLIST_SIZE_THRESHOLD)
 				task.run();
 			else
 				frame.runSlowTask("library loading", task);
@@ -95,7 +91,7 @@ public class LibraryTreeNode extends SelectableTreeNode {
 		frame.getController().getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				// Do this off the ui thread as there's a db hit marking 10^4 tracks as read
-				if(markAllAsSeen)
+				if (markAllAsSeen)
 					frame.getController().markAllAsSeen(lib);
 				// Activate this panel so it can find sources
 				TrackList trackList = frame.getMainPanel().getContentPanel(contentPanelName()).getTrackList();
@@ -103,9 +99,9 @@ public class LibraryTreeNode extends SelectableTreeNode {
 				model.activate();
 				trackList.updateViewport();
 			}
-		});		
+		});
 	}
-	
+
 	@Override
 	public boolean importData(Transferable t) {
 		return false;

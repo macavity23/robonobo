@@ -17,6 +17,17 @@ public class SharedTrack extends Track {
 		transferStatus = new SharingTransferStatus();
 	}
 
+	public SharedTrack(SharedTrack t) {
+		super(t);
+		file = t.file;
+		shareStatus = t.shareStatus;
+	}
+
+	@Override
+	public SharedTrack clone() {
+		return new SharedTrack(this);
+	}
+
 	public File getFile() {
 		return file;
 	}

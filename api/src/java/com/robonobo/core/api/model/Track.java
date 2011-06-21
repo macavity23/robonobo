@@ -4,10 +4,10 @@ import java.util.Date;
 
 public abstract class Track {
 	public enum PlaybackStatus {
-		None, Queued, Downloading, Starting, Playing, Paused
+		None, Queued, Downloading, Starting, Paused, Playing
 	};
 
-	protected Stream stream;
+	public Stream stream;
 	protected PlaybackStatus playbackStatus;
 	protected TransferStatus transferStatus;
 	private int dlRate, ulRate;
@@ -16,6 +16,16 @@ public abstract class Track {
 	public Track(Stream stream) {
 		this.stream = stream;
 	}
+
+	public Track(Track t) {
+		stream = t.stream;
+		playbackStatus = t.playbackStatus;
+		transferStatus = t.transferStatus;
+		dlRate = t.dlRate;
+		dateAdded = t.dateAdded;
+	}
+
+	public abstract Track clone();
 
 	public Stream getStream() {
 		return stream;
@@ -29,10 +39,7 @@ public abstract class Track {
 		this.playbackStatus = playbackStatus;
 	}
 
-	/**
-	 * This is the status of the search result/download/share, i.e. '112
-	 * sources', 'Downloading', 'Ready'
-	 */
+	/** This is the status of the search result/download/share, i.e. '112 sources', 'Downloading', 'Ready' */
 	public TransferStatus getTransferStatus() {
 		return transferStatus;
 	}
@@ -58,5 +65,19 @@ public abstract class Track {
 
 	public void setDateAdded(Date dateAdded) {
 		this.dateAdded = dateAdded;
+	}
+
+	/** Tracks will equal() each other if they have the same stream id, even if they are different classes */
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof Track))
+			return false;
+		Track t = (Track) o;
+		return stream.streamId.equals(t.stream.streamId);
+	}
+
+	@Override
+	public int hashCode() {
+		return stream.streamId.hashCode();
 	}
 }

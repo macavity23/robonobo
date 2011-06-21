@@ -20,7 +20,7 @@ public class ImportFilesTask extends Task {
 
 	@Override
 	public void runTask() throws Exception {
-		log.info("Running import files task for "+files.size()+" files");
+		log.info("Running import files pFetcher for "+files.size()+" files");
 		List<String> streamIds = new ArrayList<String>();
 		int totalSz = files.size();
 		int i = 0;

@@ -1,5 +1,7 @@
 package com.robonobo.gui.sheets;
 
+import static com.robonobo.gui.GuiUtil.*;
+import static javax.swing.SwingUtilities.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.ComponentOrientation;
@@ -13,13 +15,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
-import com.robonobo.common.serialization.UnauthorizedException;
+import com.robonobo.common.exceptions.Errot;
+import com.robonobo.core.RobonoboController;
+import com.robonobo.core.api.LoginListener;
+import com.robonobo.core.api.model.User;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 
-public class LoginSheet extends Sheet {
+public class LoginSheet extends Sheet implements LoginListener {
 	private RButton loginBtn;
 	private RButton cancelBtn;
 	private RTextField emailField;
@@ -28,6 +32,7 @@ public class LoginSheet extends Sheet {
 	private Runnable onLogin;
 	private boolean cancelAllowed;
 	private Log log = LogFactory.getLog(getClass());
+	RobonoboController control;
 
 	public LoginSheet(RobonoboFrame rFrame, boolean cancelAllowed, Runnable onLogin) throws HeadlessException {
 		super(rFrame);
@@ -44,7 +49,7 @@ public class LoginSheet extends Sheet {
 
 		add(new RLabel12("Email:"), "1,5,r,f");
 		emailField = new RTextField();
-		String email = frame.getController().getConfig().getMetadataServerUsername();
+		String email = frame.getController().getConfig().getMetadataUsername();
 		if(email != null)
 			emailField.setText(email);
 		add(emailField, "3,5");
@@ -52,7 +57,7 @@ public class LoginSheet extends Sheet {
 		add(new RLabel12("Password:"), "1,7,r,f");
 
 		passwordField = new RPasswordField();
-		String pwd = frame.getController().getConfig().getMetadataServerPassword();
+		String pwd = frame.getController().getConfig().getMetadataPassword();
 		if(pwd != null)
 			passwordField.setText(pwd);
 		add(passwordField, "3,7");
@@ -61,6 +66,7 @@ public class LoginSheet extends Sheet {
 		add(statusLbl, "1,9,3,9,RIGHT,CENTER");
 
 		add(new ButtonPanel(), "1,11,3,11");
+		control = frame.getController();
 
 	}
 
@@ -83,44 +89,44 @@ public class LoginSheet extends Sheet {
 		return passwordField;
 	}
 	
+	@Override
+	public void loginSucceeded(User me) {
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				LoginSheet.this.setVisible(false);
+			}
+		});
+		if(onLogin != null)
+			onLogin.run();
+		control.removeLoginListener(this);
+	}
+	
+	@Override
+	public void loginFailed(final String reason) {
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				emailField.setEnabled(true);
+				passwordField.setEnabled(true);
+				loginBtn.setEnabled(true);
+				statusLbl.setForeground(RoboColor.RED);
+				statusLbl.setText(reason);
+				passwordField.selectAll();
+				passwordField.requestFocusInWindow();
+			}
+		});
+		control.removeLoginListener(this);
+	}
+	
 	public void tryLogin() {
-		if(!SwingUtilities.isEventDispatchThread())
-			throw new SeekInnerCalmException();
+		if(!isEventDispatchThread())
+			throw new Errot();
 		emailField.setEnabled(false);
 		passwordField.setEnabled(false);
 		loginBtn.setEnabled(false);
 		statusLbl.setForeground(RoboColor.DARKISH_GRAY);
-		statusLbl.setText("Logging in...");		
-		// Do this buggering about with runnables to avoid blocking the ui thread as we login
-		frame.getController().getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				String errorMsg = null;
-				try {
-					frame.getController().login(emailField.getText(), new String(passwordField.getPassword()));
-				} catch(UnauthorizedException e) {
-					errorMsg = "Login failed";
-				} catch(Exception e) {
-					errorMsg = "Server error";
-					log.error("Caught exception logging in", e);
-				}
-				final String flarp = errorMsg;
-				SwingUtilities.invokeLater(new CatchingRunnable() {
-					public void doRun() throws Exception {
-						emailField.setEnabled(true);
-						passwordField.setEnabled(true);
-						loginBtn.setEnabled(true);
-						if(flarp == null)
-							LoginSheet.this.setVisible(false);
-						else {
-							statusLbl.setForeground(RoboColor.RED);
-							statusLbl.setText(flarp);
-						}
-					}
-				});
-				if(errorMsg == null && onLogin != null)
-					onLogin.run();
-			}
-		});
+		statusLbl.setText("Logging in...");	
+		control.addLoginListener(this);
+		control.login(emailField.getText(), new String(passwordField.getPassword()));
 	}
 
 	public boolean getCancelAllowed() {

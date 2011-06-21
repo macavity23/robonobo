@@ -7,7 +7,7 @@ public class CodeUtil {
 		return Integer.parseInt(vNums[1]);
 	}
 
-	public static String friendlyClassName(Class<?> clazz) {
+	public static String shortClassName(Class<?> clazz) {
 		String fqClass = clazz.getName();
 		return fqClass.substring(fqClass.lastIndexOf('.')+1);
 	}

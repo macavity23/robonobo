@@ -8,10 +8,9 @@ import info.clearthought.layout.TableLayout;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.*;
 
@@ -20,36 +19,41 @@ import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.Robonobo;
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.common.util.NetUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.RobonoboController;
-import com.robonobo.core.api.*;
-import com.robonobo.core.api.model.Playlist;
-import com.robonobo.core.api.model.UserConfig;
-import com.robonobo.gui.GuiUtil;
-import com.robonobo.gui.GuiConfig;
+import com.robonobo.core.api.TrackListener;
+import com.robonobo.core.api.model.*;
+import com.robonobo.core.metadata.UserConfigCallback;
+import com.robonobo.gui.*;
 import com.robonobo.gui.panels.*;
 import com.robonobo.gui.preferences.PrefDialog;
 import com.robonobo.gui.sheets.*;
 import com.robonobo.gui.tasks.ImportFilesTask;
 import com.robonobo.gui.tasks.ImportITunesTask;
-import com.robonobo.mina.external.ConnectedNode;
 import com.robonobo.mina.external.HandoverHandler;
 
 @SuppressWarnings("serial")
 public class RobonoboFrame extends SheetableFrame implements TrackListener {
-	private RobonoboController control;
+	public RobonoboController control;
 	private String[] cmdLineArgs;
 	private JMenuBar menuBar;
 	private MainPanel mainPanel;
 	private LeftSidebar leftSidebar;
 	private Log log = LogFactory.getLog(RobonoboFrame.class);
 	private GuiConfig guiConfig;
+	UriHandler uriHandler;
 	private boolean tracksLoaded;
 	private boolean shownLogin;
 
+	static RobonoboFrame instance;
+	
+	public static RobonoboFrame getInstance() {
+		return instance;
+	}
+	
 	public RobonoboFrame(RobonoboController control, String[] args) {
 		this.control = control;
 		this.cmdLineArgs = args;
@@ -75,6 +79,8 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		leftSidebar.selectMyMusic();
 		guiConfig = (GuiConfig) control.getConfig("gui");
 		addListeners();
+		uriHandler = new UriHandler(this);
+		instance = this;
 	}
 
 	private void addListeners() {
@@ -192,23 +198,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	public void openRbnbUri(String uri) {
-		Pattern uriPat = Pattern.compile("^rbnb:(\\w+):(.*)$");
-		Matcher m = uriPat.matcher(uri);
-		if (m.matches()) {
-			log.info("Opening URI "+uri);
-			String objType = m.group(1);
-			String objId = m.group(2);
-			if (objType.equalsIgnoreCase("focus")) {
-				// Do nothing, arg handler will bring us to front anyway
-				return;
-			}
-			if (objType.equalsIgnoreCase("playlist")) {
-				long pId = Long.parseLong(objId, 16);
-				leftSidebar.showPlaylist(pId);
-				return;
-			}
-		} else 
-			log.error("Received invalid rbnb uri: " + uri);
+		uriHandler.handle(uri);
 	}
 
 	public void showWelcome(boolean forceShow) {
@@ -224,12 +214,12 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	@Override
-	public void trackUpdated(String streamId) {
+	public void trackUpdated(String streamId, Track t) {
 		// Do nothing
 	}
 
 	@Override
-	public void tracksUpdated(Collection<String> streamIds) {
+	public void tracksUpdated(Collection<Track> trax) {
 		// Do nothing
 	}
 
@@ -335,24 +325,31 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	 */
 	public void postToFacebook(final Playlist p) {
 		if(!SwingUtilities.isEventDispatchThread())
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		UserConfig uc = control.getMyUserConfig();
 		if (uc == null || uc.getItem("facebookId") == null) {
 			// We don't seem to be registered for facebook - fetch a fresh copy of the usercfg from midas in
 			// case they've recently added themselves to fb, but GTFOTUT
-			control.getExecutor().execute(new CatchingRunnable() {
-				public void doRun() throws Exception {
-					UserConfig freshUc = control.refreshMyUserConfig();
-					if (freshUc == null || freshUc.getItem("facebookId") == null) {
+			control.fetchMyUserConfig(new UserConfigCallback() {
+				public void success(UserConfig freshUc) {
+					if (freshUc.getItem("facebookId") == null) {
 						// They haven't associated their facebook account with their rbnb one... open a browser window on the page to do so
-						NetUtil.browse(control.getConfig().getWebsiteUrlBase()+"before-facebook-attach");
+						try {
+							NetUtil.browse(control.getConfig().getWebsiteUrlBase()+"before-facebook-attach");
+						} catch (IOException e) {
+							throw new Errot(e);
+						}
 					} else {
-						SwingUtilities.invokeLater(new CatchingRunnable() {
+						runOnUiThread(new CatchingRunnable() {
 							public void doRun() throws Exception {
 								showSheet(new PostToFacebookSheet(RobonoboFrame.this, p));
 							}
 						});
 					}
+
+				}
+				
+				public void error(long userId, Exception e) {
 				}
 			});
 		} else
@@ -361,24 +358,31 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	
 	public void postToTwitter(final Playlist p) {
 		if(!SwingUtilities.isEventDispatchThread())
-			throw new SeekInnerCalmException();
+			throw new Errot();
 		UserConfig uc = control.getMyUserConfig();
 		if (uc == null || uc.getItem("twitterId") == null) {
 			// We don't seem to be registered for twitter - fetch a fresh copy of the usercfg from midas in
 			// case they've recently added themselves, but GTFOTUT
-			control.getExecutor().execute(new CatchingRunnable() {
-				public void doRun() throws Exception {
-					UserConfig freshUc = control.refreshMyUserConfig();
-					if (freshUc == null || freshUc.getItem("twitterId") == null) {
+			control.fetchMyUserConfig(new UserConfigCallback() {
+				public void success(UserConfig freshUc) {
+					if (freshUc.getItem("twitterId") == null) {
 						// They haven't associated their twitter account with their rbnb one...open a browser window on the page to do so
-						NetUtil.browse(control.getConfig().getWebsiteUrlBase()+"before-twitter-attach");
+						try {
+							NetUtil.browse(control.getConfig().getWebsiteUrlBase()+"before-twitter-attach");
+						} catch (IOException e) {
+							throw new Errot(e);
+						}
 					} else {
-						SwingUtilities.invokeLater(new CatchingRunnable() {
+						runOnUiThread(new CatchingRunnable() {
 							public void doRun() throws Exception {
 								showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));
 							}
 						});
 					}
+
+				}
+				
+				public void error(long userId, Exception e) {
 				}
 			});
 		} else
@@ -463,7 +467,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 
 	/**
 	 * For slow things that have to happen on the gui thread - shows a helpful message to mollify the user while their ui is frozen
-	 * @param task This will be run on the gui thread
+	 * @param pFetcher This will be run on the gui thread
 	 */
 	public void runSlowTask(final String whatsHappening, final Runnable task) {
 		runOnUiThread(new CatchingRunnable() {

@@ -13,6 +13,8 @@
 	<customProcName>true</customProcName>
 	<jre>
 		<minVersion>1.6.0</minVersion>
+		<maxHeapSize>128</maxHeapSize>
+		<opt>-XX:MaxPermSize=48m</opt>
 	</jre>
 	<messages>
 		<startupErr>robonobo encountered an error on startup. We are sorry :-( Please file a bug report at http://robonobo.com/ and we will fix it ASAP.</startupErr>

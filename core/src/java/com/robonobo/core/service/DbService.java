@@ -758,7 +758,7 @@ public class DbService extends AbstractService {
 	}
 
 	/**
-	 * Returns the sids for the streams in this user's library we haven't yet looked up
+	 * Returns the waitingForSids for the streams in this user's library we haven't yet looked up
 	 */
 	public Map<String, Date> getUnknownStreamsInLibrary(long userId) {
 		if (!running)

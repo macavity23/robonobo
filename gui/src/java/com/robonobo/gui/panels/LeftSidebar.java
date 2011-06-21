@@ -4,7 +4,8 @@ import static com.robonobo.gui.RoboColor.*;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.*;
 
@@ -12,8 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.core.api.LibraryListener;
-import com.robonobo.core.api.UserPlaylistListener;
+import com.robonobo.core.api.PlaylistListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.components.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -21,7 +21,7 @@ import com.robonobo.gui.model.ActiveSearchListModel;
 import com.robonobo.gui.model.SearchResultTableModel;
 
 @SuppressWarnings("serial")
-public class LeftSidebar extends JPanel implements UserPlaylistListener {
+public class LeftSidebar extends JPanel implements PlaylistListener {
 	List<LeftSidebarComponent> sideBarComps = new ArrayList<LeftSidebarComponent>();
 	RobonoboFrame frame;
 	private ActiveSearchList activeSearchList;
@@ -91,7 +91,7 @@ public class LeftSidebar extends JPanel implements UserPlaylistListener {
 		sideBarComps.add(statusPnl.getBalanceLbl());
 		add(statusPnl);
 		
-		frame.getController().addUserPlaylistListener(this);
+		frame.getController().addPlaylistListener(this);
 	}
 
 	private void relayoutSidebar() {
@@ -132,7 +132,7 @@ public class LeftSidebar extends JPanel implements UserPlaylistListener {
 			activeSearchList.selectForQuery(cpName.substring("search/".length()));
 		else if(cpName.startsWith("playlist/")) {
 			long plId = Long.parseLong(cpName.substring("playlist/".length()));
-			Playlist p = frame.getController().getPlaylist(plId);
+			Playlist p = frame.getController().getKnownPlaylist(plId);
 			selectForPlaylist(p);
 		} else if(cpName.startsWith("library/")) {
 			long uid = Long.parseLong(cpName.substring("library/".length()));
@@ -162,14 +162,8 @@ public class LeftSidebar extends JPanel implements UserPlaylistListener {
 		}
 	}
 	
-	public void showPlaylist(final long playlistId) {
-		// Make sure we've got the playlist before we go to the UI thread, or it might hang while we contact midas
-		final Playlist p = frame.getController().getPlaylist(playlistId); 
-		SwingUtilities.invokeLater(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				selectForPlaylist(p);
-			}
-		});
+	public void showPlaylist(Playlist p) {
+		selectForPlaylist(p);
 	}
 	
 	public void searchAdded(String query) {
@@ -199,22 +193,6 @@ public class LeftSidebar extends JPanel implements UserPlaylistListener {
 		}
 	}
 	
-	@Override
-	public void loggedIn() {
-		// Do nothing
-	}
-
-	@Override
-	public void allUsersAndPlaylistsUpdated() {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	@Override
-	public void userChanged(User u) {
-		// Do nothing
-		// TODO When we have a panel for friends, create it here
-	}
 
 	@Override
 	public void playlistChanged(Playlist p) {
@@ -239,10 +217,5 @@ public class LeftSidebar extends JPanel implements UserPlaylistListener {
 				frame.getMainPanel().addContentPanel(panelName, new MyPlaylistContentPanel(frame, p, pc));
 			}
 		}
-	}
-	
-	@Override
-	public void userConfigChanged(UserConfig cfg) {
-		// Do nothing
 	}
 }

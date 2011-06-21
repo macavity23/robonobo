@@ -2,8 +2,11 @@ package com.robonobo.gui.panels;
 
 import info.clearthought.layout.TableLayout;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
+import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 @SuppressWarnings("serial")
@@ -23,14 +26,14 @@ public class MainPanel extends JPanel {
 		addDefaultContentPanels();
 		selectContentPanel("mymusiclibrary");
 	}
-	
+
 	private void addDefaultContentPanels() {
 		addContentPanel("mymusiclibrary", new MyLibraryContentPanel(frame));
 		addContentPanel("newplaylist", new NewPlaylistContentPanel(frame));
 		addContentPanel("tasklist", new TaskListContentPanel(frame));
 		addContentPanel("wang", new WangContentPanel(frame));
 	}
-	
+
 	public void addContentPanel(String name, ContentPanel panel) {
 		cpHolder.addContentPanel(name, panel);
 	}
@@ -38,24 +41,35 @@ public class MainPanel extends JPanel {
 	public ContentPanel currentContentPanel() {
 		return cpHolder.currentContentPanel();
 	}
-	
+
 	public String currentContentPanelName() {
 		return cpHolder.currentPanelName();
 	}
-	
+
 	public ContentPanel getContentPanel(String name) {
 		return cpHolder.getContentPanel(name);
 	}
-	
+
 	public void selectContentPanel(String name) {
-		cpHolder.selectContentPanel(name);
-		playbackPanel.trackListPanelChanged();
+		ContentPanel cp = cpHolder.getContentPanel(name);
+		if (cp != null) {
+			cpHolder.selectContentPanel(name);
+			playbackPanel.trackListPanelChanged();
+			final JComponent toFocus = cp.defaultComponent();
+			if (toFocus != null) {
+				GuiUtil.runOnUiThread(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						toFocus.requestFocusInWindow();
+					}
+				});
+			}
+		}
 	}
 
 	public ContentPanel removeContentPanel(String panelName) {
 		return cpHolder.removeContentPanel(panelName);
 	}
-	
+
 	public PlaybackPanel getPlaybackPanel() {
 		return playbackPanel;
 	}

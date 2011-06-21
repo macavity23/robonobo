@@ -25,6 +25,17 @@ public class DownloadingTrack extends Track {
 			setPlaybackStatus(PlaybackStatus.Queued);
 	}
 
+	public DownloadingTrack(DownloadingTrack t) {
+		super(t);
+		file = t.file;
+		downloadStatus = t.downloadStatus;
+	}
+	
+	@Override
+	public DownloadingTrack clone() {
+		return new DownloadingTrack(this);
+	}
+	
 	public long getBytesDownloaded() {
 		if(pageBuf == null)
 			return 0;

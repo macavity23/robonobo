@@ -1,20 +1,29 @@
 package com.robonobo.wang.client;
 
-import java.io.IOException;
+import static com.robonobo.common.util.TextUtil.*;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PutMethod;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.methods.*;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.GeneratedMessage;
+import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.http.PreemptiveHttpClient;
 import com.robonobo.wang.WangServerException;
 import com.robonobo.wang.proto.WangProtocol.BalanceMsg;
 import com.robonobo.wang.proto.WangProtocol.BlindedCoinListMsg;
@@ -24,18 +33,31 @@ import com.robonobo.wang.proto.WangProtocol.DenominationListMsg;
 import com.robonobo.wang.proto.WangProtocol.DepositStatusMsg;
 
 public class BankFacade {
-	private static final int HTTP_TIMEOUT_MS = 30000;
+	static final Pattern URL_PATTERN = Pattern.compile("^http://([\\w\\.]+?):?(\\d*)/.*$");
 	private String baseUrl;
-	private HttpClient client;
+	private PreemptiveHttpClient client;
+	Log log = LogFactory.getLog(getClass());
+	private String bankHost;
+	private int bankPort;
 
-	public BankFacade(String baseUrl, String userEmail, String password) {
+	public BankFacade(String baseUrl, String userEmail, String password, PreemptiveHttpClient client) {
 		this.baseUrl = baseUrl;
-		if(!baseUrl.endsWith("/"))
+		this.client = client;
+		if (!baseUrl.endsWith("/"))
 			baseUrl += "/";
-		client = new HttpClient(new MultiThreadedHttpConnectionManager());
-		client.getParams().setSoTimeout(HTTP_TIMEOUT_MS);
-		client.getState().setAuthenticationPreemptive(true);
-		client.getState().setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(userEmail, password));
+		Matcher m = URL_PATTERN.matcher(baseUrl);
+		if (!m.matches())
+			throw new Errot("bank url " + baseUrl + "does not match expected pattern");
+		bankHost = m.group(1);
+		String portStr = m.group(2);
+		// Note that the httpclient preemptive auth breaks if we set this to 80, instead we have to use -1 :-P :-P :-P
+		if (isEmpty(portStr))
+			bankPort = -1;
+		else
+			bankPort = Integer.parseInt(portStr);
+		log.debug("Setting up bank http auth scope on " + bankHost + ":" + bankPort);
+		AuthScope bankAuthScope = new AuthScope(bankHost, bankPort);
+		client.getCredentialsProvider().setCredentials(bankAuthScope, new UsernamePasswordCredentials(userEmail, password));
 	}
 
 	public DenominationListMsg getDenominations() throws WangServerException {
@@ -64,26 +86,36 @@ public class BankFacade {
 
 	@SuppressWarnings("unchecked")
 	protected void makeRequest(GeneratedMessage toSend, AbstractMessage.Builder builder, String url) throws WangServerException {
-		HttpMethod method;
-		if (toSend == null)
-			method = new GetMethod(url);
-		else {
-			method = new PutMethod(url);
-			((PutMethod)method).setRequestEntity(new ByteArrayRequestEntity(toSend.toByteArray()));
-		}
-		int statusCode;
 		try {
-			statusCode = client.executeMethod(method);
-			if(statusCode != HttpStatus.SC_OK)
-				throw new WangServerException("Server replied with status: "+statusCode);
-			builder.mergeFrom(method.getResponseBody());
-		} catch (HttpException e) {
-			throw new WangServerException(e);
+			HttpRequestBase request;
+			if (toSend == null)
+				request = new HttpGet(url);
+			else {
+				HttpPut put = new HttpPut(url);
+				put.setEntity(new ByteArrayEntity(toSend.toByteArray()));
+				request = put;
+			}
+			HttpEntity body = null;
+			try {
+				// We use a new context each time as basichttpcontext is not thread safe
+				HttpContext context = new BasicHttpContext();
+				HttpResponse resp = client.execute(request, context);
+				body = resp.getEntity();
+				int statusCode = resp.getStatusLine().getStatusCode();
+				if (statusCode != 200)
+					throw new IOException("Server replied with status: " + statusCode);
+				InputStream is = body.getContent();
+				try {
+					builder.mergeFrom(is);
+				} finally {
+					is.close();
+				}
+			} finally {
+				if (body != null)
+					EntityUtils.consume(body);
+			}
 		} catch (IOException e) {
 			throw new WangServerException(e);
-		} finally {
-			if(method != null)
-				method.releaseConnection();
 		}
 	}
 }

@@ -24,14 +24,14 @@ import com.robonobo.common.serialization.UnauthorizedException;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.config.RobonoboConfig;
 import com.robonobo.core.api.model.*;
+import com.robonobo.core.metadata.PlaylistCallback;
+import com.robonobo.core.metadata.UserConfigCallback;
 import com.robonobo.core.wang.WangListener;
 import com.robonobo.mina.external.*;
 
-/**
- * Main external-facing Robonobo class
+/** Main external-facing Robonobo class
  * 
- * @author macavity
- */
+ * @author macavity */
 public class RobonoboController {
 	private RobonoboInstance inst;
 	private Log log;
@@ -69,12 +69,28 @@ public class RobonoboController {
 		inst.getEventService().removeStatusListener(l);
 	}
 
-	public void addUserPlaylistListener(UserPlaylistListener l) {
-		inst.getEventService().addUserPlaylistListener(l);
+	public void addLoginListener(LoginListener l) {
+		inst.getEventService().addLoginListener(l);
 	}
 
-	public void removeUserPlaylistListener(UserPlaylistListener l) {
-		inst.getEventService().removeUserPlaylistListener(l);
+	public void removeLoginListener(LoginListener l) {
+		inst.getEventService().removeLoginListener(l);
+	}
+
+	public void addUserListener(UserListener l) {
+		inst.getEventService().addUserListener(l);
+	}
+
+	public void removeUserListener(UserListener l) {
+		inst.getEventService().removeUserListener(l);
+	}
+
+	public void addPlaylistListener(PlaylistListener l) {
+		inst.getEventService().addPlaylistListener(l);
+	}
+
+	public void removePlaylistListener(PlaylistListener l) {
+		inst.getEventService().removePlaylistListener(l);
 	}
 
 	public void addLibraryListener(LibraryListener l) {
@@ -104,19 +120,19 @@ public class RobonoboController {
 	public void addTaskListener(TaskListener l) {
 		inst.getEventService().addTaskListener(l);
 	}
-	
+
 	public void removeTaskListener(TaskListener l) {
 		inst.getEventService().removeTaskListener(l);
 	}
-	
+
 	public void addNodeFilter(NodeFilter nf) {
 		inst.getMina().addNodeFilter(nf);
 	}
-	
+
 	public void removeNodeFilter(NodeFilter nf) {
 		inst.getMina().removeNodeFilter(nf);
 	}
-	
+
 	public RobonoboStatus getStatus() {
 		return inst.getStatus();
 	}
@@ -137,20 +153,19 @@ public class RobonoboController {
 		}
 	}
 
-	/**
-	 * Notifies that this streamId is going to be played shortly and should be downloaded/prioritized as necessary 
-	 */
-	public void preFetch(String streamId) {
+	/** Notifies that this streamId is going to be played shortly and should be downloaded/prioritized as necessary 
+	 * @throws RobonoboException */
+	public void preFetch(String streamId) throws RobonoboException {
+		if(inst.getShareService().getShare(streamId) != null)
+			return;
 		inst.getDownloadService().preFetch(streamId);
 	}
-	
+
 	public void addDownload(String streamId) throws RobonoboException {
 		inst.getDownloadService().addDownload(streamId);
 	}
 
-	/**
-	 * Spawns off a thread to download any tracks that are not already being downloaded or shared - returns immediately
-	 */
+	/** Spawns off a thread to download any tracks that are not already being downloaded or shared - returns immediately */
 	public void spawnNecessaryDownloads(final Collection<String> streamIds) {
 		getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
@@ -171,8 +186,8 @@ public class RobonoboController {
 		} catch (IOException e) {
 			throw new RobonoboException(e);
 		}
-		inst.getMetadataService().putStream(s);
-		inst.getShareService().addShare(s.getStreamId(), f);
+		inst.getStreamService().putStream(s);
+		inst.getShareService().addShare(s, f);
 		return s;
 	}
 
@@ -180,8 +195,8 @@ public class RobonoboController {
 		return inst.getDownloadService().getDownload(streamId);
 	}
 
-	public Stream getStream(String streamId) {
-		return inst.getMetadataService().getStream(streamId);
+	public Stream getKnownStream(String streamId) {
+		return inst.getStreamService().getKnownStream(streamId);
 	}
 
 	public SharedTrack getShare(String streamId) {
@@ -196,6 +211,10 @@ public class RobonoboController {
 		inst.getDownloadService().deleteDownload(streamId);
 	}
 
+	public void deleteDownloads(List<String> sids) throws RobonoboException {
+		inst.getDownloadService().deleteDownloads(sids);
+	}
+
 	public void deleteShare(String streamId) throws RobonoboException {
 		inst.getShareService().deleteShare(streamId);
 	}
@@ -203,7 +222,7 @@ public class RobonoboController {
 	public int getNumSharesAndDownloads() {
 		return inst.getDbService().numSharesAndDownloads();
 	}
-	
+
 	public String getMyNodeId() {
 		return inst.getMina().getMyNodeId();
 	}
@@ -266,9 +285,7 @@ public class RobonoboController {
 		return inst.getTrackService().getTrack(streamId);
 	}
 
-	/**
-	 * Download must already be added
-	 */
+	/** Download must already be added */
 	public void startDownload(String streamId) throws RobonoboException {
 		try {
 			inst.getDownloadService().startDownload(streamId);
@@ -285,10 +302,8 @@ public class RobonoboController {
 		return inst.getMina().numSources(streamId);
 	}
 
-	/**
-	 * @param streamId
-	 * @return
-	 */
+	/** @param streamId
+	 * @return */
 	public Set<String> getSources(String streamId) {
 		return inst.getMina().getSources(streamId);
 	}
@@ -322,10 +337,8 @@ public class RobonoboController {
 		inst.getPlaybackService().pause();
 	}
 
-	/**
-	 * @param ms
-	 *            Position in the stream to seek to, as millisecs from stream start
-	 */
+	/** @param ms
+	 *            Position in the stream to seek to, as millisecs from stream start */
 	public void seek(long ms) {
 		inst.getPlaybackService().seek(ms);
 	}
@@ -343,7 +356,7 @@ public class RobonoboController {
 		String sid = inst.getPlaybackService().getCurrentStreamId();
 		if (sid == null)
 			return null;
-		return inst.getMetadataService().getStream(sid);
+		return inst.getStreamService().getKnownStream(sid);
 	}
 
 	public List<File> getWatchDirs() {
@@ -364,26 +377,24 @@ public class RobonoboController {
 		inst.getDbService().deleteWatchDir(dir);
 	}
 
-	/**
-	 * @throws IOException If server cannot be reached or it throws an unknown error
-	 * @throws UnauthorizedException If the login details are wrong
-	 */
-	public void login(String email, String password) throws SerializationException, IOException {
-		inst.getUsersService().login(email, password);
+	/** Attempts to login with the supplied details. This method returns immediately - to know the result, add a
+	 * LoginListener before you call this */
+	public void login(String email, String password) {
+		inst.getUserService().login(email, password);
 	}
 
 	public User getMyUser() {
-		return inst.getUsersService().getMyUser();
+		return inst.getUserService().getMyUser();
 	}
 
 	public UserConfig getMyUserConfig() {
-		return inst.getUsersService().getMyUserConfig();
+		return inst.getUserService().getMyUserConfig();
 	}
-	
-	public UserConfig refreshMyUserConfig() {
-		return inst.getUsersService().refreshMyUserConfig();
+
+	public void fetchMyUserConfig(UserConfigCallback handler) {
+		inst.getUserService().refreshMyUserConfig(handler);
 	}
-	
+
 	public double getBankBalance() throws RobonoboException {
 		try {
 			return inst.getWangService().getBankBalance();
@@ -401,82 +412,63 @@ public class RobonoboController {
 	}
 
 	public User getUser(String email) {
-		return inst.getUsersService().getUser(email);
+		return inst.getUserService().getUser(email);
 	}
 
 	public User getUser(long userId) {
-		return inst.getUsersService().getUser(userId);
+		return inst.getUserService().getUser(userId);
 	}
 
-	public Playlist getPlaylist(long playlistId) {
-		return inst.getUsersService().getOrFetchPlaylist(playlistId);
+	public void getOrFetchPlaylist(long playlistId, PlaylistCallback handler) {
+		inst.getPlaylistService().getOrFetchPlaylist(playlistId, handler);
+	}
+
+	public Playlist getKnownPlaylist(long playlistId) {
+		return inst.getPlaylistService().getExistingPlaylist(playlistId);
 	}
 
 	public Playlist getMyPlaylistByTitle(String title) {
-		return inst.getUsersService().getMyPlaylistByTitle(title);
+		return inst.getPlaylistService().getMyPlaylistByTitle(title);
 	}
 
-	public void postFacebookUpdate(final long playlistId, final String msg) {
+	public void postPlaylistServiceUpdate(final String service, final long playlistId, final String msg) {
 		getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				inst.getUsersService().postFacebookUpdate(playlistId, msg);				
+				inst.getPlaylistService().postPlaylistUpdateToService(service, playlistId, msg);
 			}
 		});
 	}
-	
-	public void postTwitterUpdate(final long playlistId, final String msg) {
-		getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				inst.getUsersService().postTwitterUpdate(playlistId, msg);				
-			}
-		});		
-	}
-	
+
 	public void checkUsersUpdate() {
-		inst.getUsersService().checkAllUsersUpdate();
+		inst.getUserService().checkAllUsersUpdate();
 	}
 
-	/**
-	 * Can only update the logged-in user. Not allowed to change your email address.
-	 */
-	public void updateUser(User newUser) throws RobonoboException {
-		try {
-			inst.getUsersService().updateMyUser(newUser);
-		} catch (IOException e) {
-			throw new RobonoboException(e);
-		}
+	public void updatePlaylist(Playlist p) {
+		inst.getPlaylistService().updatePlaylist(p);
 	}
 
-	public Playlist addOrUpdatePlaylist(Playlist pl) throws RobonoboException {
-		try {
-			return inst.getUsersService().addOrUpdatePlaylist(pl);
-		} catch (IOException e) {
-			throw new RobonoboException(e);
-		}
+	public void createPlaylist(Playlist p, PlaylistCallback handler) {
+		inst.getPlaylistService().createPlaylist(p, handler);
 	}
 
+	public void addFriends(Collection<String> emails) {
+		inst.getUserService().addFriends(emails);
+	}
+	
 	public void sharePlaylist(Playlist p, Set<Long> friendIds, Set<String> emails) throws RobonoboException {
 		try {
-			inst.getUsersService().sharePlaylist(p, friendIds, emails);
+			inst.getPlaylistService().sharePlaylist(p, friendIds, emails);
 		} catch (IOException e) {
 			throw new RobonoboException(e);
 		}
 	}
 
-	public void nukePlaylist(Playlist pl) throws RobonoboException {
-		try {
-			inst.getUsersService().nukePlaylist(pl);
-		} catch (IOException e) {
-			throw new RobonoboException(e);
-		}
+	public void deletePlaylist(Playlist pl) {
+		inst.getPlaylistService().deletePlaylist(pl);
 	}
 
 	public void checkPlaylistUpdate(long playlistId) throws RobonoboException {
-		try {
-			inst.getUsersService().checkPlaylistUpdate(playlistId);
-		} catch (IOException e) {
-			throw new RobonoboException(e);
-		}
+		inst.getPlaylistService().checkPlaylistUpdate(playlistId);
 	}
 
 	public PlaylistConfig getPlaylistConfig(long playlistId) {
@@ -488,13 +480,13 @@ public class RobonoboController {
 	}
 
 	public void saveUserConfigItem(String itemName, String itemVal) {
-		inst.getUsersService().saveUserConfigItem(itemName, itemVal);
+		inst.getUserService().saveUserConfigItem(itemName, itemVal);
 	}
-	
+
 	public void runTask(Task t) {
 		inst.getTaskService().runTask(t);
 	}
-	
+
 	public RobonoboConfig getConfig() {
 		return inst.getConfig();
 	}
@@ -514,51 +506,47 @@ public class RobonoboController {
 	public int numUnseenTracks(Library lib) {
 		return inst.getDbService().numUnseenTracks(lib);
 	}
-	
+
 	public void markAllAsSeen(Playlist p) {
 		inst.getDbService().markAllAsSeen(p);
 	}
-	
-	public void markAllAsSeen(Library lib)  {
+
+	public void markAllAsSeen(Library lib) {
 		inst.getDbService().markAllAsSeen(lib);
 	}
-	
+
 	public void requestTopUp() throws IOException {
-		inst.getUsersService().requestTopUp();
+		inst.getHttpService().requestTopUp();
 	}
-	
+
 	public String getUpdateMessage() throws RobonoboException {
-		return inst.getMetadataService().getUpdateMessage();
+		try {
+			return inst.getHttpService().getUpdateMessage();
+		} catch (IOException e) {
+			throw new RobonoboException(e);
+		}
 	}
-	
+
 	public void setHandoverHandler(HandoverHandler handler) {
 		inst.getMina().setHandoverHandler(handler);
 	}
-	
-	/**
-	 * For debugging only
-	 */
+
+	/** For debugging only */
 	public Connection getMetadataDbConnection() throws SQLException {
 		return inst.getDbService().getConnection();
 	}
 
-	/**
-	 * For debugging only
-	 */
+	/** For debugging only */
 	public void returnMetadataDbConnection(Connection conn) {
 		inst.getDbService().returnConnection(conn);
 	}
 
-	/**
-	 * For debugging only
-	 */
+	/** For debugging only */
 	public Connection getPageDbConnection() throws SQLException {
 		return inst.getStorageService().getPageDbConnection();
 	}
 
-	/**
-	 * For debugging only
-	 */
+	/** For debugging only */
 	public void returnPageDbConnection(Connection conn) throws SQLException {
 		inst.getStorageService().returnPageDbConnection(conn);
 	}

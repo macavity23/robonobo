@@ -18,7 +18,7 @@ import java.io.PrintWriter;
 import javax.swing.SwingUtilities;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.TextUtil;
 import com.robonobo.console.RobonoboConsole;
 import com.robonobo.core.*;
@@ -52,7 +52,7 @@ public class Robonobo {
 			handedOver = rt.handoverIfRunning(argForRunningInstance(args));
 		} catch(EONException e) {
 			// TODO: there is a running instance, but it's wedged - ask the user to kill it...
-			throw new SeekInnerCalmException("Wedged rbnb instance");
+			throw new Errot("Wedged rbnb instance");
 		}
 		if(handedOver) {
 			System.exit(0);
@@ -169,8 +169,8 @@ public class Robonobo {
 			Thread consoleThread = new Thread(console);
 			consoleThread.start();
 			// If the user has login details entered, perform the login here (gui handles this in RobonoboFrame.setVisible() to show the login sheet)
-			if(isNonEmpty(control.getConfig().getMetadataServerUsername()))
-				control.login(control.getConfig().getMetadataServerUsername(), control.getConfig().getMetadataServerPassword());
+			if(isNonEmpty(control.getConfig().getMetadataUsername()))
+				control.login(control.getConfig().getMetadataUsername(), control.getConfig().getMetadataPassword());
 		} else {
 			final RobonoboFrame frame = new RobonoboFrame(control, args);
 			Platform.getPlatform().initMainWindow(frame);

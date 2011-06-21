@@ -10,7 +10,7 @@ import java.util.List;
 
 import javax.swing.*;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.api.Robonobo;
 import com.robonobo.core.itunes.ITunesService;
 
@@ -38,7 +38,7 @@ public abstract class Platform {
 		try {
 			platform = (Platform) Class.forName(platformClassName).newInstance();
 		} catch (Exception e) {
-			throw new SeekInnerCalmException(e);
+			throw new Errot(e);
 		}
 		return platform;
 	}

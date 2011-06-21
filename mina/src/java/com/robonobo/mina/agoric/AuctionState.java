@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.Modulo;
 import com.robonobo.common.util.TextUtil;
 import com.robonobo.mina.message.proto.MinaProtocol.AuctionStateMsg;
@@ -75,7 +75,7 @@ public class AuctionState {
 		calcMyBidIndex();
 		// Bug huntin
 		if(myBidIndex < 0)
-			throw new SeekInnerCalmException("myBidIndex == -1, asm: "+asm);
+			throw new Errot("myBidIndex == -1, asm: "+asm);
 		return bids.get(myBidIndex).getBid();
 	}
 

@@ -33,8 +33,10 @@ public abstract class BaseController {
 		if (req.getHeader("Authorization") != null) {
 			String authString = new String(Base64.decodeBase64(req.getHeader("Authorization").replaceAll("Basic ", "").getBytes()));
 			String[] pair = authString.split(":", 2);
-			MidasUser user = midas.getUserByEmail(pair[0]);
-			if (user != null && user.getPassword().equals(pair[1]))
+			String authEmail = pair[0];
+			String authPwd = pair[1];
+			MidasUser user = midas.getUserByEmail(authEmail);
+			if (user != null && user.getPassword().equals(authPwd))
 				return user;
 		}
 		return null;
@@ -62,6 +64,7 @@ public abstract class BaseController {
 	protected void send401(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		log.error("Denying access by user '" + getAuthUserEmail(req) + "' to resource "
 				+ req.getRequestURL().toString());
+		resp.setHeader("WWW-Authenticate", "Basic realm=\"midas\"");
 		resp.setContentType("text/html");
 		resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		PrintWriter writer = resp.getWriter();

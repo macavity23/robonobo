@@ -1,20 +1,21 @@
 package com.robonobo.gui.model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.DefaultListModel;
 
-import com.robonobo.core.RobonoboController;
+import com.robonobo.gui.frames.RobonoboFrame;
 
 @SuppressWarnings("serial")
 public class ActiveSearchListModel extends DefaultListModel {
 	List<String> queries = new ArrayList<String>();
-	private RobonoboController control;
+	private RobonoboFrame frame;
 	
-	public ActiveSearchListModel(RobonoboController control) {
-		this.control = control;
+	public ActiveSearchListModel(RobonoboFrame frame) {
+		this.frame = frame;
 	}
-	
+
 	public Object getElementAt(int index) {
 		return queries.get(index);
 	}
@@ -44,8 +45,8 @@ public class ActiveSearchListModel extends DefaultListModel {
 			return null;
 		queries.add(query);
 		fireIntervalAdded(this, getSize()-1, getSize()-1);
-		SearchResultTableModel srtm = new SearchResultTableModel(control);
-		control.search(query, 0, srtm);	
+		SearchResultTableModel srtm = SearchResultTableModel.create(frame);
+		frame.control.search(query, 0, srtm);	
 		return srtm;
 	}
 }

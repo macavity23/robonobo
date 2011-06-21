@@ -18,10 +18,4 @@ public class PostToFacebookSheet extends PostUpdateSheet {
 	protected int charLimit() {
 		return -1;
 	}
-
-	@Override
-	public void postUpdate() {
-		frame.getController().postFacebookUpdate(p.getPlaylistId(), getMsg());
-	}
-
 }

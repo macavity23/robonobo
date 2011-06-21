@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.service.DbService;
 
@@ -40,7 +40,7 @@ public class Updater {
 					m = Updater.class.getDeclaredMethod("updateVersion" + v + "ToVersion" + nextV);
 					m.invoke(this);
 				} catch (Exception e) {
-					throw new SeekInnerCalmException(e);
+					throw new Errot(e);
 				}
 				v = nextV;
 			}
