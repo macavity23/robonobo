@@ -17,7 +17,7 @@
 		<format property="timestamp" pattern="yyMMddHHmm" />
 	</tstamp>
 
-	<property name="version" value="DEV-${timestamp}" />
+	<property name="version" value="0.5.3" />
 
 	<target name="build" depends="compile-all" />
 

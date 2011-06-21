@@ -19,9 +19,9 @@
 		<format property="timestamp" pattern="yyMMddHHmm" />
 	</tstamp>
 	<property name="version" value="DEV-${timestamp}" />
-	<!-- <property name="version" value="0.4.0" /> -->
+	<!-- <property name="version" value="0.5.3" /> -->
 	<!-- launch4j requires the version number to be x.x.x.x -->
-	<property name="launch4jVersion" value="0.4.0.0" />
+	<property name="launch4jVersion" value="0.5.3.0" />
 
 	<target name="build-jar">
 		<ant dir="../gui" target="fatjar"/>
