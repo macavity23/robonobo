@@ -4,7 +4,7 @@ import java.util.Date;
 
 public abstract class Track {
 	public enum PlaybackStatus {
-		None, Queued, Downloading, Starting, Playing, Paused
+		None, Queued, Downloading, Starting, Paused, Playing
 	};
 
 	public Stream stream;

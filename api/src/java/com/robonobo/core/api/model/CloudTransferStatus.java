@@ -22,4 +22,12 @@ public class CloudTransferStatus implements TransferStatus {
 			return "Finding sources...";
 		return numItems(numSources, "source");
 	}
+	
+	@Override
+	public int compareTo(TransferStatus o) {
+		if(!(o instanceof CloudTransferStatus))
+			return -1;
+		CloudTransferStatus oc = (CloudTransferStatus) o;
+		return numSources - oc.numSources;
+	}
 }
