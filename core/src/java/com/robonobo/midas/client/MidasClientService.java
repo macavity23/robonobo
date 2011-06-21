@@ -69,7 +69,6 @@ public class MidasClientService extends AbstractMetadataService {
 			midasPort = -1;
 		else
 			midasPort = Integer.parseInt(portStr);
-		log.debug("Setting up midas http auth scope on " + midasHost + ":" + midasPort);
 		midasAuthScope = new AuthScope(midasHost, midasPort);
 		// Run midas requests in a different thread pool
 		numThreads = rbnb.getConfig().getMidasThreadPoolSize();
@@ -193,7 +192,6 @@ public class MidasClientService extends AbstractMetadataService {
 		requests.addFirst(r);
 		int numToStart = min(r.remaining(), (numThreads - runningTasks));
 		runningTasks += numToStart;
-		log.debug("Midas client added request with " + r.remaining() + " urls remaining: starting " + numToStart + " fetchers");
 		for (int i = 0; i < numToStart; i++) {
 			executor.execute(new FetchTask());
 		}
@@ -303,10 +301,8 @@ public class MidasClientService extends AbstractMetadataService {
 
 		@Override
 		public void doRun() throws Exception {
-			log.debug(this + " starting");
 			while (true) {
 				if (refreshContext) {
-					log.debug(this + " refreshing httpcontext");
 					context = http.newPreemptiveContext(new HttpHost(midasAuthScope.getHost(), midasAuthScope.getPort()));
 					refreshContext = false;
 				}
@@ -315,7 +311,6 @@ public class MidasClientService extends AbstractMetadataService {
 				synchronized (MidasClientService.this) {
 					if (requests.size() == 0) {
 						runningTasks--;
-						log.debug(this + " stopping");
 						fetchTasks.remove(taskId);
 						return;
 					}
@@ -330,7 +325,6 @@ public class MidasClientService extends AbstractMetadataService {
 							requests.addLast(r); // Parallel
 					}
 				}
-				log.debug(this + " running " + p.op + " for " + p.url);
 				try {
 					switch (p.op) {
 					case Get:
@@ -348,7 +342,6 @@ public class MidasClientService extends AbstractMetadataService {
 						deleteAtUrl(context, p.url);
 						break;
 					}
-					log.debug(this + " ran successful " + p.op + " for " + p.url);
 					if (p.resultBldr == null)
 						r.success(null);
 					else
@@ -356,7 +349,6 @@ public class MidasClientService extends AbstractMetadataService {
 				} catch (Exception e) {
 					if(stopped)
 						return;
-					log.debug(this + " caught " + shortClassName(e.getClass()) + " running " + p.op + " for " + p.url + " with msg: " + e.getMessage());
 					r.error(p, e);
 				}
 			}
