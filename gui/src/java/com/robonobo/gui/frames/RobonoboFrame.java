@@ -48,6 +48,12 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	private boolean tracksLoaded;
 	private boolean shownLogin;
 
+	static RobonoboFrame instance;
+	
+	public static RobonoboFrame getInstance() {
+		return instance;
+	}
+	
 	public RobonoboFrame(RobonoboController control, String[] args) {
 		this.control = control;
 		this.cmdLineArgs = args;
@@ -74,6 +80,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		guiConfig = (GuiConfig) control.getConfig("gui");
 		addListeners();
 		uriHandler = new UriHandler(this);
+		instance = this;
 	}
 
 	private void addListeners() {

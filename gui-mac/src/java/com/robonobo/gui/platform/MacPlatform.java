@@ -16,7 +16,8 @@ import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.itunes.mac.MacITunesService;
 
 public class MacPlatform extends UnknownPlatform {
-
+	MacAppListener appListener;
+	
 	@Override
 	public void init() {
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
@@ -40,27 +41,29 @@ public class MacPlatform extends UnknownPlatform {
 
 	@Override
 	public void initMainWindow(JFrame jFrame) throws Exception {
-		RobonoboFrame frame = (RobonoboFrame) jFrame;
 		Application app = Application.getApplication();
+		// Don't do anything if we're already registered (this means we're restarting)
+		if(appListener != null)
+			return;
+		appListener = new MacAppListener();
 		// Use all this stuff even though it's deprecated as we want to keep working with old versions of the apple java
 		// sdk
-		app.addApplicationListener(new MacAppListener(frame));
+		app.addApplicationListener(appListener);
 		app.addAboutMenuItem();
 		app.setEnabledAboutMenu(true);
 		app.addPreferencesMenuItem();
 		app.setEnabledPreferencesMenu(true);
-		registerUriHandler(app, frame);
+		registerUriHandler(app);
 	}
 
-	private void registerUriHandler(Application app, RobonoboFrame frame) {
+	private void registerUriHandler(Application app) {
 		// We do this buggering about with reflection as the OpenURIHandler only exists in later versions of the OSX
 		// Java API, and we still want to work on previous versions (with a warning message)
 		try {
 			// This next line will throw ClassNotFoundException if we cannot handle URIs
 			Class.forName("com.apple.eawt.OpenURIHandler");
 			Class<?> handlerClass = Class.forName("com.robonobo.gui.platform.URIHandler");
-			Constructor<?> ctor = handlerClass.getConstructor(frame.getClass());
-			app.setOpenURIHandler((OpenURIHandler) ctor.newInstance(frame));
+			app.setOpenURIHandler((OpenURIHandler) handlerClass.newInstance());
 		} catch (ClassNotFoundException e) {
 			// Old version of apple java
 			// TODO Tell them to update

@@ -5,14 +5,11 @@ import com.apple.eawt.ApplicationListener;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 public class MacAppListener implements ApplicationListener {
-	private RobonoboFrame frame;
-		
-	public MacAppListener(RobonoboFrame frame) {
-		this.frame = frame;
+	public MacAppListener() {
 	}
-
+	
 	public void handleAbout(ApplicationEvent e) {
-		frame.showAbout();
+		RobonoboFrame.getInstance().showAbout();
 		e.setHandled(true);
 	}
 
@@ -27,7 +24,7 @@ public class MacAppListener implements ApplicationListener {
 	}
 
 	public void handlePreferences(ApplicationEvent e) {
-		frame.showPreferences();
+		RobonoboFrame.getInstance().showPreferences();
 		e.setHandled(true);
 	}
 
@@ -37,7 +34,7 @@ public class MacAppListener implements ApplicationListener {
 	}
 
 	public void handleQuit(ApplicationEvent e) {
-		frame.confirmThenShutdown();
+		RobonoboFrame.getInstance().confirmThenShutdown();
 	}
 
 	public void handleReOpenApplication(ApplicationEvent arg0) {
