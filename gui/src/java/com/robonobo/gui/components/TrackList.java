@@ -1,5 +1,6 @@
 package com.robonobo.gui.components;
 
+import static com.robonobo.common.util.CodeUtil.*;
 import static com.robonobo.gui.GuiUtil.*;
 
 import java.awt.*;
@@ -101,8 +102,11 @@ public class TrackList extends JPanel {
 		table.setSortable(false);
 		table.getTableHeader().setDefaultRenderer(new JTableHeader().getDefaultRenderer());
 		table.getTableHeader().setFont(RoboFont.getFont(13, false));
-		table.setAutoCreateRowSorter(false);
-		table.setRowSorter(null);
+		// These throw NoSuchMethodError on j5
+		if(javaMajorVersion() >= 6) {
+			table.setAutoCreateRowSorter(false);
+			table.setRowSorter(null);
+		}
 		// Set up glazedlist auto table sorter
 		scrollPane = new JScrollPane(table);
 		if(model.wantScrollEventsEver())
@@ -115,9 +119,8 @@ public class TrackList extends JPanel {
 					tcc.addSortActionListener(viewportListener);
 			}
 			MatcherEditor<Track> matchEdit = gtltm.getMatcherEditor();
-			if(matchEdit != null && viewportListener != null) {
+			if(matchEdit != null && viewportListener != null)
 				matchEdit.addMatcherEditorListener(viewportListener);
-			}
 		}
 		TableColumnModelExt cm = (TableColumnModelExt) table.getColumnModel();
 		cm.getColumn(0).setPreferredWidth(22); // Status icon
