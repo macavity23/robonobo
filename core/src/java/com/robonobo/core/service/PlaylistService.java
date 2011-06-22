@@ -393,7 +393,6 @@ public class PlaylistService extends AbstractService {
 		final long plId = p.getPlaylistId();
 		log.debug("Deleting playlist " + plId);
 		User me = rbnb.getUserService().getMyUser();
-		me.getPlaylistIds().remove(plId);
 		boolean firePlaylistUpdate = false;
 		synchronized (this) {
 			p = playlists.get(plId);
