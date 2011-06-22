@@ -8,11 +8,13 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 
 import javax.swing.*;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jdesktop.swingx.renderer.DefaultListRenderer;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
@@ -36,6 +38,7 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 
 	ImageIcon playlistIcon;
 	PopupMenu popup = new PopupMenu();
+	Log log = LogFactory.getLog(getClass());
 
 	public PlaylistList(LeftSidebar sideBar, RobonoboFrame frame) {
 		super(sideBar, frame, new PlaylistListModel(frame.getController()));
@@ -134,8 +137,12 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 
 	@Override
 	public void playlistChanged(final Playlist p) {
-		Long plId = p.getPlaylistId();
-		if (frame.getController().getMyUser().getPlaylistIds().contains(plId)) {
+		User me = frame.getController().getMyUser();
+		if (p.getOwnerIds().contains(me.getUserId())) {
+			Long plId = p.getPlaylistId();
+			Set<Long> myPlIds = frame.getController().getMyUser().getPlaylistIds();
+			if(!myPlIds.contains(plId))
+				log.error("Error updating playlist: playlist says it's mine, but my playlist ids do not contain it");
 			invokeLater(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					Playlist selP = (getSelectedIndex() < 0) ? null : getModel().getPlaylistAt(getSelectedIndex());
@@ -148,7 +155,7 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 					}
 				}
 			});		
-		}
+		} 
 	}
 
 	@Override

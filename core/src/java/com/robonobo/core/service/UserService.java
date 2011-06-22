@@ -226,9 +226,7 @@ public class UserService extends AbstractService {
 	}
 
 	public User getMyUser() {
-		if (me == null)
-			return null;
-		return getUser(me.getEmail());
+		return me;
 	}
 
 	public UserConfig getMyUserConfig() {
