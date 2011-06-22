@@ -11,15 +11,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.serialization.ConfigBeanSerializer;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.service.DbService;
+import com.robonobo.mina.external.MinaConfig;
 
-/**
- * Updates the rbnb home dir to the format expected by a new version
+/** Updates the rbnb home dir to the format expected by a new version
  * 
- * @author macavity
- * 
- */
+ * @author macavity */
 @SuppressWarnings("unused")
 public class Updater {
 	static final int CURRENT_VERSION = 2;
@@ -80,15 +79,20 @@ public class Updater {
 		log4jFile.delete();
 	}
 
-	private void updateVersion1ToVersion2() {
+	private void updateVersion1ToVersion2() throws IOException {
 		log.info("Updating robohome dir " + homeDir.getAbsolutePath() + " from version 1 to version 2");
-		// Remove config settings
-		try {
-			removeConfigSetting("mina", "bidStrategyClass");
-			removeConfigSetting("mina", "sourceRequestBatchTime");
-		} catch (IOException e) {
-			log.error("Caught ioexception removing config setting - oh noes!", e);
-		}
+		// Update config settings
+		ConfigBeanSerializer cbs = new ConfigBeanSerializer();
+		File configDir = new File(homeDir, "config");
+		File minaCfgFile = new File(configDir, "mina.cfg");
+		if (minaCfgFile.exists()) {
+			MinaConfig oldCfg = cbs.deserializeConfig(MinaConfig.class, minaCfgFile);
+			MinaConfig newCfg = new MinaConfig();
+			oldCfg.setBidStrategyClass(newCfg.getBidStrategyClass());
+			oldCfg.setSourceRequestBatchTime(newCfg.getSourceRequestBatchTime());
+			cbs.serializeConfig(oldCfg, minaCfgFile);
+		} else
+			log.error("Not updating mina config file - it doesn't exist!");
 		// Nuke dbs - not very optimal, but otherwise we get hsqldb errors as we upgraded hsqldb in this version...
 		// better to do it now while we have a few users!
 		File dbDir = new File(homeDir, "db");
@@ -96,29 +100,6 @@ public class Updater {
 			log.info("Nuking db directory...");
 			FileUtil.deleteDirectory(dbDir);
 		}
-	}
-
-	private void removeConfigSetting(String cfgName, String settingName) throws IOException {
-		File configDir = new File(homeDir, "config");
-		File cfgFile = new File(configDir, cfgName + ".cfg");
-		if (!cfgFile.exists()) {
-			log.info("Not updating config " + cfgName + " - config file does not exist!");
-			return;
-		}
-		log.info("Removing setting " + settingName + " from config " + cfgName);
-		Pattern p = Pattern.compile("^" + settingName + "=.*$");
-		File tmpFile = File.createTempFile("robo", "cfg");
-		BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(cfgFile)));
-		PrintWriter out = new PrintWriter(tmpFile);
-		String line;
-		while ((line = in.readLine()) != null) {
-			if (!p.matcher(line).matches())
-				out.println(line);
-		}
-		in.close();
-		out.close();
-		cfgFile.delete();
-		tmpFile.renameTo(cfgFile);
 	}
 
 	private void compactPagesDb() throws SQLException {
