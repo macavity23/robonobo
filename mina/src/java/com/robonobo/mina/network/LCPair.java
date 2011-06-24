@@ -194,6 +194,8 @@ public class LCPair extends ConnectionPair {
 		}
 		if (usefulDataTimeout != null)
 			usefulDataTimeout.cancel(false);
+		if(startAttempt != null)
+			startAttempt.cancel();
 		if (sendStopSource)
 			sendMessage("StopSource", StopSource.newBuilder().setStreamId(sid).build());
 		cc.removeLCPair(this);

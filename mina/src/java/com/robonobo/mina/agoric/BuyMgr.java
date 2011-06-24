@@ -1,9 +1,9 @@
 package com.robonobo.mina.agoric;
 
 import static com.robonobo.common.util.NumberUtil.*;
-import static com.robonobo.common.util.TextUtil.*;
 import static com.robonobo.common.util.TimeUtil.*;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -13,7 +13,6 @@ import com.google.protobuf.ByteString;
 import com.robonobo.common.concurrent.Attempt;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
-import com.robonobo.common.util.NumberUtil;
 import com.robonobo.core.api.CurrencyException;
 import com.robonobo.core.api.StreamVelocity;
 import com.robonobo.mina.external.buffer.PageBuffer;
@@ -176,7 +175,7 @@ public class BuyMgr {
 		try {
 			TopUp tu = TopUp.newBuilder().setCurrencyToken(ByteString.copyFrom(token)).build();
 			cc.sendMessageOrThrow("TopUp", tu);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			// This failed - recover the cash
 			final byte[] tok = token;
 			mina.getExecutor().execute(new CatchingRunnable() {

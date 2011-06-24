@@ -528,7 +528,7 @@ public class CCMgr {
 		}
 
 		public void onTimeout() {
-			log.info("Timeout waiting for connection from " + nodeId);
+			log.info("Timeout waiting for connection to " + nodeId);
 			connectAttempts.remove(nodeId);
 			synchronized (CCMgr.this) {
 				inProgressCons.remove(nodeId);
