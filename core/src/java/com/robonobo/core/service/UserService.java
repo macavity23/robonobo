@@ -173,6 +173,7 @@ public class UserService extends AbstractService {
 			if (rbnbCfg.isAgoric())
 				rbnb.getWangService().loggedIn();
 			// If we have any playlists, fetch them now (fetchFriends() will be called when they're done)
+			playlists.clearPlaylists();
 			if(me.getPlaylistIds().size() > 0)
 				playlists.refreshMyPlaylists(me);
 			else
@@ -389,7 +390,10 @@ public class UserService extends AbstractService {
 						me = u;
 					}
 					events.fireUserChanged(u);
-					tasks.runTask(new FriendFetchTask(u));
+					if(me.getPlaylistIds().size() > 0)
+						playlists.refreshMyPlaylists(me);
+					else
+						fetchFriends();
 				}
 
 				public void error(long userId, Exception e) {
