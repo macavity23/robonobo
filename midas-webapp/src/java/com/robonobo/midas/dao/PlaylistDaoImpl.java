@@ -58,7 +58,7 @@ public class PlaylistDaoImpl extends MidasDao implements PlaylistDao {
 		Date maxAge = timeInPast(maxAgeMs);
 		String hql = "from MidasPlaylist where updated > :maxAge";
 		Query q = getSession().createQuery(hql);
-		q.setParameter("maxAge", maxAge, Hibernate.DATE);
+		q.setParameter("maxAge", maxAge, Hibernate.TIMESTAMP);
 		return q.list();
 	}
 	
