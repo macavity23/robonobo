@@ -482,6 +482,8 @@ public class CCMgr {
 	private void checkNatTraversal(ControlConnection cc) {
 		if (mina.getNetMgr().natTraversalDecided())
 			return;
+		if(cc.isLocal())
+			return;
 		ReqPublicDetails.Builder b = ReqPublicDetails.newBuilder();
 		b.setFromNodeId(mina.getMyNodeId());
 		cc.sendMessage("ReqPublicDetails", b.build());
