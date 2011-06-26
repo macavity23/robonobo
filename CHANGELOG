@@ -22,3 +22,8 @@
 * 'Add friends' functionality
 * Can now right-click on shared tracks and show in finder/explorer
 * Pre-downloads next track on tracklist when approaching end of playing track
+
+0.5.4
+
+* Several fixes for reconnecting to nodes in poor network conditions
+* iTunes playlists now show up in sidebar straight away
