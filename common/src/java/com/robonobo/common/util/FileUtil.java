@@ -18,7 +18,6 @@ package com.robonobo.common.util;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,10 +65,8 @@ public class FileUtil {
 		return TextUtil.padToMinWidth(numBytes, 3) + " B";
 	}
 
-	/**
-	 * Returns the file extension, without the initial period. If there is no
-	 * period in the file name, returns an empty string.
-	 */
+	/** Returns the file extension, without the initial period. If there is no period in the file name, returns an empty
+	 * string. */
 	public static String getFileExtension(File f) {
 		String fileName = f.getName();
 		if (fileName.contains("."))
@@ -78,13 +75,10 @@ public class FileUtil {
 			return "";
 	}
 
-	/**
-	 * Returns all the files within the parent directory (including sub-dirs)
-	 * that have the supplied extension. If extension is null, will return all
-	 * files. Will not return the sub-dirs themselves.
+	/** Returns all the files within the parent directory (including sub-dirs) that have the supplied extension. If
+	 * extension is null, will return all files. Will not return the sub-dirs themselves.
 	 * 
-	 * If the path is a file, it will be returned in the list it matches, or else an empty list will be returned
-	 */
+	 * If the path is a file, it will be returned in the list it matches, or else an empty list will be returned */
 	public static List<File> getFilesWithinPath(File path, String fileExtension) {
 		List<File> result = new ArrayList<File>();
 		if (!path.isDirectory()) {
@@ -101,9 +95,13 @@ public class FileUtil {
 		FileOutputStream fos = new FileOutputStream(destFile);
 		ByteUtil.streamDump(fis, fos);
 	}
-	
+
 	private static void addChildFilesToList(File directory, List<File> list, String fileExtension) {
-		for (File f : directory.listFiles()) {
+		File[] filesInThisDir = directory.listFiles();
+		// This might be null if a filesystem error occurred, eg insufficient permissions
+		if (filesInThisDir == null)
+			return;
+		for (File f : filesInThisDir) {
 			if (f.isDirectory())
 				addChildFilesToList(f, list, fileExtension);
 			else if (fileExtension == null || fileExtension.equalsIgnoreCase(getFileExtension(f)))
