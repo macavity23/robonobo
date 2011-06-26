@@ -88,7 +88,12 @@ public class ControlConnection implements PushDataReceiver {
 				.build();
 		helloAttempt = new ConnectAttempt();
 		helloAttempt.start();
-		sendMessageImmediate("Hello", hello);
+		try {
+			sendMessageImmediate("Hello", hello);
+		} catch (IOException e) {
+			// Closed already, just return
+			return;
+		}
 		dataChan.setDataReceiver(this);
 	}
 
@@ -117,7 +122,12 @@ public class ControlConnection implements PushDataReceiver {
 	public void completeHandshake() {
 		handshakeComplete = true;
 		Hello hel = Hello.newBuilder().setNode(mina.getNetMgr().getDescriptorForTalkingTo(nodeDesc, isLocal())).build();
-		sendMessageImmediate("Hello", hel);
+		try {
+			sendMessageImmediate("Hello", hel);
+		} catch (IOException e) {
+			// We've closed already, just return
+			return;
+		}
 		lastDataRecvd = new Date();
 		startPinging();
 		mina.getCCM().notifySuccessfulConnection(this);
@@ -161,7 +171,7 @@ public class ControlConnection implements PushDataReceiver {
 		log.info("CC " + nodeId + " exiting");
 		// Kill our CPairs, and tell our manager to clean up after us
 		// Calling higher syncpriority methods, use separate thread
-		mina.getExecutor().execute(new KillCPairsRunner());
+		mina.getExecutor().execute(new DoCloseRunner());
 		if (pingTask != null)
 			pingTask.cancel(true);
 		if (helloAttempt != null)
@@ -215,35 +225,36 @@ public class ControlConnection implements PushDataReceiver {
 	public void sendMessage(String msgName, GeneratedMessage msg) {
 		try {
 			sendMessage(msgName, msg, true);
-		} catch (Exception e) {
-			log.error(this + " Error sending command", e);
+		} catch (IOException e) {
+			log.error(this + " Error sending message", e);
 			close();
 		}
 	}
 
-	public void sendMessageOrThrow(String msgName, GeneratedMessage msg) throws Exception {
+	public void sendMessageOrThrow(String msgName, GeneratedMessage msg) throws IOException {
 		try {
 			sendMessage(msgName, msg, true);
-		} catch (Exception e) {
-			log.error(this + " Error sending command", e);
+		} catch (IOException e) {
+			log.error(this + " Error sending message", e);
 			close();
 			throw e;
 		}
 	}
 
-	private void sendMessageImmediate(String msgName, GeneratedMessage msg) {
+	private void sendMessageImmediate(String msgName, GeneratedMessage msg) throws IOException {
 		try {
 			sendMessage(msgName, msg, false);
-		} catch (Exception e) {
-			log.error(this + " Error sending command", e);
+		} catch (IOException e) {
+			log.error(this + " Error sending message", e);
 			close();
+			throw e;
 		}
 	}
 
 	/**
 	 * @syncpriority 60
 	 */
-	private synchronized void sendMessage(String msgName, GeneratedMessage msg, boolean checkReady) throws Exception {
+	private synchronized void sendMessage(String msgName, GeneratedMessage msg, boolean checkReady) throws IOException {
 		// We send the message name, then null byte, then message length, then msg
 		// Send it all in one go to minimise the number of pkts that get sent
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -254,8 +265,16 @@ public class ControlConnection implements PushDataReceiver {
 		// This can be called by other threads before the connection's
 		// set up properly - wait
 		if (checkReady) {
-			while (!handshakeComplete)
-				wait();
+			while (!handshakeComplete) {
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					if(CodeUtil.javaMajorVersion() >= 6)
+						throw new IOException(e);
+					else
+						throw new IOException("Caught InterruptedException waiting for handshake to complete");
+				}
+			}
 		}
 		byte[] sendData = baos.toByteArray();
 		log.debug("Sending " + msgName + ": " + msg + " to " + nodeId.toString() + " (" + sendData.length + " bytes)");
@@ -326,7 +345,7 @@ public class ControlConnection implements PushDataReceiver {
 		String msgName = msgHolder.getMsgName();
 		final MessageHandler myHandler = (handler == null) ? mina.getMessageMgr().getHandler(msgName) : handler;
 		if (myHandler == null) {
-			log.error(this + " ERROR: got unknown command type " + msgName);
+			log.error(this + " ERROR: got unknown message type " + msgName);
 			return;
 		}
 		if (log.isDebugEnabled())
@@ -585,7 +604,7 @@ public class ControlConnection implements PushDataReceiver {
 		return scf;
 	}
 
-	protected class KillCPairsRunner extends CatchingRunnable {
+	protected class DoCloseRunner extends CatchingRunnable {
 		public void doRun() {
 			mina.getCCM().notifyDeadConnection(ControlConnection.this);
 			ConnectionPair[] pairs = new ConnectionPair[lcPairs.size()];
@@ -644,7 +663,7 @@ public class ControlConnection implements PushDataReceiver {
 					// Parse our bytes into a protocol buffer msg
 					MessageHandler handler = mina.getMessageMgr().getHandler(msgName);
 					if (handler == null) {
-						log.error(this + " ERROR: got unknown command type " + msgName);
+						log.error(this + " ERROR: got unknown message type " + msgName);
 						return;
 					}
 					// The protocol buffer parser will read the entire inputstream, so we fake it

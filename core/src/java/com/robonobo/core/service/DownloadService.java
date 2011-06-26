@@ -68,10 +68,10 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		downloadsDir = new File(rbnb.getHomeDir(), "in-progress");
 		downloadsDir.mkdir();
 		int numStarted = 0;
-		for (String streamId : downloadStreamIds) {
-			DownloadingTrack d = db.getDownload(streamId);
+		for (String sid : downloadStreamIds) {
+			DownloadingTrack d = db.getDownload(sid);
 			if (d.getDownloadStatus() == DownloadStatus.Finished) {
-				db.deleteDownload(streamId);
+				db.deleteDownload(sid);
 				continue;
 			}
 			PageBuffer pb = storage.getPageBuf(d.getStream().getStreamId());
@@ -81,7 +81,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 			// get added
 			if (pb.isComplete()) {
 				share.addShareFromCompletedDownload(d);
-				db.deleteDownload(streamId);
+				db.deleteDownload(sid);
 				continue;
 			}
 			synchronized (dPriority) {
@@ -90,7 +90,8 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 			if (numStarted < rbnb.getConfig().getMaxRunningDownloads()) {
 				startDownload(d, pb);
 				numStarted++;
-			}
+			} else
+				log.debug("Queuing download for "+sid);
 		}
 		updatePriorities();
 	}
@@ -195,7 +196,6 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	}
 
 	public void startDownload(String streamId) throws RobonoboException {
-		log.debug("Starting download for " + streamId);
 		DownloadingTrack d = db.getDownload(streamId);
 		if (d == null)
 			throw new Errot();
@@ -216,6 +216,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	}
 
 	private void startDownload(DownloadingTrack d, PageBuffer pb) throws RobonoboException {
+		log.debug("Starting download for " + d.getStream().getStreamId());
 		d.setPageBuf(pb);
 		pb.addListener(this);
 		mina.startReception(d.getStream().getStreamId(), StreamVelocity.LowestCost);

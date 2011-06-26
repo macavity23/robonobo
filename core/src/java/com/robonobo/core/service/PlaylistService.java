@@ -56,21 +56,18 @@ public class PlaylistService extends AbstractService {
 	public void shutdown() throws Exception {
 	}
 
-	/**
-	 * We have logged in, let's clear out playlists and refresh mine
-	 */
-	public void refreshMyPlaylists(User me) {
+	public void clearPlaylists() {
 		synchronized (this) {
 			playlists.clear();
 			myPlaylistIdsByTitle.clear();
 		}
-		if (me.getPlaylistIds().size() > 0)
-			tasks.runTask(new RefreshMyPlaylistsTask(me.getPlaylistIds()));
+	}
+	
+	public void refreshMyPlaylists(User me) {
+		tasks.runTask(new RefreshMyPlaylistsTask(me.getPlaylistIds()));
 	}
 
-	/**
-	 * We've loaded friends - now get their playlists
-	 */
+	/** We've loaded friends - now get their playlists */
 	public void refreshFriendPlaylists(Set<Long> plIds) {
 		if (plIds.size() > 0)
 			tasks.runTask(new RefreshFriendPlaylistsTask(plIds));
@@ -161,7 +158,7 @@ public class PlaylistService extends AbstractService {
 						statusText = "Fetching details of playlist track " + (done + 1) + " of " + total;
 					}
 					fireUpdated();
-					if(completion == 1)
+					if (completion == 1)
 						onCompletion();
 				}
 			};
@@ -276,10 +273,8 @@ public class PlaylistService extends AbstractService {
 		});
 	}
 
-	/**
-	 * The handler will be called back with the updated playlist, which will have a playlist id set, or else with an
-	 * errot
-	 */
+	/** The handler will be called back with the updated playlist, which will have a playlist id set, or else with an
+	 * errot */
 	public void createPlaylist(Playlist p, final PlaylistCallback handler) {
 		log.debug("Creating new playlist with title " + p.getTitle());
 		metadata.updatePlaylist(p, new PlaylistCallback() {
@@ -305,9 +300,7 @@ public class PlaylistService extends AbstractService {
 		});
 	}
 
-	/**
-	 * Update things that need to be updated on playlists containing this track we're now sharing
-	 */
+	/** Update things that need to be updated on playlists containing this track we're now sharing */
 	public void checkPlaylistsForNewShare(SharedTrack sh) {
 		// Currently, just sync to itunes
 		final List<Playlist> affectedPs = new ArrayList<Playlist>();

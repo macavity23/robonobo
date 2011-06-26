@@ -378,22 +378,22 @@ public class StreamConnsMgr {
 	private class GetCCAttempt extends Attempt {
 		private SourceStatus sourceStat;
 		private String sid;
-		private String nodeId;
+		private String nid;
 
 		public GetCCAttempt(String sid, SourceStatus ss) {
 			super(mina.getExecutor(), mina.getConfig().getMessageTimeout() * 1000, "GetCCAttempt");
 			this.sourceStat = ss;
 			this.sid = sid;
-			this.nodeId = ss.getFromNode().getId();
+			this.nid = ss.getFromNode().getId();
 		}
 
 		/**
 		 * @syncpriority 200
 		 */
 		protected void onFail() {
-			log.info("Failed to connect to " + nodeId + " for stream '" + sid + "'");
+			log.info("Failed to connect to " + nid + " for stream '" + sid + "'");
 			synchronized (StreamConnsMgr.this) {
-				pendingCons.remove(nodeId);
+				removePendingConn(sid, nid);
 			}
 			mina.getSourceMgr().cachePossiblyDeadSource(sourceStat.getFromNode(), sid);
 			// Request more if we need them
@@ -405,11 +405,11 @@ public class StreamConnsMgr {
 		 */
 		protected void onSuccess() {
 			synchronized (StreamConnsMgr.this) {
-				pendingCons.remove(nodeId);
+				removePendingConn(sid, nid);
 			}
-			ControlConnection cc = mina.getCCM().getCCWithId(nodeId);
+			ControlConnection cc = mina.getCCM().getCCWithId(nid);
 			if (cc == null) {
-				// Oops, CC has disappeared
+				// Oops, CC has disappeared due to an ill-timed network snafu
 				onFail();
 				return;
 			}

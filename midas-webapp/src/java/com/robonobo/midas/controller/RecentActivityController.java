@@ -30,9 +30,20 @@ public class RecentActivityController extends BaseController {
 			maxAgeMs = tenMinsInMs;
 		List<MidasPlaylist> playlists = midas.getRecentPlaylists(maxAgeMs);
 		Set<String> streamIds = new HashSet<String>();
+		StringBuffer sb = new StringBuffer("Returning");
+		sb.append(playlists.size()).append(" recently-modified playlists to ");
+		sb.append(req.getRemoteAddr());
+		boolean first = true;
 		for (MidasPlaylist pl : playlists) {
+			if(first) {
+				sb.append(": ");
+				first = false;
+			} else
+				sb.append(", ");
+			sb.append(pl.getTitle()).append("(id ").append(pl.getPlaylistId()).append(")");
 			streamIds.addAll(pl.getStreamIds());
 		}
+		log.info(sb);
 		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.setContentType("text/plain");
 		PrintWriter out = new PrintWriter(resp.getOutputStream());

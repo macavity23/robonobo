@@ -482,6 +482,8 @@ public class CCMgr {
 	private void checkNatTraversal(ControlConnection cc) {
 		if (mina.getNetMgr().natTraversalDecided())
 			return;
+		if(cc.isLocal())
+			return;
 		ReqPublicDetails.Builder b = ReqPublicDetails.newBuilder();
 		b.setFromNodeId(mina.getMyNodeId());
 		cc.sendMessage("ReqPublicDetails", b.build());
@@ -526,7 +528,7 @@ public class CCMgr {
 		}
 
 		public void onTimeout() {
-			log.info("Timeout waiting for connection from " + nodeId);
+			log.info("Timeout waiting for connection to " + nodeId);
 			connectAttempts.remove(nodeId);
 			synchronized (CCMgr.this) {
 				inProgressCons.remove(nodeId);
