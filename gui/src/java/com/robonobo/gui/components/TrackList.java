@@ -308,7 +308,7 @@ public class TrackList extends JPanel {
 			}
 			add(plMenu);
 			if (model.allowDelete()) {
-				RMenuItem del = new RMenuItem("Delete");
+				RMenuItem del = new RMenuItem(model.deleteTracksDesc());
 				del.setActionCommand("delete");
 				del.addActionListener(this);
 				add(del);

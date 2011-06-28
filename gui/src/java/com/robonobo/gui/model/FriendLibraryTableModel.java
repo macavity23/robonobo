@@ -104,6 +104,11 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	}
 
 	@Override
+	public String deleteTracksDesc() {
+		return null;
+	}
+	
+	@Override
 	public boolean wantScrollEventsEver() {
 		return true;
 	}

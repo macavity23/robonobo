@@ -77,6 +77,11 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 	}
 
 	@Override
+	public String deleteTracksDesc() {
+		return "Remove tracks from library";
+	}
+	
+	@Override
 	public void deleteTracks(List<String> streamIds) {
 		// We delete downloads all at once to avoid starting downloads we're about to delete
 		List<String> dlSids = new ArrayList<String>();
