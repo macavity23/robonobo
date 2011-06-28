@@ -27,3 +27,8 @@
 
 * Several fixes for reconnecting to nodes in poor network conditions
 * iTunes playlists now show up in sidebar straight away
+
+(dev)
+
+* Shared playlists now load ok in friend tree
+* Libraries now load correctly if no friend playlists

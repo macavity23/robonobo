@@ -73,6 +73,12 @@ public abstract class Batcher<T> extends CatchingRunnable {
 		runBatch(runObjs);
 	}
 
+	/** Run the batch now instead of waiting */
+	public void runNow() throws Exception {
+		cancel();
+		doRun();
+	}
+	
 	/**
 	 * Called when it's time to batch up the objects.
 	 */

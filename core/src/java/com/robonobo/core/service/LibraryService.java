@@ -45,7 +45,7 @@ public class LibraryService extends AbstractService {
 
 	@Override
 	public String getProvides() {
-		return "core.library";
+		return "core.libraries";
 	}
 
 	@Override
@@ -165,6 +165,13 @@ public class LibraryService extends AbstractService {
 			long friendId = friend.getUserId();
 			Map<String, Date> newTrax = nLib.getTracks();
 			log.debug("Received updated library for " + friend.getEmail() + ": " + newTrax.size() + " new tracks");
+			if (cLib == null && newTrax.size() == 0) {
+				statusText = "Done.";
+				completion = 1f;
+				stillFetchingLibs.remove(friendId);
+				fireUpdated();
+				return;
+			}
 			if (newTrax.size() > 0) {
 				// Save this library in our db first as it's quite likely the user will quit while we're looking
 				// up streams
@@ -242,11 +249,13 @@ public class LibraryService extends AbstractService {
 		Library lib;
 		Map<String, Date> streamsToFetch;
 		LibraryUpdateTask task;
+		Set<String> streamsLeft = new HashSet<String>();
 
 		public StreamFetcher(Library lib, Map<String, Date> streamsToFetch, LibraryUpdateTask task) {
 			super(FIRE_UI_EVENT_DELAY * 1000, rbnb.getExecutor());
 			this.lib = lib;
 			this.streamsToFetch = streamsToFetch;
+			streamsLeft.addAll(streamsToFetch.keySet());
 			this.task = task;
 		}
 
@@ -260,11 +269,23 @@ public class LibraryService extends AbstractService {
 			}
 			add(sid);
 			task.streamUpdated(sid);
+			checkFinished(sid);
 		}
 
 		public void error(String streamId, Exception ex) {
 			log.error("Error fetching stream " + streamId, ex);
 			task.streamUpdated(streamId);
+		}
+
+		private void checkFinished(String sid) {
+			streamsLeft.remove(sid);
+			if (streamsLeft.size() == 0) {
+				try {
+					runNow();
+				} catch (Exception e) {
+					log.error("Error firing library update", e);
+				}
+			}
 		}
 
 		protected void runBatch(Collection<String> sids) throws Exception {
