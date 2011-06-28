@@ -208,6 +208,8 @@ public class LCPair extends ConnectionPair {
 
 	/** @syncpriority 200 */
 	public void receivePage(Page p) {
+		if(closing)
+			return;
 		Long pn = new Long(p.getPageNumber());
 		PageAttempt rpa;
 		synchronized (this) {
