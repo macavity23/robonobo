@@ -50,7 +50,7 @@ public class MinaConfig implements Cloneable, Serializable {
 	int deadSourceQueryTime = 60;
 	/** When we first hear about a source and query it, retry after this many secs (will be doubled each time) */
 	int initialSourceQueryTime = 60;
-	/** Maximum time between source queries - we never give up on sources */
+	/** Maximum time between source queries (secs) - we never give up on sources */
 	int maxSourceQueryTime = 900;
 	/** Batch up requests for source information, waiting a max of this many ms before sending. Requests for
 	 * immediate-playback streams are not batched. Also used for stream adverts in the same way */
