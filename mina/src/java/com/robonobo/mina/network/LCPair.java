@@ -4,9 +4,7 @@ import static com.robonobo.common.util.TextUtil.formatSizeInBytes;
 import static com.robonobo.common.util.TimeUtil.now;
 import static java.lang.System.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedSet;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -25,9 +23,7 @@ import com.robonobo.mina.message.proto.MinaProtocol.StopSource;
 import com.robonobo.mina.message.proto.MinaProtocol.StreamStatus;
 import com.robonobo.mina.util.MinaConnectionException;
 
-/**
- * @syncpriority 130
- */
+/** @syncpriority 130 */
 public class LCPair extends ConnectionPair {
 	private static final int MIN_PAGE_TIMEOUT = 60000;
 	private ListenConnection lc;
@@ -43,9 +39,7 @@ public class LCPair extends ConnectionPair {
 	int rto;
 	Future<?> usefulDataTimeout = null;
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public LCPair(MinaInstance m, String streamId, ControlConnection ccon, SourceStatus ss) {
 		super(m, streamId, ccon);
 		rto = MIN_PAGE_TIMEOUT;
@@ -65,8 +59,7 @@ public class LCPair extends ConnectionPair {
 		else {
 			// No account/agreed bid yet
 			// BuyMgr will post back to us when we get an agreed bid - start an attempt to shut us down if we fail
-			startAttempt = new Attempt(mina.getExecutor(), 8 * mina.getConfig().getMessageTimeout() * 1000, "lcp-"
-					+ sid + "-" + nodeId) {
+			startAttempt = new Attempt(mina.getExecutor(), 8 * mina.getConfig().getMessageTimeout() * 1000, "lcp-" + sid + "-" + nodeId) {
 				protected void onTimeout() {
 					log.error("Timeout attempting to set up connection to " + nodeId + " for stream " + sid);
 					mina.getSourceMgr().cachePossiblyDeadSource(cc.getNode(), sid);
@@ -83,9 +76,7 @@ public class LCPair extends ConnectionPair {
 		return lc.getFlowRate();
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public void gotAgreedBid() {
 		if (setupFinished)
 			return;
@@ -93,9 +84,7 @@ public class LCPair extends ConnectionPair {
 		startListening();
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	protected void startListening() {
 		if (setupFinished)
 			throw new Errot();
@@ -114,11 +103,13 @@ public class LCPair extends ConnectionPair {
 		if (newPages.size() == 0)
 			startUsefulDataTimeout();
 		else {
-			for (Long pn : newPages) {
-				int statusIdx = mina.getConfig().isAgoric() ? mina.getBuyMgr().getCurrentStatusIdx(cc.getNodeId()) : 0;
-				PageAttempt rpa = new PageAttempt(rto, pn, currentTimeMillis(), statusIdx);
-				reqdPages.put(pn, rpa);
-				rpa.start();
+			int statusIdx = mina.getConfig().isAgoric() ? mina.getBuyMgr().getCurrentStatusIdx(cc.getNodeId()) : 0;
+			synchronized (this) {
+				for (Long pn : newPages) {
+					PageAttempt rpa = new PageAttempt(rto, pn, currentTimeMillis(), statusIdx);
+					reqdPages.put(pn, rpa);
+					rpa.start();
+				}
 			}
 		}
 	}
@@ -127,9 +118,7 @@ public class LCPair extends ConnectionPair {
 		die(true);
 	}
 
-	/**
-	 * @syncpriority 200
-	 */
+	/** @syncpriority 200 */
 	public void notifySourceStatus(SourceStatus sourceStat) {
 		setLastSourceStat(sourceStat);
 		for (StreamStatus streamStat : sourceStat.getSsList()) {
@@ -140,9 +129,7 @@ public class LCPair extends ConnectionPair {
 		}
 	}
 
-	/**
-	 * @syncpriority 200
-	 */
+	/** @syncpriority 200 */
 	public void notifyStreamStatus(StreamStatus streamStat) {
 		this.lastStreamStat = streamStat;
 		mina.getPRM().notifyStreamStatus(sid, cc.getNodeId(), streamStat);
@@ -165,9 +152,7 @@ public class LCPair extends ConnectionPair {
 		}
 	}
 
-	/**
-	 * @syncpriority 130
-	 */
+	/** @syncpriority 130 */
 	public synchronized void abort() {
 		if (lc != null)
 			lc.close();
@@ -177,24 +162,24 @@ public class LCPair extends ConnectionPair {
 		die(true);
 	}
 
-	/**
-	 * @syncpriority 130
-	 */
+	/** @syncpriority 130 */
 	public void die(boolean sendStopSource) {
 		log.debug(this + " closing down");
+		List<PageAttempt> pas = new ArrayList<PageAttempt>();
 		synchronized (this) {
 			if (closing)
 				return;
 			closing = true;
 			if (lc != null)
 				lc.close();
+			pas.addAll(reqdPages.values());
 		}
-		for (PageAttempt rpa : reqdPages.values()) {
+		for (PageAttempt rpa : pas) {
 			rpa.failed();
 		}
 		if (usefulDataTimeout != null)
 			usefulDataTimeout.cancel(false);
-		if(startAttempt != null)
+		if (startAttempt != null)
 			startAttempt.cancel();
 		if (sendStopSource)
 			sendMessage("StopSource", StopSource.newBuilder().setStreamId(sid).build());
@@ -221,9 +206,7 @@ public class LCPair extends ConnectionPair {
 		return "LCP[node=" + cc.getNodeId() + ",stream=" + sid + "]";
 	}
 
-	/**
-	 * @syncpriority 200
-	 */
+	/** @syncpriority 200 */
 	public void receivePage(Page p) {
 		Long pn = new Long(p.getPageNumber());
 		PageAttempt rpa;
@@ -237,14 +220,11 @@ public class LCPair extends ConnectionPair {
 			log.error(this + " received non-requested page " + p.getPageNumber());
 			return;
 		}
-
 		if (log.isDebugEnabled()) {
 			long bytesInFlight = mina.getPageBufProvider().getPageBuf(sid).getAvgPageSize() * reqdPages.size();
-			log.debug("Stream " + sid + " / node " + cc.getNodeId() + ": got page " + pn + " - rate="
-					+ formatSizeInBytes(getFlowRate()) + "/s, " + reqdPages.size() + " pages in flight ("
-					+ FileUtil.humanReadableSize(bytesInFlight) + ")");
+			log.debug("Stream " + sid + " / node " + cc.getNodeId() + ": got page " + pn + " - rate=" + formatSizeInBytes(getFlowRate()) + "/s, " + reqdPages.size()
+					+ " pages in flight (" + FileUtil.humanReadableSize(bytesInFlight) + ")");
 		}
-
 		mina.getStreamMgr().receivePage(sid, p);
 		if (mina.getConfig().isAgoric()) {
 			// Check that the auction state is legit (they might try to shaft us
@@ -252,19 +232,15 @@ public class LCPair extends ConnectionPair {
 			// greater than (mod 64) the status when we requested it
 			if (AuctionState.INDEX_MOD.lt(p.getAuctionStatus(), rpa.statusIdx)) {
 				// TODO Something much more serious
-				log.error("ERROR: " + this + " received page with statusIdx " + p.getAuctionStatus()
-						+ " but I requested it with idx " + rpa.statusIdx);
+				log.error("ERROR: " + this + " received page with statusIdx " + p.getAuctionStatus() + " but I requested it with idx " + rpa.statusIdx);
 				return;
 			}
 			mina.getBuyMgr().receivedPage(cc.getNodeId(), p.getAuctionStatus(), p.getLength());
 		}
-
 		sendReqPageIfNecessary();
 	}
 
-	/**
-	 * @syncpriority 200
-	 */
+	/** @syncpriority 200 */
 	private void sendReqPageIfNecessary() {
 		if (closing || !mina.getStreamMgr().isReceiving(sid) || mina.getCCM().isShuttingDown())
 			return;
@@ -279,15 +255,13 @@ public class LCPair extends ConnectionPair {
 			}, 1, TimeUnit.SECONDS);
 			return;
 		}
-
 		int statusIdx = (mina.getConfig().isAgoric()) ? mina.getBuyMgr().getCurrentStatusIdx(cc.getNodeId()) : 0;
 		int pgWin = pageWindowSize();
 		synchronized (this) {
 			int reqdPgSz = reqdPages.size();
 			if (reqdPgSz < pgWin) {
 				int pagesToReq = pgWin - reqdPgSz;
-				SortedSet<Long> newPages = mina.getPRM().getPagesToRequest(sid, cc.getNodeId(), pagesToReq,
-						reqdPages.keySet());
+				SortedSet<Long> newPages = mina.getPRM().getPagesToRequest(sid, cc.getNodeId(), pagesToReq, reqdPages.keySet());
 				if (newPages.size() > 0) {
 					if (usefulDataTimeout != null) {
 						usefulDataTimeout.cancel(false);
@@ -305,14 +279,11 @@ public class LCPair extends ConnectionPair {
 		}
 	}
 
-	/**
-	 * We have no pages in flight, and we just got given an empty set of pages to ask for, which means they have no
-	 * pages that are useful to us... Start a timeout to shut us down if they don't offer any useful data within 2 mins
-	 */
+	/** We have no pages in flight, and we just got given an empty set of pages to ask for, which means they have no
+	 * pages that are useful to us... Start a timeout to shut us down if they don't offer any useful data within 2 mins */
 	private void startUsefulDataTimeout() {
 		if (usefulDataTimeout == null) {
-			log.debug(this + " has no useful data - starting timeout of "
-					+ mina.getConfig().getUsefulDataSourceTimeout() + "s");
+			log.debug(this + " has no useful data - starting timeout of " + mina.getConfig().getUsefulDataSourceTimeout() + "s");
 			usefulDataTimeout = mina.getExecutor().schedule(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					log.info(LCPair.this + " useful data timeout - closing (caching source)");
