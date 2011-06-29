@@ -77,4 +77,6 @@ public interface MidasService {
 	public void putUserConfig(MidasUserConfig config);
 
 	public List<MidasPlaylist> getRecentPlaylists(long maxAgeMs);
+	
+	public void addFriends(long userId, List<Long> friendIds, List<String> friendEmails);
 }

@@ -137,6 +137,7 @@ public class ShareController extends BaseController {
 	@RequestMapping(value = "/add-friends")
 	@Transactional(rollbackFor = Exception.class)
 	public void doAddFriends(@RequestParam(value = "emails", required = false) String emails, HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		// TODO Move this into midas service, we need to do it from the website too
 		MidasUser authUser = getAuthUser(req);
 		if (authUser == null) {
 			send401(req, resp);
