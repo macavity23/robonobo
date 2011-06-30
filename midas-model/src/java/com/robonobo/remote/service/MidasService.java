@@ -63,7 +63,7 @@ public interface MidasService {
 	
 	public MidasInvite getInvite(String inviteCode);
 	
-	public void deleteInvite(String inviteCode);
+	public void inviteAccepted(long acceptedUserId, String inviteCode);
 	
 	/**
 	 * @param since Pass null to get the whole library

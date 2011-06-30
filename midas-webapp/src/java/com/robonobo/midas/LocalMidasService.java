@@ -13,8 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.robonobo.common.exceptions.Errot;
-import com.robonobo.core.api.model.Library;
-import com.robonobo.core.api.model.Playlist;
+import com.robonobo.core.api.model.*;
 import com.robonobo.midas.dao.*;
 import com.robonobo.midas.model.*;
 import com.robonobo.remote.service.MidasService;
@@ -28,6 +27,8 @@ public class LocalMidasService implements MidasService {
 	private FacebookService facebook;
 	@Autowired
 	private TwitterService twitter;
+	@Autowired
+	private MessageService message;
 	@Autowired
 	private FriendRequestDao friendRequestDao;
 	@Autowired
@@ -63,7 +64,14 @@ public class LocalMidasService implements MidasService {
 		log.info("Creating user " + user.getEmail());
 		user.setVerified(true);
 		user.setUpdated(now());
-		return userDao.create(user);
+		// This will have its user id set
+		MidasUser createdUser = userDao.create(user);
+		try {
+			message.sendWelcome(createdUser);
+		} catch (IOException e) {
+			log.error("Error sending welcome mail to "+createdUser.getEmail(), e);
+		}
+		return createdUser;
 	}
 
 	public MidasUser getUserAsVisibleBy(MidasUser targetU, MidasUser requestor) {
@@ -208,7 +216,7 @@ public class LocalMidasService implements MidasService {
 			result.setInviteCode(generateEmailCode(email));
 		}
 		result.getFriendIds().add(friend.getUserId());
-		if(pl != null)
+		if (pl != null)
 			result.getPlaylistIds().add(pl.getPlaylistId());
 		result.setUpdated(now());
 		inviteDao.save(result);
@@ -255,6 +263,11 @@ public class LocalMidasService implements MidasService {
 		requestee.getFriendIds().add(requestor.getUserId());
 		userDao.save(requestee);
 		friendRequestDao.delete(req);
+		try {
+			message.sendFriendConfirmation(requestor, requestee);
+		} catch (IOException e) {
+			log.error("Error sending friend confirmation", e);
+		}
 		return null;
 	}
 
@@ -268,10 +281,23 @@ public class LocalMidasService implements MidasService {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	public void deleteInvite(String inviteCode) {
+	public void inviteAccepted(long acceptedUserId, String inviteCode) {
 		MidasInvite invite = inviteDao.retrieveByInviteCode(inviteCode);
-		if (invite != null)
-			inviteDao.delete(invite);
+		if (invite != null) {
+			MidasUser acceptedUser = getUserById(acceptedUserId);
+			// Tell them about their new buddy
+			for (Long friendId : invite.getFriendIds()) {
+				MidasUser friend = getUserById(friendId);
+				if(friend != null) {
+					try {
+						message.sendFriendConfirmation(friend, acceptedUser);
+					} catch (IOException e) {
+						log.error("Error sending friend confirmation", e);
+					}
+				}
+			}
+			inviteDao.delete(invite);			
+		}
 	}
 
 	public MidasInvite getInvite(String inviteCode) {
@@ -320,6 +346,30 @@ public class LocalMidasService implements MidasService {
 		facebook.updateFriends(mu, oldCfg, newCfg);
 		// TODO twitter
 		userConfigDao.saveUserConfig(newCfg);
+	}
+
+	@Override
+	public void addFriends(long userId, List<Long> friendIds, List<String> friendEmails) {
+		MidasUser fromUser = getUserById(userId);
+		if (fromUser == null) {
+			log.error("addFriends failed: No user with id " + userId);
+			return;
+		}
+		try {
+			for (Long friendId : friendIds) {
+				MidasUser friend = getUserById(friendId);
+				if (friend == null) {
+					log.error("addFriends failed for user " + fromUser.getEmail() + " and non existent user id " + friendId);
+					continue;
+				}
+				message.sendFriendRequest(fromUser, friend, null);
+			}
+			for (String email : friendEmails) {
+				message.sendInvite(fromUser, email, null);
+			}
+		} catch (IOException e) {
+			log.error("addFriends failed", e);
+		}
 	}
 
 	private String generateEmailCode(String email) {

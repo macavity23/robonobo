@@ -1,6 +1,7 @@
 package com.robonobo.midas;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.management.MBeanServer;
@@ -20,6 +21,7 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.remote.RemoteCall;
 import com.robonobo.core.api.proto.CoreApi.FriendRequestMsg;
 import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
@@ -135,8 +137,8 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 						return acceptFriendRequest(params);
 					} else if (method.equals("createOrUpdateInvite")) {
 						return createOrUpdateInvite(params);
-					} else if(method.equals("deleteInvite")) {
-						deleteInvite(params);
+					} else if(method.equals("inviteAccepted")) {
+						inviteAccepted(params);
 						return null;
 					} else if(method.equals("getInvite")) {
 						return getInvite(params);
@@ -144,6 +146,9 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 						return getUserConfig(params);
 					} else if(method.equals("putUserConfig")) {
 						putUserConfig(params);
+						return null;
+					} else if(method.equals("addFriends")) {
+						addFriends(params);
 						return null;
 					} else
 						throw new IllegalArgumentException("Invalid method");
@@ -178,8 +183,10 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 		midas.ignoreFriendRequest(new MidasFriendRequest(msg));
 	}
 	
-	private void deleteInvite(RemoteCall params) {
-		midas.deleteInvite((String) params.getArg());
+	private void inviteAccepted(RemoteCall params) {
+		Long acceptedUserId = (Long) params.getArg();
+		String inviteCode = (String) params.getExtraArgs().get(0);
+		midas.inviteAccepted(acceptedUserId, inviteCode);
 	}
 	
 	private Object getInvite(RemoteCall params) {
@@ -187,6 +194,15 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 		if(invite == null)
 			return null;
 		return invite.toMsg().toByteArray();
+	}
+	
+	private void addFriends(RemoteCall params) {
+		Long userId = (Long) params.getArg();
+		if(params.getExtraArgs().size() < 2)
+			throw new Errot();
+		Long[] fidArr = (Long[]) params.getExtraArgs().get(0);
+		String[] strArr = (String[]) params.getExtraArgs().get(1);
+		midas.addFriends(userId, Arrays.asList(fidArr), Arrays.asList(strArr));
 	}
 	
 	private Object getUserConfig(RemoteCall params) {

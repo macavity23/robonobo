@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.core.api.model.User;
 import com.robonobo.midas.LocalMidasService;
+import com.robonobo.midas.MessageService;
 import com.robonobo.midas.model.MidasFriendRequest;
 import com.robonobo.midas.model.MidasInvite;
 import com.robonobo.midas.model.MidasPlaylist;
@@ -33,7 +34,7 @@ import com.robonobo.remote.service.MidasService;
 @Controller
 public class ShareController extends BaseController {
 	@Autowired
-	private MailService mail;
+	private MessageService message;
 
 	@RequestMapping(value = "/share-playlist/share")
 	@Transactional(rollbackFor = Exception.class)
@@ -113,7 +114,7 @@ public class ShareController extends BaseController {
 			friend.setUpdated(getUpdatedDate(friend.getUpdated()));
 			p.getOwnerIds().add(friend.getUserId());
 			midas.saveUser(friend);
-			sendNotifyPlaylistShare(authUser, friend, p);
+			message.sendPlaylistShare(authUser, friend, p);
 		}
 		p.setUpdated(getUpdatedDate(p.getUpdated()));
 		midas.savePlaylist(p);
@@ -121,118 +122,46 @@ public class ShareController extends BaseController {
 		for (MidasUser newFriend : newFriends) {
 			if (log.isDebugEnabled())
 				log.debug("User " + authUser.getEmail() + " sharing playlist " + p.getTitle() + " with new friend " + newFriend.getEmail());
-			MidasFriendRequest friendReq = midas.createOrUpdateFriendRequest(authUser, newFriend, p);
-			sendFriendRequest(friendReq, authUser, newFriend, p);
+			message.sendFriendRequest(authUser, newFriend, p);
 		}
 		// Invites
 		for (String invitee : inviteEmails) {
 			if (log.isDebugEnabled())
 				log.debug("User " + authUser.getEmail() + " sharing playlist " + p.getTitle() + " with invited robonobo user " + invitee);
-			MidasInvite invite = midas.createOrUpdateInvite(invitee, authUser, p);
-			sendInvite(invite, authUser, p);
+			message.sendInvite(authUser, invitee, p);
 		}
 		writeToOutput(p.toMsg(), resp);
 	}
 
 	@RequestMapping(value = "/add-friends")
 	@Transactional(rollbackFor = Exception.class)
-	public void doAddFriends(@RequestParam(value = "emails", required = false) String emails, HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		// TODO Move this into midas service, we need to do it from the website too
+	public void doAddFriends(@RequestParam("emails") String emails, HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		MidasUser authUser = getAuthUser(req);
 		if (authUser == null) {
 			send401(req, resp);
 			return;
 		}
-		List<String> emailParams = isNonEmpty(emails) ? Arrays.asList(emails.split(",")) : new ArrayList<String>();
+		List<String> emailParams = Arrays.asList(emails.split(","));
 		// We'll have two categories of users that might need updating:
 		// 1. Existing robonobo users who are not friends of this user - send
 		// them a friend request
-		Set<MidasUser> newFriends = new HashSet<MidasUser>();
+		List<Long> friendIds = new ArrayList<Long>();
 		// 2. Non-users of robonobo - send them invite emails
-		Set<String> inviteEmails = new HashSet<String>();
-		// Go through our parameters, figuring out which users are in our 3
-		// categories
+		List<String> inviteEmails = new ArrayList<String>();
+		// Go through our parameters, figuring out which users are in our categories
 		for (String emailParam : emailParams) {
 			String email = urlDecode(emailParam);
 			MidasUser shareUser = midas.getUserByEmail(email);
 			if (shareUser == null) {
+				// Invite
 				inviteEmails.add(email);
 			} else if (authUser.getFriendIds().contains(shareUser.getUserId())) {
-				// They are already a friend, doofus
+				// They're already a friend, doofus
 			} else {
 				// Friend request
-				newFriends.add(shareUser);
+				friendIds.add(shareUser.getUserId());
 			}
 		}
-		// New friends
-		for (MidasUser newFriend : newFriends) {
-			if (log.isDebugEnabled())
-				log.debug("User " + authUser.getEmail() + " making friends with existing user " + newFriend.getEmail());
-			MidasFriendRequest friendReq = midas.createOrUpdateFriendRequest(authUser, newFriend, null);
-			sendFriendRequest(friendReq, authUser, newFriend, null);
-		}
-		// Invites
-		for (String invitee : inviteEmails) {
-			if (log.isDebugEnabled())
-				log.debug("User " + authUser.getEmail() + " making friends with invited robonobo user " + invitee);
-			MidasInvite invite = midas.createOrUpdateInvite(invitee, authUser, null);
-			sendInvite(invite, authUser, null);
-		}
-	}
-
-	protected void sendNotifyPlaylistShare(User fromUser, User toUser, Playlist p) throws IOException {
-		String subject = fromUser.getFriendlyName() + " shared a playlist with you: " + p.getTitle();
-		StringBuffer bod = new StringBuffer();
-		bod.append(fromUser.getFriendlyName()).append("(").append(fromUser.getEmail()).append(")");
-		bod.append(" shared a robonobo playlist with you.\n\n");
-		bod.append("Title: ").append(p.getTitle()).append("\n");
-		if (isNonEmpty(p.getDescription()))
-			bod.append("Description: ").append(p.getDescription());
-		bod.append("\n\n(from robonobo mailmonkey)\n");
-		mail.sendMail(fromName(), fromEmail(), toUser.getFriendlyName(), toUser.getEmail(), fromUser.getFriendlyName(), fromUser.getEmail(), subject, bod.toString());
-	}
-
-	private String fromEmail() {
-		return appConfig.getInitParam("fromEmail");
-	}
-
-	private String fromName() {
-		return appConfig.getInitParam("fromName");
-	}
-
-	// TODO replace all this gubbins with freemarker/velocity
-	protected void sendFriendRequest(MidasFriendRequest req, User fromUser, User toUser, Playlist p) throws IOException {
-		String subject = fromUser.getFriendlyName() + " would like to be your friend on robonobo";
-		StringBuffer bod = new StringBuffer();
-		bod.append(fromUser.getFriendlyName()).append("(").append(fromUser.getEmail()).append(")");
-		bod.append(" has shared a playlist with you, and would like to become your friend on robonobo.  This means that they will see playlists that you have made public, and you will see theirs.\n\n");
-		if (p != null) {
-			bod.append("Playlist title: ").append(p.getTitle()).append("\n");
-			if (isNonEmpty(p.getDescription()))
-				bod.append("Description: ").append(p.getDescription());
-		}
-		bod.append("\n\nTo add ").append(fromUser.getFriendlyName()).append(" as a friend, click this link:\n\n");
-		bod.append(appConfig.getInitParam("friendReqUrlBase")).append(req.getRequestCode());
-		bod.append("\n\nCopy and paste this into your browser if clicking does not work.  To ignore this request, just delete this email.");
-		bod.append("\n\n(from robonobo mailmonkey)\n");
-		mail.sendMail(fromName(), fromEmail(), toUser.getFriendlyName(), toUser.getEmail(), fromUser.getFriendlyName(), fromUser.getEmail(), subject, bod.toString());
-	}
-
-	protected void sendInvite(MidasInvite invite, User fromUser, Playlist p) throws IOException {
-		String subject = fromUser.getFriendlyName() + " has invited you to robonobo";
-		StringBuffer bod = new StringBuffer();
-		bod.append(fromUser.getFriendlyName()).append("(").append(fromUser.getEmail()).append(")");
-		bod.append(" has invited you to robonobo, the social music application that lets you share your music with friends while supporting artists. ");
-		if (p != null) {
-			bod.append("As a welcome present, they have sent you a playlist:\n\n");
-			bod.append("Title: ").append(p.getTitle()).append("\n");
-			if (isNonEmpty(p.getDescription()))
-				bod.append("Description: ").append(p.getDescription()).append("\n");
-		}
-		bod.append("\nTo accept the invitation and start using robonobo, click this link:\n\n");
-		bod.append(appConfig.getInitParam("inviteUrlBase")).append(invite.getInviteCode());
-		bod.append("\n\nCopy and paste this into your browser if clicking does not work.  To ignore this invitation, just delete this email.");
-		bod.append("\n\n(from robonobo mailmonkey)\n");
-		mail.sendMail(fromName(), fromEmail(), null, invite.getEmail(), fromUser.getFriendlyName(), fromUser.getEmail(), subject, bod.toString());
+		midas.addFriends(authUser.getUserId(), friendIds, inviteEmails);
 	}
 }
