@@ -7,7 +7,7 @@
 
 <p>To add friends so that you can start sharing music, click the 'Add Friends...' button in the top left of the robonobo app.</p>
 
-<p>To get help or if there's something that's not clear, visit <a href="http://getsatisfaction.com/robonobo">http://getsatisfaction.com/robonobo</a>, send email to <a href="mailto:help@robonobo.com">help@robonobo.com</a>, or just reply to this message.</p>
+<p>To get help or if there's something that's not clear, visit <a href="http://getsatisfaction.com/robonobo">our help and support site</a>, send email to <a href="mailto:help@robonobo.com">help@robonobo.com</a>, or just reply to this message.</p>
 
 <p>Thanks for trying robonobo!</p>
 

@@ -16,4 +16,6 @@ public interface MessageService {
 	public abstract void sendWelcome(MidasUser newUser) throws IOException;
 
 	public abstract void sendFriendConfirmation(MidasUser userSentFriendReq, MidasUser userApprovedFriendReq) throws IOException;
+
+	public abstract void sendTopUpRequest(MidasUser requestor) throws IOException;
 }

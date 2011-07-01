@@ -12,13 +12,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import com.robonobo.core.api.proto.CoreApi.UserMsg;
+import com.robonobo.midas.MessageService;
 import com.robonobo.midas.model.MidasUser;
 import com.robonobo.remote.service.MailService;
 
 @Controller
 public class UserController extends BaseController {
 	@Autowired
-	MailService mail;
+	MessageService message;
 	
 	@RequestMapping(value="/users/byid/{uIdStr}", method=RequestMethod.GET)
 	public void getUserById(@PathVariable("uIdStr") String uIdStr, HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -60,15 +61,7 @@ public class UserController extends BaseController {
 			send401(req, resp);
 			return;
 		}
-		
-		String fromName = "robonobo website";
-		String fromEmail = "NO_REPLY@robonobo.com";
-		String toName = "";
-		String toEmail = "info@robonobo.com";
-		String subject = "TopUp request: " + user.getEmail();
-		String body = "User " + user.getFriendlyName() + " (" + user.getEmail() + ") has requested an account topup.";
-		mail.sendMail(fromName, fromEmail, toName, toEmail, subject, body);
-		
+		message.sendTopUpRequest(user);
 		resp.setContentType("text/plain");
 		resp.getWriter().println("TopUp request received OK.");
 		resp.setStatus(HttpServletResponse.SC_OK);

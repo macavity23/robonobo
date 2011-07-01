@@ -30,20 +30,24 @@
             timeBetweenEvictionRunsMillis="1800000"
             numTestsPerEvictionRun="3"
             />
-
+  <!-- Url for the front-end website - for emails -->            
+  <Parameter name="rbnbUrl" value="http://robonobo.com/" override="true"/>
   <!-- Remoting Details so other webapps can talk to us -->
   <Parameter name="remoteMidasListenUrl" value="socket://127.0.0.1:10123" override="true"/>
   <Parameter name="remoteMidasSecret" value="sekrit" override="true"/>
-<!-- Uncomment this to set the smtp server - otherwise no mails will be sent 
-  <Parameter name="smtpServer" value="127.0.0.1" override="true"/>
+<!-- Uncomment these to set the smtp server - otherwise no mails will be sent 
+  <Parameter name="smtpHost" value="smtp.gmail.com" override="true"/>
+  <Parameter name="smtpPort" value="587" override="true"/>
+  <Parameter name="smtpUseTls" value="true" override="true"/>
+  <Parameter name="smtpUser" value="" override="true"/>
+  <Parameter name="smtpPwd" value="" override="true"/>
  -->
   <Parameter name="fromName" value="robonobo website" override="true"/>
-  <Parameter name="fromEmail" value="do_not_reply@robonobo.com" override="true"/>
+  <Parameter name="fromEmail" value="help@robonobo.com" override="true"/>
   <Parameter name="facebookAuthTokenUrl" value="https://graph.facebook.com/oauth/access_token?client_id=171526759534429&amp;client_secret=EDITME&amp;grant_type=client_credentials" override="true"/>
   <Parameter name="facebookSubscriptionsUrl" value="http://graph.facebook.com/171526759534429/subscriptions"/>
   <Parameter name="facebookCallbackUrl" value="http://midas.robonobo.com/fb-callback" override="true"/>
   <Parameter name="twitterApiKey" value="ObqWeQW3Mzkrbzbtcgl4w" override="true"/>
   <Parameter name="twitterApiSecret" value="EDITME" override="true"/>
   <Parameter name="playlistShortUrlBase" value="http://localhost:8080/website/p/" override="true"/>
-  <Parameter name="inviteUrlBase" value="http://robonobo.com/invite/" override="true"/>
 </Context>

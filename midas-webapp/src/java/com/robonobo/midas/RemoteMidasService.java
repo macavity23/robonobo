@@ -1,8 +1,7 @@
 package com.robonobo.midas;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import javax.management.MBeanServer;
 
@@ -200,9 +199,18 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 		Long userId = (Long) params.getArg();
 		if(params.getExtraArgs().size() < 2)
 			throw new Errot();
-		Long[] fidArr = (Long[]) params.getExtraArgs().get(0);
-		String[] strArr = (String[]) params.getExtraArgs().get(1);
-		midas.addFriends(userId, Arrays.asList(fidArr), Arrays.asList(strArr));
+		// Java won't cast Object[] into Long[] automatically, rubbish
+		Object[] fidArr = (Object[]) params.getExtraArgs().get(0);
+		List<Long> fidList = new ArrayList<Long>();
+		for (Object o : fidArr) {
+			fidList.add((Long) o);
+		}
+		Object[] strArr = (Object[]) params.getExtraArgs().get(1);
+		List<String> strList = new ArrayList<String>();
+		for (Object o : strArr) {
+			strList.add((String) o);
+		}
+		midas.addFriends(userId, fidList, strList);
 	}
 	
 	private Object getUserConfig(RemoteCall params) {

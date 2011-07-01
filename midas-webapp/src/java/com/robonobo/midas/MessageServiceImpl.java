@@ -28,9 +28,9 @@ import freemarker.template.*;
 @Service("message")
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MessageServiceImpl implements MessageService, InitializingBean, DisposableBean, ServletContextAware {
-	private static final String FROM_ADDR = "mailmonkey@robonobo.com";
 	private String smtpHost;
 	private int smtpPort;
+	private boolean useTls;
 	private String smtpUser;
 	private String smtpPwd;
 	private String rbnbUrl;
@@ -53,6 +53,7 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 			return;
 		}
 		smtpPort = Integer.parseInt(appConfig.getInitParam("smtpPort"));
+		useTls = Boolean.parseBoolean(appConfig.getInitParam("smtpUseTls"));
 		smtpUser = appConfig.getInitParam("smtpUser");
 		smtpPwd = appConfig.getInitParam("smtpPwd");
 		rbnbUrl = appConfig.getInitParam("rbnbUrl");
@@ -86,6 +87,7 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 	@Override
 	public void sendWelcome(MidasUser newUser) throws IOException {
 		Map model = newModel(newUser.getFriendlyName(), newUser.getEmail());
+		model.put("toUser", newUser);
 		sendMail(null, null, newUser.getEmail(), newUser.getFriendlyName(), newUser.getFriendlyName() + ", welcome to robonobo", "welcome", model);
 	}
 
@@ -94,7 +96,7 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 		MidasFriendRequest friendReq = midas.createOrUpdateFriendRequest(requestor, requestee, p);
 		Map model = newModel(requestee.getFriendlyName(), requestee.getEmail());
 		model.put("fromUser", requestor);
-		model.put("acceptUrl", appConfig.getInitParam("friendReqUrlBase") + friendReq.getRequestCode());
+		model.put("acceptUrl", rbnbUrl + "friendrequest/" + friendReq.getRequestCode());
 		model.put("playlist", p);
 		sendMail(requestor.getEmail(), requestor.getFriendlyName(), requestee.getEmail(), requestee.getFriendlyName(), requestor.getFriendlyName()
 				+ " would like to be your friend on robonobo", "friendrequest", model);
@@ -105,7 +107,7 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 		MidasInvite invite = midas.createOrUpdateInvite(toEmail, fromUser, p);
 		Map model = newModel(null, toEmail);
 		model.put("fromUser", fromUser);
-		model.put("inviteUrl", appConfig.getInitParam("inviteUrlBase") + invite.getInviteCode());
+		model.put("inviteUrl", rbnbUrl + "invite/" + invite.getInviteCode());
 		model.put("playlist", p);
 		sendMail(fromUser.getEmail(), fromUser.getFriendlyName(), toEmail, null, fromUser.getFriendlyName() + " has invited you to robonobo", "invite", model);
 	}
@@ -136,6 +138,13 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 				userConfirmedFriendReq.getFriendlyName() + " confirmed your robonobo friend request",
 				"friendconfirm",
 				model);
+	}
+
+	@Override
+	public void sendTopUpRequest(MidasUser requestor) throws IOException {
+		Map model = new HashMap();
+		model.put("user", requestor);
+		sendMail(null, null, "info@robonobo.com", "rbnb topups", "TopUp Request", "topup", model);
 	}
 
 	private void sendMail(String replyToAddr, String replyToName, String toAddr, String toName, String subject, String templateBase, Map model) throws IOException {
@@ -182,8 +191,9 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 				HtmlEmail mail = new HtmlEmail();
 				mail.setHostName(smtpHost);
 				mail.setSmtpPort(smtpPort);
+				mail.setTLS(useTls);
 				mail.setAuthentication(smtpUser, smtpPwd);
-				mail.setFrom(appConfig.getInitParam("from-email"), appConfig.getInitParam("from-name"));
+				mail.setFrom(appConfig.getInitParam("fromEmail"), appConfig.getInitParam("fromName"));
 				if (replyToAddr != null)
 					mail.addReplyTo(replyToAddr, replyToName);
 				mail.setSubject(subject);

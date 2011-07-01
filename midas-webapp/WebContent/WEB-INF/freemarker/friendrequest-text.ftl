@@ -1,7 +1,7 @@
 
-${fromUser.friendlyName} (${fromUser.email}) wants to be your friend on robonobo.<#if playlist != null> To welcome you, they have sent you a playlist titled '${playlist.title}' with ${playlist.tracks.size} tracks.</#if>
+${fromUser.friendlyName} (${fromUser.email}) wants to be your friend on robonobo.<#if playlist??> To ingratiate themselves, they have shared a playlist with you, titled '${playlist.title}' with ${playlist.streamIds?size} tracks.</#if>
 
-If you become their friend, you will be able to see each others' libraries and playlists<#if playlist != null>, including '${playlist.title}'</#if>.
+If you become their friend, you will be able to see each others' music libraries and playlists<#if playlist??>, including '${playlist.title}'</#if>.
 
 To accept the request, click here: ${acceptUrl}
 
