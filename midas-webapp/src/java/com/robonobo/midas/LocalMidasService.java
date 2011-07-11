@@ -372,6 +372,20 @@ public class LocalMidasService implements MidasService {
 		}
 	}
 
+	@Override
+	public String requestAccountTopUp(long userId) {
+		MidasUser user = userDao.getById(userId);
+		if(user == null)
+			return "Error: no such user";
+		try {
+			message.sendTopUpRequest(user);
+		} catch (IOException e) {
+			log.error("Error requesting topup", e);
+			return "Error processing request, please contact help@robonobo.com";
+		}
+		return "TopUp request received - please check your account in a few hours.";
+	}
+	
 	private String generateEmailCode(String email) {
 		MD5 hash = new MD5();
 		hash.Update(email);

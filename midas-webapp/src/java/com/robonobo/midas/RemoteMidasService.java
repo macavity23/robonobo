@@ -149,6 +149,8 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 					} else if(method.equals("addFriends")) {
 						addFriends(params);
 						return null;
+					} else if(method.equals("requestTopUp")) {
+						return requestTopUp(params);
 					} else
 						throw new IllegalArgumentException("Invalid method");
 				} catch(Exception e) {
@@ -211,6 +213,11 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 			strList.add((String) o);
 		}
 		midas.addFriends(userId, fidList, strList);
+	}
+	
+	private byte[] requestTopUp(RemoteCall params) {
+		Long userId = (Long) params.getArg();
+		return midas.requestAccountTopUp(userId).getBytes();
 	}
 	
 	private Object getUserConfig(RemoteCall params) {

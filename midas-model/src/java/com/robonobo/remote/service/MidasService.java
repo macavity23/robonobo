@@ -79,4 +79,9 @@ public interface MidasService {
 	public List<MidasPlaylist> getRecentPlaylists(long maxAgeMs);
 	
 	public void addFriends(long userId, List<Long> friendIds, List<String> friendEmails);
+	
+	/**
+	 * Returns message to be displayed to the requesting user
+	 */
+	public String requestAccountTopUp(long userId);
 }

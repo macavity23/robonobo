@@ -177,6 +177,12 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 		invoke("addFriends", userId, Arrays.asList(friendIds.toArray(), friendEmails.toArray()));
 	}
 	
+	@Override
+	public String requestAccountTopUp(long userId) {
+		byte[] arr = (byte[]) invoke("requestTopUp", userId, null);
+		return new String(arr);
+	}
+	
 	private MidasPlaylist playlistFromByteArr(byte[] arr) {
 		if (arr == null)
 			return null;
