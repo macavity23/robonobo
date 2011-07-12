@@ -1,9 +1,11 @@
 robonobo source readme
 ----------------------
 
-Welcome to robonobo, an open source p2p music streaming & downloading application.
+Welcome to robonobo, an open-source p2p music streaming & downloading application.
 
-Quick:
+For release versions and non-developer stuff, go to http://robonobo.com
+
+For the impatient:
 $ cd gui
 $ ant clean fatjar
 $ java -jar target/dist/robonobo-*.jar
@@ -22,4 +24,4 @@ For more in-depth info, see the developer wiki at https://github.com/macavity23/
 All queries to info@robonobo.com
 
 Created: 2011/03/02
-Last Updated: 2011/05/10
+Last Updated: 2011/07/12
