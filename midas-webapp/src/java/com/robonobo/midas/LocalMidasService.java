@@ -1,5 +1,6 @@
 package com.robonobo.midas;
 
+import static com.robonobo.common.util.TextUtil.*;
 import static com.robonobo.common.util.TimeUtil.*;
 
 import java.io.IOException;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.util.TextUtil;
 import com.robonobo.core.api.model.*;
 import com.robonobo.midas.dao.*;
 import com.robonobo.midas.model.*;
@@ -64,6 +66,7 @@ public class LocalMidasService implements MidasService {
 		log.info("Creating user " + user.getEmail());
 		user.setVerified(true);
 		user.setUpdated(now());
+		preventUserXSS(user);
 		// This will have its user id set
 		MidasUser createdUser = userDao.create(user);
 		try {
@@ -100,7 +103,14 @@ public class LocalMidasService implements MidasService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public void saveUser(MidasUser user) {
+		preventUserXSS(user);
+		user.setUpdated(now());
 		userDao.save(user);
+	}
+
+	private void preventUserXSS(MidasUser user) {
+		user.setFriendlyName(escapeHtml(user.getFriendlyName()));
+		user.setDescription(escapeHtml(user.getDescription()));
 	}
 
 	@Transactional(rollbackFor = Exception.class)
@@ -156,6 +166,7 @@ public class LocalMidasService implements MidasService {
 			newPlaylistId = lastPlaylistId;
 		}
 		playlist.setPlaylistId(newPlaylistId);
+		preventPlaylistXSS(playlist);
 		savePlaylist(playlist);
 		// Announce the playlist to facebook unless it's private
 		if (!playlist.getVisibility().equals(Playlist.VIS_ME)) {
@@ -180,9 +191,15 @@ public class LocalMidasService implements MidasService {
 	public void savePlaylist(MidasPlaylist playlist) {
 		if (playlist.getPlaylistId() <= 0)
 			throw new Errot("playlist id is not set");
+		preventPlaylistXSS(playlist);
 		playlistDao.savePlaylist(playlist);
 	}
 
+	private void preventPlaylistXSS(MidasPlaylist p) {
+		p.setTitle(escapeHtml(p.getTitle()));
+		p.setDescription(escapeHtml(p.getDescription()));
+	}
+	
 	@Transactional(rollbackFor = Exception.class)
 	public void deletePlaylist(MidasPlaylist playlist) {
 		playlistDao.deletePlaylist(playlist);
