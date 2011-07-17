@@ -141,7 +141,7 @@ public class MenuBar extends JMenuBar {
 			});
 			helpMenu.add(showAbout);
 		}
-		RMenuItem showHelpPage = new RMenuItem("Go to online help...");
+		RMenuItem showHelpPage = new RMenuItem("Online help/feedback...");
 		showHelpPage.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				openUrl(frame.getController().getConfig().getHelpUrl());
