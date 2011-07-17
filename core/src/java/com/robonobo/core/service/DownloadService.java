@@ -10,6 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.util.TimeUtil;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.StreamVelocity;
 import com.robonobo.core.api.model.*;
@@ -40,6 +41,8 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	private Set<String> preFetchStreamIds;
 	/** Saves downloads in the order they are added, to make sure they're downloaded in order */
 	private List<String> dPriority = new ArrayList<String>();
+	/** Don't fire the track updated event after receiving a page more than once per sec, to avoid spamming the gui with local downloads */
+	private Map<String, Date> lastFiredPageEvent = new HashMap<String, Date>();
 	/** Make sure that we don't add two downloads with the same start time, to ensure they're restored from the db in the
 	 * right order. So, keep track of the last download time, and if it hasn't increased, add 1ms to ensure uniqueness */
 	long lastDlStartTime = 0;
@@ -230,6 +233,9 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		mina.stopReception(d.getStream().getStreamId());
 		d.getPageBuf().close();
 		event.fireTrackUpdated(d.getStream().getStreamId());
+		synchronized (this) {
+			lastFiredPageEvent.remove(d.getStream().getStreamId());
+		}
 	}
 
 	private int numRunningDownloads() {
@@ -269,6 +275,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		updatePriorities();
 		synchronized (this) {
 			downloadStreamIds.remove(streamId);
+			lastFiredPageEvent.remove(streamId);
 		}
 		try {
 			// Start sharing this one
@@ -368,6 +375,12 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 
 	@Override
 	public void gotPage(PageBuffer pb, long pageNum) {
+		synchronized (this) {
+			Date lastEvt = lastFiredPageEvent.get(pb.getStreamId());
+			if(lastEvt != null && msElapsedSince(lastEvt) < 1000)
+				return;
+			lastFiredPageEvent.put(pb.getStreamId(), now());
+		}
 		event.fireTrackUpdated(pb.getStreamId());
 	}
 }
