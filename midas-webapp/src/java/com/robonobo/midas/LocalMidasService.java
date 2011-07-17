@@ -32,6 +32,8 @@ public class LocalMidasService implements MidasService {
 	@Autowired
 	private MessageService message;
 	@Autowired
+	private EventService event;
+	@Autowired
 	private FriendRequestDao friendRequestDao;
 	@Autowired
 	private InviteDao inviteDao;
@@ -72,16 +74,16 @@ public class LocalMidasService implements MidasService {
 		try {
 			message.sendWelcome(createdUser);
 		} catch (IOException e) {
-			log.error("Error sending welcome mail to "+createdUser.getEmail(), e);
+			log.error("Error sending welcome mail to " + createdUser.getEmail(), e);
 		}
+		event.newUser(createdUser);
 		return createdUser;
 	}
 
 	public MidasUser getUserAsVisibleBy(MidasUser targetU, MidasUser requestor) {
 		// If this the user asking for themselves, give them everything. If
-		// they're a friend, they get public playlists, but no friends.
-		// Otherwise, they
-		// get a null object
+		// they're a friend, they get public and friend-visible playlists, but no friends.
+		// Otherwise, they get a null object
 		MidasUser result;
 		if (targetU.equals(requestor)) {
 			result = new MidasUser(targetU);
@@ -168,22 +170,6 @@ public class LocalMidasService implements MidasService {
 		playlist.setPlaylistId(newPlaylistId);
 		preventPlaylistXSS(playlist);
 		savePlaylist(playlist);
-		// Announce the playlist to facebook unless it's private
-		if (!playlist.getVisibility().equals(Playlist.VIS_ME)) {
-			long userId = (Long) playlist.getOwnerIds().toArray()[0];
-			MidasUserConfig muc = userConfigDao.getUserConfig(userId);
-			try {
-				facebook.postPlaylistCreateToFacebook(muc, playlist);
-			} catch (IOException e) {
-				log.error("Error posting playlist create to facebook", e);
-			}
-		}
-		// Only announce public playlists to twitter
-		if (playlist.getVisibility().equals(Playlist.VIS_ALL)) {
-			long userId = (Long) playlist.getOwnerIds().toArray()[0];
-			MidasUserConfig muc = userConfigDao.getUserConfig(userId);
-			twitter.postPlaylistCreateToTwitter(muc, playlist);
-		}
 		return playlist;
 	}
 
@@ -199,7 +185,7 @@ public class LocalMidasService implements MidasService {
 		p.setTitle(escapeHtml(p.getTitle()));
 		p.setDescription(escapeHtml(p.getDescription()));
 	}
-	
+
 	@Transactional(rollbackFor = Exception.class)
 	public void deletePlaylist(MidasPlaylist playlist) {
 		playlistDao.deletePlaylist(playlist);
@@ -285,6 +271,7 @@ public class LocalMidasService implements MidasService {
 		} catch (IOException e) {
 			log.error("Error sending friend confirmation", e);
 		}
+		event.friendRequestAccepted(requestor, requestee);
 		return null;
 	}
 
@@ -305,7 +292,7 @@ public class LocalMidasService implements MidasService {
 			// Tell them about their new buddy
 			for (Long friendId : invite.getFriendIds()) {
 				MidasUser friend = getUserById(friendId);
-				if(friend != null) {
+				if (friend != null) {
 					try {
 						message.sendFriendConfirmation(friend, acceptedUser);
 					} catch (IOException e) {
@@ -313,7 +300,8 @@ public class LocalMidasService implements MidasService {
 					}
 				}
 			}
-			inviteDao.delete(invite);			
+			event.inviteAccepted(acceptedUser, invite);
+			inviteDao.delete(invite);
 		}
 	}
 
@@ -380,9 +368,11 @@ public class LocalMidasService implements MidasService {
 					continue;
 				}
 				message.sendFriendRequest(fromUser, friend, null);
+				event.friendRequestSent(fromUser, friend);
 			}
 			for (String email : friendEmails) {
-				message.sendInvite(fromUser, email, null);
+				MidasInvite invite = message.sendInvite(fromUser, email, null);
+				event.inviteSent(fromUser, email, invite);
 			}
 		} catch (IOException e) {
 			log.error("addFriends failed", e);
@@ -392,7 +382,7 @@ public class LocalMidasService implements MidasService {
 	@Override
 	public String requestAccountTopUp(long userId) {
 		MidasUser user = userDao.getById(userId);
-		if(user == null)
+		if (user == null)
 			return "Error: no such user";
 		try {
 			message.sendTopUpRequest(user);
@@ -402,7 +392,7 @@ public class LocalMidasService implements MidasService {
 		}
 		return "TopUp request received - please check your account in a few hours.";
 	}
-	
+
 	private String generateEmailCode(String email) {
 		MD5 hash = new MD5();
 		hash.Update(email);

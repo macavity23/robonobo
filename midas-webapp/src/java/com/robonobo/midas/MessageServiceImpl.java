@@ -103,13 +103,14 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 	}
 
 	@Override
-	public void sendInvite(MidasUser fromUser, String toEmail, MidasPlaylist p) throws IOException {
+	public MidasInvite sendInvite(MidasUser fromUser, String toEmail, MidasPlaylist p) throws IOException {
 		MidasInvite invite = midas.createOrUpdateInvite(toEmail, fromUser, p);
 		Map model = newModel(null, toEmail);
 		model.put("fromUser", fromUser);
 		model.put("inviteUrl", rbnbUrl + "invite/" + invite.getInviteCode());
 		model.put("playlist", p);
 		sendMail(fromUser.getEmail(), fromUser.getFriendlyName(), toEmail, null, fromUser.getFriendlyName() + " has invited you to robonobo", "invite", model);
+		return invite;
 	}
 
 	@Override

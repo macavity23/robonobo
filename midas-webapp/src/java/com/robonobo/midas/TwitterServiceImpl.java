@@ -32,16 +32,6 @@ public class TwitterServiceImpl implements InitializingBean, TwitterService{
 	}
 	
 	@Override
-	public void postPlaylistCreateToTwitter(MidasUserConfig muc, Playlist p) {
-		String accTok = muc.getItem("twitterAccessToken");
-		if(accTok == null)
-			return;
-		String playlistUrl = appConfig.getInitParam("playlistShortUrlBase") + p.getPlaylistId();
-		String msg = "I created a playlist '" + p.getTitle() + "': " + playlistUrl;
-		postToTwitter(muc, msg);
-	}
-	
-	@Override
 	public void postPlaylistUpdateToTwitter(MidasUserConfig muc, Playlist p, String msg) {
 		String accTok = muc.getItem("twitterAccessToken");
 		if(accTok == null)

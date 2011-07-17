@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import com.robonobo.core.api.proto.CoreApi.UserMsg;
+import com.robonobo.midas.EventService;
 import com.robonobo.midas.MessageService;
 import com.robonobo.midas.model.MidasUser;
 import com.robonobo.remote.service.MailService;
@@ -20,6 +21,8 @@ import com.robonobo.remote.service.MailService;
 public class UserController extends BaseController {
 	@Autowired
 	MessageService message;
+	@Autowired
+	EventService event;
 	
 	@RequestMapping(value="/users/byid/{uIdStr}", method=RequestMethod.GET)
 	public void getUserById(@PathVariable("uIdStr") String uIdStr, HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -35,6 +38,8 @@ public class UserController extends BaseController {
 			return;
 		}
 		getUser(targetUser, authUser, req, resp);
+		if(targetUser.getUserId() == authUser.getUserId())
+			event.userRemainsOnline(targetUser);
 	}
 	
 	@RequestMapping(value="/users/byemail/{email}.{ext}", method=RequestMethod.GET) 
@@ -52,6 +57,8 @@ public class UserController extends BaseController {
 			return;
 		}
 		getUser(targetUser, authUser, req, resp);
+		if(targetUser.getUserId() == authUser.getUserId())
+			event.userLoggedIn(targetUser);
 	}
 	
 	@RequestMapping(value="/users/testing-topup")

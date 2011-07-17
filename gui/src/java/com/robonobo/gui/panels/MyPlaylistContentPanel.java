@@ -41,6 +41,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	protected RRadioButton visMeBtn;
 	protected RRadioButton visFriendsBtn;
 	protected RRadioButton visAllBtn;
+	private ActionListener saveActionListener;
 	protected Map<String, RCheckBox> options = new HashMap<String, RCheckBox>();
 
 	public MyPlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc) {
@@ -196,12 +197,34 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 					saveBtn.setEnabled(detailsChanged());
 				}
 			};
+			saveActionListener = new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					if(!detailsChanged())
+						return;
+					Playlist p = getModel().getPlaylist();
+					if (visAllBtn.isSelected())
+						p.setVisibility(Playlist.VIS_ALL);
+					else if (visFriendsBtn.isSelected())
+						p.setVisibility(Playlist.VIS_FRIENDS);
+					else if (visMeBtn.isSelected())
+						p.setVisibility(Playlist.VIS_ME);
+					pc.getItems().clear();
+					for (String opt : options.keySet()) {
+						JCheckBox cb = options.get(opt);
+						if (cb.isSelected())
+							pc.setItem(opt, "true");
+					}
+					savePlaylist();
+					saveBtn.setEnabled(false);
+				}
+			};
 			final Playlist p = getModel().getPlaylist();
 			JLabel titleLbl = new JLabel("Title:");
 			titleLbl.setFont(RoboFont.getFont(13, false));
 			add(titleLbl, "1,1");
 			titleField = new RTextField(p.getTitle());
 			titleField.addKeyListener(kl);
+			titleField.addActionListener(saveActionListener);
 			add(titleField, "3,1");
 			add(new PlaylistToolsPanel(), "1,3,3,3");
 			RLabel descLbl = new RLabel13("Description:");
@@ -274,6 +297,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	}
 
 	class ButtonsPanel extends JPanel {
+
 		public ButtonsPanel() {
 			setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 			setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
@@ -304,25 +328,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			}
 
 			saveBtn = new RGlassButton("SAVE");
-			saveBtn.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					Playlist p = getModel().getPlaylist();
-					if (visAllBtn.isSelected())
-						p.setVisibility(Playlist.VIS_ALL);
-					else if (visFriendsBtn.isSelected())
-						p.setVisibility(Playlist.VIS_FRIENDS);
-					else if (visMeBtn.isSelected())
-						p.setVisibility(Playlist.VIS_ME);
-					pc.getItems().clear();
-					for (String opt : options.keySet()) {
-						JCheckBox cb = options.get(opt);
-						if (cb.isSelected())
-							pc.setItem(opt, "true");
-					}
-					saveBtn.setEnabled(false);
-					savePlaylist();
-				}
-			});
+			saveBtn.addActionListener(saveActionListener);
 			saveBtn.setEnabled(false);
 			add(saveBtn);
 

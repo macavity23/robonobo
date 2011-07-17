@@ -3,38 +3,27 @@ package com.robonobo.midas.controller;
 import static com.robonobo.common.util.TextUtil.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import com.robonobo.core.api.model.Playlist;
-import com.robonobo.core.api.model.User;
-import com.robonobo.midas.LocalMidasService;
+import com.robonobo.midas.EventService;
 import com.robonobo.midas.MessageService;
-import com.robonobo.midas.model.MidasFriendRequest;
-import com.robonobo.midas.model.MidasInvite;
-import com.robonobo.midas.model.MidasPlaylist;
-import com.robonobo.midas.model.MidasUser;
-import com.robonobo.remote.service.MailService;
-import com.robonobo.remote.service.MailServiceImpl;
-import com.robonobo.remote.service.MidasService;
+import com.robonobo.midas.model.*;
 
 @Controller
 public class ShareController extends BaseController {
 	@Autowired
 	private MessageService message;
+	@Autowired
+	private EventService event;
 
 	@RequestMapping(value = "/share-playlist/share")
 	@Transactional(rollbackFor = Exception.class)
@@ -115,6 +104,7 @@ public class ShareController extends BaseController {
 			p.getOwnerIds().add(friend.getUserId());
 			midas.saveUser(friend);
 			message.sendPlaylistShare(authUser, friend, p);
+			event.playlistShared(authUser, p, friend);
 		}
 		p.setUpdated(getUpdatedDate(p.getUpdated()));
 		midas.savePlaylist(p);
@@ -123,12 +113,14 @@ public class ShareController extends BaseController {
 			if (log.isDebugEnabled())
 				log.debug("User " + authUser.getEmail() + " sharing playlist " + p.getTitle() + " with new friend " + newFriend.getEmail());
 			message.sendFriendRequest(authUser, newFriend, p);
+			event.friendRequestSent(authUser, newFriend);
 		}
 		// Invites
 		for (String invitee : inviteEmails) {
 			if (log.isDebugEnabled())
 				log.debug("User " + authUser.getEmail() + " sharing playlist " + p.getTitle() + " with invited robonobo user " + invitee);
-			message.sendInvite(authUser, invitee, p);
+			MidasInvite i = message.sendInvite(authUser, invitee, p);
+			event.inviteSent(authUser, invitee, i);
 		}
 		writeToOutput(p.toMsg(), resp);
 	}

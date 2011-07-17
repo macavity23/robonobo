@@ -18,6 +18,7 @@ import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.api.model.Library;
 import com.robonobo.core.api.model.UserConfig;
 import com.robonobo.core.api.proto.CoreApi.LibraryMsg;
+import com.robonobo.midas.EventService;
 import com.robonobo.midas.LocalMidasService;
 import com.robonobo.midas.model.MidasLibrary;
 import com.robonobo.midas.model.MidasUser;
@@ -25,6 +26,9 @@ import com.robonobo.remote.service.MidasService;
 
 @Controller
 public class LibraryController extends BaseController {
+	@Autowired
+	EventService event;
+	
 	@RequestMapping("/library/{userIdStr}")
 	public void getLibrary(@PathVariable("userIdStr") String userIdStr,
 			@RequestParam(value = "since", required = false) Long since, 
@@ -97,6 +101,7 @@ public class LibraryController extends BaseController {
 				midas.putLibrary(currentLib);
 			}
 			log.info("User " + authUser.getEmail() + " added " + newLib.getTracks().size() + " tracks to their library");
+			event.addedToLibrary(authUser, newLib.getTracks().size());
 		} else if ("del".equals(verb)) {
 			if (currentLib != null) {
 				for (String sid : newLib.getTracks().keySet()) {
@@ -106,6 +111,7 @@ public class LibraryController extends BaseController {
 			}
 			log.info("User " + authUser.getEmail() + " removed " + newLib.getTracks().size()
 					+ " tracks from their library");
+			event.removedFromLibrary(authUser, newLib.getTracks().size());
 		} else
 			send404(req, resp);
 

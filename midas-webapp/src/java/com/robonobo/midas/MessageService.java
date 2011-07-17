@@ -3,13 +3,12 @@ package com.robonobo.midas;
 import java.io.IOException;
 
 import com.robonobo.core.api.model.Playlist;
-import com.robonobo.midas.model.MidasPlaylist;
-import com.robonobo.midas.model.MidasUser;
+import com.robonobo.midas.model.*;
 
 public interface MessageService {
 	public void sendFriendRequest(MidasUser fromUser, MidasUser toUser, MidasPlaylist p) throws IOException;
 
-	public void sendInvite(MidasUser fromUser, String toEmail, MidasPlaylist p) throws IOException;
+	public MidasInvite sendInvite(MidasUser fromUser, String toEmail, MidasPlaylist p) throws IOException;
 
 	public void sendPlaylistShare(MidasUser fromUser, MidasUser toUser, Playlist p) throws IOException;
 
