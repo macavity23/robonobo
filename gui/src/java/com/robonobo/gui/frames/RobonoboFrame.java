@@ -47,25 +47,21 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	UriHandler uriHandler;
 	private boolean tracksLoaded;
 	private boolean shownLogin;
-
 	static RobonoboFrame instance;
-	
+
 	public static RobonoboFrame getInstance() {
 		return instance;
 	}
-	
+
 	public RobonoboFrame(RobonoboController control, String[] args) {
 		this.control = control;
 		this.cmdLineArgs = args;
-
 		setTitle("robonobo");
 		setIconImage(getRobonoboIconImage());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new CloseListener());
-
 		menuBar = Platform.getPlatform().getMenuBar(this);
 		setJMenuBar(menuBar);
-
 		JPanel contentPane = new JPanel();
 		double[][] cellSizen = { { 5, 200, 5, TableLayout.FILL, 5 }, { 3, TableLayout.FILL, 5 } };
 		contentPane.setLayout(new TableLayout(cellSizen));
@@ -85,7 +81,8 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 
 	private void addListeners() {
 		control.addTrackListener(this);
-		// There's a chance the control might have loaded all its tracks before we add ourselves as a tracklistener, so spawn a thread to check if this is so
+		// There's a chance the control might have loaded all its tracks before we add ourselves as a tracklistener, so
+		// spawn a thread to check if this is so
 		control.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				checkTracksLoaded();
@@ -136,9 +133,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		return mainPanel;
 	}
 
-	/**
-	 * Once this is called, everything is up and running
-	 */
+	/** Once this is called, everything is up and running */
 	@Override
 	public void allTracksLoaded() {
 		tracksLoaded = true;
@@ -184,7 +179,6 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				log.debug("Got handover msg: " + arg);
 				return "0:OK";
 			}
-
 		});
 	}
 
@@ -280,10 +274,8 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 			showLogin(flarp);
 	}
 
-	/**
-	 * @param onLogin
-	 *            If the login is successful, this will be executed on the Swing GUI thread (so don't do too much in it)
-	 */
+	/** @param onLogin
+	 *            If the login is successful, this will be executed on the Swing GUI thread (so don't do too much in it) */
 	public void showLogin(final Runnable onLogin) {
 		SwingUtilities.invokeLater(new CatchingRunnable() {
 			public void doRun() throws Exception {
@@ -300,11 +292,10 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				showSheet(ap);
 			}
 		});
-
 	}
 
 	public void showPreferences() {
-//		showSheet(new PreferencesSheet(this));
+		// showSheet(new PreferencesSheet(this));
 		PrefDialog prefDialog = new PrefDialog(this);
 		prefDialog.setVisible(true);
 	}
@@ -320,15 +311,13 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	// TODO Generalise fb/twitter into SocialNetwork or something
-	/**
-	 * Call only from UI thread
-	 */
+	/** Call only from UI thread */
 	public void postToFacebook(final Playlist p) {
-		if(!SwingUtilities.isEventDispatchThread())
+		if (!SwingUtilities.isEventDispatchThread())
 			throw new Errot();
 		UserConfig uc = control.getMyUserConfig();
 		if (uc == null || uc.getItem("facebookId") == null) {
-			// We don't seem to be registered for facebook - fetch a fresh copy of the usercfg from midas in
+			// They don't seem to be registered for facebook - fetch a fresh copy of the usercfg from midas in
 			// case they've recently added themselves to fb
 			final Sheet waitSheet = new PleaseWaitSheet(this, "checking Facebook details");
 			showSheet(waitSheet);
@@ -336,14 +325,14 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				public void success(UserConfig freshUc) {
 					waitSheet.setVisible(false);
 					if (freshUc.getItem("facebookId") == null) {
-						// They haven't associated their facebook account with their rbnb one... open a browser window on the page to do so
+						// They haven't associated their facebook account with their rbnb one... open a browser window
+						// on the page to do so
 						String facebookBounceMsg = "Before you can post your playlists to Facebook, you must add your Facebook details to your account on the robonobo website.";
-						Runnable gotoAcct = new CatchingRunnable() {
+						final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Facebook", facebookBounceMsg, "go to robonobo website", new CatchingRunnable() {
 							public void doRun() throws Exception {
-								NetUtil.browse(control.getConfig().getWebsiteUrlBase()+"before-facebook-attach");
+								NetUtil.browse(control.getConfig().getWebsiteUrlBase() + "before-facebook-attach");
 							}
-						};
-						final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Facebook", facebookBounceMsg, "go to robonobo website", gotoAcct);
+						});
 						runOnUiThread(new CatchingRunnable() {
 							public void doRun() throws Exception {
 								showSheet(sheet);
@@ -352,26 +341,51 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 					} else {
 						runOnUiThread(new CatchingRunnable() {
 							public void doRun() throws Exception {
-								showSheet(new PostToFacebookSheet(RobonoboFrame.this, p));
+								// Playlist must be public or friends-visible to post to fb
+								if (p.getVisibility().equals(Playlist.VIS_ME)) {
+									String msg = "This playlist is currently set to be visible to you only; it must be visible to your friends for you to post it to Facebook.";
+									final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Facebook", msg, "make playlist visible", new CatchingRunnable() {
+										public void doRun() throws Exception {
+											p.setVisibility(Playlist.VIS_FRIENDS);
+											control.updatePlaylist(p);
+											showSheet(new PostToFacebookSheet(RobonoboFrame.this, p));
+										}
+									});
+									showSheet(sheet);
+								} else
+									showSheet(new PostToFacebookSheet(RobonoboFrame.this, p));
 							}
 						});
 					}
 				}
-				
+
 				public void error(long userId, Exception e) {
 					waitSheet.setVisible(false);
 				}
 			});
-		} else
-			showSheet(new PostToFacebookSheet(this, p));
+		} else {
+			// Playlist must be public or friends-visible to post to fb
+			if (p.getVisibility().equals(Playlist.VIS_ME)) {
+				String msg = "This playlist is currently set to be visible to you only; it must be visible to your friends for you to post it to Facebook.";
+				final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Facebook", msg, "make playlist visible", new CatchingRunnable() {
+					public void doRun() throws Exception {
+						p.setVisibility(Playlist.VIS_FRIENDS);
+						showSheet(new PostToFacebookSheet(RobonoboFrame.this, p));
+						control.updatePlaylist(p, true);
+					}
+				});
+				showSheet(sheet);
+			} else
+				showSheet(new PostToFacebookSheet(this, p));
+		}
 	}
-	
+
 	public void postToTwitter(final Playlist p) {
-		if(!SwingUtilities.isEventDispatchThread())
+		if (!SwingUtilities.isEventDispatchThread())
 			throw new Errot();
 		UserConfig uc = control.getMyUserConfig();
 		if (uc == null || uc.getItem("twitterId") == null) {
-			// We don't seem to be registered for twitter - fetch a fresh copy of the usercfg from midas in
+			// They don't seem to be registered for twitter - fetch a fresh copy of the usercfg from midas in
 			// case they've recently added themselves
 			final Sheet waitSheet = new PleaseWaitSheet(this, "checking Twitter details");
 			showSheet(waitSheet);
@@ -379,11 +393,12 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				public void success(UserConfig freshUc) {
 					waitSheet.setVisible(false);
 					if (freshUc.getItem("twitterId") == null) {
-						// They haven't associated their twitter account with their rbnb one... open a browser window on the page to do so
+						// They haven't associated their twitter account with their rbnb one... open a browser window on
+						// the page to do so
 						String facebookBounceMsg = "Before you can post your playlists to Twitter, you must add your Twitter details to your account on the robonobo website.";
 						Runnable gotoAcct = new CatchingRunnable() {
 							public void doRun() throws Exception {
-								NetUtil.browse(control.getConfig().getWebsiteUrlBase()+"before-twitter-attach");
+								NetUtil.browse(control.getConfig().getWebsiteUrlBase() + "before-twitter-attach");
 							}
 						};
 						final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Twitter", facebookBounceMsg, "go to robonobo website", gotoAcct);
@@ -395,21 +410,47 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 					} else {
 						runOnUiThread(new CatchingRunnable() {
 							public void doRun() throws Exception {
-								showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));
+								// Playlist must be public to post to twitter
+								if (p.getVisibility().equals(Playlist.VIS_ALL))
+									showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));
+								else {
+									String msg = "This playlist must be publically-visible to your friends for you to post it to Twitter.";
+									final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Twitter", msg, "make playlist public", new CatchingRunnable() {
+										public void doRun() throws Exception {
+											p.setVisibility(Playlist.VIS_ALL);
+											showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));
+											control.updatePlaylist(p, true);
+										}
+									});
+									showSheet(sheet);
+								}
 							}
 						});
 					}
-
 				}
-				
+
 				public void error(long userId, Exception e) {
 					waitSheet.setVisible(false);
 				}
 			});
-		} else
-			showSheet(new PostToTwitterSheet(this, p));
+		} else {
+			// Playlist must be public to post to twitter
+			if (p.getVisibility().equals(Playlist.VIS_ALL))
+				showSheet(new PostToTwitterSheet(this, p));
+			else {
+				String msg = "This playlist must be publically-visible to your friends for you to post it to Twitter.";
+				final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Twitter", msg, "make playlist public", new CatchingRunnable() {
+					public void doRun() throws Exception {
+						p.setVisibility(Playlist.VIS_ALL);
+						showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));
+						control.updatePlaylist(p, true);
+					}
+				});
+				showSheet(sheet);
+			}
+		}
 	}
-	
+
 	public static Image getRobonoboIconImage() {
 		return GuiUtil.getImage("/rbnb-icon-128x128.png");
 	}
@@ -434,8 +475,12 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 					public void doRun() throws Exception {
 						String[] butOpts = { "Quit" };
 						int result = JOptionPane.showOptionDialog(RobonoboFrame.this,
-								"robonobo is restarting, please wait...", "robonobo restarting",
-								JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, butOpts,
+								"robonobo is restarting, please wait...",
+								"robonobo restarting",
+								JOptionPane.DEFAULT_OPTION,
+								JOptionPane.INFORMATION_MESSAGE,
+								null,
+								butOpts,
 								"Force Quit");
 						if (result >= 0) {
 							// They pressed the button... just kill everything
@@ -486,10 +531,11 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		});
 	}
 
-	/**
-	 * For slow things that have to happen on the gui thread - shows a helpful message to mollify the user while their ui is frozen
-	 * @param pFetcher This will be run on the gui thread
-	 */
+	/** For slow things that have to happen on the gui thread - shows a helpful message to mollify the user while their
+	 * ui is frozen
+	 * 
+	 * @param pFetcher
+	 *            This will be run on the gui thread */
 	public void runSlowTask(final String whatsHappening, final Runnable task) {
 		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
@@ -504,7 +550,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 			}
 		});
 	}
-	
+
 	class CloseListener extends WindowAdapter {
 		public void windowClosing(WindowEvent e) {
 			confirmThenShutdown();
@@ -520,9 +566,9 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				if (isShowingSheet()) {
 					// If this is the initial login sheet, don't let them escape it
 					Sheet sh = getTopSheet();
-					if(sh instanceof LoginSheet) {
+					if (sh instanceof LoginSheet) {
 						LoginSheet lsh = (LoginSheet) sh;
-						if(!lsh.getCancelAllowed())
+						if (!lsh.getCancelAllowed())
 							return false;
 					}
 					discardTopSheet();

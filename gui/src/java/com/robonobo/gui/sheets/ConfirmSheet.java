@@ -18,7 +18,7 @@ public class ConfirmSheet extends Sheet {
 	RButton confirmBtn;
 	RButton cancelBtn;
 
-	public ConfirmSheet(RobonoboFrame f, String title, String message, String confirmBtnLbl, final Runnable onConfirm) {
+	public ConfirmSheet(RobonoboFrame f, String title, String message, String confirmBtnLbl, final Runnable runOnUiThread) {
 		super(f);
 		setName("playback.background.panel");
 		confirmBtn = new RGlassButton(confirmBtnLbl.toUpperCase());
@@ -32,7 +32,7 @@ public class ConfirmSheet extends Sheet {
 		confirmBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				setVisible(false);
-				frame.getController().getExecutor().execute(onConfirm);
+				runOnUiThread.run();
 			}
 		});
 		add(confirmBtn, "2,5");
