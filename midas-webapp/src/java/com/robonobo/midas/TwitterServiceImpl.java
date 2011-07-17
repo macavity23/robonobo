@@ -17,6 +17,7 @@ import com.robonobo.remote.service.MidasService;
 
 @Service("twitter")
 public class TwitterServiceImpl implements InitializingBean, TwitterService{
+	private static final int TWITTER_MSG_LIMIT = 140;
 	@Autowired
 	AppConfig appConfig;
 	@Autowired
@@ -48,6 +49,10 @@ public class TwitterServiceImpl implements InitializingBean, TwitterService{
 		String accTok = muc.getItem("twitterAccessToken");
 		if(accTok == null)
 			return;
+		// If we've space, pimp ourselves at the end
+		String pimpMsg = appConfig.getInitParam("twitterPimpMsg");
+		if(pimpMsg != null && (msg.length() + pimpMsg.length()) <= TWITTER_MSG_LIMIT)
+			msg += pimpMsg;
 		String accSecret = muc.getItem("twitterAccessSecret");
 		Token accessToken = new Token(accTok, accSecret);
 		OAuthRequest oaReq = new OAuthRequest(Verb.POST, "http://api.twitter.com/1/statuses/update.json");
@@ -56,6 +61,8 @@ public class TwitterServiceImpl implements InitializingBean, TwitterService{
 		MidasUser u = midas.getUserById(muc.getUserId());
 		log.info("Posting to twitter for "+u.getEmail()+": "+msg);
 		Response oaResp = oaReq.send();
+		if(oaResp.getCode() != 200)
+			log.error("Error posting playlist to twitter to uid "+muc.getUserId()+", error code was "+oaResp.getCode());
 		// Well, that was easy
 	}
 }

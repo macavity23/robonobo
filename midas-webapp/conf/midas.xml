@@ -49,5 +49,6 @@
   <Parameter name="facebookCallbackUrl" value="http://midas.robonobo.com/fb-callback" override="true"/>
   <Parameter name="twitterApiKey" value="ObqWeQW3Mzkrbzbtcgl4w" override="true"/>
   <Parameter name="twitterApiSecret" value="EDITME" override="true"/>
+  <Parameter name="twitterPimpMsg" value=" @robonobo" override="true"/>
   <Parameter name="playlistShortUrlBase" value="http://localhost:8080/website/p/" override="true"/>
 </Context>
