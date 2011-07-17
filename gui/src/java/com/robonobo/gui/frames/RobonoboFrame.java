@@ -329,16 +329,26 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		UserConfig uc = control.getMyUserConfig();
 		if (uc == null || uc.getItem("facebookId") == null) {
 			// We don't seem to be registered for facebook - fetch a fresh copy of the usercfg from midas in
-			// case they've recently added themselves to fb, but GTFOTUT
+			// case they've recently added themselves to fb
+			final Sheet waitSheet = new PleaseWaitSheet(this, "checking Facebook details");
+			showSheet(waitSheet);
 			control.fetchMyUserConfig(new UserConfigCallback() {
 				public void success(UserConfig freshUc) {
+					waitSheet.setVisible(false);
 					if (freshUc.getItem("facebookId") == null) {
 						// They haven't associated their facebook account with their rbnb one... open a browser window on the page to do so
-						try {
-							NetUtil.browse(control.getConfig().getWebsiteUrlBase()+"before-facebook-attach");
-						} catch (IOException e) {
-							throw new Errot(e);
-						}
+						String facebookBounceMsg = "Before you can post your playlists to Facebook, you must add your Facebook details to your account on the robonobo website.";
+						Runnable gotoAcct = new CatchingRunnable() {
+							public void doRun() throws Exception {
+								NetUtil.browse(control.getConfig().getWebsiteUrlBase()+"before-facebook-attach");
+							}
+						};
+						final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Facebook", facebookBounceMsg, "go to robonobo website", gotoAcct);
+						runOnUiThread(new CatchingRunnable() {
+							public void doRun() throws Exception {
+								showSheet(sheet);
+							}
+						});
 					} else {
 						runOnUiThread(new CatchingRunnable() {
 							public void doRun() throws Exception {
@@ -346,10 +356,10 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 							}
 						});
 					}
-
 				}
 				
 				public void error(long userId, Exception e) {
+					waitSheet.setVisible(false);
 				}
 			});
 		} else
@@ -362,16 +372,26 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		UserConfig uc = control.getMyUserConfig();
 		if (uc == null || uc.getItem("twitterId") == null) {
 			// We don't seem to be registered for twitter - fetch a fresh copy of the usercfg from midas in
-			// case they've recently added themselves, but GTFOTUT
+			// case they've recently added themselves
+			final Sheet waitSheet = new PleaseWaitSheet(this, "checking Twitter details");
+			showSheet(waitSheet);
 			control.fetchMyUserConfig(new UserConfigCallback() {
 				public void success(UserConfig freshUc) {
+					waitSheet.setVisible(false);
 					if (freshUc.getItem("twitterId") == null) {
-						// They haven't associated their twitter account with their rbnb one...open a browser window on the page to do so
-						try {
-							NetUtil.browse(control.getConfig().getWebsiteUrlBase()+"before-twitter-attach");
-						} catch (IOException e) {
-							throw new Errot(e);
-						}
+						// They haven't associated their twitter account with their rbnb one... open a browser window on the page to do so
+						String facebookBounceMsg = "Before you can post your playlists to Twitter, you must add your Twitter details to your account on the robonobo website.";
+						Runnable gotoAcct = new CatchingRunnable() {
+							public void doRun() throws Exception {
+								NetUtil.browse(control.getConfig().getWebsiteUrlBase()+"before-twitter-attach");
+							}
+						};
+						final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Twitter", facebookBounceMsg, "go to robonobo website", gotoAcct);
+						runOnUiThread(new CatchingRunnable() {
+							public void doRun() throws Exception {
+								showSheet(sheet);
+							}
+						});
 					} else {
 						runOnUiThread(new CatchingRunnable() {
 							public void doRun() throws Exception {
@@ -383,6 +403,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				}
 				
 				public void error(long userId, Exception e) {
+					waitSheet.setVisible(false);
 				}
 			});
 		} else

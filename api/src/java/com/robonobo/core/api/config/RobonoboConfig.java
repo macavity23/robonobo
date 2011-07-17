@@ -27,11 +27,12 @@ public class RobonoboConfig implements Serializable {
 	int maxRunningDownloads = 4;
 	String formatSupportProviders = "com.robonobo.plugin.mp3.Mp3FormatSupportProvider";
 	int dataPageSize = 32768;
-	int userUpdateFrequency = 300; // Secs
+	int userUpdateFrequency = 900; // Secs
 	int downloadCacheTime = 30; // Secs
 	boolean agoric = true;
 	/** "auto", "off", or a gateway port number (which means manual) */
 	String gatewayCfgMode = "auto";
+	String gatewayCfgResult = "Unknown";
 	/**
 	 * If this is true we will ping sonar to find our public address - otherwise we will use whatever is in
 	 * minacfg.gatewayAddress
@@ -301,5 +302,13 @@ public class RobonoboConfig implements Serializable {
 
 	public void setTopUpUrl(String topUpUrl) {
 		this.topUpUrl = topUpUrl;
+	}
+
+	public String getGatewayCfgResult() {
+		return gatewayCfgResult;
+	}
+
+	public void setGatewayCfgResult(String gatewayCfgResult) {
+		this.gatewayCfgResult = gatewayCfgResult;
 	}
 }

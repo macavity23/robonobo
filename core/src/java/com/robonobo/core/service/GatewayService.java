@@ -37,11 +37,14 @@ public class GatewayService extends AbstractService {
 		if (cfgMode.equals("off")) {
 			MinaConfig minaCfg = (MinaConfig) getRobonobo().getConfig("mina");
 			minaCfg.setGatewayAddress(null);
+			rbnb.getConfig().setGatewayCfgResult("Off");
 		} else if (cfgMode.equals("auto")) {
 			if (localAddr.isSiteLocalAddress())
 				configureUPnP();
-			else
+			else {
+				rbnb.getConfig().setGatewayCfgResult("OK");
 				log.info("Local IP address is public, assuming gateway not present");
+			}
 		} else
 			configureGatewayFromConfig(Integer.parseInt(cfgMode));
 		getRobonobo().saveConfig();
@@ -83,6 +86,7 @@ public class GatewayService extends AbstractService {
 	}
 
 	private void configureUPnP() throws UPNPResponseException {
+		rbnb.getConfig().setGatewayCfgResult("Checking");
 		MinaConfig minaCfg = (MinaConfig) getRobonobo().getConfig("mina");
 		minaCfg.setGatewayAddress(null);
 		try {
@@ -110,6 +114,7 @@ public class GatewayService extends AbstractService {
 						minaCfg.setGatewayAddress(publicDetails.getAddress().getHostAddress());
 						minaCfg.setGatewayUdpPort(port);
 						log.info("Successfully configured UPnP, using external details " + publicDetails);
+						rbnb.getConfig().setGatewayCfgResult("OK :)");
 						return;
 					}
 					// Another service has got this port, try the next one
@@ -121,6 +126,7 @@ public class GatewayService extends AbstractService {
 			log.error("Caught "+e.getClass().getName()+" while creating port mapping: "+e.getMessage());
 		}
 		log.info("Failed to create UPnP port mapping");
+		rbnb.getConfig().setGatewayCfgResult("Failed :(");
 	}
 
 	private void configureGatewayFromConfig(int publicPort) throws IOException {
