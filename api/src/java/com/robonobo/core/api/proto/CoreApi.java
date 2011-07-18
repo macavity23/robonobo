@@ -6373,6 +6373,13 @@ public final class CoreApi {
     public boolean hasUpdateHtml() { return hasUpdateHtml; }
     public java.lang.String getUpdateHtml() { return updateHtml_; }
     
+    // optional string updateTitle = 2;
+    public static final int UPDATETITLE_FIELD_NUMBER = 2;
+    private boolean hasUpdateTitle;
+    private java.lang.String updateTitle_ = "";
+    public boolean hasUpdateTitle() { return hasUpdateTitle; }
+    public java.lang.String getUpdateTitle() { return updateTitle_; }
+    
     private void initFields() {
     }
     public final boolean isInitialized() {
@@ -6386,6 +6393,9 @@ public final class CoreApi {
       if (hasUpdateHtml()) {
         output.writeString(1, getUpdateHtml());
       }
+      if (hasUpdateTitle()) {
+        output.writeString(2, getUpdateTitle());
+      }
       getUnknownFields().writeTo(output);
     }
     
@@ -6398,6 +6408,10 @@ public final class CoreApi {
       if (hasUpdateHtml()) {
         size += com.google.protobuf.CodedOutputStream
           .computeStringSize(1, getUpdateHtml());
+      }
+      if (hasUpdateTitle()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(2, getUpdateTitle());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -6560,6 +6574,9 @@ public final class CoreApi {
         if (other.hasUpdateHtml()) {
           setUpdateHtml(other.getUpdateHtml());
         }
+        if (other.hasUpdateTitle()) {
+          setUpdateTitle(other.getUpdateTitle());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -6589,6 +6606,10 @@ public final class CoreApi {
               setUpdateHtml(input.readString());
               break;
             }
+            case 18: {
+              setUpdateTitle(input.readString());
+              break;
+            }
           }
         }
       }
@@ -6612,6 +6633,27 @@ public final class CoreApi {
       public Builder clearUpdateHtml() {
         result.hasUpdateHtml = false;
         result.updateHtml_ = getDefaultInstance().getUpdateHtml();
+        return this;
+      }
+      
+      // optional string updateTitle = 2;
+      public boolean hasUpdateTitle() {
+        return result.hasUpdateTitle();
+      }
+      public java.lang.String getUpdateTitle() {
+        return result.getUpdateTitle();
+      }
+      public Builder setUpdateTitle(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasUpdateTitle = true;
+        result.updateTitle_ = value;
+        return this;
+      }
+      public Builder clearUpdateTitle() {
+        result.hasUpdateTitle = false;
+        result.updateTitle_ = getDefaultInstance().getUpdateTitle();
         return this;
       }
       
@@ -6747,9 +6789,9 @@ public final class CoreApi {
       "ect_id\030\003 \003(\t\"7\n\016UserConfigItem\022\021\n\titem_n" +
       "ame\030\001 \002(\t\022\022\n\nitem_value\030\002 \002(\t\"G\n\rUserCon" +
       "figMsg\022\017\n\007user_id\030\001 \002(\003\022%\n\004item\030\002 \003(\0132\027." +
-      "coreapi.UserConfigItem\"\037\n\tUpdateMsg\022\022\n\nu" +
-      "pdateHtml\030\001 \002(\tB&\n\033com.robonobo.core.api" +
-      ".protoB\007CoreApi"
+      "coreapi.UserConfigItem\"4\n\tUpdateMsg\022\022\n\nu" +
+      "pdateHtml\030\001 \002(\t\022\023\n\013updateTitle\030\002 \001(\tB&\n\033" +
+      "com.robonobo.core.api.protoB\007CoreApi"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -6873,7 +6915,7 @@ public final class CoreApi {
           internal_static_coreapi_UpdateMsg_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_coreapi_UpdateMsg_descriptor,
-              new java.lang.String[] { "UpdateHtml", },
+              new java.lang.String[] { "UpdateHtml", "UpdateTitle", },
               com.robonobo.core.api.proto.CoreApi.UpdateMsg.class,
               com.robonobo.core.api.proto.CoreApi.UpdateMsg.Builder.class);
           return null;

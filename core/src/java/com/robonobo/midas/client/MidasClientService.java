@@ -166,7 +166,7 @@ public class MidasClientService extends AbstractMetadataService {
 	public void addFriends(Collection<String> friendEmails, GeneralCallback callback) {
 		addRequest(new AddFriendsRequest(cfg, friendEmails, callback));
 	}
-	
+
 	@Override
 	public void fetchLibrary(long userId, Date lastUpdated, LibraryCallback callback) {
 		addRequest(new GetLibraryRequest(cfg, userId, lastUpdated, callback));
@@ -211,7 +211,8 @@ public class MidasClientService extends AbstractMetadataService {
 		try {
 			HttpResponse resp = http.execute(get, context);
 			body = resp.getEntity();
-			switch (resp.getStatusLine().getStatusCode()) {
+			int statusCode = resp.getStatusLine().getStatusCode();
+			switch (statusCode) {
 			case 200:
 				if (bldr != null) {
 					InputStream is = body.getContent();
@@ -228,8 +229,10 @@ public class MidasClientService extends AbstractMetadataService {
 				throw new UnauthorizedException("Server did not allow us to access url " + url + " with supplied credentials");
 			case 500:
 				throw new IOException("Unable to get object from url '" + url + "', server said: " + EntityUtils.toString(body));
+			case 503:
+				throw new TemporarilyUnavailableException("Server temporarily unavailable at url '" + url + "'");
 			default:
-				throw new IOException("Url '" + url + "' replied with status " + resp.getStatusLine().getStatusCode());
+				throw new IOException("Url '" + url + "' replied with status " + statusCode);
 			}
 		} finally {
 			if (restoreCreds != null)
@@ -347,7 +350,7 @@ public class MidasClientService extends AbstractMetadataService {
 					else
 						r.success(p.resultBldr.build());
 				} catch (Exception e) {
-					if(stopped)
+					if (stopped)
 						return;
 					r.error(p, e);
 				}

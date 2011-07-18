@@ -147,25 +147,53 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 	}
 
 	@Override
-	public void libraryChanged(final Library lib, final Collection<String> newTrackSids) {
+	public void friendLibraryReady(final long uid, final int numUnseen) {
 		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				LibraryTreeNode ltn;
 				FriendTreeNode ftn;
 				synchronized (FriendTreeModel.this) {
-					long uid = lib.getUserId();
+					ftn = friendNodes.get(uid);
+					if (ftn == null) {
+						log.error("ERROR: library updated for userId " + uid + ", but there is no friend tree node");
+						return;
+					}
+					ltn = new LibraryTreeNode(frame, uid, numUnseen);
+					insertNodeSorted(ftn, ltn);
+					libNodes.put(uid, ltn);
+				}
+				firePathToRootChanged(ltn);
+				// There is a stupid bug in some java impls that doesn't repaint the tree nodes unless you call each one
+				// individually
+				firePathToRootChanged(ftn);
+				firePathToRootChanged(getRoot());
+			}
+		});
+	}
+	
+	@Override
+	public void friendLibraryUpdated(final long uid, final int numUnseen, Map<String, Date> newTracks) {
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				LibraryTreeNode ltn;
+				FriendTreeNode ftn;
+				synchronized (FriendTreeModel.this) {
 					ltn = libNodes.get(uid);
 					ftn = friendNodes.get(uid);
 					if (ltn == null) {
-						if (ftn == null) {
-							log.error("ERROR: library updated for userId " + uid + ", but there is no friend tree node");
-							return;
-						}
-						ltn = new LibraryTreeNode(frame, lib);
-						insertNodeSorted(ftn, ltn);
-						libNodes.put(uid, ltn);
-					} else
-						ltn.setLib(lib, tree.isSelectedNode(ltn));
+						log.error("ERROR: library updated for userId " + uid + ", but there is no library tree node");
+						return;
+					} else {
+						// If they are selected, keep everything as unseen
+						if(tree.isSelectedNode(ltn)) {
+							control.getExecutor().execute(new CatchingRunnable() {
+								public void doRun() throws Exception {
+									control.markAllLibraryTracksAsSeen(uid);
+								}
+							});
+						} else
+							ltn.setNumUnseenTracks(numUnseen);
+					}
 				}
 				firePathToRootChanged(ltn);
 				// There is a stupid bug in some java impls that doesn't repaint the tree nodes unless you call each one
@@ -176,12 +204,9 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 		});
 	}
 
-	// private void handleRetardedJ1.5TreeBug() {
-	//
-	// }
 	@Override
 	public void myLibraryUpdated() {
-		// TODO Auto-generated method stub
+		// Do nothing
 	}
 
 	@Override

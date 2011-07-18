@@ -1,5 +1,6 @@
 package com.robonobo.midas;
 
+import static com.robonobo.common.util.TextUtil.*;
 import static com.robonobo.common.util.TimeUtil.*;
 
 import java.io.IOException;
@@ -13,8 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.robonobo.common.exceptions.Errot;
-import com.robonobo.core.api.model.Library;
-import com.robonobo.core.api.model.Playlist;
+import com.robonobo.common.util.TextUtil;
+import com.robonobo.core.api.model.*;
 import com.robonobo.midas.dao.*;
 import com.robonobo.midas.model.*;
 import com.robonobo.remote.service.MidasService;
@@ -28,6 +29,10 @@ public class LocalMidasService implements MidasService {
 	private FacebookService facebook;
 	@Autowired
 	private TwitterService twitter;
+	@Autowired
+	private MessageService message;
+	@Autowired
+	private EventService event;
 	@Autowired
 	private FriendRequestDao friendRequestDao;
 	@Autowired
@@ -63,14 +68,22 @@ public class LocalMidasService implements MidasService {
 		log.info("Creating user " + user.getEmail());
 		user.setVerified(true);
 		user.setUpdated(now());
-		return userDao.create(user);
+		preventUserXSS(user);
+		// This will have its user id set
+		MidasUser createdUser = userDao.create(user);
+		try {
+			message.sendWelcome(createdUser);
+		} catch (IOException e) {
+			log.error("Error sending welcome mail to " + createdUser.getEmail(), e);
+		}
+		event.newUser(createdUser);
+		return createdUser;
 	}
 
 	public MidasUser getUserAsVisibleBy(MidasUser targetU, MidasUser requestor) {
 		// If this the user asking for themselves, give them everything. If
-		// they're a friend, they get public playlists, but no friends.
-		// Otherwise, they
-		// get a null object
+		// they're a friend, they get public and friend-visible playlists, but no friends.
+		// Otherwise, they get a null object
 		MidasUser result;
 		if (targetU.equals(requestor)) {
 			result = new MidasUser(targetU);
@@ -92,7 +105,14 @@ public class LocalMidasService implements MidasService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public void saveUser(MidasUser user) {
+		preventUserXSS(user);
+		user.setUpdated(now());
 		userDao.save(user);
+	}
+
+	private void preventUserXSS(MidasUser user) {
+		user.setFriendlyName(escapeHtml(user.getFriendlyName()));
+		user.setDescription(escapeHtml(user.getDescription()));
 	}
 
 	@Transactional(rollbackFor = Exception.class)
@@ -148,23 +168,8 @@ public class LocalMidasService implements MidasService {
 			newPlaylistId = lastPlaylistId;
 		}
 		playlist.setPlaylistId(newPlaylistId);
+		preventPlaylistXSS(playlist);
 		savePlaylist(playlist);
-		// Announce the playlist to facebook unless it's private
-		if (!playlist.getVisibility().equals(Playlist.VIS_ME)) {
-			long userId = (Long) playlist.getOwnerIds().toArray()[0];
-			MidasUserConfig muc = userConfigDao.getUserConfig(userId);
-			try {
-				facebook.postPlaylistCreateToFacebook(muc, playlist);
-			} catch (IOException e) {
-				log.error("Error posting playlist create to facebook", e);
-			}
-		}
-		// Only announce public playlists to twitter
-		if (playlist.getVisibility().equals(Playlist.VIS_ALL)) {
-			long userId = (Long) playlist.getOwnerIds().toArray()[0];
-			MidasUserConfig muc = userConfigDao.getUserConfig(userId);
-			twitter.postPlaylistCreateToTwitter(muc, playlist);
-		}
 		return playlist;
 	}
 
@@ -172,7 +177,13 @@ public class LocalMidasService implements MidasService {
 	public void savePlaylist(MidasPlaylist playlist) {
 		if (playlist.getPlaylistId() <= 0)
 			throw new Errot("playlist id is not set");
+		preventPlaylistXSS(playlist);
 		playlistDao.savePlaylist(playlist);
+	}
+
+	private void preventPlaylistXSS(MidasPlaylist p) {
+		p.setTitle(escapeHtml(p.getTitle()));
+		p.setDescription(escapeHtml(p.getDescription()));
 	}
 
 	@Transactional(rollbackFor = Exception.class)
@@ -208,7 +219,7 @@ public class LocalMidasService implements MidasService {
 			result.setInviteCode(generateEmailCode(email));
 		}
 		result.getFriendIds().add(friend.getUserId());
-		if(pl != null)
+		if (pl != null)
 			result.getPlaylistIds().add(pl.getPlaylistId());
 		result.setUpdated(now());
 		inviteDao.save(result);
@@ -255,6 +266,12 @@ public class LocalMidasService implements MidasService {
 		requestee.getFriendIds().add(requestor.getUserId());
 		userDao.save(requestee);
 		friendRequestDao.delete(req);
+		try {
+			message.sendFriendConfirmation(requestor, requestee);
+		} catch (IOException e) {
+			log.error("Error sending friend confirmation", e);
+		}
+		event.friendRequestAccepted(requestor, requestee);
 		return null;
 	}
 
@@ -268,10 +285,24 @@ public class LocalMidasService implements MidasService {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	public void deleteInvite(String inviteCode) {
+	public void inviteAccepted(long acceptedUserId, String inviteCode) {
 		MidasInvite invite = inviteDao.retrieveByInviteCode(inviteCode);
-		if (invite != null)
+		if (invite != null) {
+			MidasUser acceptedUser = getUserById(acceptedUserId);
+			// Tell them about their new buddy
+			for (Long friendId : invite.getFriendIds()) {
+				MidasUser friend = getUserById(friendId);
+				if (friend != null) {
+					try {
+						message.sendFriendConfirmation(friend, acceptedUser);
+					} catch (IOException e) {
+						log.error("Error sending friend confirmation", e);
+					}
+				}
+			}
+			event.inviteAccepted(acceptedUser, invite);
 			inviteDao.delete(invite);
+		}
 	}
 
 	public MidasInvite getInvite(String inviteCode) {
@@ -320,6 +351,46 @@ public class LocalMidasService implements MidasService {
 		facebook.updateFriends(mu, oldCfg, newCfg);
 		// TODO twitter
 		userConfigDao.saveUserConfig(newCfg);
+	}
+
+	@Override
+	public void addFriends(long userId, List<Long> friendIds, List<String> friendEmails) {
+		MidasUser fromUser = getUserById(userId);
+		if (fromUser == null) {
+			log.error("addFriends failed: No user with id " + userId);
+			return;
+		}
+		try {
+			for (Long friendId : friendIds) {
+				MidasUser friend = getUserById(friendId);
+				if (friend == null) {
+					log.error("addFriends failed for user " + fromUser.getEmail() + " and non existent user id " + friendId);
+					continue;
+				}
+				message.sendFriendRequest(fromUser, friend, null);
+				event.friendRequestSent(fromUser, friend);
+			}
+			for (String email : friendEmails) {
+				MidasInvite invite = message.sendInvite(fromUser, email, null);
+				event.inviteSent(fromUser, email, invite);
+			}
+		} catch (IOException e) {
+			log.error("addFriends failed", e);
+		}
+	}
+
+	@Override
+	public String requestAccountTopUp(long userId) {
+		MidasUser user = userDao.getById(userId);
+		if (user == null)
+			return "Error: no such user";
+		try {
+			message.sendTopUpRequest(user);
+		} catch (IOException e) {
+			log.error("Error requesting topup", e);
+			return "Error processing request, please contact help@robonobo.com";
+		}
+		return "TopUp request received - please check your account in a few hours.";
 	}
 
 	private String generateEmailCode(String email) {

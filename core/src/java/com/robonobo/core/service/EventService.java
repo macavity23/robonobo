@@ -271,13 +271,13 @@ public class EventService extends AbstractService implements MinaListener {
 		}
 	}
 
-	public void fireLibraryChanged(Library lib, Collection<String> newTracks) {
+	public void fireFriendLibraryUpdated(long userId, int numUnseen, Map<String, Date> newTracks) {
 		LibraryListener[] arr;
 		synchronized (this) {
 			arr = getLlArr();
 		}
 		for (LibraryListener listener : arr) {
-			listener.libraryChanged(lib, newTracks);
+			listener.friendLibraryUpdated(userId, numUnseen, newTracks);
 		}
 	}
 
@@ -288,6 +288,16 @@ public class EventService extends AbstractService implements MinaListener {
 		}
 		for (LibraryListener listener : arr) {
 			listener.myLibraryUpdated();
+		}
+	}
+
+	public void fireFriendLibraryReady(long userId, int numUnseen) {
+		LibraryListener[] arr;
+		synchronized (this) {
+			arr = getLlArr();
+		}
+		for (LibraryListener listener : arr) {
+			listener.friendLibraryReady(userId, numUnseen);
 		}
 	}
 

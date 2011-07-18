@@ -2,12 +2,9 @@ package com.robonobo.mina.external;
 
 import java.io.Serializable;
 
-/**
- * A JavaBean representation of the config for Mina.
+/** A JavaBean representation of the config for Mina.
  * 
- * @author ray
- * 
- */
+ * @author ray */
 public class MinaConfig implements Cloneable, Serializable {
 	String localAddress;
 	String gatewayAddress;
@@ -40,68 +37,37 @@ public class MinaConfig implements Cloneable, Serializable {
 	int auctionStateCacheTime = 1000; // Millisecs
 	int bidTimeout = 10000; // Millisecs
 	int minTimeBetweenAuctions = 30000; // Millisecs
-	/**
-	 * Make sure we have enough in our accounts with senders to receive for this time (secs)
-	 */
+	/** Make sure we have enough in our accounts with senders to receive for this time (secs) */
 	int balanceBufferTime = 30;
-	/**
-	 * When we get a payment demand and we find that our balance doesn't agree with what they say, it might be due to
-	 * pages in flight - back off for this many seconds and try again
-	 */
+	/** When we get a payment demand and we find that our balance doesn't agree with what they say, it might be due to
+	 * pages in flight - back off for this many seconds and try again */
 	int payUpCatchUpTime = 10;
-	/**
-	 * If a source does not have data useful to us, wait this many secs before polling it again (secs)
-	 */
+	/** If a source does not have data useful to us, wait this many secs before polling it again (secs) */
 	int sourceDataFailWaitTime = 60;
-	/**
-	 * If a source is too expensive for us, wait this many secs before polling it again (secs)
-	 */
+	/** If a source is too expensive for us, wait this many secs before polling it again (secs) */
 	int sourceAgoricsFailWaitTime = 60;
-	/**
-	 * If a source dies unexpectedly, query it again after this many secs to see if it's returned
-	 */
+	/** If a source dies unexpectedly, query it again after this many secs to see if it's returned */
 	int deadSourceQueryTime = 60;
-	/**
-	 * When we first hear about a source and query it, retry after this many secs
-	 */
+	/** When we first hear about a source and query it, retry after this many secs (will be doubled each time) */
 	int initialSourceQueryTime = 60;
-	/**
-	 * If a source doesn't answer a query for status, retry this many times before giving up (doubling wait time each
-	 * time)
-	 */
-	int sourceQueryRetries = 3;
-	/**
-	 * Batch up requests for source information, waiting a max of this many ms before sending. Requests for
-	 * immediate-playback streams are not batched. Also used for stream adverts in the same way
-	 */
+	/** Maximum time between source queries (secs) - we never give up on sources */
+	int maxSourceQueryTime = 900;
+	/** Batch up requests for source information, waiting a max of this many ms before sending. Requests for
+	 * immediate-playback streams are not batched. Also used for stream adverts in the same way */
 	int sourceRequestBatchTime = 100;
-	/**
-	 * Batch up stream advertisements, waiting a max of this many ms before sending
-	 */
+	/** Batch up stream advertisements, waiting a max of this many ms before sending */
 	int streamAdvertBatchTime = 5000;
-	/**
-	 * Don't send more than this many stream adverts per sec
-	 */
+	/** Don't send more than this many stream adverts per sec */
 	int streamAdvertMaxPerSec = 30;
-	/**
-	 * When we request pages, ask for this many millisecs' worth based on current flow rate
-	 */
+	/** When we request pages, ask for this many millisecs' worth based on current flow rate */
 	int pageRequestLookAheadTime = 2000;
-	/**
-	 * Ask for pages up to this many millisecs ahead of our last contiguous page
-	 */
+	/** Ask for pages up to this many millisecs ahead of our last contiguous page */
 	int pageWindowTime = 10000;
-	/**
-	 * If a source has no pages that are useful to us for this many secs, we close the conn
-	 */
+	/** If a source has no pages that are useful to us for this many secs, we close the conn */
 	int usefulDataSourceTimeout = 120;
-	/**
-	 * Run escrow services on this node
-	 */
+	/** Run escrow services on this node */
 	boolean runEscrowProvider = false;
-	/**
-	 * Percent fee
-	 */
+	/** Percent fee */
 	int escrowFee = 1;
 	int maxOutboundBps = -1;
 
@@ -372,14 +338,6 @@ public class MinaConfig implements Cloneable, Serializable {
 		this.deadSourceQueryTime = deadSourceQueryTime;
 	}
 
-	public int getSourceQueryRetries() {
-		return sourceQueryRetries;
-	}
-
-	public void setSourceQueryRetries(int sourceQueryRetries) {
-		this.sourceQueryRetries = sourceQueryRetries;
-	}
-
 	public int getPageRequestLookAheadTime() {
 		return pageRequestLookAheadTime;
 	}
@@ -458,5 +416,13 @@ public class MinaConfig implements Cloneable, Serializable {
 
 	public void setStreamAdvertBatchTime(int streamAdvertBatchTime) {
 		this.streamAdvertBatchTime = streamAdvertBatchTime;
+	}
+
+	public int getMaxSourceQueryTime() {
+		return maxSourceQueryTime;
+	}
+
+	public void setMaxSourceQueryTime(int maxSourceQueryTime) {
+		this.maxSourceQueryTime = maxSourceQueryTime;
 	}
 }

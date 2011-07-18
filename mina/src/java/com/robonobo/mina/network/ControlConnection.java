@@ -48,7 +48,9 @@ public class ControlConnection implements PushDataReceiver {
 	protected Set<BCPair> bcPairs;
 	protected List<MessageHolder> waitingMsgs; // Messages received before Hello
 	protected boolean handshakeComplete = false;
+	/** All mina-level stuff is done, we're waiting for the network conn to close */
 	protected boolean closing = false;
+	/** The network connection has been shut down, we're out */
 	protected boolean closed = false;
 	protected Attempt closeAttempt;
 	protected String closeReason = null;
@@ -184,6 +186,10 @@ public class ControlConnection implements PushDataReceiver {
 		closed = true;
 	}
 
+	public synchronized boolean isClosing() {
+		return (closed || closing || (closeAttempt != null));
+	}
+	
 	public synchronized boolean isClosed() {
 		return closed;
 	}

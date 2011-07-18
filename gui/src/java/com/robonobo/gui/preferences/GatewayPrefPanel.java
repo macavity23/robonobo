@@ -34,7 +34,8 @@ public class GatewayPrefPanel extends PrefPanel {
 			}
 		};
 		
-		autoBut = new RRadioButton("Automatically detect");
+		String result = frame.getController().getConfig().getGatewayCfgResult();
+		autoBut = new RRadioButton("Automatically detect - "+result);
 		autoBut.addActionListener(radLis);
 		butGr.add(autoBut);
 		add(autoBut, "3,0,5,0");

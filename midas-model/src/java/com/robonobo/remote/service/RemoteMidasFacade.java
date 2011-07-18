@@ -139,8 +139,8 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 		return inviteFromByteArr(arr);
 	}
 	
-	public void deleteInvite(String inviteCode) {
-		invoke("deleteInvite", inviteCode, null);
+	public void inviteAccepted(long acceptedUserId, String inviteCode) {
+		invoke("inviteAccepted", acceptedUserId, Arrays.asList(inviteCode));
 	}
 	
 	public MidasInvite getInvite(String inviteCode) {
@@ -172,6 +172,17 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 		invoke("putUserConfig", config.toMsg().toByteArray(), null);
 	}
 
+	@Override
+	public void addFriends(long userId, List<Long> friendIds, List<String> friendEmails) {
+		invoke("addFriends", userId, Arrays.asList(friendIds.toArray(), friendEmails.toArray()));
+	}
+	
+	@Override
+	public String requestAccountTopUp(long userId) {
+		byte[] arr = (byte[]) invoke("requestTopUp", userId, null);
+		return new String(arr);
+	}
+	
 	private MidasPlaylist playlistFromByteArr(byte[] arr) {
 		if (arr == null)
 			return null;

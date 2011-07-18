@@ -28,3 +28,12 @@
 * Several fixes for reconnecting to nodes in poor network conditions
 * iTunes playlists now show up in sidebar straight away
 
+0.5.5
+
+* Shared playlists now load ok in friend tree
+* Libraries now load correctly if no friend playlists
+* Delete tracks UI elements better-described
+* Now never gives up on sources, keeps polling every 15m (max)
+* Assorted minor networking bugs
+* Improved feedback in UI
+* Library loading much quicker

@@ -256,7 +256,7 @@ public class RobonoboInstance implements Robonobo {
 	}
 
 	public LibraryService getLibraryService() {
-		return (LibraryService) serviceMgr.getService("core.library");
+		return (LibraryService) serviceMgr.getService("core.libraries");
 	}
 
 	public ITunesService getITunesService() {

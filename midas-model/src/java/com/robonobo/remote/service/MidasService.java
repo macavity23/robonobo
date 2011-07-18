@@ -63,7 +63,7 @@ public interface MidasService {
 	
 	public MidasInvite getInvite(String inviteCode);
 	
-	public void deleteInvite(String inviteCode);
+	public void inviteAccepted(long acceptedUserId, String inviteCode);
 	
 	/**
 	 * @param since Pass null to get the whole library
@@ -77,4 +77,11 @@ public interface MidasService {
 	public void putUserConfig(MidasUserConfig config);
 
 	public List<MidasPlaylist> getRecentPlaylists(long maxAgeMs);
+	
+	public void addFriends(long userId, List<Long> friendIds, List<String> friendEmails);
+	
+	/**
+	 * Returns message to be displayed to the requesting user
+	 */
+	public String requestAccountTopUp(long userId);
 }

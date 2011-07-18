@@ -47,12 +47,11 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 		frame.getController().addLibraryListener(this);
 		frame.getController().getExecutor().schedule(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				final String updateMsg = frame.getController().getUpdateMessage();
-				if (isNonEmpty(updateMsg)) {
-					final String title = "A new version is available";
+				final UpdateInfo updateInfo = frame.getController().getUpdateInfo();
+				if (isNonEmpty(updateInfo.getUpdateHtml())) {
 					SwingUtilities.invokeLater(new CatchingRunnable() {
 						public void doRun() throws Exception {
-							showMessage(title, updateMsg);
+							showMessage(updateInfo.getUpdateTitle(), updateInfo.getUpdateHtml());
 						}
 					});
 				}
@@ -108,11 +107,6 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 	}
 
 	@Override
-	public void libraryChanged(Library lib, Collection<String> newTrackSids) {
-		// Do nothing
-	}
-
-	@Override
 	public void myLibraryUpdated() {
 		final int libSz = frame.getController().getNumSharesAndDownloads();
 		runOnUiThread(new CatchingRunnable() {
@@ -122,6 +116,16 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 		});
 	}
 
+	@Override
+	public void friendLibraryReady(long userId, int numUnseen) {
+		// Do nothing
+	}
+	
+	@Override
+	public void friendLibraryUpdated(long userId, int numUnseen, Map<String, Date> newTracks) {
+		// Do nothing
+	}
+	
 	class TabPanel extends JPanel {
 		public TabPanel() {
 			double[][] cellSizen = { { 10, 400, TableLayout.FILL, 240, 30 }, { TableLayout.FILL } };

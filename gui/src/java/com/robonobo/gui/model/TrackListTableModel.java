@@ -44,4 +44,9 @@ public interface TrackListTableModel extends TableModel {
 
 	/** This might have to iterate the tracklist, so call it sparingly! */
 	public int getTrackIndex(String sid);
+	
+	/** The description attached to UI elements that delete tracks from this tracklist */
+	public String deleteTracksTooltipDesc();
+	
+	public String longDeleteTracksDesc();
 }

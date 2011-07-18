@@ -23,10 +23,8 @@ import com.robonobo.core.metadata.*;
 import com.robonobo.core.metadata.AbstractMetadataService.RequestFetchOrder;
 import com.robonobo.core.wang.RobonoboWangConfig;
 
-/**
- * Managers users (me and my friends) and associated playlists. We pull everything down via http on startup (and update
- * it periodically); nothing is persisted locally
- */
+/** Managers users (me and my friends) and associated playlists. We pull everything down via http on startup (and update
+ * it periodically); nothing is persisted locally */
 public class UserService extends AbstractService {
 	EventService events;
 	TaskService tasks;
@@ -37,10 +35,8 @@ public class UserService extends AbstractService {
 	PlaylistService playlists;
 	private User me;
 	private UserConfig myUserCfg;
-	/**
-	 * We keep users and playlists in a hashmap, and look them up on demand. This is because they are being updated
-	 * asynchronously, and so if we kept pointers, they'd go out of date.
-	 */
+	/** We keep users and playlists in a hashmap, and look them up on demand. This is because they are being updated
+	 * asynchronously, and so if we kept pointers, they'd go out of date. */
 	private Map<String, User> usersByEmail = Collections.synchronizedMap(new HashMap<String, User>());
 	private Map<Long, User> usersById = Collections.synchronizedMap(new HashMap<Long, User>());
 	private ScheduledFuture<?> updateTask;
@@ -106,10 +102,8 @@ public class UserService extends AbstractService {
 		}, updateFreq, updateFreq, TimeUnit.SECONDS);
 	}
 
-	/**
-	 * This will return immediately (or as soon as the service is started) - to see the result, add a LoginListener
-	 * before you call this
-	 */
+	/** This will return immediately (or as soon as the service is started) - to see the result, add a LoginListener
+	 * before you call this */
 	public void login(String email, String password) {
 		// We get called immediately here, which might be before we've started... wait, if so
 		if (!started) {
@@ -161,11 +155,10 @@ public class UserService extends AbstractService {
 			}
 			events.fireLoginSucceeded(u);
 			events.fireUserChanged(u);
-			if(rbnb.getMina().isConnectedToSupernode()) {
+			if (rbnb.getMina().isConnectedToSupernode()) {
 				rbnb.setStatus(RobonoboStatus.Connected);
 				events.fireStatusChanged();
 			}
-				
 			metadata.fetchUserConfig(me.getUserId(), new UsrCfgUpdater(null));
 			// Tell our metadata service to load things serially so we get playlists loading one at a time rather than a
 			// big pause then all loading at once
@@ -174,7 +167,7 @@ public class UserService extends AbstractService {
 				rbnb.getWangService().loggedIn();
 			// If we have any playlists, fetch them now (fetchFriends() will be called when they're done)
 			playlists.clearPlaylists();
-			if(me.getPlaylistIds().size() > 0)
+			if (me.getPlaylistIds().size() > 0)
 				playlists.refreshMyPlaylists(me);
 			else
 				fetchFriends();
@@ -185,6 +178,9 @@ public class UserService extends AbstractService {
 			if (e instanceof UnauthorizedException) {
 				log.error("Login failed");
 				events.fireLoginFailed("Login failed");
+			} else if(e instanceof TemporarilyUnavailableException) {
+				log.error("Login server temporarily unavailable");
+				events.fireLoginFailed("Down for maintenance, please wait a few minutes");
 			} else {
 				log.error("Caught exception logging in", e);
 				events.fireLoginFailed("Server error");
@@ -213,15 +209,15 @@ public class UserService extends AbstractService {
 	public void addFriends(final Collection<String> emails) {
 		metadata.addFriends(emails, new GeneralCallback() {
 			public void success() {
-				log.info("Successfully sent friend request to "+emails.size()+" friends");
+				log.info("Successfully sent friend request to " + emails.size() + " friends");
 			}
-			
+
 			public void error(Exception e) {
 				log.error("Error adding friends", e);
 			}
 		});
 	}
-	
+
 	public boolean isLoggedIn() {
 		return me != null;
 	}
@@ -314,21 +310,21 @@ public class UserService extends AbstractService {
 	}
 
 	class FriendFetchTask extends Task implements UserCallback {
-		User u;
+		User myUser;
 		int usersDone = 0;
 		Set<Long> playlistIds = new HashSet<Long>();
 		Set<Long> newPlIds = new HashSet<Long>();
 
-		public FriendFetchTask(User u) {
+		public FriendFetchTask(User myUser) {
 			title = "Updating friend details";
-			this.u = u;
+			this.myUser = myUser;
 		}
 
 		@Override
 		public void runTask() throws Exception {
 			log.info("Fetching friends");
 			update();
-			metadata.fetchUsers(u.getFriendIds(), this);
+			metadata.fetchUsers(myUser.getFriendIds(), this);
 		}
 
 		@Override
@@ -343,7 +339,11 @@ public class UserService extends AbstractService {
 			events.fireUserChanged(u);
 			// Get all the users before fetching the playlists, so that if there are shared playlists they all get
 			// updated
-			playlistIds.addAll(u.getPlaylistIds());
+			for (Long plId : u.getPlaylistIds()) {
+				// Any playlists shared with both me and my friends, don't fetch them twice
+				if (!myUser.getPlaylistIds().contains(plId))
+					playlistIds.add(plId);
+			}
 			usersDone++;
 			update();
 		}
@@ -356,15 +356,34 @@ public class UserService extends AbstractService {
 		}
 
 		private void update() {
-			if (usersDone == u.getFriendIds().size()) {
+			if (usersDone == myUser.getFriendIds().size()) {
 				statusText = "Done.";
 				completion = 1f;
 				// Now we've fetched all the users, we can fetch their playlists
+				Set<Long> myPlIds = new HashSet<Long>();
+				Set<Long> myFriendIds = new HashSet<Long>();
+				synchronized (UserService.this) {
+					myPlIds.addAll(me.getPlaylistIds());
+					myFriendIds.addAll(me.getFriendIds());
+				}
+				// First, if any of our own playlists are shared with our friends, fire them as updated now that the
+				// friend is loaded
+				plLoop: for (Long plId : myPlIds) {
+					Playlist p = playlists.getExistingPlaylist(plId);
+					for (Long ownerId : p.getOwnerIds()) {
+						if(myFriendIds.contains(ownerId)) {
+							events.firePlaylistChanged(p);
+							continue plLoop;
+						}
+					}
+				}
 				if (playlistIds.size() > 0)
 					playlists.refreshFriendPlaylists(playlistIds);
+				else
+					rbnb.getLibraryService().updateFriendLibraries();
 			} else {
-				statusText = "Fetching friend " + (usersDone + 1) + " of " + u.getFriendIds().size();
-				completion = ((float) usersDone) / u.getFriendIds().size();
+				statusText = "Fetching friend " + (usersDone + 1) + " of " + myUser.getFriendIds().size();
+				completion = ((float) usersDone) / myUser.getFriendIds().size();
 			}
 			fireUpdated();
 		}
@@ -390,7 +409,7 @@ public class UserService extends AbstractService {
 						me = u;
 					}
 					events.fireUserChanged(u);
-					if(me.getPlaylistIds().size() > 0)
+					if (me.getPlaylistIds().size() > 0)
 						playlists.refreshMyPlaylists(me);
 					else
 						fetchFriends();

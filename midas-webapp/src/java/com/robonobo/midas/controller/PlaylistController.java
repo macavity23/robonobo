@@ -29,6 +29,8 @@ import com.robonobo.remote.service.MidasService;
 @Controller
 public class PlaylistController extends BaseController {
 	@Autowired
+	EventService event;
+	@Autowired
 	FacebookService facebook;
 	@Autowired
 	TwitterService twitter;
@@ -100,6 +102,7 @@ public class PlaylistController extends BaseController {
 			midas.saveUser(u);
 			writeToOutput(mp.toMsg(), resp);
 			log.info(u.getEmail() + " created playlist " + mp.getPlaylistId());
+			event.playlistCreated(u, mp);
 		} else {
 			// Existing playlist
 			if (!currentP.getOwnerIds().contains(u.getUserId())) {
@@ -111,6 +114,7 @@ public class PlaylistController extends BaseController {
 			midas.savePlaylist(currentP);
 			writeToOutput(currentP.toMsg(), resp);
 			log.info(u.getEmail() + " updated playlist " + playlistId);
+			event.playlistUpdated(u, currentP);
 		}
 	}
 
@@ -144,6 +148,7 @@ public class PlaylistController extends BaseController {
 			midas.saveUser(u);
 			log.info("Removed user " + u.getEmail() + " from owners of playlist " + playlistId);
 		}
+		event.playlistDeleted(u, p);
 	}
 
 	@RequestMapping("/playlists/{pIdStr}/post-update")
@@ -152,6 +157,7 @@ public class PlaylistController extends BaseController {
 			throws IOException {
 		long playlistId = Long.parseLong(pIdStr, 16);
 		Playlist p = midas.getPlaylistById(playlistId);
+		service = service.toLowerCase();
 		MidasUser u = getAuthUser(req);
 		if (u == null) {
 			send401(req, resp);
@@ -178,11 +184,12 @@ public class PlaylistController extends BaseController {
 		if(msg != null)
 			msg = urlDecode(msg);
 		MidasUserConfig muc = midas.getUserConfig(u);
-		if ("facebook".equalsIgnoreCase(service))
+		if ("facebook".equals(service))
 			facebook.postPlaylistUpdateToFacebook(muc, p, msg);
-		else if ("twitter".equalsIgnoreCase(service))
+		else if ("twitter".equals(service))
 			twitter.postPlaylistUpdateToTwitter(muc, p, msg);
 		else
 			log.error("Error: user " + u.getEmail() + " tried to update their playlist to service: '" + service);
+		event.playlistPosted(u, p, service);
 	}
 }

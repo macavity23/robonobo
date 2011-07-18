@@ -1,14 +1,13 @@
 package com.robonobo.core.api;
 
-import java.util.Collection;
-
-import com.robonobo.core.api.model.Library;
+import java.util.Date;
+import java.util.Map;
 
 public interface LibraryListener {
-	/**
-	 * @param lib The updated library, which includes the new tracks
-	 * @param newTrackSids The stream ids of new tracks (if any)
-	 */
-	public void libraryChanged(Library lib, Collection<String> newTrackSids);
 	public void myLibraryUpdated();
+	public void friendLibraryReady(long userId, int numUnseen);
+	/**
+	 * @param newTracks Copy this rather than assigning or altering it
+	 */
+	public void friendLibraryUpdated(long userId, int numUnseen, Map<String, Date> newTracks);
 }

@@ -55,6 +55,16 @@ public class SearchResultTableModel extends GlazedTrackListTableModel implements
 	}
 
 	@Override
+	public String deleteTracksTooltipDesc() {
+		return null;
+	}
+	
+	@Override
+	public String longDeleteTracksDesc() {
+		return null;
+	}
+	
+	@Override
 	public void deleteTracks(List<String> streamIds) {
 		throw new Errot();
 	}

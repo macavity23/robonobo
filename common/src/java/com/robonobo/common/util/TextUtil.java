@@ -244,6 +244,8 @@ public class TextUtil {
 	 * Escapes '<' and '>' characters, replacing them with '&lt;' and '&gt;'
 	 */
 	public static String escapeHtml(String input) {
+		if(input == null)
+			return null;
 		return input.replace("<", "&lt;").replace(">", "&gt;");
 	}
 

@@ -1,7 +1,7 @@
 package com.robonobo.midas;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
 
 import javax.management.MBeanServer;
 
@@ -20,6 +20,7 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.remote.RemoteCall;
 import com.robonobo.core.api.proto.CoreApi.FriendRequestMsg;
 import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
@@ -135,8 +136,8 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 						return acceptFriendRequest(params);
 					} else if (method.equals("createOrUpdateInvite")) {
 						return createOrUpdateInvite(params);
-					} else if(method.equals("deleteInvite")) {
-						deleteInvite(params);
+					} else if(method.equals("inviteAccepted")) {
+						inviteAccepted(params);
 						return null;
 					} else if(method.equals("getInvite")) {
 						return getInvite(params);
@@ -145,6 +146,11 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 					} else if(method.equals("putUserConfig")) {
 						putUserConfig(params);
 						return null;
+					} else if(method.equals("addFriends")) {
+						addFriends(params);
+						return null;
+					} else if(method.equals("requestTopUp")) {
+						return requestTopUp(params);
 					} else
 						throw new IllegalArgumentException("Invalid method");
 				} catch(Exception e) {
@@ -178,8 +184,10 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 		midas.ignoreFriendRequest(new MidasFriendRequest(msg));
 	}
 	
-	private void deleteInvite(RemoteCall params) {
-		midas.deleteInvite((String) params.getArg());
+	private void inviteAccepted(RemoteCall params) {
+		Long acceptedUserId = (Long) params.getArg();
+		String inviteCode = (String) params.getExtraArgs().get(0);
+		midas.inviteAccepted(acceptedUserId, inviteCode);
 	}
 	
 	private Object getInvite(RemoteCall params) {
@@ -187,6 +195,29 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 		if(invite == null)
 			return null;
 		return invite.toMsg().toByteArray();
+	}
+	
+	private void addFriends(RemoteCall params) {
+		Long userId = (Long) params.getArg();
+		if(params.getExtraArgs().size() < 2)
+			throw new Errot();
+		// Java won't cast Object[] into Long[] automatically, rubbish
+		Object[] fidArr = (Object[]) params.getExtraArgs().get(0);
+		List<Long> fidList = new ArrayList<Long>();
+		for (Object o : fidArr) {
+			fidList.add((Long) o);
+		}
+		Object[] strArr = (Object[]) params.getExtraArgs().get(1);
+		List<String> strList = new ArrayList<String>();
+		for (Object o : strArr) {
+			strList.add((String) o);
+		}
+		midas.addFriends(userId, fidList, strList);
+	}
+	
+	private byte[] requestTopUp(RemoteCall params) {
+		Long userId = (Long) params.getArg();
+		return midas.requestAccountTopUp(userId).getBytes();
 	}
 	
 	private Object getUserConfig(RemoteCall params) {

@@ -28,12 +28,12 @@ import com.robonobo.mina.message.proto.MinaProtocol.TopUp;
 import com.robonobo.mina.network.ControlConnection;
 import com.robonobo.mina.network.LCPair;
 
-/**
- * Handles accounts we have with other nodes, and their auction states
+/** Handles accounts we have with other nodes, and their auction states
+ * 
  * @syncpriority 170
- * @author macavity
- */
+ * @author macavity */
 public class BuyMgr {
+	private static final int GUESS_PAGE_SIZE = 32768;
 	static final int AUCTION_STATE_HISTORY = 8;
 	MinaInstance mina;
 	Map<String, AuctionState> asMap = new HashMap<String, AuctionState>();
@@ -47,31 +47,23 @@ public class BuyMgr {
 		log = mina.getLogger(getClass());
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public synchronized AuctionState getAuctionState(String nodeId) {
 		return asMap.get(nodeId);
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public synchronized Agorics getAgorics(String nodeId) {
 		return agMap.get(nodeId);
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public synchronized boolean haveActiveAccount(String nodeId) {
 		return accounts.containsKey(nodeId);
 	}
 
-	/**
-	 * @syncpriority 170
-	 * @return <=0 if no agreed bid yet
-	 */
+	/** @syncpriority 170
+	 * @return <=0 if no agreed bid yet */
 	public synchronized double getAgreedBidTo(String nodeId) {
 		if (!accounts.containsKey(nodeId))
 			return -1;
@@ -81,9 +73,7 @@ public class BuyMgr {
 		return as.getMyBid();
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public synchronized float calculateMyGamma(String nodeId) {
 		Account ac = accounts.get(nodeId);
 		if (ac == null)
@@ -98,12 +88,10 @@ public class BuyMgr {
 		return (float) (myBid / topBid);
 	}
 
-	/**
-	 * Gets the most recent auction status index in nodeId's auction
+	/** Gets the most recent auction status index in nodeId's auction
 	 * 
 	 * @return -1 If no auction status yet received
-	 * @syncpriority 170
-	 */
+	 * @syncpriority 170 */
 	public synchronized int getCurrentStatusIdx(String nodeId) {
 		if (!accounts.containsKey(nodeId))
 			return -1;
@@ -113,10 +101,9 @@ public class BuyMgr {
 		return as.getIndex();
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
-	public void setupAccount(SourceStatus ss) {
+	/** @throws IOException 
+	 * @syncpriority 170 */
+	public void setupAccount(SourceStatus ss) throws IOException {
 		String nodeId = ss.getFromNode().getId();
 		// If our currency client isn't ready yet (fast connection, this one!),
 		// wait until it is
@@ -152,7 +139,7 @@ public class BuyMgr {
 		log.error("Error: could not setup account with " + nodeId + " - unknown payment method '" + paymentMethod + "'");
 	}
 
-	private void setupUpfrontAccount(final String nodeId) {
+	private void setupUpfrontAccount(final String nodeId) throws IOException {
 		log.info("Setting up upfront account with node " + nodeId);
 		ControlConnection cc = mina.getCCM().getCCWithId(nodeId);
 		if (cc == null) {
@@ -176,15 +163,18 @@ public class BuyMgr {
 			TopUp tu = TopUp.newBuilder().setCurrencyToken(ByteString.copyFrom(token)).build();
 			cc.sendMessageOrThrow("TopUp", tu);
 		} catch (IOException e) {
-			// This failed - recover the cash
+			// This failed - remove trace of this guy, recover the cash and rethrow the exception
+			synchronized (this) {
+				accounts.remove(nodeId);
+			}
 			final byte[] tok = token;
 			mina.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					log.error("Attempting to return cash for failed openacct");
-					mina.getCurrencyClient().depositToken(tok,
-							"Returning cash after failing to open account with node " + nodeId);
+					mina.getCurrencyClient().depositToken(tok, "Returning cash after failing to open account with node " + nodeId);
 				}
 			});
+			throw e;
 		}
 		synchronized (this) {
 			accounts.get(nodeId).balance += cashToSend;
@@ -217,9 +207,7 @@ public class BuyMgr {
 		// TODO finish this - end up by calling accountSetupSucceeded somewhere
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public void closeAccount(String nodeId) {
 		boolean gotAccount;
 		synchronized (this) {
@@ -237,9 +225,7 @@ public class BuyMgr {
 			cc.closeGracefully();
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public void accountClosed(String nodeId, byte[] currencyToken) {
 		Account acct;
 		synchronized (this) {
@@ -249,19 +235,17 @@ public class BuyMgr {
 			log.error("Received acctclosed from " + nodeId + ", but I have no registered account");
 		else {
 			try {
-				double val = mina.getCurrencyClient().depositToken(currencyToken,
-						"Balance returned from node " + nodeId);
+				double val = mina.getCurrencyClient().depositToken(currencyToken, "Balance returned from node " + nodeId);
 				if ((val - acct.balance) < 0) {
 					// TODO Something more serious here
-					log.error("ERROR: balance mismatch when closing acct with " + nodeId + ": I say " + acct.balance
-							+ ", he gave me " + val);
+					log.error("ERROR: balance mismatch when closing acct with " + nodeId + ": I say " + acct.balance + ", he gave me " + val);
 				}
 			} catch (CurrencyException e) {
 				log.error("Error when depositing token from " + nodeId, e);
 			}
 			log.debug("Successfully closed account with " + nodeId);
 			ControlConnection cc = mina.getCCM().getCCWithId(nodeId);
-			if(cc != null)
+			if (cc != null)
 				cc.closeGracefully();
 		}
 	}
@@ -297,21 +281,21 @@ public class BuyMgr {
 			return;
 		}
 		synchronized (this) {
-			if(!accounts.containsKey(nodeId)) {
-				log.error("Not rebidding to "+nodeId+" - no account");
+			if (!accounts.containsKey(nodeId)) {
+				log.error("Not rebidding to " + nodeId + " - no account");
 				return;
 			}
 			AuctionState as = asMap.get(nodeId);
-			if(as == null) {
-				log.debug("Not rebidding to "+nodeId+" - no auctionstate");
+			if (as == null) {
+				log.debug("Not rebidding to " + nodeId + " - no auctionstate");
 				return;
 			}
 			lastBid = as.getLastSentBid();
 			timeUntilBid = as.getBidsOpen();
 		}
 		double bid = mina.getBidStrategy().getOpeningBid(nodeId);
-		if(dblEq(lastBid, bid)) {
-			log.debug("Not rebidding to "+nodeId+" - happy with current bid");
+		if (dblEq(lastBid, bid)) {
+			log.debug("Not rebidding to " + nodeId + " - happy with current bid");
 			return;
 		}
 		if (timeUntilBid <= 0)
@@ -325,7 +309,7 @@ public class BuyMgr {
 			}, timeUntilBid, TimeUnit.MILLISECONDS);
 		}
 	}
-	
+
 	private void openBidding(final String nodeId) {
 		ControlConnection cc = mina.getCCM().getCCWithId(nodeId);
 		if (cc == null) {
@@ -333,8 +317,8 @@ public class BuyMgr {
 			return;
 		}
 		synchronized (this) {
-			if(!accounts.containsKey(nodeId)) {
-				log.error("Not opening bidding to "+nodeId+" - no account");
+			if (!accounts.containsKey(nodeId)) {
+				log.error("Not opening bidding to " + nodeId + " - no account");
 				return;
 			}
 		}
@@ -348,10 +332,9 @@ public class BuyMgr {
 		sentBid(nodeId, bid);
 	}
 
-	/**
-	 * An auction has moved on - update the bids
-	 * @syncpriority 170
-	 */
+	/** An auction has moved on - update the bids
+	 * 
+	 * @syncpriority 170 */
 	public synchronized void bidUpdate(String fromNodeId, BidUpdate bu) {
 		AuctionState as = asMap.get(fromNodeId);
 		if (as == null) {
@@ -380,9 +363,7 @@ public class BuyMgr {
 		return list;
 	}
 
-	/**
-	 * Are we able to bid high enough in this auction to get any data?
-	 */
+	/** Are we able to bid high enough in this auction to get any data? */
 	public boolean canListenTo(AuctionState as, StreamVelocity sv) {
 		if (as.getMyBid() > 0) {
 			// wat
@@ -400,9 +381,7 @@ public class BuyMgr {
 		return (numRLsAboveMe < maxRL);
 	}
 
-	/**
-	 * @syncpriority 60
-	 */
+	/** @syncpriority 60 */
 	private void bidFailure(final String sellerNodeId, AuctionState as) {
 		// We bid in this auction, but we weren't in the result
 		// Figure out if we are too cheap for this guy
@@ -425,9 +404,7 @@ public class BuyMgr {
 		}, as.getBidsOpen(), TimeUnit.MILLISECONDS);
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public void newAuctionState(final String nodeId, final AuctionState as) {
 		as.setTimeReceived(now());
 		boolean gotConfirmedBid;
@@ -452,8 +429,8 @@ public class BuyMgr {
 					} else {
 						double quotedBid = as.getMyBid();
 						if ((quotedBid - myLastBid) != 0) {
-							log.error("ERROR: node " + nodeId + " quoted my last bid as " + quotedBid + ", but it was "
-									+ myLastBid + " (tid: " + Thread.currentThread().getId() + ")");
+							log.error("ERROR: node " + nodeId + " quoted my last bid as " + quotedBid + ", but it was " + myLastBid + " (tid: " + Thread.currentThread().getId()
+									+ ")");
 							// TODO Something much more serious here
 						}
 					}
@@ -475,9 +452,7 @@ public class BuyMgr {
 		// TODO Poll our interested SMs at intervals to see if our bid should change
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public void sentBid(String nodeId, double bid) {
 		synchronized (this) {
 			AuctionState as = asMap.get(nodeId);
@@ -493,8 +468,7 @@ public class BuyMgr {
 		for (String method : theirMethods) {
 			if (method.startsWith("escrow:")) {
 				String escrowProvNodeId = method.substring(7);
-				if (mina.getEscrowMgr().isAcceptableEscrowProvider(escrowProvNodeId)
-						&& mina.getCCM().haveRunningOrPendingCCTo(escrowProvNodeId))
+				if (mina.getEscrowMgr().isAcceptableEscrowProvider(escrowProvNodeId) && mina.getCCM().haveRunningOrPendingCCTo(escrowProvNodeId))
 					return method;
 			}
 		}
@@ -519,23 +493,18 @@ public class BuyMgr {
 		return null;
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public void receivedPage(String fromNodeId, int statusIdx, long pageLen) {
 		synchronized (this) {
 			Account acct = accounts.get(fromNodeId);
 			if (acct == null) {
-				log.error("ERROR: received page from " + fromNodeId + " with status index " + statusIdx
-						+ ", but I have no account with that node");
+				log.error("ERROR: received page from " + fromNodeId + " with status index " + statusIdx + ", but I have no account with that node");
 				// TODO Something much more serious here
 				return;
-
 			}
 			AuctionState as = acct.getAs(statusIdx);
 			if (as == null) {
-				log.error("ERROR: received page from " + fromNodeId + " with status index " + statusIdx
-						+ ", but I have no record of that status!");
+				log.error("ERROR: received page from " + fromNodeId + " with status index " + statusIdx + ", but I have no record of that status!");
 				// TODO Something much more serious here
 				return;
 			}
@@ -543,10 +512,12 @@ public class BuyMgr {
 			double pageCost = ((double) pageLen / (1024 * 1024)) * as.getMyBid();
 			acct.balance -= pageCost;
 		}
-		checkAcctBalance(fromNodeId);
+		checkAcctBalance(fromNodeId, false);
 	}
 
-	private void checkAcctBalance(String fromNodeId) {
+	private void checkAcctBalance(String fromNodeId, boolean debugForce) {
+		// FIXME There is a bug somewhere in here, sometimes a node doesn't respond to a payup demand when it should...
+		StringBuffer sb = debugForce ? new StringBuffer("DEBUG: checking account balance - ") : null;
 		// Make sure we have enough in our account for 30 secs' worth of
 		// reception for all streams (or the rest of the stream if less)
 		long bytesRequired = 0;
@@ -554,14 +525,30 @@ public class BuyMgr {
 		if (cc == null) {
 			// Connection has died, but page made it through gasping and
 			// wheezing before everything got killed
+			if (sb != null) {
+				sb.append("No CC!");
+				log.error(sb);
+			}
 			return;
 		}
 		LCPair[] lcps = cc.getLCPairs();
 		for (LCPair lcp : lcps) {
-			int bytesForTime = lcp.getFlowRate() * mina.getConfig().getBalanceBufferTime();
 			PageBuffer pb = mina.getPageBufProvider().getPageBuf(lcp.getStreamId());
-			long bytesForRestOfStream = (pb.getTotalPages() - pb.getLastContiguousPage()) * pb.getAvgPageSize();
+			// Average page sz might be 0 if we haven't received any pages yet - take a guess 
+			long avgPgSz = pb.getAvgPageSize();
+			if(avgPgSz == 0)
+				avgPgSz = GUESS_PAGE_SIZE;
+			// The flow rate might be 0 if we're in the first second of reception (probably only applies on local
+			// network) - if so, assume we're getting 1 page per sec, which is probably low, but will buy us enough time
+			// to get a more accurate figure
+			int flowRate = lcp.getFlowRate();
+			if(flowRate == 0)
+				flowRate = (int) avgPgSz;
+			int bytesForTime = flowRate * mina.getConfig().getBalanceBufferTime();
+			long bytesForRestOfStream = (pb.getTotalPages() - pb.getLastContiguousPage()) * avgPgSz;
 			bytesRequired += Math.min(bytesForTime, bytesForRestOfStream);
+			if (sb != null)
+				sb.append("lcp ").append(lcp.getStreamId()).append(" forTime=").append(bytesForTime).append(", forRest=").append(bytesForRestOfStream).append(" - ");
 		}
 		double myBid;
 		double balance;
@@ -570,14 +557,19 @@ public class BuyMgr {
 			balance = accounts.get(fromNodeId).balance;
 		}
 		double endsRequired = ((double) bytesRequired / (1024 * 1024)) * myBid;
-		if (balance < endsRequired) {
+		if (sb != null)
+			sb.append("bid=").append(myBid).append(", bal=").append(balance).append(", endsReq=").append(endsRequired);
+		if (debugForce || balance < endsRequired) {
+			if (debugForce && balance > endsRequired) {
+				sb.append(" - forcing payment");
+				log.error(sb);
+				endsRequired = mina.getCurrencyClient().getOpeningBalance();
+			}
 			byte[] token;
 			try {
-				token = mina.getCurrencyClient().withdrawToken(endsRequired,
-						"Topping up account with node " + fromNodeId);
+				token = mina.getCurrencyClient().withdrawToken(endsRequired, "Topping up account with node " + fromNodeId);
 			} catch (CurrencyException e) {
-				log.error("Error withdrawing token of value " + endsRequired + " trying to top up account with "
-						+ fromNodeId);
+				log.error("Error withdrawing token of value " + endsRequired + " trying to top up account with " + fromNodeId);
 				return;
 			}
 			synchronized (this) {
@@ -588,9 +580,7 @@ public class BuyMgr {
 		}
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public void gotPayUpDemand(String fromNodeId, double toldBalance) {
 		gotPayUpDemand(fromNodeId, toldBalance, false);
 	}
@@ -602,8 +592,7 @@ public class BuyMgr {
 			// figured out why the mismatches occur
 			double myBalance = accounts.get(fromNodeId).balance;
 			if ((toldBalance - myBalance) != 0) {
-				log.error("ERROR: got mismatch in payment demand from " + fromNodeId + ": they say " + toldBalance
-						+ ", I say " + myBalance);
+				log.error("ERROR: got mismatch in payment demand from " + fromNodeId + ": they say " + toldBalance + ", I say " + myBalance);
 				// if (!tryingAgain) {
 				// int catchupSecs = mina.getConfig().getPayUpCatchUpTime();
 				// log.info("Mismatch in payment demand from " + fromNodeId +
@@ -628,12 +617,11 @@ public class BuyMgr {
 			// TODO This will just pay everyone whatever they demand...
 			accounts.get(fromNodeId).balance = toldBalance;
 		}
-		checkAcctBalance(fromNodeId);
+		// TODO Pass true to force a payment even if we don't need one - for debugging only!
+		checkAcctBalance(fromNodeId, true);
 	}
 
-	/**
-	 * @syncpriority 170
-	 */
+	/** @syncpriority 170 */
 	public synchronized void notifyDeadConnection(String nodeId) {
 		// TODO: We should try and keep account info so that it's still there when we reconnect - but then we
 		// need a way of synchronizing account state when they reconnect - look at this when we're implementing escrow
@@ -644,11 +632,10 @@ public class BuyMgr {
 		accountsInProgress.remove(nodeId);
 	}
 
-	/**
-	 * Notifies that we have had a minimum charge applied to us, as we were the top bidder and weren't receiving data
+	/** Notifies that we have had a minimum charge applied to us, as we were the top bidder and weren't receiving data
 	 * fast enough
-	 * @syncpriority 170
-	 */
+	 * 
+	 * @syncpriority 170 */
 	public synchronized void minCharge(String nodeId, double charge) {
 		// You trying to jack me, vato?
 		Account acct = accounts.get(nodeId);

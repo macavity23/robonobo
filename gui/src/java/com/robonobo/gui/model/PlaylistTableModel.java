@@ -170,6 +170,16 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	}
 
 	@Override
+	public String deleteTracksTooltipDesc() {
+		return "Remove tracks from playlist";
+	}
+	
+	@Override
+	public String longDeleteTracksDesc() {
+		return "remove these tracks from this playlist";
+	}
+	
+	@Override
 	public void deleteTracks(List<String> streamIds) {
 		if (!myPlaylist)
 			throw new Errot();

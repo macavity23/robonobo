@@ -51,7 +51,7 @@ public abstract class ContentPanel extends JPanel {
 		add(tabPane, "0,2");
 		tabPane.addTab("track", new TrackTab());
 	}
-
+	
 	/**
 	 * Only call this from the swing UI thread, or else you might get concurrency issues
 	 */

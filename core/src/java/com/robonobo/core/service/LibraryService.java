@@ -3,16 +3,10 @@ package com.robonobo.core.service;
 import static com.robonobo.common.util.TimeUtil.*;
 
 import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-
-import javax.swing.JSpinner.DateEditor;
 
 import com.robonobo.common.concurrent.Batcher;
-import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.core.api.*;
+import com.robonobo.core.api.Task;
 import com.robonobo.core.api.model.*;
-import com.robonobo.core.api.proto.CoreApi.LibraryMsg;
 import com.robonobo.core.metadata.*;
 
 public class LibraryService extends AbstractService {
@@ -22,13 +16,14 @@ public class LibraryService extends AbstractService {
 	static final int FIRE_UI_EVENT_DELAY = 10;
 	private AddBatcher addB;
 	private DelBatcher delB;
-	private Map<Long, Library> libs = new HashMap<Long, Library>();
 	Set<Long> stillFetchingLibs = new HashSet<Long>();
+	Set<Long> loadedLibs = new HashSet<Long>();
 	UserService users;
 	AbstractMetadataService metadata;
 	TaskService tasks;
 	EventService events;
 	StreamService streams;
+	DbService db;
 
 	public LibraryService() {
 		addHardDependency("core.metadata");
@@ -45,7 +40,7 @@ public class LibraryService extends AbstractService {
 
 	@Override
 	public String getProvides() {
-		return "core.library";
+		return "core.libraries";
 	}
 
 	@Override
@@ -55,6 +50,7 @@ public class LibraryService extends AbstractService {
 		tasks = rbnb.getTaskService();
 		events = rbnb.getEventService();
 		streams = rbnb.getStreamService();
+		db = rbnb.getDbService();
 		addB = new AddBatcher();
 		delB = new DelBatcher();
 	}
@@ -66,25 +62,21 @@ public class LibraryService extends AbstractService {
 		delB.run();
 	}
 
-	public synchronized Library getLibrary(long userId) {
-		return libs.get(userId);
-	}
-
-	public void addToLibrary(String streamId) {
+	public void addToMyLibrary(String streamId) {
 		addB.add(new LibraryTrack(streamId, now()));
 	}
 
-	public void delFromLibrary(String streamId) {
+	public void delFromMyLibrary(String streamId) {
 		delB.add(streamId);
 	}
 
-	void updateLibraries() {
+	void updateFriendLibraries() {
 		if (stillFetchingLibs.size() == 0)
-			tasks.runTask(new LibrariesUpdateTask());
+			tasks.runTask(new FriendLibrariesUpdateTask());
 	}
 
-	class LibrariesUpdateTask extends Task {
-		public LibrariesUpdateTask() {
+	class FriendLibrariesUpdateTask extends Task {
+		public FriendLibrariesUpdateTask() {
 			title = "Loading libraries";
 		}
 
@@ -93,46 +85,19 @@ public class LibraryService extends AbstractService {
 			statusText = "Loading friends' library details";
 			fireUpdated();
 			Set<Long> friendIds = new HashSet<Long>(rbnb.getUserService().getMyUser().getFriendIds());
-			// Clean out any ex-friends - your tunes sucked anyway! :-P
-			synchronized (LibraryService.this) {
-				Iterator<Long> it = libs.keySet().iterator();
-				while (it.hasNext()) {
-					long libUid = it.next();
-					if (!friendIds.contains(libUid))
-						it.remove();
-				}
-			}
 			int done = 0;
 			for (long friendId : friendIds) {
 				User friend = users.getUser(friendId);
 				statusText = "Loading details for " + friend.getEmail();
 				completion = ((float) done) / friendIds.size();
 				fireUpdated();
-				Library cLib;
-				Set<String> sidsForUi = new HashSet<String>();
-				synchronized (LibraryService.this) {
-					cLib = libs.get(friendId);
-					if (cLib == null) {
-						cLib = rbnb.getDbService().getLibrary(friendId);
-						if (cLib != null) {
-							// First time through - Looked up the user's library from the db
-							// Take note of our current tracks in the user's library so we can pass these up to the
-							// ui - but remove any tracks we don't have looked-up streams for - we take care of
-							// those in the update pFetcher
-							Map<String, Date> unknownSids = rbnb.getDbService().getUnknownStreamsInLibrary(friendId);
-							for (String uSid : unknownSids.keySet()) {
-								cLib.getTracks().remove(uSid);
-							}
-							sidsForUi.addAll(cLib.getTracks().keySet());
-							libs.put(friendId, cLib);
-						}
-					}
+				LibraryInfo libInfo = db.getLibInfo(friendId);
+				if (libInfo != null && !loadedLibs.contains(friendId)) {
+					events.fireFriendLibraryReady(friendId, libInfo.getNumUnseen());
+					loadedLibs.add(friendId);
 				}
-				// Punt up the sids we do have to the UI
-				if (cLib != null && sidsForUi.size() > 0)
-					events.fireLibraryChanged(cLib, sidsForUi);
-				Date lastUpdated = (cLib == null) ? null : cLib.getLastUpdated();
-				tasks.runTask(new LibraryUpdateTask(friend, cLib, lastUpdated));
+				Date lastUpdated = (libInfo == null) ? null : libInfo.getLastChecked();
+				tasks.runTask(new LibraryUpdateTask(friend, lastUpdated));
 			}
 			statusText = "Done.";
 			completion = 1f;
@@ -142,15 +107,13 @@ public class LibraryService extends AbstractService {
 
 	class LibraryUpdateTask extends Task implements LibraryCallback {
 		private Date lastUpdate;
-		private Library cLib;
 		private User friend;
 		private Set<String> waitingForStreams;
 		private int streamsToFetch;
 
-		public LibraryUpdateTask(User friend, Library cLib, Date lastUpdate) {
+		public LibraryUpdateTask(User friend, Date lastUpdate) {
 			title = "Fetching library for " + friend.getEmail();
 			this.lastUpdate = lastUpdate;
-			this.cLib = cLib;
 			this.friend = friend;
 			stillFetchingLibs.add(friend.getUserId());
 		}
@@ -162,49 +125,26 @@ public class LibraryService extends AbstractService {
 		}
 
 		public void success(Library nLib) {
-			long friendId = friend.getUserId();
+			final long friendId = friend.getUserId();
 			Map<String, Date> newTrax = nLib.getTracks();
 			log.debug("Received updated library for " + friend.getEmail() + ": " + newTrax.size() + " new tracks");
-			if (newTrax.size() > 0) {
-				// Save this library in our db first as it's quite likely the user will quit while we're looking
-				// up streams
-				rbnb.getDbService().addTracksToLibrary(friendId, newTrax);
-				// Create a library for the user
-				synchronized (LibraryService.this) {
-					if (cLib == null) {
-						cLib = new Library();
-						cLib.setUserId(friendId);
-						cLib.setLastUpdated(lastUpdate);
-						libs.put(friendId, cLib);
-					} else
-						cLib.setLastUpdated(lastUpdate);
-				}
-			}
-			// Now we've updated the db this will have all the sids for which we don't have streams
-			Map<String, Date> unknownTracks = rbnb.getDbService().getUnknownStreamsInLibrary(friendId);
-			// Any of these new tracks we know about from other sources, punt them up to the ui
-			Set<String> newSidsForUi = new HashSet<String>();
-			cLib.updateLock.lock();
-			try {
-				for (Entry<String, Date> entry : newTrax.entrySet()) {
-					String sid = entry.getKey();
-					Date dateAdded = entry.getValue();
-					if (!unknownTracks.containsKey(sid)) {
-						cLib.getTracks().put(sid, dateAdded);
-						newSidsForUi.add(sid);
-					}
-				}
-			} finally {
-				cLib.updateLock.unlock();
-			}
-			if (newSidsForUi.size() > 0)
-				events.fireLibraryChanged(cLib, newSidsForUi);
+			if(newTrax.size() > 0)
+				db.addUnknownTracksToLibrary(friendId, newTrax);
+			// Fetch from the db afresh as there might well have been some tracks we didn't get a chance to look up last
+			// time
+			final Map<String, Date> unknownTracks = rbnb.getDbService().getUnknownTracksInLibrary(friendId);
 			if (unknownTracks.size() == 0) {
+				// We will already have fired friendLibraryReady in FriendLibsUpdateTask above
+				db.markLibraryAsChecked(friendId);
 				statusText = "Done.";
 				completion = 1f;
 				stillFetchingLibs.remove(friendId);
 				fireUpdated();
 				return;
+			}
+			if(!loadedLibs.contains(friendId)) {
+				events.fireFriendLibraryReady(friendId, 0);
+				loadedLibs.add(friendId);
 			}
 			// Get the rest of our streams
 			waitingForStreams = new HashSet<String>();
@@ -212,7 +152,42 @@ public class LibraryService extends AbstractService {
 			streamsToFetch = waitingForStreams.size();
 			statusText = "Fetching track 1 of " + streamsToFetch;
 			fireUpdated();
-			streams.fetchStreams(unknownTracks.keySet(), new StreamFetcher(cLib, unknownTracks, this));
+			// As stream metadata comes in, fire them up to the ui in batches
+			final Batcher<String> trackBatcher = new Batcher<String>(FIRE_UI_EVENT_DELAY * 1000, rbnb.getExecutor()) {
+				protected void runBatch(Collection<String> sids) throws Exception {
+					Map<String, Date> newTracks = new HashMap<String, Date>(sids.size());
+					for (String sid : sids) {
+						newTracks.put(sid, unknownTracks.get(sid));
+					}
+					LibraryInfo libInfo = db.getLibInfo(friendId);
+					events.fireFriendLibraryUpdated(friendId, libInfo.getNumUnseen(), newTracks);
+				}
+			};
+			streams.fetchStreams(unknownTracks.keySet(), new StreamCallback() {
+				public void success(Stream s) {
+					String sid = s.getStreamId();
+					db.markTrackAsKnown(friendId, sid);
+					trackBatcher.add(sid);
+					boolean finished = streamUpdated(sid);
+					if (finished) {
+						try {
+							trackBatcher.runNow();
+						} catch (Exception ignore) {
+						}
+					}
+				}
+
+				public void error(String sid, Exception ex) {
+					log.error("Error fetching stream " + sid, ex);
+					boolean finished = streamUpdated(sid);
+					if (finished) {
+						try {
+							trackBatcher.runNow();
+						} catch (Exception ignore) {
+						}
+					}
+				}
+			});
 		}
 
 		public void error(long userId, Exception e) {
@@ -223,52 +198,22 @@ public class LibraryService extends AbstractService {
 			fireUpdated();
 		}
 
-		void streamUpdated(String sid) {
+		boolean streamUpdated(String sid) {
+			boolean finished;
 			waitingForStreams.remove(sid);
 			int streamsDone = streamsToFetch - waitingForStreams.size();
 			if (streamsDone == streamsToFetch) {
 				completion = 1f;
 				stillFetchingLibs.remove(friend.getUserId());
 				statusText = "Done.";
+				finished = true;
 			} else {
 				completion = ((float) streamsDone) / streamsToFetch;
 				statusText = "Fetching track " + (streamsDone + 1) + " of " + streamsToFetch;
+				finished = false;
 			}
 			fireUpdated();
-		}
-	}
-
-	class StreamFetcher extends Batcher<String> implements StreamCallback {
-		Library lib;
-		Map<String, Date> streamsToFetch;
-		LibraryUpdateTask task;
-
-		public StreamFetcher(Library lib, Map<String, Date> streamsToFetch, LibraryUpdateTask task) {
-			super(FIRE_UI_EVENT_DELAY * 1000, rbnb.getExecutor());
-			this.lib = lib;
-			this.streamsToFetch = streamsToFetch;
-			this.task = task;
-		}
-
-		public void success(Stream s) {
-			String sid = s.getStreamId();
-			lib.updateLock.lock();
-			try {
-				lib.getTracks().put(sid, streamsToFetch.get(sid));
-			} finally {
-				lib.updateLock.unlock();
-			}
-			add(sid);
-			task.streamUpdated(sid);
-		}
-
-		public void error(String streamId, Exception ex) {
-			log.error("Error fetching stream " + streamId, ex);
-			task.streamUpdated(streamId);
-		}
-
-		protected void runBatch(Collection<String> sids) throws Exception {
-			events.fireLibraryChanged(lib, sids);
+			return finished;
 		}
 	}
 

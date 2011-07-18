@@ -15,15 +15,15 @@ import com.robonobo.gui.sheets.PleaseWaitSheet;
 
 @SuppressWarnings("serial")
 public class LibraryTreeNode extends SelectableTreeNode {
-	Library lib;
+	long userId;
 	RobonoboFrame frame;
 	int numUnseenTracks;
 
-	public LibraryTreeNode(RobonoboFrame frame, Library lib) {
+	public LibraryTreeNode(RobonoboFrame frame, long userId, int numUnseenTracks) {
 		super("Library");
 		this.frame = frame;
-		this.lib = lib;
-		numUnseenTracks = frame.getController().numUnseenTracks(lib);
+		this.userId = userId;
+		this.numUnseenTracks = numUnseenTracks;
 	}
 
 	@Override
@@ -34,18 +34,8 @@ public class LibraryTreeNode extends SelectableTreeNode {
 		return -1;
 	}
 
-	public void setLib(final Library lib, boolean isSelected) {
-		this.lib = lib;
-		// If we're selected, don't show any unseen tracks
-		if (isSelected) {
-			numUnseenTracks = 0;
-			frame.getController().getExecutor().execute(new CatchingRunnable() {
-				public void doRun() throws Exception {
-					frame.getController().markAllAsSeen(lib);
-				}
-			});
-		} else
-			numUnseenTracks = frame.getController().numUnseenTracks(lib);
+	public void setNumUnseenTracks(int numUnseenTracks) {
+		this.numUnseenTracks = numUnseenTracks;
 	}
 
 	public int getNumUnseenTracks() {
@@ -53,7 +43,7 @@ public class LibraryTreeNode extends SelectableTreeNode {
 	}
 
 	protected String contentPanelName() {
-		return "library/" + lib.getUserId();
+		return "library/" + userId;
 	}
 
 	@Override
@@ -63,43 +53,37 @@ public class LibraryTreeNode extends SelectableTreeNode {
 
 	@Override
 	public boolean handleSelect() {
-		final boolean hadUnseen = (numUnseenTracks > 0);
+		boolean hadUnseen = (numUnseenTracks > 0);
 		numUnseenTracks = 0;
 		ContentPanel cp = frame.getMainPanel().getContentPanel(contentPanelName());
 		if (cp != null) {
 			frame.getMainPanel().selectContentPanel(contentPanelName());
-			activatePanel(hadUnseen);
+			activatePanel();
 		} else {
-			// Need to create the content panel - this hangs the ui thread as it creates the table, which might take a
-			// couple of seconds if there are a lot of tracks in the library
+			// Need to create the content panel - this hangs the ui thread as it looks up the tracks and creates the
+			// table, which might take a couple of seconds if there are a lot of tracks in the library
+			// We could do the db lookup off the ui thread, but the table creation is the slowest bit and that has to be
+			// on there, so might as well do the whole thing there and just show a loading screen to the user
 			CatchingRunnable task = new CatchingRunnable() {
 				public void doRun() throws Exception {
+					Library lib = frame.getController().getFriendLibrary(userId);
 					frame.getMainPanel().addContentPanel(contentPanelName(), new FriendLibraryContentPanel(frame, lib));
 					frame.getMainPanel().selectContentPanel(contentPanelName());
-					activatePanel(hadUnseen);
+					activatePanel();
 				}
 			};
-			if (lib.getTracks().size() < TrackList.TRACKLIST_SIZE_THRESHOLD)
-				task.run();
-			else
-				frame.runSlowTask("library loading", task);
+			frame.runSlowTask("library loading", task);
 		}
 		return hadUnseen;
 	}
 
-	private void activatePanel(final boolean markAllAsSeen) {
-		frame.getController().getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				// Do this off the ui thread as there's a db hit marking 10^4 tracks as read
-				if (markAllAsSeen)
-					frame.getController().markAllAsSeen(lib);
-				// Activate this panel so it can find sources
-				TrackList trackList = frame.getMainPanel().getContentPanel(contentPanelName()).getTrackList();
-				FriendLibraryTableModel model = (FriendLibraryTableModel) trackList.getModel();
-				model.activate();
-				trackList.updateViewport();
-			}
-		});
+	private void activatePanel() {
+		frame.getController().markAllLibraryTracksAsSeen(userId);
+		// Activate this panel so it can find sources
+		TrackList trackList = frame.getMainPanel().getContentPanel(contentPanelName()).getTrackList();
+		FriendLibraryTableModel model = (FriendLibraryTableModel) trackList.getModel();
+		model.activate();
+		trackList.updateViewport();
 	}
 
 	@Override

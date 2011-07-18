@@ -31,7 +31,6 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	private static final String DOWNLOAD_TOOLTIP = "Download selected tracks";
 	private static final String NEXT_TOOLTIP = "Next track";
 	private static final String PREV_TOOLTIP = "Previous track";
-	private static final String DELETE_TOOLTIP = "Delete selected tracks";
 	/** If we're within this time (ms) after the start of a track, calling prev() goes to the previous track (otherwise,
 	 * returns to the start of the current one) */
 	public static final int PREV_TRACK_GRACE_PERIOD = 5000;
@@ -159,7 +158,6 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		buttonsPanel.add(nextBtn);
 		buttonsPanel.add(Box.createHorizontalStrut(50));
 		delBtn = new RSquareDelButton();
-		delBtn.setToolTipText(DELETE_TOOLTIP);
 		delBtn.setPreferredSize(new Dimension(40, 40));
 		delBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -366,9 +364,14 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		}
 	}
 
-	public void trackListPanelChanged() {
+	public void trackListPanelChanged(ContentPanel cp) {
 		// checkButtonsEnabled();
 		checkPlayPauseDeleteEnabled();
+		TrackList tl = cp.getTrackList();
+		if(tl == null)
+			delBtn.setToolTipText("");
+		else
+			delBtn.setToolTipText(tl.getModel().deleteTracksTooltipDesc());
 	}
 
 	private void updateNextPrev() {

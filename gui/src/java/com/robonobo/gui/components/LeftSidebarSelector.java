@@ -23,6 +23,7 @@ public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarC
 	protected RobonoboFrame frame;
 	protected String contentPanelName;
 	private RLabel lbl;
+	private static final Dimension SIZE = new Dimension(188, 19);
 
 	public LeftSidebarSelector(LeftSidebar sideBar, RobonoboFrame frame, String label, boolean lblBold, Icon icon, String contentPanelName) {
 		this.sideBar = sideBar;
@@ -32,9 +33,9 @@ public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarC
 		setAlignmentX(0f);
 		setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		setPreferredSize(new Dimension(185, 19));
-		setMinimumSize(new Dimension(185, 19));
-		setMaximumSize(new Dimension(185, 19));
+		setPreferredSize(SIZE);
+		setMinimumSize(SIZE);
+		setMaximumSize(SIZE);
 		lbl = (lblBold) ? new RLabel12B(label, icon, JLabel.LEFT) : new RLabel12(label, icon, JLabel.LEFT);
 		lbl.setOpaque(false);
 		add(lbl);

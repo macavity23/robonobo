@@ -129,7 +129,8 @@ public class PlaylistService extends AbstractService {
 		}
 
 		void gotStream(String sid) {
-			waitingForStreams.remove(sid);
+			if(!waitingForStreams.remove(sid))
+				return;
 			int streamsLeft = waitingForStreams.size();
 			int streamsDone = streamsToFetch - streamsLeft;
 			onStreamUpdate(streamsDone, streamsToFetch);
@@ -170,6 +171,7 @@ public class PlaylistService extends AbstractService {
 
 		@Override
 		public void runTask() throws Exception {
+			log.debug("Running playlists refresh task with plids "+plIds);
 			statusText = "Fetching playlist details";
 			fireUpdated();
 			metadata.fetchPlaylists(plIds, fetcher);
@@ -186,6 +188,8 @@ public class PlaylistService extends AbstractService {
 		}
 
 		void onCompletion() {
+			// DEBUG
+			log.debug("RefreshMyPlaylistsTask.onCompletion");
 			// Now we're done with my playlists, we can load our friends
 			rbnb.getUserService().fetchFriends();
 		}
@@ -204,7 +208,7 @@ public class PlaylistService extends AbstractService {
 			// Now we've done all users and playlists - tell our metadata service to load stuff in parallel now to avoid
 			// requests getting stuck behind all our friends' libraries loading
 			metadata.setFetchOrder(RequestFetchOrder.Parallel);
-			rbnb.getLibraryService().updateLibraries();
+			rbnb.getLibraryService().updateFriendLibraries();
 		}
 	}
 
@@ -419,6 +423,7 @@ public class PlaylistService extends AbstractService {
 					playlists.put(newP.getPlaylistId(), newP);
 				}
 				rbnb.getUserService().playlistShared(p, friendIds);
+				events.firePlaylistChanged(newP);
 			}
 
 			public void error(long playlistId, Exception ex) {

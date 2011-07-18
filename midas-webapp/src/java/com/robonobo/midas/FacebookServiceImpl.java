@@ -141,16 +141,6 @@ public class FacebookServiceImpl implements InitializingBean, FacebookService {
 	}
 
 	@Override
-	public void postPlaylistCreateToFacebook(MidasUserConfig muc, Playlist p) throws IOException {
-		String fbId = muc.getItem("facebookId");
-		if (fbId == null)
-			return;
-		String playlistUrl = appConfig.getInitParam("playlistShortUrlBase") + p.getPlaylistId();
-		String msg = "I created a playlist '" + p.getTitle() + "': " + playlistUrl;
-		postToFacebook(muc, msg);
-	}
-
-	@Override
 	public void postPlaylistUpdateToFacebook(MidasUserConfig muc, Playlist p, String msg) throws IOException {
 		String fbId = muc.getItem("facebookId");
 		if (fbId == null)

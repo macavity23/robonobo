@@ -54,7 +54,7 @@ public class MainPanel extends JPanel {
 		ContentPanel cp = cpHolder.getContentPanel(name);
 		if (cp != null) {
 			cpHolder.selectContentPanel(name);
-			playbackPanel.trackListPanelChanged();
+			playbackPanel.trackListPanelChanged(cp);
 			final JComponent toFocus = cp.defaultComponent();
 			if (toFocus != null) {
 				GuiUtil.runOnUiThread(new CatchingRunnable() {

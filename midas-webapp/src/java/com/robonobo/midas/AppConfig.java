@@ -12,8 +12,6 @@ import org.springframework.web.context.ServletContextAware;
 import com.robonobo.common.concurrent.SafetyNet;
 import com.robonobo.common.util.ExceptionEvent;
 import com.robonobo.common.util.ExceptionListener;
-import com.robonobo.remote.service.MailService;
-import com.robonobo.remote.service.MailServiceImpl;
 
 @Configuration
 public class AppConfig implements ServletContextAware, InitializingBean {
@@ -25,12 +23,6 @@ public class AppConfig implements ServletContextAware, InitializingBean {
 		String url = sc.getInitParameter("remoteMidasListenUrl");
 		String sekrit = sc.getInitParameter("remoteMidasSecret");
 		return new RemoteMidasService(url, sekrit);
-	}
-
-	@Bean
-	public MailService mail() {
-		String smtpServer = sc.getInitParameter("smtpServer");
-		return new MailServiceImpl(smtpServer, "robonobo.com");
 	}
 
 	public String getInitParam(String name) {
