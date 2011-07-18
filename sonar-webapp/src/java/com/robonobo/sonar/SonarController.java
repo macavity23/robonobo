@@ -22,8 +22,8 @@ import com.robonobo.sonar.retention.*;
 public class SonarController {
 	static final int MAX_PUBLIC_NODES_TO_RETURN = 10;
 	Log log = LogFactory.getLog(getClass());
-//	RetentionStrategy rStrat = new PublicSupernodesOnlyStrategy();
-	RetentionStrategy rStrat = new SupernodesOnlyStrategy();
+	RetentionStrategy rStrat = new PublicSupernodesOnlyStrategy();
+//	RetentionStrategy rStrat = new SupernodesOnlyStrategy();
 
 	@Autowired
 	private NodeDao nodeDao;
