@@ -112,7 +112,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		log.info("Adding download for " + streamId);
 		Stream s = streams.getKnownStream(streamId);
 		DownloadingTrack d = new DownloadingTrack(s, dataFile, DownloadStatus.Paused);
-		long startTime = now().getTime();
+		long startTime = System.currentTimeMillis();
 		synchronized (this) {
 			if (startTime == lastDlStartTime)
 				startTime++;
@@ -125,11 +125,10 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 				startDownload(d, pb);
 		} catch (Exception e) {
 			log.error("Caught exception when starting download for " + s.getStreamId(), e);
+			storage.nukePageBuf(streamId);
 			throw new RobonoboException(e);
-		} finally {
-			if (d != null)
-				db.putDownload(d);
-		}
+		} 
+		db.putDownload(d);
 		synchronized (dPriority) {
 			dPriority.add(s.getStreamId());
 		}

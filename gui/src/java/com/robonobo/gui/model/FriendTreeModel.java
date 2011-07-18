@@ -183,8 +183,17 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 					if (ltn == null) {
 						log.error("ERROR: library updated for userId " + uid + ", but there is no library tree node");
 						return;
-					} else
-						ltn.setNumUnseenTracks(numUnseen);
+					} else {
+						// If they are selected, keep everything as unseen
+						if(tree.isSelectedNode(ltn)) {
+							control.getExecutor().execute(new CatchingRunnable() {
+								public void doRun() throws Exception {
+									control.markAllLibraryTracksAsSeen(uid);
+								}
+							});
+						} else
+							ltn.setNumUnseenTracks(numUnseen);
+					}
 				}
 				firePathToRootChanged(ltn);
 				// There is a stupid bug in some java impls that doesn't repaint the tree nodes unless you call each one

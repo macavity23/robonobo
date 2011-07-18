@@ -1,5 +1,6 @@
 package com.robonobo.mina.instance;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -211,7 +212,7 @@ public class StreamConnsMgr {
 
 		// If we have no currency client, wait til we do
 		if (mina.getConfig().isAgoric() && !mina.getCurrencyClient().isReady()) {
-			log.debug("Not making lcpair to " + nodeId + " as currency client is not ready - waiting 5s");
+			log.debug("Not making lcpair to " + nodeId + " for "+sid+" as currency client is not ready - waiting 5s");
 			mina.getExecutor().schedule(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					makeListenConnectionTo(sid, ss);
@@ -235,14 +236,33 @@ public class StreamConnsMgr {
 				log.debug("Making connection to " + nodeId + " for listening to " + sid);
 				mina.getCCM().makeCCTo(node, getCCAttempt);
 			}
-		} else
-			startListeningTo(cc, sid, ss);
+		} else {
+			if(cc.isClosing()) {
+				// We have a CC, but we're already shutting it down (probably cleaning up the end of a previous stream), so try again in a little while
+				log.debug("Not making lcpair to " + nodeId + " for "+sid+" as existing CC is closing - waiting 5s");
+				mina.getExecutor().schedule(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						makeListenConnectionTo(sid, ss);
+					}
+				}, 5, TimeUnit.SECONDS);
+				return;
+			}
+			try {
+				startListeningTo(cc, sid, ss);
+			} catch (IOException e) {
+				log.error("Caught exception setting up lcp to "+cc.getNodeId()+" for "+sid, e);
+				mina.getSourceMgr().cachePossiblyDeadSource(cc.getNode(), sid);
+				// Request more if we need them
+				mina.getStreamMgr().requestCachedSources(sid);
+			}
+		}
 	}
 
 	/**
+	 * @throws IOException 
 	 * @syncpriority 200
 	 */
-	private void startListeningTo(final ControlConnection cc, String sid, SourceStatus ss) {
+	private void startListeningTo(final ControlConnection cc, String sid, SourceStatus ss) throws IOException {
 		String nodeId = cc.getNodeId();
 		if (mina.getCCM().isShuttingDown()) {
 			log.debug("Not making listen connection to " + nodeId + ": shutting down");
@@ -254,9 +274,10 @@ public class StreamConnsMgr {
 		}
 		log.info("Starting listening to " + nodeId + " for stream " + sid);
 		synchronized (this) {
+			LCPair lcp = new LCPair(mina, sid, cc, ss);
 			if(!lcPairs.containsKey(sid))
 				lcPairs.put(sid, new HashSet<LCPair>());
-			lcPairs.get(sid).add(new LCPair(mina, sid, cc, ss));
+			lcPairs.get(sid).add(lcp);
 		}
 		mina.getEventMgr().fireReceptionConnsChanged(sid);
 	}
@@ -414,7 +435,13 @@ public class StreamConnsMgr {
 				return;
 			}
 			log.info("Successfully got CC " + cc.getNodeId() + " for listening to stream " + sid);
-			startListeningTo(cc, sid, sourceStat);
+			try {
+				startListeningTo(cc, sid, sourceStat);
+			} catch (IOException e) {
+				// Oops, a network errot
+				log.error("Caught exception starting listening to "+cc.getNodeId()+" for "+sid, e);
+				onFail();
+			}
 		}
 
 		/**

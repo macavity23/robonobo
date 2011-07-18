@@ -101,8 +101,9 @@ public class BuyMgr {
 		return as.getIndex();
 	}
 
-	/** @syncpriority 170 */
-	public void setupAccount(SourceStatus ss) {
+	/** @throws IOException 
+	 * @syncpriority 170 */
+	public void setupAccount(SourceStatus ss) throws IOException {
 		String nodeId = ss.getFromNode().getId();
 		// If our currency client isn't ready yet (fast connection, this one!),
 		// wait until it is
@@ -138,7 +139,7 @@ public class BuyMgr {
 		log.error("Error: could not setup account with " + nodeId + " - unknown payment method '" + paymentMethod + "'");
 	}
 
-	private void setupUpfrontAccount(final String nodeId) {
+	private void setupUpfrontAccount(final String nodeId) throws IOException {
 		log.info("Setting up upfront account with node " + nodeId);
 		ControlConnection cc = mina.getCCM().getCCWithId(nodeId);
 		if (cc == null) {
@@ -162,7 +163,10 @@ public class BuyMgr {
 			TopUp tu = TopUp.newBuilder().setCurrencyToken(ByteString.copyFrom(token)).build();
 			cc.sendMessageOrThrow("TopUp", tu);
 		} catch (IOException e) {
-			// This failed - recover the cash
+			// This failed - remove trace of this guy, recover the cash and rethrow the exception
+			synchronized (this) {
+				accounts.remove(nodeId);
+			}
 			final byte[] tok = token;
 			mina.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
@@ -170,6 +174,7 @@ public class BuyMgr {
 					mina.getCurrencyClient().depositToken(tok, "Returning cash after failing to open account with node " + nodeId);
 				}
 			});
+			throw e;
 		}
 		synchronized (this) {
 			accounts.get(nodeId).balance += cashToSend;

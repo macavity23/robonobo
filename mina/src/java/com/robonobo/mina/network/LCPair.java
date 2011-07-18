@@ -1,9 +1,10 @@
 package com.robonobo.mina.network;
 
-import static com.robonobo.common.util.TextUtil.formatSizeInBytes;
-import static com.robonobo.common.util.TimeUtil.now;
+import static com.robonobo.common.util.TextUtil.*;
+import static com.robonobo.common.util.TimeUtil.*;
 import static java.lang.System.*;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -15,7 +16,6 @@ import com.robonobo.common.util.FileUtil;
 import com.robonobo.mina.agoric.AuctionState;
 import com.robonobo.mina.external.buffer.Page;
 import com.robonobo.mina.instance.MinaInstance;
-import com.robonobo.mina.instance.StreamMgr;
 import com.robonobo.mina.message.proto.MinaProtocol.ReqPage;
 import com.robonobo.mina.message.proto.MinaProtocol.SourceStatus;
 import com.robonobo.mina.message.proto.MinaProtocol.StartSource;
@@ -39,8 +39,9 @@ public class LCPair extends ConnectionPair {
 	int rto;
 	Future<?> usefulDataTimeout = null;
 
-	/** @syncpriority 170 */
-	public LCPair(MinaInstance m, String streamId, ControlConnection ccon, SourceStatus ss) {
+	/** @throws IOException 
+	 * @syncpriority 170 */
+	public LCPair(MinaInstance m, String streamId, ControlConnection ccon, SourceStatus ss) throws IOException {
 		super(m, streamId, ccon);
 		rto = MIN_PAGE_TIMEOUT;
 		try {
