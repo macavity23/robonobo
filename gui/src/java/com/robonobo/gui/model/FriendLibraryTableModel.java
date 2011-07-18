@@ -19,23 +19,15 @@ import com.robonobo.mina.external.FoundSourceListener;
 public class FriendLibraryTableModel extends GlazedTrackListTableModel implements LibraryListener, FoundSourceListener {
 	private Library lib;
 	// Because we might have very many tracks in a friend's library, we don't look up sources for them straight away -
-	// instead we look them up as the user scrolls - but we batch them for performance
+	// instead we look them up as the user scrolls - but we batch them to avoid hanging the ui thread
 	static final long SCROLL_DELAY = 1000;
 	private TrackScrollBatcher scrollBatcher = new TrackScrollBatcher();
 	boolean activated = false;
 	MatcherEditor<Track> matchEdit;
 
 	public static FriendLibraryTableModel create(RobonoboFrame frame, Library lib, Document searchTextDoc) {
-		// Take a copy of the lib's tracks to avoid concurrency problems as we iterate through
-		Map<String, Date> mapCopy;
-		lib.updateLock.lock();
-		try {
-			mapCopy = new HashMap<String, Date>(lib.getTracks());
-		} finally {
-			lib.updateLock.unlock();
-		}
 		List<Track> trax = new ArrayList<Track>();
-		for (Entry<String, Date> e : mapCopy.entrySet()) {
+		for (Entry<String, Date> e : lib.getTracks().entrySet()) {
 			String sid = e.getKey();
 			Date added = e.getValue();
 			Track t = frame.control.getTrack(sid);
@@ -73,20 +65,23 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	}
 
 	@Override
-	public void libraryChanged(Library lib, Collection<String> newTrackSids) {
-		if (lib.getUserId() != this.lib.getUserId())
+	public void friendLibraryReady(long userId, int numUnseen) {
+		// Do nothing
+	}
+	
+	@Override
+	public void friendLibraryUpdated(long userId, int numUnseen, Map<String, Date> newTracks) {
+		if(userId != lib.getUserId())
 			return;
 		List<Track> addTrax = new ArrayList<Track>();
-		for (String sid : newTrackSids) {
+		for (String sid : newTracks.keySet()) {
 			Track t = control.getTrack(sid);
-			Date da = lib.getTracks().get(t.stream.streamId);
-			t.setDateAdded(da);
+			t.setDateAdded(newTracks.get(sid));
 			addTrax.add(t);
 		}
-		this.lib = lib;
 		add(addTrax);
 	}
-
+	
 	@Override
 	public void myLibraryUpdated() {
 		// Do nothing

@@ -21,7 +21,7 @@ import com.robonobo.mina.external.MinaConfig;
  * @author macavity */
 @SuppressWarnings("unused")
 public class Updater {
-	static final int CURRENT_VERSION = 2;
+	static final int CURRENT_VERSION = 3;
 	private File homeDir;
 	Log log = LogFactory.getLog(getClass());
 
@@ -102,6 +102,16 @@ public class Updater {
 		}
 	}
 
+	private void updateVersion2ToVersion3() throws IOException {
+		log.info("Updating robohome dir " + homeDir.getAbsolutePath() + " from version 2 to version 3");
+		String[] stArr = { DbService.CREATE_LIBRARY_KNOWN_TRACKS_TBL, DbService.CREATE_LIBRARY_UNKNOWN_TRACKS_TBL, DbService.CREATE_LIBRARY_INFO_TBL };
+		try {
+			updateMetadataDb(stArr);
+		} catch (SQLException e) {
+			throw new IOException("Caught SQLException: "+e.getMessage());
+		}
+	}
+	
 	private void compactPagesDb() throws SQLException {
 		String sep = File.separator;
 		String dbPrefix = homeDir.getAbsolutePath() + sep + "db" + sep + "metadata";

@@ -377,7 +377,7 @@ public class UserService extends AbstractService {
 				if (playlistIds.size() > 0)
 					playlists.refreshFriendPlaylists(playlistIds);
 				else
-					rbnb.getLibraryService().updateLibraries();
+					rbnb.getLibraryService().updateFriendLibraries();
 			} else {
 				statusText = "Fetching friend " + (usersDone + 1) + " of " + myUser.getFriendIds().size();
 				completion = ((float) usersDone) / myUser.getFriendIds().size();

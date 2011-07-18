@@ -101,7 +101,7 @@ public class ShareService extends AbstractService {
 			shareStreamIds.add(s.getStreamId());
 		}
 		startShare(streamId);
-		rbnb.getLibraryService().addToLibrary(streamId);
+		rbnb.getLibraryService().addToMyLibrary(streamId);
 		event.fireTrackUpdated(s.getStreamId());
 		event.fireMyLibraryUpdated();
 		rbnb.getPlaylistService().checkPlaylistsForNewShare(sh);
@@ -165,7 +165,7 @@ public class ShareService extends AbstractService {
 		synchronized (this) {
 			shareStreamIds.remove(streamId);
 		}
-		rbnb.getLibraryService().delFromLibrary(streamId);
+		rbnb.getLibraryService().delFromMyLibrary(streamId);
 		event.fireTrackUpdated(streamId);
 		event.fireMyLibraryUpdated();
 	}

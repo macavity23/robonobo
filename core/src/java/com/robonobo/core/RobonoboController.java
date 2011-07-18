@@ -1,26 +1,15 @@
 package com.robonobo.core;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.serialization.SerializationException;
-import com.robonobo.common.serialization.UnauthorizedException;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.config.RobonoboConfig;
 import com.robonobo.core.api.model.*;
@@ -509,22 +498,22 @@ public class RobonoboController {
 		return inst.getDbService().numUnseenTracks(p);
 	}
 
-	public int numUnseenTracks(Library lib) {
-		return inst.getDbService().numUnseenTracks(lib);
-	}
-
 	public void markAllAsSeen(Playlist p) {
 		inst.getDbService().markAllAsSeen(p);
 	}
 
-	public void markAllAsSeen(Library lib) {
-		inst.getDbService().markAllAsSeen(lib);
+	public void markAllLibraryTracksAsSeen(long userId) {
+		inst.getDbService().markAllLibraryTracksAsSeen(userId);
 	}
 
 	public void requestTopUp() throws IOException {
 		inst.getHttpService().requestTopUp();
 	}
 
+	public Library getFriendLibrary(long userId) {
+		return inst.getDbService().getLibrary(userId);
+	}
+	
 	public String getUpdateMessage() throws RobonoboException {
 		try {
 			return inst.getHttpService().getUpdateMessage();

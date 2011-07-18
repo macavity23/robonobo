@@ -205,7 +205,7 @@ public class PlaylistService extends AbstractService {
 			// Now we've done all users and playlists - tell our metadata service to load stuff in parallel now to avoid
 			// requests getting stuck behind all our friends' libraries loading
 			metadata.setFetchOrder(RequestFetchOrder.Parallel);
-			rbnb.getLibraryService().updateLibraries();
+			rbnb.getLibraryService().updateFriendLibraries();
 		}
 	}
 
