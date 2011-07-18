@@ -150,7 +150,7 @@ public class Robonobo {
 	 * If this is a cold startup, argControl will be non-null as we need to create a controller to see if they've agreed
 	 * to the eula. If it's a restart, argControl will be null, so we make a new controller
 	 */
-	public static void startup(RobonoboController argControl, String[] args, boolean consoleOnly) throws Exception,
+	public static void startup(RobonoboController argControl, final String[] args, boolean consoleOnly) throws Exception,
 			InterruptedException {
 		final RobonoboController control = (argControl == null) ? new RobonoboController(args) : argControl;
 
@@ -172,10 +172,10 @@ public class Robonobo {
 			if(isNonEmpty(control.getConfig().getMetadataUsername()))
 				control.login(control.getConfig().getMetadataUsername(), control.getConfig().getMetadataPassword());
 		} else {
-			final RobonoboFrame frame = new RobonoboFrame(control, args);
-			Platform.getPlatform().initMainWindow(frame);
 			SwingUtilities.invokeLater(new CatchingRunnable() {
 				public void doRun() throws Exception {
+					final RobonoboFrame frame = new RobonoboFrame(control, args);
+					Platform.getPlatform().initMainWindow(frame);
 					frame.setVisible(true);
 				}
 			});
