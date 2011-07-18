@@ -2,6 +2,8 @@ package com.robonobo.midas.client;
 
 import java.util.Collection;
 
+import com.robonobo.core.api.model.Playlist;
+import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
 import com.robonobo.core.metadata.PlaylistCallback;
 import com.robonobo.midas.client.Params.Operation;
 
@@ -30,7 +32,7 @@ public class SharePlaylistRequest implements Request {
 
 	@Override
 	public Params getNextParams() {
-		Params p = new Params(Operation.Get, null, null, cfg.getSharePlaylistUrl(plId, friendIds, emails), plId);
+		Params p = new Params(Operation.Get, null, PlaylistMsg.newBuilder(), cfg.getSharePlaylistUrl(plId, friendIds, emails), plId);
 		plId = null;
 		return p;
 	}
@@ -38,7 +40,7 @@ public class SharePlaylistRequest implements Request {
 	@Override
 	public void success(Object obj) {
 		if(handler != null)
-			handler.success(null);
+			handler.success(new Playlist((PlaylistMsg) obj));
 	}
 
 	@Override

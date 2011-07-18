@@ -420,6 +420,7 @@ public class PlaylistService extends AbstractService {
 					playlists.put(newP.getPlaylistId(), newP);
 				}
 				rbnb.getUserService().playlistShared(p, friendIds);
+				events.firePlaylistChanged(newP);
 			}
 
 			public void error(long playlistId, Exception ex) {
