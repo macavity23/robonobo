@@ -433,13 +433,8 @@ public class RobonoboController {
 	}
 
 	public void updatePlaylist(Playlist p) {
-		updatePlaylist(p, false);
-	}
-
-	public void updatePlaylist(Playlist p, boolean fireUpdate) {
 		inst.getPlaylistService().updatePlaylist(p);
-		if(fireUpdate)
-			inst.getEventService().firePlaylistChanged(p);
+		inst.getEventService().firePlaylistChanged(p);
 	}
 
 	public void createPlaylist(Playlist p, PlaylistCallback handler) {

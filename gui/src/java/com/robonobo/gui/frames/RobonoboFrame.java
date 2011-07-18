@@ -371,7 +371,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 					public void doRun() throws Exception {
 						p.setVisibility(Playlist.VIS_FRIENDS);
 						showSheet(new PostToFacebookSheet(RobonoboFrame.this, p));
-						control.updatePlaylist(p, true);
+						control.updatePlaylist(p);
 					}
 				});
 				showSheet(sheet);
@@ -419,7 +419,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 										public void doRun() throws Exception {
 											p.setVisibility(Playlist.VIS_ALL);
 											showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));
-											control.updatePlaylist(p, true);
+											control.updatePlaylist(p);
 										}
 									});
 									showSheet(sheet);
@@ -443,7 +443,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 					public void doRun() throws Exception {
 						p.setVisibility(Playlist.VIS_ALL);
 						showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));
-						control.updatePlaylist(p, true);
+						control.updatePlaylist(p);
 					}
 				});
 				showSheet(sheet);

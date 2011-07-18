@@ -153,6 +153,7 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 						int idx = getModel().getPlaylistIndex(p);
 						setSelectedIndex(idx);
 					}
+					invalidate();
 				}
 			});		
 		} 

@@ -129,7 +129,8 @@ public class PlaylistService extends AbstractService {
 		}
 
 		void gotStream(String sid) {
-			waitingForStreams.remove(sid);
+			if(!waitingForStreams.remove(sid))
+				return;
 			int streamsLeft = waitingForStreams.size();
 			int streamsDone = streamsToFetch - streamsLeft;
 			onStreamUpdate(streamsDone, streamsToFetch);
@@ -187,6 +188,8 @@ public class PlaylistService extends AbstractService {
 		}
 
 		void onCompletion() {
+			// DEBUG
+			log.debug("RefreshMyPlaylistsTask.onCompletion");
 			// Now we're done with my playlists, we can load our friends
 			rbnb.getUserService().fetchFriends();
 		}

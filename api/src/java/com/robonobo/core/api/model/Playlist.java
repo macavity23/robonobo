@@ -73,7 +73,7 @@ public class Playlist implements Comparable<Playlist> {
 
 	@Override
 	public int compareTo(Playlist o) {
-		return title.compareTo(o.getTitle());
+		return title.toLowerCase().compareTo(o.getTitle().toLowerCase());
 	}
 	
 	public long getPlaylistId() {
