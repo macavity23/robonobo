@@ -77,8 +77,13 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 	}
 
 	@Override
-	public String deleteTracksDesc() {
+	public String deleteTracksTooltipDesc() {
 		return "Remove tracks from library";
+	}
+	
+	@Override
+	public String longDeleteTracksDesc() {
+		return "remove these tracks from your music library";
 	}
 	
 	@Override

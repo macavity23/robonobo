@@ -30,6 +30,7 @@ import ca.odell.glazedlists.matchers.MatcherEditor.Event;
 import ca.odell.glazedlists.swing.TableComparatorChooser;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.model.*;
@@ -42,6 +43,7 @@ import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.GlazedTrackListTableModel;
 import com.robonobo.gui.model.TrackListTableModel;
 import com.robonobo.gui.panels.MyPlaylistContentPanel;
+import com.robonobo.gui.sheets.ConfirmTrackDeleteSheet;
 
 @SuppressWarnings("serial")
 public class TrackList extends JPanel {
@@ -103,23 +105,23 @@ public class TrackList extends JPanel {
 		table.getTableHeader().setDefaultRenderer(new JTableHeader().getDefaultRenderer());
 		table.getTableHeader().setFont(RoboFont.getFont(13, false));
 		// These throw NoSuchMethodError on j5
-		if(javaMajorVersion() >= 6) {
+		if (javaMajorVersion() >= 6) {
 			table.setAutoCreateRowSorter(false);
 			table.setRowSorter(null);
 		}
 		// Set up glazedlist auto table sorter
 		scrollPane = new JScrollPane(table);
-		if(model.wantScrollEventsEver())
+		if (model.wantScrollEventsEver())
 			viewportListener = new ViewportListener();
 		if (model instanceof GlazedTrackListTableModel) {
 			GlazedTrackListTableModel gtltm = (GlazedTrackListTableModel) model;
 			if (gtltm.canSort()) {
 				TableComparatorChooser<Track> tcc = TableComparatorChooser.install(table, gtltm.getSortedList(), TableComparatorChooser.SINGLE_COLUMN);
-				if(viewportListener != null)
+				if (viewportListener != null)
 					tcc.addSortActionListener(viewportListener);
 			}
 			MatcherEditor<Track> matchEdit = gtltm.getMatcherEditor();
-			if(matchEdit != null && viewportListener != null)
+			if (matchEdit != null && viewportListener != null)
 				matchEdit.addMatcherEditorListener(viewportListener);
 		}
 		TableColumnModelExt cm = (TableColumnModelExt) table.getColumnModel();
@@ -241,20 +243,23 @@ public class TrackList extends JPanel {
 		table.scrollRowToVisible(idx);
 	}
 
+	/** Call only on the ui thread */
 	public void deleteSelectedTracks() {
+		if (!SwingUtilities.isEventDispatchThread())
+			throw new Errot();
 		if (model.allowDelete()) {
-			SwingUtilities.invokeLater(new CatchingRunnable() {
-				public void doRun() throws Exception {
-					final List<String> selSids = getSelectedStreamIds();
-					if (selSids.size() > 0) {
-						frame.getController().getExecutor().execute(new CatchingRunnable() {
-							public void doRun() throws Exception {
-								model.deleteTracks(selSids);
-							}
-						});
-					}
+			if (frame.getGuiConfig().getConfirmTrackDelete())
+				frame.showSheet(new ConfirmTrackDeleteSheet(frame, model, getSelectedStreamIds()));
+			else {
+				final List<String> selSids = getSelectedStreamIds();
+				if (selSids.size() > 0) {
+					frame.getController().getExecutor().execute(new CatchingRunnable() {
+						public void doRun() throws Exception {
+							model.deleteTracks(selSids);
+						}
+					});
 				}
-			});
+			}
 		}
 	}
 
@@ -308,7 +313,7 @@ public class TrackList extends JPanel {
 			}
 			add(plMenu);
 			if (model.allowDelete()) {
-				RMenuItem del = new RMenuItem(model.deleteTracksDesc());
+				RMenuItem del = new RMenuItem(model.deleteTracksTooltipDesc());
 				del.setActionCommand("delete");
 				del.addActionListener(this);
 				add(del);
@@ -538,13 +543,13 @@ public class TrackList extends JPanel {
 			modelChanged = true;
 			viewportChanged();
 		}
-		
+
 		public void changedMatcher(Event<Track> matcherEvent) {
 			// Called when the table is filtered
 			modelChanged = true;
 			viewportChanged();
 		}
-		
+
 		public void viewportChanged() {
 			if (!model.wantScrollEventsNow())
 				return;
@@ -552,7 +557,7 @@ public class TrackList extends JPanel {
 			Dimension viewSz = v.getExtentSize();
 			int rowHeight = table.getRowHeight();
 			int rowsInViewport = viewSz.height / rowHeight + 1;
-			if(rowsInViewport > model.getRowCount())
+			if (rowsInViewport > model.getRowCount())
 				rowsInViewport = model.getRowCount();
 			int newFirstRow = table.rowAtPoint(viewPos);
 			if (newFirstRow < 0)

@@ -371,7 +371,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		if(tl == null)
 			delBtn.setToolTipText("");
 		else
-			delBtn.setToolTipText(tl.getModel().deleteTracksDesc());
+			delBtn.setToolTipText(tl.getModel().deleteTracksTooltipDesc());
 	}
 
 	private void updateNextPrev() {

@@ -99,7 +99,12 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	}
 
 	@Override
-	public String deleteTracksDesc() {
+	public String deleteTracksTooltipDesc() {
+		return null;
+	}
+	
+	@Override
+	public String longDeleteTracksDesc() {
 		return null;
 	}
 	

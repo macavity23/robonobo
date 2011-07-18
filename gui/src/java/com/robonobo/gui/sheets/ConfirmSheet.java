@@ -27,7 +27,7 @@ public class ConfirmSheet extends Sheet {
 		setLayout(new TableLayout(cellSizen));
 		RLabel titleLbl = new RLabel14B(title);
 		add(titleLbl,"1,1,4,1,CENTER,CENTER");
-		JPanel msgLbl = new LineBreakTextPanel(message, RoboFont.getFont(13, false), new Dimension((400 + btnWidth), 200));
+		JPanel msgLbl = new LineBreakTextPanel(message, RoboFont.getFont(13, false), new Dimension((400 + btnWidth), 50));
 		add(msgLbl, "1,3,4,3");
 		confirmBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
