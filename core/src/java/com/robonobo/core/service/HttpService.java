@@ -11,6 +11,7 @@ import org.apache.http.params.*;
 import org.apache.http.util.EntityUtils;
 
 import com.robonobo.common.http.PreemptiveHttpClient;
+import com.robonobo.core.api.model.UpdateInfo;
 import com.robonobo.core.api.proto.CoreApi.UpdateMsg;
 
 public class HttpService extends AbstractService {
@@ -70,7 +71,7 @@ public class HttpService extends AbstractService {
 	/**
 	 * @return The update message, or an empty string if there is no message
 	 */
-	public String getUpdateMessage() throws IOException {
+	public UpdateInfo getUpdateInfo() throws IOException {
 		String checkUrl = rbnb.getConfig().getWebsiteUrlBase() + "checkupdate?version="+rbnb.getVersion();
 		UpdateMsg.Builder ub = UpdateMsg.newBuilder();
 		HttpGet get = new HttpGet(checkUrl);
@@ -83,7 +84,7 @@ public class HttpService extends AbstractService {
 				InputStream is = body.getContent();
 				try {
 					ub.mergeFrom(is);
-					return ub.build().getUpdateHtml();
+					return new UpdateInfo(ub.build());
 				} finally {
 					is.close();
 				}				

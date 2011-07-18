@@ -47,12 +47,11 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 		frame.getController().addLibraryListener(this);
 		frame.getController().getExecutor().schedule(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				final String updateMsg = frame.getController().getUpdateMessage();
-				if (isNonEmpty(updateMsg)) {
-					final String title = "A new version is available";
+				final UpdateInfo updateInfo = frame.getController().getUpdateInfo();
+				if (isNonEmpty(updateInfo.getUpdateHtml())) {
 					SwingUtilities.invokeLater(new CatchingRunnable() {
 						public void doRun() throws Exception {
-							showMessage(title, updateMsg);
+							showMessage(updateInfo.getUpdateTitle(), updateInfo.getUpdateHtml());
 						}
 					});
 				}

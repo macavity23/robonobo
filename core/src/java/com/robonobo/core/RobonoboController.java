@@ -509,9 +509,9 @@ public class RobonoboController {
 		return inst.getDbService().getLibrary(userId);
 	}
 	
-	public String getUpdateMessage() throws RobonoboException {
+	public UpdateInfo getUpdateInfo() throws RobonoboException {
 		try {
-			return inst.getHttpService().getUpdateMessage();
+			return inst.getHttpService().getUpdateInfo();
 		} catch (IOException e) {
 			throw new RobonoboException(e);
 		}
