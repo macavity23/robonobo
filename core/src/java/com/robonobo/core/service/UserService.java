@@ -178,6 +178,9 @@ public class UserService extends AbstractService {
 			if (e instanceof UnauthorizedException) {
 				log.error("Login failed");
 				events.fireLoginFailed("Login failed");
+			} else if(e instanceof TemporarilyUnavailableException) {
+				log.error("Login server temporarily unavailable");
+				events.fireLoginFailed("Down for maintenance, please wait a few minutes");
 			} else {
 				log.error("Caught exception logging in", e);
 				events.fireLoginFailed("Server error");
