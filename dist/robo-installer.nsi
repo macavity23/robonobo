@@ -12,8 +12,8 @@ DirText "This will install robonobo on your computer."
 ;; Constants
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 !define JRE_VERSION "6.0"
-; JRE v6u24
-!define JRE_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=47367"
+; JRE v6u26
+!define JRE_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=49024"
 !define JAVAEXE "javaw.exe"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
