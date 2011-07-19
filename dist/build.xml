@@ -86,7 +86,7 @@
 			<fileset dir="template/tarball"/>
 		</copy>
 		<copy todir="${tmp.dir}/robonobo-${version}">
-			<fileset file="../gui/release-notes.txt"/>
+			<fileset file="../CHANGELOG"/>
 			<fileset file="${dist.dir}/robonobo-${version}.jar"/>
 		</copy>
 		<delete quiet="true" file="${tmp.dir}/tarprops.csv"/>
