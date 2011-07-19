@@ -6,7 +6,7 @@ Run this whole script on windows (ie), mac (safari) & ubuntu (ff)
 Prereqs:
 * 3 test facebook accts (users A, B and C) with friendships A<->B but no others, user A has profile pic
 * 1 test twitter acct (user D) with profile pic
-* 1 standalone acct (user E)
+* 3 standalone accts (user E, F & G)
 * delete test rbnb accts
 * 4 small (56kb) test mp3 files
 
@@ -155,7 +155,6 @@ E track plays
 
 Friends/Facebook/Twitter
 =====================
-TODO add friends
 
 D share playlist with user B
 E user B receives invite email
@@ -222,6 +221,13 @@ D user C makes friends with user B on facebook
 E facebook api receives friendship update
 D log in to app as user C, user B
 E friendship created on both sides
+
+D user B clicks 'Add friends' in app sidebar, adds user F's email
+E user F receives email
+D user C adds user F as friend through website account page
+E user F receives another email
+D register as user F
+E registration ok, friendships created with B & C
 
 Downloading and Playing
 =======================

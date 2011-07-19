@@ -45,7 +45,7 @@
   <Parameter name="fromName" value="robonobo website" override="true"/>
   <Parameter name="fromEmail" value="help@robonobo.com" override="true"/>
   <Parameter name="facebookAuthTokenUrl" value="https://graph.facebook.com/oauth/access_token?client_id=171526759534429&amp;client_secret=EDITME&amp;grant_type=client_credentials" override="true"/>
-  <Parameter name="facebookSubscriptionsUrl" value="http://graph.facebook.com/171526759534429/subscriptions"/>
+  <Parameter name="facebookSubscriptionsUrl" value="https://graph.facebook.com/171526759534429/subscriptions"/>
   <Parameter name="facebookCallbackUrl" value="http://midas.robonobo.com/fb-callback" override="true"/>
   <Parameter name="twitterApiKey" value="ObqWeQW3Mzkrbzbtcgl4w" override="true"/>
   <Parameter name="twitterApiSecret" value="EDITME" override="true"/>
