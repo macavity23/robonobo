@@ -18,8 +18,8 @@
 	<tstamp>
 		<format property="timestamp" pattern="yyMMddHHmm" />
 	</tstamp>
-	<property name="version" value="0.5.5" />
-	<!-- <property name="version" value="DEV-${timestamp}" /> -->
+<!--	<property name="version" value="0.5.5" /> -->
+	<property name="version" value="DEV-${timestamp}" />
 	<!-- launch4j requires the version number to be x.x.x.x -->
 	<property name="launch4jVersion" value="0.5.5.0" />
 
