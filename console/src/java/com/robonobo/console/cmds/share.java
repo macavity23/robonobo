@@ -32,7 +32,7 @@ public class share implements ConsoleCommand {
 			return;
 		}
 		if (args[0].equalsIgnoreCase("all")) {
-			Set<String> shareStreamIds = controller.getShares();
+			Set<String> shareStreamIds = controller.getShareStreamIds();
 			List<SharedTrack> shares = new ArrayList<SharedTrack>();
 			for (String streamId : shareStreamIds) {
 				Track t = controller.getTrack(streamId);

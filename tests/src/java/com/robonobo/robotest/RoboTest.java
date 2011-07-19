@@ -69,7 +69,7 @@ public class RoboTest {
 			out.println("Robotest completed successfully");
 			return;
 		}
-		Set<String> shareSids = control.getShares();
+		Set<String> shareSids = control.getShareStreamIds();
 		int numShares = 0;
 		for (String sid : streamIds) {
 			if (shareSids.contains(sid))
@@ -96,7 +96,7 @@ public class RoboTest {
 	}
 
 	public boolean finished() {
-		Set<String> shareSids = control.getShares();
+		Set<String> shareSids = control.getShareStreamIds();
 		for (String sid : streamIds) {
 			if (!shareSids.contains(sid))
 				return false;

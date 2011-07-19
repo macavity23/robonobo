@@ -9,14 +9,18 @@ import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.text.StyledEditorKit.ForegroundAction;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.robonobo.common.concurrent.Batcher;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.pageio.buffer.FilePageBuffer;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.api.RobonoboException;
+import com.robonobo.core.api.Task;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
 import com.robonobo.core.api.model.SharedTrack.ShareStatus;
@@ -24,11 +28,13 @@ import com.robonobo.core.storage.StorageService;
 import com.robonobo.mina.external.MinaControl;
 import com.robonobo.mina.external.buffer.PageBuffer;
 import com.robonobo.spi.FormatSupportProvider;
+import com.sun.org.apache.bcel.internal.generic.StoreInstruction;
 
 /** Responsible for translating mina Broadcasts to robonobo Shares
  * 
  * @author macavity */
 public class ShareService extends AbstractService {
+	private static final long START_SHARE_BATCH_TIME = 1000L;
 	/** Seconds */
 	// public static final int WATCHDIR_CHECK_FREQ = 60 * 10;
 	public static final int WATCHDIR_CHECK_FREQ = 30;
@@ -41,7 +47,9 @@ public class ShareService extends AbstractService {
 	StreamService streams;
 	PlaybackService playback;
 	MinaControl mina;
-	private Set<String> shareStreamIds;
+	/** These are shares that have been added but whose files are no longer present - we keep track of these in case they
+	 * are on removable drives that might be plugged back in later, but we don't show them to the user */
+	Set<String> defunctShareSids = new HashSet<String>();
 	private ScheduledFuture<?> watchDirTask;
 	private boolean watchDirRunning = false;
 
@@ -60,8 +68,6 @@ public class ShareService extends AbstractService {
 		streams = rbnb.getStreamService();
 		playback = rbnb.getPlaybackService();
 		mina = rbnb.getMina();
-		// Keep track of our stream ids, everything else loaded on-demand from the db
-		shareStreamIds = db.getShares();
 		watchDirTask = getRobonobo().getExecutor().scheduleWithFixedDelay(new WatchDirChecker(), WATCHDIR_INITIAL_WAIT, WATCHDIR_CHECK_FREQ, TimeUnit.SECONDS);
 	}
 
@@ -69,6 +75,20 @@ public class ShareService extends AbstractService {
 	public void shutdown() {
 		// Don't specifically stop our shares, the mina shutdown will stop them
 		watchDirTask.cancel(true);
+	}
+
+	/** If there is a defunct share (ie one with a non-existent file behind it), nuke it */
+	public void nukeDefunctShare(String sid) {
+		boolean isDefunct;
+		synchronized (this) {
+			isDefunct = defunctShareSids.contains(sid);
+			if (isDefunct)
+				defunctShareSids.remove(sid);
+		}
+		if (isDefunct) {
+			storage.nukePageBuf(sid);
+			db.deleteShare(sid);
+		}
 	}
 
 	/** NB The stream referenced by stream id must already have been put into streamservice
@@ -79,6 +99,8 @@ public class ShareService extends AbstractService {
 	public void addShare(Stream s, File dataFile) throws RobonoboException {
 		String streamId = s.getStreamId();
 		log.info("Adding share for id " + streamId + " at " + dataFile.getAbsolutePath());
+		// If we have a defunct share for this (ie one with a nonexistent file behind it), replace it with this one
+		nukeDefunctShare(streamId);
 		SharedTrack sh = db.getShare(streamId);
 		if (sh != null) {
 			log.info("Not adding share for id " + streamId + " - sharing already");
@@ -97,9 +119,6 @@ public class ShareService extends AbstractService {
 		}
 		sh.setDateAdded(now());
 		db.putShare(sh);
-		synchronized (this) {
-			shareStreamIds.add(s.getStreamId());
-		}
 		startShare(streamId);
 		rbnb.getLibraryService().addToMyLibrary(streamId);
 		event.fireTrackUpdated(s.getStreamId());
@@ -140,9 +159,6 @@ public class ShareService extends AbstractService {
 		SharedTrack sh = new SharedTrack(s, shareFile, ShareStatus.Sharing);
 		sh.setDateAdded(now());
 		db.putShare(sh);
-		synchronized (this) {
-			shareStreamIds.add(s.getStreamId());
-		}
 		try {
 			rbnb.getStorageService().createPageBufForShare(s, shareFile, false);
 		} catch (IOException e) {
@@ -162,9 +178,6 @@ public class ShareService extends AbstractService {
 		stopShare(streamId);
 		db.deleteShare(streamId);
 		storage.nukePageBuf(streamId);
-		synchronized (this) {
-			shareStreamIds.remove(streamId);
-		}
 		rbnb.getLibraryService().delFromMyLibrary(streamId);
 		event.fireTrackUpdated(streamId);
 		event.fireMyLibraryUpdated();
@@ -188,10 +201,11 @@ public class ShareService extends AbstractService {
 
 	public SharedTrack getShare(String streamId) {
 		synchronized (this) {
-			if (!shareStreamIds.contains(streamId))
+			if (defunctShareSids.contains(streamId))
 				return null;
 		}
-		return db.getShare(streamId);
+		SharedTrack share = db.getShare(streamId);
+		return share;
 	}
 
 	public Collection<SharedTrack> getSharesByPattern(String searchPattern) {
@@ -240,39 +254,71 @@ public class ShareService extends AbstractService {
 	}
 
 	void startAllShares() throws IOException, RobonoboException {
-		log.debug("Start Share thread running");
-		// Copy out our stream ids so we can iterate while adding new shares
-		String[] arr;
-		synchronized (this) {
-			arr = new String[shareStreamIds.size()];
-			shareStreamIds.toArray(arr);
+		if(db.getNumShares() > 0)
+			rbnb.getTaskService().runTask(new StartSharesTask());
+		else {
+			rbnb.getTrackService().setAllSharesStarted(true);
+			event.fireAllTracksLoaded();
+			event.fireMyLibraryUpdated();
 		}
-		Set<String> shareSids = new HashSet<String>();
-		for (String sid : arr) {
-			// We don't cache the page buffer unless we need it (there could be 10^4+), just look it up to make sure
-			// it's kosher
-			FilePageBuffer pb = storage.getPageBuf(sid, false);
-			if (pb == null) {
-				// Errot
-				log.error("Found null pagebuf when starting share for " + sid + " - deleting share");
-				db.deleteShare(sid);
-				continue;
-			}
-			// If the file for this share doesn't exist, don't start this share but keep the reference around - might be
-			// a removable drive that will come back later
-			File file = pb.getFile();
-			if (!file.exists() || !file.canRead()) {
-				log.error("Could not find or read from file " + file.getAbsolutePath() + " for stream " + sid + " - not starting share");
-				synchronized (this) {
-					shareStreamIds.remove(sid);
+	}
+
+	class StartSharesTask extends Task {
+		boolean finished = false;
+		public StartSharesTask() {
+			title = "Starting my shares";
+		}
+
+		@Override
+		public void runTask() throws Exception {
+			Set<String> shareSids = db.getShareSids();
+			final int numToStart = shareSids.size();
+			// Iterate over these and check that they're ok, punting them up to the gui in batches
+			Batcher<String> puntToGuiBatcher = new Batcher<String>(START_SHARE_BATCH_TIME, rbnb.getExecutor()) {
+				int i=1;
+				protected void runBatch(Collection<String> sids) throws Exception {
+					rbnb.getMina().startBroadcasts(sids);
+					event.fireTracksUpdated(sids);
+					i += sids.size();
+					if(!finished) {
+						completion = ((float)i)/numToStart;
+						statusText = "Starting share "+i+" of "+numToStart;
+						fireUpdated();
+					}
 				}
-				continue;
+			};
+			statusText = "Starting share 1 of "+numToStart;
+			fireUpdated();
+			for (String sid : shareSids) {
+				FilePageBuffer pb = storage.getPageBuf(sid, false);
+				if (pb == null) {
+					// Errot
+					log.error("Found null pagebuf when starting share for " + sid + " - deleting share");
+					db.deleteShare(sid);
+					continue;
+				}
+				// If the file for this share doesn't exist, don't start this share but keep the reference around -
+				// might be
+				// a removable drive that will come back later
+				File file = pb.getFile();
+				if (!file.exists() || !file.canRead()) {
+					log.error("Could not find or read from file " + file.getAbsolutePath() + " for stream " + sid + " - not starting share");
+					synchronized (this) {
+						defunctShareSids.add(sid);
+					}
+					continue;
+				}
+				puntToGuiBatcher.add(sid);
 			}
-			shareSids.add(sid);
+			log.debug("Start Share thread finished: started " + shareSids.size() + " shares");
+			finished = true;
+			completion = 1f;
+			statusText = "Done.";
+			fireUpdated();
+			rbnb.getTrackService().setAllSharesStarted(true);
+			event.fireAllTracksLoaded();
+			event.fireMyLibraryUpdated();
 		}
-		if(shareSids.size() > 0)
-			rbnb.getMina().startBroadcasts(shareSids);
-		log.debug("Start Share thread finished: started " + shareSids.size() + " shares");
 	}
 
 	private class WatchDirChecker extends CatchingRunnable {

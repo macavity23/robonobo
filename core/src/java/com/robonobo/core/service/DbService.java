@@ -65,6 +65,7 @@ public class DbService extends AbstractService {
 	private static final String DELETE_PLAYLIST_SEEN_SIDS = "DELETE FROM playlist_seen_sids WHERE playlist_id = ?";
 	private static final String DELETE_LIBRARY_UNKNOWN_TRACK = "DELETE FROM library_unknown_tracks WHERE user_id = ? AND stream_id = ?";
 	private static final String GET_ALL_SHARE_STREAM_IDS = "SELECT STREAM_ID FROM SHARES";
+	private static final String GET_COUNT_SHARES = "SELECT COUNT(*) FROM SHARES";
 	private static final String GET_ALL_DOWNLOAD_STREAM_IDS = "SELECT STREAM_ID FROM DOWNLOADS ORDER BY DATE_STARTED ASC";
 	private static final String GET_NUM_RUNNING_DOWNLOADS = "SELECT COUNT(*) FROM DOWNLOADS WHERE STATUS = 'Downloading'";
 	private static final String GET_ALL_WATCHDIRS = "SELECT * FROM WATCHDIRS";
@@ -196,7 +197,7 @@ public class DbService extends AbstractService {
 		}
 	}
 
-	public Set<String> getShares() {
+	public Set<String> getShareSids() {
 		if (!running)
 			return null;
 		Connection conn = null;
@@ -218,6 +219,25 @@ public class DbService extends AbstractService {
 		}
 	}
 
+	public int getNumShares() {
+		if (!running)
+			return 0;
+		Connection conn = null;
+		try {
+			conn = getConnection();
+			PreparedStatement ps = conn.prepareStatement(GET_COUNT_SHARES);
+			ResultSet rs = ps.executeQuery();
+			rs.next();
+			return rs.getInt(1);
+		} catch (SQLException e) {
+			log.error("Error retrieving shares from db", e);
+			return 0;
+		} finally {
+			if (conn != null)
+				returnConnection(conn);
+		}
+	}
+	
 	public Collection<SharedTrack> getSharesByPattern(String searchPattern) {
 		if (!running)
 			return null;

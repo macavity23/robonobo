@@ -142,10 +142,11 @@ public class RobonoboController {
 		}
 	}
 
-	/** Notifies that this streamId is going to be played shortly and should be downloaded/prioritized as necessary 
+	/** Notifies that this streamId is going to be played shortly and should be downloaded/prioritized as necessary
+	 * 
 	 * @throws RobonoboException */
 	public void preFetch(String streamId) throws RobonoboException {
-		if(inst.getShareService().getShare(streamId) != null)
+		if (inst.getShareService().getShare(streamId) != null)
 			return;
 		inst.getDownloadService().preFetch(streamId);
 	}
@@ -236,8 +237,12 @@ public class RobonoboController {
 		return inst.getFormatService().getMimeTypeForFile(f);
 	}
 
-	public Set<String> getShares() {
-		return inst.getDbService().getShares();
+	public int getNumShares() {
+		return inst.getDbService().getNumShares();
+	}
+
+	public Set<String> getShareStreamIds() {
+		return inst.getDbService().getShareSids();
 	}
 
 	public List<SharedTrack> getSharesByPattern(String searchPattern) {
@@ -444,7 +449,7 @@ public class RobonoboController {
 	public void addFriends(Collection<String> emails) {
 		inst.getUserService().addFriends(emails);
 	}
-	
+
 	public void sharePlaylist(Playlist p, Set<Long> friendIds, Set<String> emails) throws RobonoboException {
 		try {
 			inst.getPlaylistService().sharePlaylist(p, friendIds, emails);
@@ -508,7 +513,7 @@ public class RobonoboController {
 	public Library getFriendLibrary(long userId) {
 		return inst.getDbService().getLibrary(userId);
 	}
-	
+
 	public UpdateInfo getUpdateInfo() throws RobonoboException {
 		try {
 			return inst.getHttpService().getUpdateInfo();

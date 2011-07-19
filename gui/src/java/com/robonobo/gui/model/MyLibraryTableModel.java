@@ -2,8 +2,7 @@ package com.robonobo.gui.model;
 
 import static com.robonobo.common.util.CodeUtil.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import javax.swing.text.Document;
 
@@ -32,16 +31,23 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 		super(frame, el, sl, fl);
 	}
 
+	private boolean trackBelongsInMyLib(Track t) {
+		return (t instanceof SharedTrack) || (t instanceof DownloadingTrack);
+	}
+	
 	@Override
 	public void trackUpdated(String streamId, Track t) {
 		// Override the super method - add this track to our library if we're now sharing/downloading it
 		updateLock.lock();
 		try {
 			Integer idx = trackIndices.get(streamId);
-			if (idx != null)
-				eventList.set(idx, t);
-			else {
-				if ((t instanceof SharedTrack) || (t instanceof DownloadingTrack))
+			if (idx != null) {
+				if(trackBelongsInMyLib(t))
+					eventList.set(idx, t);
+				else
+					eventList.remove(idx);
+			} else {
+				if (trackBelongsInMyLib(t))
 					add(t);
 			}
 		} finally {
@@ -50,25 +56,32 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 	}
 
 	@Override
-	public void allTracksLoaded() {
-		final List<Track> trax = new ArrayList<Track>();
-		for (String streamId : control.getShares()) {
-			Track t = control.getTrack(streamId);
-			trax.add(t);
-		}
-		for (String streamId : control.getDownloads()) {
-			Track t = control.getTrack(streamId);
-			trax.add(t);
-		}
-		if (trax.size() < TrackList.TRACKLIST_SIZE_THRESHOLD)
-			add(trax);
-		else {
-			frame.runSlowTask("library loading", new CatchingRunnable() {
-				public void doRun() throws Exception {
-					add(trax);
+	public void tracksUpdated(Collection<Track> trax) {
+		// Override the super method - add to our library if we're now sharing/downloading 
+		updateLock.lock();
+		try {
+			List<Track> traxToAdd = new ArrayList<Track>();
+			for(Track t : trax) {
+				Integer idx = trackIndices.get(t.getStream().getStreamId());
+				if (idx != null) {
+					if(trackBelongsInMyLib(t))
+						eventList.set(idx, t);
+					else
+						eventList.remove(idx);
+				} else {
+					if ((t instanceof SharedTrack) || (t instanceof DownloadingTrack))
+						traxToAdd.add(t);
 				}
-			});
+			}
+			add(traxToAdd);
+		} finally {
+			updateLock.unlock();
 		}
+	}
+
+	@Override
+	public void allTracksLoaded() {
+		// Do nothing
 	}
 
 	@Override

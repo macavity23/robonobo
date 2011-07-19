@@ -108,6 +108,8 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	}
 
 	public void addDownload(String streamId) throws RobonoboException {
+		// If we have a defunct share, replace it with this download
+		rbnb.getShareService().nukeDefunctShare(streamId);
 		File dataFile = new File(downloadsDir, makeFileNameSafe(streamId));
 		log.info("Adding download for " + streamId);
 		Stream s = streams.getKnownStream(streamId);

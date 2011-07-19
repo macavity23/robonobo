@@ -61,18 +61,9 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 		playback = rbnb.getPlaybackService();
 		event = rbnb.getEventService();
 		mina = rbnb.getMina();
-		// Fork off a thread to start shares, we might have a lot... do this here rather than in shareservice as we
-		// start after them and we need to be present
-		// to fire allSharesStarted
-		log.debug("Spawning thread to start shares");
-		getRobonobo().getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				share.startAllShares();
-				allSharesStarted = true;
-				event.fireAllTracksLoaded();
-				event.fireMyLibraryUpdated();
-			}
-		});
+		// Do this here rather than in shareservice as we
+		// start after them and we need to be present to fire allTracksLoaded
+		share.startAllShares();
 		event.addTransferSpeedListener(this);
 		started  = true;
 	}
@@ -161,5 +152,9 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 
 	public boolean haveAllSharesStarted() {
 		return allSharesStarted;
+	}
+	
+	public void setAllSharesStarted(boolean allSharesStarted) {
+		this.allSharesStarted = allSharesStarted;
 	}
 }
