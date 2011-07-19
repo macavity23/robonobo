@@ -327,7 +327,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 					if (freshUc.getItem("facebookId") == null) {
 						// They haven't associated their facebook account with their rbnb one... open a browser window
 						// on the page to do so
-						String facebookBounceMsg = "Before you can post your playlists to Facebook, you must add your Facebook details to your account on the robonobo website.";
+						String facebookBounceMsg = "Before you can post playlists to Facebook, you must add your Facebook details to your account on the robonobo website.";
 						final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Facebook", facebookBounceMsg, "go to robonobo website", new CatchingRunnable() {
 							public void doRun() throws Exception {
 								NetUtil.browse(control.getConfig().getWebsiteUrlBase() + "before-facebook-attach");
@@ -395,7 +395,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 					if (freshUc.getItem("twitterId") == null) {
 						// They haven't associated their twitter account with their rbnb one... open a browser window on
 						// the page to do so
-						String facebookBounceMsg = "Before you can post your playlists to Twitter, you must add your Twitter details to your account on the robonobo website.";
+						String facebookBounceMsg = "Before you can post playlists to Twitter, you must add your Twitter details to your account on the robonobo website.";
 						Runnable gotoAcct = new CatchingRunnable() {
 							public void doRun() throws Exception {
 								NetUtil.browse(control.getConfig().getWebsiteUrlBase() + "before-twitter-attach");

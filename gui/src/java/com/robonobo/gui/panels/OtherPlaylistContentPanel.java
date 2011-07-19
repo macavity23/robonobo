@@ -52,6 +52,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 				}
 			});
 			getModel().update(p);
+			toolsPanel.checkPlaylistVisibility();
 		}
 	}
 
@@ -68,7 +69,8 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 			setLayout(new TableLayout(cellSizen));
 			titleField = new RLabel18B();
 			add(titleField, "1,0");
-			add(new PlaylistToolsPanel(), "1,2");
+			toolsPanel = new PlaylistToolsPanel();
+			add(toolsPanel, "1,2");
 			descField = new RTextPane();
 			descField.setBGColor(RoboColor.MID_GRAY);
 			descField.setEditable(false);

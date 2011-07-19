@@ -21,6 +21,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 	protected RobonoboFrame frame;
 	protected Playlist p;
 	protected PlaylistConfig pc;
+	protected PlaylistToolsPanel toolsPanel;
 
 	public PlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, boolean myPlaylist) {
 		super(frame, PlaylistTableModel.create(frame, p, myPlaylist));
@@ -41,6 +42,10 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 	}
 	
 	class PlaylistToolsPanel extends JPanel {
+		private RButton fbBtn;
+		private RButton twitBtn;
+		private RButton copyBtn;
+
 		public PlaylistToolsPanel() {
 			double[][] cellSizen = { {35, 5, 215, 5, 30, 5, 30, 5, 90}, { 25 } };
 			setLayout(new TableLayout(cellSizen));
@@ -52,7 +57,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			final RTextField urlField = new RTextField(urlText);
 			urlField.setEnabled(false);
 			add(urlField, "2,0");
-			RButton fbBtn = new RSmallRoundButton(createImageIcon("/icon/facebook.png", null));
+			fbBtn = new RSmallRoundButton(createImageIcon("/icon/facebook.png", null));
 			fbBtn.setToolTipText("Post playlist update to facebook");
 			fbBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -61,7 +66,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			});
 			fbBtn.setEnabled(p.getPlaylistId() > 0);
 			add(fbBtn, "4,0");
-			RButton twitBtn = new RSmallRoundButton(createImageIcon("/icon/twitter.png", null));
+			twitBtn = new RSmallRoundButton(createImageIcon("/icon/twitter.png", null));
 			twitBtn.setToolTipText("Post playlist update to twitter");
 			twitBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -70,7 +75,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			});
 			twitBtn.setEnabled(p.getPlaylistId() > 0);
 			add(twitBtn, "6,0");
-			RButton copyBtn = new RSmallRoundButton("Copy URL");
+			copyBtn = new RSmallRoundButton("Copy URL");
 			copyBtn.setToolTipText("Copy playlist URL to clipboard");
 			copyBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -81,6 +86,38 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			});
 			copyBtn.setEnabled(p.getPlaylistId() > 0);
 			add(copyBtn, "8,0");
+			checkPlaylistVisibility();
+		}
+		
+		public void checkPlaylistVisibility() {
+			// If this is a new playlist, disable buttons
+			if(p.getPlaylistId() <= 0) {
+				fbBtn.setEnabled(false);
+				twitBtn.setEnabled(false);
+				copyBtn.setEnabled(false);
+				return;
+			}
+			copyBtn.setEnabled(true);
+			if(frame.getController().getMyUser().getPlaylistIds().contains(p.getPlaylistId())) {
+				// It's my playlist, enable everything
+				fbBtn.setEnabled(true);
+				fbBtn.setToolTipText("Post playlist update to facebook");
+				twitBtn.setEnabled(true);
+				twitBtn.setToolTipText("Post playlist update to twitter");
+			} else {
+				// For playlists that aren't mine, only enable the fb/twit buttons if the playlist is public
+				if(p.getVisibility().equals(Playlist.VIS_ALL)) {
+					fbBtn.setEnabled(true);
+					fbBtn.setToolTipText("Post playlist update to facebook");
+					twitBtn.setEnabled(true);
+					twitBtn.setToolTipText("Post playlist update to twitter");
+				} else {
+					fbBtn.setEnabled(false);
+					fbBtn.setToolTipText("Cannot post: this playlist is not public");
+					twitBtn.setEnabled(false);
+					twitBtn.setToolTipText("Cannot post: this playlist is not public");
+				}
+			}
 		}
 	}
 	

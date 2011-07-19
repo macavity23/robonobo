@@ -107,6 +107,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			else
 				throw new Errot("invalid visibility " + vis);
 			getModel().update(p);
+			toolsPanel.checkPlaylistVisibility();
 		}
 	}
 
@@ -226,7 +227,8 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			titleField.addKeyListener(kl);
 			titleField.addActionListener(saveActionListener);
 			add(titleField, "3,1");
-			add(new PlaylistToolsPanel(), "1,3,3,3");
+			toolsPanel = new PlaylistToolsPanel();
+			add(toolsPanel, "1,3,3,3");
 			RLabel descLbl = new RLabel13("Description:");
 			add(descLbl, "1,4,3,4");
 			descField = new RTextArea(p.getDescription());
