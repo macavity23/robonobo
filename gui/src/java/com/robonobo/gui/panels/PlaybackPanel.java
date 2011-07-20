@@ -368,7 +368,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		// checkButtonsEnabled();
 		checkPlayPauseDeleteEnabled();
 		TrackList tl = cp.getTrackList();
-		if(tl == null)
+		if (tl == null)
 			delBtn.setToolTipText("");
 		else
 			delBtn.setToolTipText(tl.getModel().deleteTracksTooltipDesc());
@@ -404,19 +404,26 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		boolean allowDownload = false;
 		boolean allowDel = false;
 		if (frame.getMainPanel() != null && frame.getMainPanel().currentContentPanel() != null) {
-			TrackList tl = frame.getMainPanel().currentContentPanel().getTrackList();
+			ContentPanel cp = frame.getMainPanel().currentContentPanel();
+			TrackList tl = cp.getTrackList();
 			if (tl != null) {
 				List<String> selSids = tl.getSelectedStreamIds();
 				tracksSelected = (selSids.size() > 0);
-				// Only allow download if at least one of the selected tracks is a cloud track
-				for (String sid : selSids) {
-					Track t = control.getTrack(sid);
-					if (t instanceof CloudTrack) {
-						allowDownload = true;
-						break;
+				// If this is our own library, there won't be any cloud tracks, don't iterate through everything!
+				if (cp instanceof MyLibraryContentPanel) {
+					allowDownload = false;
+					allowDel = tracksSelected;
+				} else {
+					// Only allow download if at least one of the selected tracks is a cloud track
+					for (String sid : selSids) {
+						Track t = control.getTrack(sid);
+						if (t instanceof CloudTrack) {
+							allowDownload = true;
+							break;
+						}
 					}
+					allowDel = tl.getModel().allowDelete() && tracksSelected;
 				}
-				allowDel = tl.getModel().allowDelete() && tracksSelected;
 			}
 		}
 		synchronized (this) {
