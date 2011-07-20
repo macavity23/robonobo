@@ -37,3 +37,9 @@
 * Assorted minor networking bugs
 * Improved feedback in UI
 * Library loading much quicker
+
+0.5.6
+
+* Fixed gui hang when filtering tracklist with selected tracks
+* Now checks visibility of friend playlists before posting to fb/twitter
+
