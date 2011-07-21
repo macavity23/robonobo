@@ -140,6 +140,9 @@
 			<fileset dir="../plugin-mp3/src/java">
 				<include name="com/**/*"/>
 			</fileset>
+			<fileset dir="../plugin-mplayer/src/java">
+				<include name="com/**/*"/>
+			</fileset>
 			<fileset dir="../wang-client/src/java">
 				<include name="**/*"/>
 			</fileset>
@@ -163,11 +166,14 @@
       <!-- Copy libs -->
 		<mkdir dir="${src.dir}/lib"/>
 		<copy todir="${src.dir}/lib">
-			<fileset file="../gui/lib/robolaf.jar"/>
 			<fileset file="../common/lib/jug-1.1.2.jar"/>
+         <fileset file="../common/lib/httpclient-4.1.1.jar"/>
+         <fileset file="../common/lib/httpcore-4.1.jar"/>
 			<fileset file="../core/lib/sbbi-jmx-1.0.jar"/>
 			<fileset file="../core/lib/sbbi-upnplib-1.0.3.jar"/>
 			<fileset file="../gui/lib/swingx-0.9.7.jar"/>
+			<fileset file="../gui/lib/glazedlists-1.8.0.jar"/>
+			<fileset file="../gui/lib/robolaf.jar"/>
 		<!-- debian has a libtablelayout-java package, but it uses a different java package name for some reason, so we just use our own -->
 			<fileset file="../common/lib/tablelayout.jar"/>
 		<!-- Even though debian has mp3spi/tritonus packages, robonobo doesn't work when uses them, so
