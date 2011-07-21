@@ -5,6 +5,8 @@ import java.sql.*;
 import java.util.*;
 import java.util.Date;
 import java.util.Map.Entry;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
@@ -71,6 +73,9 @@ public class DbService extends AbstractService {
 	private static final String GET_ALL_WATCHDIRS = "SELECT * FROM WATCHDIRS";
 	private String dbUrl;
 	private boolean running = false;
+	// Streams are the only things that can be simultaneously updated - so rather than lots of complicated sql we have a
+	// lil lock just for them
+	Lock streamUpdateLock = new ReentrantLock();
 
 	public DbService() {
 		addHardDependency("core.event");
@@ -237,7 +242,7 @@ public class DbService extends AbstractService {
 				returnConnection(conn);
 		}
 	}
-	
+
 	public Collection<SharedTrack> getSharesByPattern(String searchPattern) {
 		if (!running)
 			return null;
@@ -509,32 +514,37 @@ public class DbService extends AbstractService {
 	public void putStream(Stream s) {
 		if (!running)
 			return;
-		if (getStream(s.getStreamId()) != null)
-			return;
-		Connection conn = null;
+		streamUpdateLock.lock();
 		try {
-			conn = getConnection();
-			PreparedStatement ps;
-			ps = conn.prepareStatement(CREATE_STREAM);
-			ps.setString(1, s.getStreamId());
-			ps.setString(2, s.getTitle());
-			ps.setString(3, s.getDescription());
-			ps.setString(4, s.getMimeType());
-			ps.setLong(5, s.getSize());
-			ps.setLong(6, s.getDuration());
-			ps.executeUpdate();
-			for (StreamAttribute attr : s.getAttributes()) {
-				ps = conn.prepareStatement(CREATE_STREAM_ATTRIBUTES);
+			if (getStream(s.getStreamId()) != null)
+				return;
+			Connection conn = null;
+			try {
+				conn = getConnection();
+				PreparedStatement ps;
+				ps = conn.prepareStatement(CREATE_STREAM);
 				ps.setString(1, s.getStreamId());
-				ps.setString(2, attr.getName());
-				ps.setString(3, attr.getValue());
+				ps.setString(2, s.getTitle());
+				ps.setString(3, s.getDescription());
+				ps.setString(4, s.getMimeType());
+				ps.setLong(5, s.getSize());
+				ps.setLong(6, s.getDuration());
 				ps.executeUpdate();
+				for (StreamAttribute attr : s.getAttributes()) {
+					ps = conn.prepareStatement(CREATE_STREAM_ATTRIBUTES);
+					ps.setString(1, s.getStreamId());
+					ps.setString(2, attr.getName());
+					ps.setString(3, attr.getValue());
+					ps.executeUpdate();
+				}
+			} catch (SQLException e) {
+				log.error("Error storing stream", e);
+			} finally {
+				if (conn != null)
+					returnConnection(conn);
 			}
-		} catch (SQLException e) {
-			log.error("Error storing stream", e);
 		} finally {
-			if (conn != null)
-				returnConnection(conn);
+			streamUpdateLock.unlock();
 		}
 	}
 

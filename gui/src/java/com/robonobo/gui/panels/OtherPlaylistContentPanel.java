@@ -129,15 +129,16 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 					}
 					saveBtn.setEnabled(false);
 					pc.setPlaylistId(p.getPlaylistId());
-					frame.getController().putPlaylistConfig(pc);
-					// Checking playlist update will kick off autodownloads, if necessary
 					frame.getController().getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
-							try {
-								frame.getController().checkPlaylistUpdate(p.getPlaylistId());
-							} catch (RobonoboException e) {
-								log.info("Error checking playlist update", e);
-							}
+							// This will kick of auto-downloads & itunes integration if necessary
+							frame.getController().putPlaylistConfig(pc);
+//							try {
+								// Checking playlist update will kick off autodownloads, if necessary
+//								frame.getController().checkPlaylistUpdate(p.getPlaylistId());
+//							} catch (RobonoboException e) {
+//								log.info("Error checking playlist update", e);
+//							}
 						}
 					});
 				}

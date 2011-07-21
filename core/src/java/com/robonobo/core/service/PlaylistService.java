@@ -335,8 +335,8 @@ public class PlaylistService extends AbstractService {
 			log.error("Playlist config updated for plid "+plId+" but there is no such playlist");
 			return;
 		}
-		syncITunesIfNecessary(p);
 		downloadTracksIfNecessary(p);
+		syncITunesIfNecessary(p);
 	}
 	
 	private void syncITunesIfNecessary(Playlist p) {
@@ -345,7 +345,8 @@ public class PlaylistService extends AbstractService {
 			if ("true".equalsIgnoreCase(pc.getItem("iTunesExport"))) {
 				for (Long ownerId : p.getOwnerIds()) {
 					User owner = rbnb.getUserService().getUser(ownerId);
-					rbnb.getITunesService().syncPlaylist(owner, p);
+					if(owner != null)
+						rbnb.getITunesService().syncPlaylist(owner, p);
 				}
 			}
 		} catch (IOException e) {

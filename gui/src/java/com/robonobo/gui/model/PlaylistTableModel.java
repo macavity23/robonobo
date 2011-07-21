@@ -76,14 +76,12 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	public void activate() {
 		if (!activated) {
 			activated = true;
-			readLock.lock();
-			try {
-				for (Track t : eventList) {
-					if (t instanceof CloudTrack)
-						control.findSources(t.stream.streamId, this);
-				}
-			} finally {
-				readLock.unlock();
+			// Make sure we've got fresh info for all our tracks
+			for(String sid : p.getStreamIds()) {
+				Track t = control.getTrack(sid);
+				if(t instanceof CloudTrack)
+					control.findSources(sid, this);
+				trackUpdated(sid, t);
 			}
 		}
 	}
