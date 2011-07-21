@@ -1,14 +1,14 @@
 D=Do
 E=Expect
 
-Run this whole script on windows (ie), mac (safari) & ubuntu (ff)
+Run this script on windows (ie), mac (safari) & ubuntu (ff)
 
 Prereqs:
 * 3 test facebook accts (users A, B and C) with friendships A<->B but no others, user A has profile pic
-* 1 test twitter acct (user D) with profile pic
+* 2 test twitter accts (users C & D) with profile pic
 * 3 standalone accts (user E, F & G)
 * delete test rbnb accts
-* 4 small (56kb) test mp3 files
+* 4 small (56kb) test mp3 files, not being shared by mirror
 
 Website
 =======
@@ -69,7 +69,17 @@ E go to getsatisfaction.com page
 D back, click developers
 E go to github page
 D back, click contact
-E go to contact page
+E contact page
+D go back to home page, select 'Read More' under everyone
+E about page
+D back, select feedback tab
+E getsatisfaction feedback form
+D close, select blog from nav
+E tumblr blog opens
+D back, select 'read more' under artists
+E artists page
+D fill out artist reg form
+E receive thanks and artist notification
 
 D click account
 E account page up, including current balance
@@ -77,12 +87,19 @@ D change name, click save
 E error msg demanding password
 D change name, enter current pwd, click save
 E name changes
-
+D click topup
+E topup mail received
+D change email prefs, save
+E email prefs updated
 
 App Login
 =========
 D rm rbnb home dirs - dev and prod
 D rm rbnb fonts from system
+D go to downloads page, download for this system
+E download instructions
+D follow download instructions
+E rbnb installs ok
 D launch rbnb
 E eula page
 D check home dir creation
@@ -92,7 +109,7 @@ E robonobo quits
 D relaunch robonobo, accept eula
 E robonobo pops up, asks for login
 D click link from login page
-E browser opens, shows robonobo registration page
+E browser opens, shows robonobo site
 D close browser window, return to app
 D enter login details with incorrect password
 E login failed msg
@@ -170,7 +187,7 @@ D make new playlist, add same tracks
 D share playlist with user B
 E user B receives email
 D login as user B
-E playlist is there and boldified in list
+E playlist is there
 
 D register as user C through rbnb site
 D log into app as user C, restart app
@@ -181,14 +198,20 @@ E friendship created
 D wait for robonobo to fetch updated friends
 E new friend & playlists appear in sidebar
 
-D (still as user C) create playlist, visible to friends only
+D (still as user C) create playlist, visible to self only
 D click 'post to facebook' button
+E confirmation of need to add facebook details
+D confirm
 E browser opens, asks for login then starts facebook attach process
 D go through facebook attach
 D go back to app, click 'post to facebook' button again
+E visibility warning
+D confirm visibility change
 E post to facebook sheet appears
 D fill out sheet with test message, submit
 E facebook wall message is posted
+D click link on facebook wall
+E playlist opens
 D click 'post to twitter' button
 E browser opens, starts twitter attach process
 D go through twitter attach
@@ -196,6 +219,8 @@ D go back to app, click 'post to twitter' button again
 E post to twitter sheet appears
 D fill out sheet with test message, submit
 E tweet is tweeted
+D click link in tweet
+E playlist opens
 
 D log into rbnb app as user A
 D log out of rbnb site
@@ -246,6 +271,8 @@ D download track
 E track downloads
 D as track is downloading, hit play
 E track plays
+D seek about a bit
+E track seeks
 D wait for track to download
 D right-click track, select 'show in finder/explorer'
 E finder/explorer opens

@@ -326,6 +326,19 @@ public class PlaylistService extends AbstractService {
 		}
 	}
 
+	public void playlistConfigUpdated(long plId) {
+		Playlist p;
+		synchronized(this) {
+			p = playlists.get(plId);
+		}
+		if(p == null) {
+			log.error("Playlist config updated for plid "+plId+" but there is no such playlist");
+			return;
+		}
+		syncITunesIfNecessary(p);
+		downloadTracksIfNecessary(p);
+	}
+	
 	private void syncITunesIfNecessary(Playlist p) {
 		try {
 			PlaylistConfig pc = getRobonobo().getDbService().getPlaylistConfig(p.getPlaylistId());

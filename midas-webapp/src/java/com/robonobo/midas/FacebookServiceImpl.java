@@ -100,6 +100,7 @@ public class FacebookServiceImpl implements InitializingBean, FacebookService {
 				long friendId = uc.getUserId();
 				MidasUser friend = userDao.getById(friendId);
 				if ((!user.getFriendIds().contains(friendId)) || (!friend.getFriendIds().contains(user.getUserId()))) {
+					log.info("Creating friendship between users "+user.getEmail()+" and "+friend.getEmail());
 					user.getFriendIds().add(friendId);
 					friend.getFriendIds().add(user.getUserId());
 					userDao.save(friend);
@@ -147,7 +148,7 @@ public class FacebookServiceImpl implements InitializingBean, FacebookService {
 			return;
 		if(msg == null)
 			msg = "I updated my playlist '" + p.getTitle() + "': ";
-		String playlistUrl = appConfig.getInitParam("playlistShortUrlBase") + p.getPlaylistId();
+		String playlistUrl = appConfig.getInitParam("playlistShortUrlBase") + Long.toHexString(p.getPlaylistId());
 		msg += playlistUrl;
 		postToFacebook(muc, msg);
 	}

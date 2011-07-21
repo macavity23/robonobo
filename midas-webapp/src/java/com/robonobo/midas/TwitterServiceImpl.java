@@ -16,7 +16,7 @@ import com.robonobo.midas.model.MidasUserConfig;
 import com.robonobo.remote.service.MidasService;
 
 @Service("twitter")
-public class TwitterServiceImpl implements InitializingBean, TwitterService{
+public class TwitterServiceImpl implements InitializingBean, TwitterService {
 	private static final int TWITTER_MSG_LIMIT = 140;
 	@Autowired
 	AppConfig appConfig;
@@ -24,34 +24,34 @@ public class TwitterServiceImpl implements InitializingBean, TwitterService{
 	MidasService midas;
 	protected OAuthService postingService;
 	Log log = LogFactory.getLog(getClass());
-	
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		String apiKey = appConfig.getInitParam("twitterApiKey");
 		String apiSecret = appConfig.getInitParam("twitterApiSecret");
 		postingService = new ServiceBuilder().provider(TwitterApi.class).apiKey(apiKey).apiSecret(apiSecret).build();
 	}
-	
+
 	@Override
 	public void postPlaylistUpdateToTwitter(MidasUserConfig muc, Playlist p, String msg) {
 		String accTok = muc.getItem("twitterAccessToken");
-		if(accTok == null)
+		if (accTok == null)
 			return;
-		if(msg == null)
+		if (msg == null)
 			msg = "I updated my playlist '" + p.getTitle() + "': ";
-		String playlistUrl = appConfig.getInitParam("playlistShortUrlBase") + p.getPlaylistId();
+		String playlistUrl = appConfig.getInitParam("playlistShortUrlBase") + Long.toHexString(p.getPlaylistId());
 		msg += playlistUrl;
 		postToTwitter(muc, msg);
 	}
-	
+
 	@Override
 	public void postToTwitter(MidasUserConfig muc, String msg) {
 		String accTok = muc.getItem("twitterAccessToken");
-		if(accTok == null)
+		if (accTok == null)
 			return;
 		// If we've space, pimp ourselves at the end
 		String pimpMsg = appConfig.getInitParam("twitterPimpMsg");
-		if(pimpMsg != null && (msg.length() + pimpMsg.length()) <= TWITTER_MSG_LIMIT)
+		if (pimpMsg != null && (msg.length() + pimpMsg.length()) <= TWITTER_MSG_LIMIT)
 			msg += pimpMsg;
 		String accSecret = muc.getItem("twitterAccessSecret");
 		Token accessToken = new Token(accTok, accSecret);
@@ -59,10 +59,10 @@ public class TwitterServiceImpl implements InitializingBean, TwitterService{
 		oaReq.addBodyParameter("status", msg);
 		postingService.signRequest(accessToken, oaReq);
 		MidasUser u = midas.getUserById(muc.getUserId());
-		log.info("Posting to twitter for "+u.getEmail()+": "+msg);
+		log.info("Posting to twitter for " + u.getEmail() + ": " + msg);
 		Response oaResp = oaReq.send();
-		if(oaResp.getCode() != 200)
-			log.error("Error posting playlist to twitter to uid "+muc.getUserId()+", error code was "+oaResp.getCode());
+		if (oaResp.getCode() != 200)
+			log.error("Error posting playlist to twitter to uid " + muc.getUserId() + ", error code was " + oaResp.getCode());
 		// Well, that was easy
 	}
 }
