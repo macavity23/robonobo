@@ -42,4 +42,6 @@
 
 * Fixed gui hang when filtering tracklist with selected tracks
 * Now checks visibility of friend playlists before posting to fb/twitter
+* Fixed itunes/autodownloading in friend playlists
+* Fixed ui bug preventing updated track information showing
 
