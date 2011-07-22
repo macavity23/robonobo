@@ -38,6 +38,8 @@ public class DbService extends AbstractService {
 	private static final String READ_PLAYLIST_SEEN_SIDS = "SELECT stream_id FROM playlist_seen_sids WHERE playlist_id = ?";
 	private static final String READ_LIBRARY_ALL_KNOWN_TRACKS = "SELECT stream_id, added_date FROM library_known_tracks WHERE user_id = ?";
 	private static final String READ_LIBRARY_ALL_UNKNOWN_TRACKS = "SELECT stream_id, added_date FROM library_unknown_tracks WHERE user_id = ?";
+	private static final String READ_LIBRARY_NUM_KNOWN_TRACKS = "SELECT COUNT(*) FROM library_known_tracks WHERE user_id = ?";
+	private static final String READ_LIBRARY_NUM_UNKNOWN_TRACKS = "SELECT COUNT(*) FROM library_unknown_tracks WHERE user_id = ?";
 	private static final String READ_LIBRARY_UNKNOWN_TRACK = "SELECT added_date FROM library_unknown_tracks WHERE user_id = ? AND stream_id = ?";
 	private static final String READ_LIBRARY_INFO = "SELECT check_date, num_unseen FROM library_info WHERE user_id = ?";
 	private static final String MATCH_SHARES = "SELECT DISTINCT sh.* FROM SHARES AS sh, STREAMS AS st WHERE sh.STREAM_ID = st.STREAM_ID AND (lower(st.TITLE) LIKE lower(?) OR lower(st.DESCRIPTION) LIKE lower(?))"
@@ -733,6 +735,38 @@ public class DbService extends AbstractService {
 		}
 	}
 
+	/**
+	 * Includes known and unknown tracks
+	 */
+	public int numTracksInLibrary(long userId) {
+		if (!running)
+			return 0;
+		Connection conn = null;
+		try {
+			int result = 0;
+			conn = getConnection();
+			PreparedStatement ps = conn.prepareStatement(READ_LIBRARY_NUM_KNOWN_TRACKS);
+			ps.setLong(1, userId);
+			ResultSet rs = ps.executeQuery();
+			if(rs.next())
+				result += rs.getInt(1);
+			ps.close();
+			ps = conn.prepareStatement(READ_LIBRARY_NUM_UNKNOWN_TRACKS);
+			ps.setLong(1, userId);
+			rs = ps.executeQuery();
+			if(rs.next())
+				result += rs.getInt(1);
+			ps.close();
+			return result;
+		} catch (SQLException e) {
+			log.error("Error looking up library for user" + userId, e);
+			return 0;
+		} finally {
+			if (conn != null)
+				returnConnection(conn);
+		}
+	}
+	
 	public Library getLibrary(long userId) {
 		if (!running)
 			return null;
@@ -783,13 +817,13 @@ public class DbService extends AbstractService {
 		}
 	}
 
-	public void markLibraryAsChecked(long userId) {
+	public void markLibraryAsChecked(long userId, long checkTime) {
 		if (!running)
 			return;
 		Connection conn = null;
 		try {
 			conn = getConnection();
-			markLibChecked(userId, conn);
+			markLibChecked(userId, conn, checkTime);
 		} catch (SQLException e) {
 			log.error("Error marking library as checked for user " + userId, e);
 		} finally {
@@ -803,7 +837,7 @@ public class DbService extends AbstractService {
 	 * 
 	 * @param userId
 	 * @param newTracks */
-	public void addUnknownTracksToLibrary(long userId, Map<String, Date> newTracks) {
+	public void addUnknownTracksToLibrary(long userId, Map<String, Date> newTracks, long checkTime) {
 		if (!running)
 			return;
 		Connection conn = null;
@@ -820,7 +854,7 @@ public class DbService extends AbstractService {
 				createTrackSt.addBatch();
 			}
 			createTrackSt.executeBatch();
-			markLibChecked(userId, conn);
+			markLibChecked(userId, conn, checkTime);
 		} catch (SQLException e) {
 			log.error("Error adding tracks to library for user " + userId, e);
 		} finally {
@@ -829,15 +863,14 @@ public class DbService extends AbstractService {
 		}
 	}
 
-	private void markLibChecked(long userId, Connection conn) throws SQLException {
-		long now = System.currentTimeMillis();
+	private void markLibChecked(long userId, Connection conn, long checkTime) throws SQLException {
 		PreparedStatement readInfoSt = conn.prepareStatement(READ_LIBRARY_INFO);
 		readInfoSt.setLong(1, userId);
 		ResultSet rs = readInfoSt.executeQuery();
 		if (rs.next()) {
 			// Update existing lib
 			PreparedStatement updateInfoSt = conn.prepareStatement(UPDATE_LIBRARY_CHECK_DATE);
-			updateInfoSt.setLong(1, now);
+			updateInfoSt.setLong(1, checkTime);
 			updateInfoSt.setLong(2, userId);
 			updateInfoSt.executeUpdate();
 			updateInfoSt.close();
@@ -845,7 +878,7 @@ public class DbService extends AbstractService {
 			// New lib
 			PreparedStatement createInfoSt = conn.prepareStatement(CREATE_LIBRARY_INFO);
 			createInfoSt.setLong(1, userId);
-			createInfoSt.setLong(2, now);
+			createInfoSt.setLong(2, checkTime);
 			createInfoSt.executeUpdate();
 			createInfoSt.close();
 		}

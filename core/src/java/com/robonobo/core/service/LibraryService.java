@@ -92,10 +92,6 @@ public class LibraryService extends AbstractService {
 				completion = ((float) done) / friendIds.size();
 				fireUpdated();
 				LibraryInfo libInfo = db.getLibInfo(friendId);
-				if (libInfo != null && !loadedLibs.contains(friendId)) {
-					events.fireFriendLibraryReady(friendId, libInfo.getNumUnseen());
-					loadedLibs.add(friendId);
-				}
 				Date lastUpdated = (libInfo == null) ? null : libInfo.getLastChecked();
 				tasks.runTask(new LibraryUpdateTask(friend, lastUpdated));
 			}
@@ -110,6 +106,7 @@ public class LibraryService extends AbstractService {
 		private User friend;
 		private Set<String> waitingForStreams;
 		private int streamsToFetch;
+		private long checkTime;
 
 		public LibraryUpdateTask(User friend, Date lastUpdate) {
 			title = "Fetching library for " + friend.getEmail();
@@ -122,29 +119,40 @@ public class LibraryService extends AbstractService {
 			statusText = "Retrieving library details";
 			fireUpdated();
 			metadata.fetchLibrary(friend.getUserId(), lastUpdate, this);
+			checkTime = System.currentTimeMillis();
 		}
 
+		private void done() {
+			statusText = "Done.";
+			completion = 1f;
+			stillFetchingLibs.remove(friend.getUserId());
+			fireUpdated();
+		}
+		
 		public void success(Library nLib) {
 			final long friendId = friend.getUserId();
 			Map<String, Date> newTrax = nLib.getTracks();
 			log.debug("Received updated library for " + friend.getEmail() + ": " + newTrax.size() + " new tracks");
 			if(newTrax.size() > 0)
-				db.addUnknownTracksToLibrary(friendId, newTrax);
-			// Fetch from the db afresh as there might well have been some tracks we didn't get a chance to look up last
-			// time
-			final Map<String, Date> unknownTracks = rbnb.getDbService().getUnknownTracksInLibrary(friendId);
-			if (unknownTracks.size() == 0) {
-				// We will already have fired friendLibraryReady in FriendLibsUpdateTask above
-				db.markLibraryAsChecked(friendId);
-				statusText = "Done.";
-				completion = 1f;
-				stillFetchingLibs.remove(friendId);
-				fireUpdated();
+				db.addUnknownTracksToLibrary(friendId, newTrax, checkTime);
+			else
+				db.markLibraryAsChecked(friendId, checkTime);
+			int numTracks = db.numTracksInLibrary(friendId);
+			if(numTracks == 0) {
+				done();
 				return;
 			}
+			// Fetch from the db afresh as there might well have been some tracks we didn't get a chance to look up last
+			// time
+			final Map<String, Date> unknownTracks = db.getUnknownTracksInLibrary(friendId);
 			if(!loadedLibs.contains(friendId)) {
-				events.fireFriendLibraryReady(friendId, 0);
+				LibraryInfo libInfo = db.getLibInfo(friendId);
+				events.fireFriendLibraryReady(friendId, libInfo.getNumUnseen());
 				loadedLibs.add(friendId);
+			}
+			if (unknownTracks.size() == 0) {
+				done();
+				return;
 			}
 			// Get the rest of our streams
 			waitingForStreams = new HashSet<String>();
