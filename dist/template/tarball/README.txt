@@ -11,6 +11,21 @@ $ chmod 755 robonobo
 If you want to move this jarfile somewhere else, you will need to update 
 the shell script to point to the new jar location.
 
+To add robonobo to your applications menu, copy the robonobo.desktop 
+file to your applications directory, probably /usr/share/applications
+(check with your distro)
+
+OpenJDK issues
+--------------
+We have discovered some issues with audio seeking and playback when using
+the OpenJDK version of Java on Linux, seemingly to do with the PulseAudio 
+library. If you encounter these issues, please use the official Sun/Oracle 
+Java instead as a workaround. We are moving to a non-Java audio library 
+soon which will prevent these issues arising.
+
+We have an open ticket for this problem at:
+http://getsatisfaction.com/robonobo/topics/seeking_and_playback_dont_work_properly_when_using_openjdk_on_linux
+
 
 Handling robonobo urls
 ----------------------
