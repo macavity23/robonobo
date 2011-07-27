@@ -1,4 +1,4 @@
-<project name="eon" default="build">
+<project name="eon" default="fatjar">
     <property name="ant.reuse.loader" value="true"/> 
     <path id="fjepPath" location="../common/buildlib/fatjar-0.0.31.jar"/>
     <taskdef name="fatjar.build" classname="net.sf.fjep.anttask.FJBuildTask" classpathref="fjepPath"/>
@@ -37,8 +37,6 @@
 		</copy>
 	</target>
 		
-	<target name="build" depends="compile-all"/>
-	
 	<target name="fatjar" depends="compile-all">
 		<fatjar.build output="target/seon-tester.jar">
 			<fatjar.manifest mergemanifests="false" mainclass="com.robonobo.eon.test.SeonTester"/>
