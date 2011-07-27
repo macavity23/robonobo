@@ -1,32 +1,14 @@
-0.5.0
+0.5.7
+* Moved to new UPnP library for router auto-config - much better
+* No longer uses separate homedir for dev versions (can still override with RBNB_HOME env variable)
+* Shows up/download speeds in gui status panel
 
-* First version in git
-* Totally new GUI
-* Facebook/Twitter integration
+0.5.6
 
-0.5.1
-
-* UI performance enhancements & fixes
-* Incremental library loading
-* Eager detection of NAT Traversal
-
-0.5.2
-
-* Various non-functional fixes
-
-0.5.3
-
-* Refactoring of metadata classes to allow plugins to provide their own metadata services
-* Midas metadata now loads asynchronously and much faster
-* Filtering/sorting tracklists now lightning fast thanks to GlazedLists
-* 'Add friends' functionality
-* Can now right-click on shared tracks and show in finder/explorer
-* Pre-downloads next track on tracklist when approaching end of playing track
-
-0.5.4
-
-* Several fixes for reconnecting to nodes in poor network conditions
-* iTunes playlists now show up in sidebar straight away
+* Fixed gui hang when filtering tracklist with selected tracks
+* Now checks visibility of friend playlists before posting to fb/twitter
+* Fixed itunes/autodownloading in friend playlists
+* Fixed ui bug preventing updated track information showing
 
 0.5.5
 
@@ -38,10 +20,33 @@
 * Improved feedback in UI
 * Library loading much quicker
 
-0.5.6
+0.5.4
 
-* Fixed gui hang when filtering tracklist with selected tracks
-* Now checks visibility of friend playlists before posting to fb/twitter
-* Fixed itunes/autodownloading in friend playlists
-* Fixed ui bug preventing updated track information showing
+* Several fixes for reconnecting to nodes in poor network conditions
+* iTunes playlists now show up in sidebar straight away
+
+0.5.3
+
+* Refactoring of metadata classes to allow plugins to provide their own metadata services
+* Midas metadata now loads asynchronously and much faster
+* Filtering/sorting tracklists now lightning fast thanks to GlazedLists
+* 'Add friends' functionality
+* Can now right-click on shared tracks and show in finder/explorer
+* Pre-downloads next track on tracklist when approaching end of playing track
+
+0.5.2
+
+* Various non-functional fixes
+
+0.5.1
+
+* UI performance enhancements & fixes
+* Incremental library loading
+* Eager detection of NAT Traversal
+
+0.5.0
+
+* First version in git
+* Totally new GUI
+* Facebook/Twitter integration
 
