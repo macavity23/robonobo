@@ -79,13 +79,7 @@ public class PrefDialog extends JDialog {
 		bp.add(mrdPanel);
 		bp.add(vertSpacer());
 
-		Set<InetAddress> localIps = NetUtil.getLocalInetAddresses(frame.getController().getConfig().getAllowLoopbackAddress());
-		String[] ipArr = new String[localIps.size()];
-		int i = 0;
-		for (InetAddress addr : localIps) {
-			ipArr[i++] = addr.getHostAddress();
-		}
-		ChoicePrefPanel lipPanel = new ChoicePrefPanel(frame, "mina.localAddress", "Local IP Address", ipArr);
+		ChoicePrefPanel lipPanel = new LocalIpPrefPanel(frame);
 		prefPanels.add(lipPanel);
 		bp.add(lipPanel);
 		bp.add(vertSpacer());

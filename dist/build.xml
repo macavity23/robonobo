@@ -175,8 +175,7 @@
 		<fileset file="../common/lib/jug-1.1.2.jar"/>
 		<fileset file="../common/lib/httpclient-4.1.1.jar"/>
 		<fileset file="../common/lib/httpcore-4.1.jar"/>
-		<fileset file="../core/lib/sbbi-jmx-1.0.jar"/>
-		<fileset file="../core/lib/sbbi-upnplib-1.0.3.jar"/>
+		<fileset file="../core/lib/weupnp-0.1.2-SNAPSHOT.jar"/>
 		<fileset file="../gui/lib/swingx-0.9.7.jar"/>
 		<fileset file="../gui/lib/glazedlists-1.8.0.jar"/>
 		<fileset file="../gui/lib/robolaf.jar"/>

@@ -88,10 +88,7 @@
 			<fatjar.jarsource file="../plugin-mp3/lib/mp3spi-robo.jar" relpath="." />
 			<fatjar.jarsource file="../plugin-mp3/lib/jl1.0.1.jar" relpath="." />
 			<fatjar.jarsource file="../plugin-mp3/lib/basicplayer3.0-robo.jar" relpath="." />
-			<fatjar.jarsource file="../core/lib/commons-cli-1.0.jar" relpath="." />
-			<fatjar.jarsource file="../core/lib/commons-jxpath-1.1.jar" relpath="." />
-			<fatjar.jarsource file="../core/lib/sbbi-jmx-1.0.jar" relpath="." />
-			<fatjar.jarsource file="../core/lib/sbbi-upnplib-1.0.3.jar" relpath="." />
+			<fatjar.jarsource file="../core/lib/weupnp-0.1.2-SNAPSHOT.jar" relpath="." />
 			<fatjar.jarsource file="../console/lib/bsh-2.0b4.jar" relpath="." />
 			<fatjar.jarsource file="../common/lib/tablelayout.jar" relpath="." />
 			<fatjar.jarsource file="../common/lib/jug-1.1.2.jar" relpath="." />

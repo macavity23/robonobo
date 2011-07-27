@@ -38,6 +38,7 @@ public class RobonoboConfig implements Serializable {
 	 * minacfg.gatewayAddress
 	 */
 	boolean lookupGatewayIP = true;
+	boolean userSpecifiedLocalAddr = false;
 	boolean agreedToEula = false;
 	boolean allowLoopbackAddress = false;
 	String playlistUrlBase = "http://rbnb.co/p/";
@@ -310,5 +311,13 @@ public class RobonoboConfig implements Serializable {
 
 	public void setGatewayCfgResult(String gatewayCfgResult) {
 		this.gatewayCfgResult = gatewayCfgResult;
+	}
+
+	public boolean getUserSpecifiedLocalAddr() {
+		return userSpecifiedLocalAddr;
+	}
+
+	public void setUserSpecifiedLocalAddr(boolean userSpecifiedLocalAddr) {
+		this.userSpecifiedLocalAddr = userSpecifiedLocalAddr;
 	}
 }
