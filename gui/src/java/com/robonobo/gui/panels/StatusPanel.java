@@ -28,71 +28,64 @@ import com.robonobo.mina.external.ConnectedNode;
 @SuppressWarnings("serial")
 public class StatusPanel extends JPanel implements RobonoboStatusListener, TransferSpeedListener {
 	Log log = LogFactory.getLog(getClass());
-
 	RobonoboController control;
 	private ImageIcon connFailImg;
 	private ImageIcon connOkImg;
 	private RLabel networkStatusIcon;
 	private RLabel numConnsLbl;
-
 	private RLabel bandwidthLbl;
-
 	private BalanceLabel balanceLbl;
-	
+
 	public StatusPanel(RobonoboFrame frame) {
 		this.control = frame.getController();
 		setPreferredSize(new Dimension(200, 85));
 		setMaximumSize(new Dimension(200, 85));
-		double[][] cellSizen = { { 1, 9, 32, 5, 110, TableLayout.FILL, 5 }, { 10, 30, 5, 15, 15, 5, TableLayout.FILL} };
+		double[][] cellSizen = { { 1, 9, 32, 5, 110, TableLayout.FILL, 5 }, { 10, 30, 5, 15, 15, 5, TableLayout.FILL } };
 		setLayout(new TableLayout(cellSizen));
 		setName("robonobo.status.panel");
 		setOpaque(true);
-		
 		balanceLbl = new BalanceLabel(frame);
 		add(balanceLbl, "1,1,6,1,CENTER,CENTER");
-
 		connOkImg = createImageIcon("/icon/connection_ok.png", null);
 		connFailImg = createImageIcon("/icon/connection_fail.png", null);
 		networkStatusIcon = new RIconLabel(connFailImg);
 		add(networkStatusIcon, "2,3,2,5");
-		
 		numConnsLbl = new RLabel11("Starting...");
 		numConnsLbl.setForeground(Color.WHITE);
 		add(numConnsLbl, "4,3,5,3,LEFT,BOTTOM");
-
 		bandwidthLbl = new RLabel11("");
 		bandwidthLbl.setForeground(Color.WHITE);
 		add(bandwidthLbl, "4,4,5,4,LEFT,BOTTOM");
-
 		control.addRobonoboStatusListener(this);
-		updateConnStatus();		
+		control.addTransferSpeedListener(this);
+		updateConnStatus();
 	}
 
 	public BalanceLabel getBalanceLbl() {
 		return balanceLbl;
 	}
-	
+
 	@Override
 	public void roboStatusChanged() {
 		updateConnStatus();
 	}
-	
+
 	@Override
 	public void connectionAdded(ConnectedNode node) {
 		updateConnStatus();
 	}
-	
+
 	@Override
 	public void connectionLost(ConnectedNode node) {
 		updateConnStatus();
 	}
 
 	private void updateConnStatus() {
-		SwingUtilities.invokeLater(new CatchingRunnable() {
+		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				synchronized (StatusPanel.this) {
 					RobonoboStatus status = control.getStatus();
-					switch(status) {
+					switch (status) {
 					case Starting:
 						numConnsLbl.setText("Starting...");
 						networkStatusIcon.setIcon(connFailImg);
@@ -103,7 +96,7 @@ public class StatusPanel extends JPanel implements RobonoboStatusListener, Trans
 						break;
 					case Connected:
 						List<ConnectedNode> nodes = control.getConnectedNodes();
-						if(nodes.size() > 0)
+						if (nodes.size() > 0)
 							networkStatusIcon.setIcon(connOkImg);
 						else
 							networkStatusIcon.setIcon(connFailImg);
@@ -116,7 +109,7 @@ public class StatusPanel extends JPanel implements RobonoboStatusListener, Trans
 			}
 		});
 	}
-	
+
 	@Override
 	public void newTransferSpeeds(Map<String, TransferSpeed> speedsByStream, Map<String, TransferSpeed> speedsByNode) {
 		int totalDown = 0;
@@ -127,18 +120,22 @@ public class StatusPanel extends JPanel implements RobonoboStatusListener, Trans
 		}
 		updateSpeeds(totalDown, totalUp);
 	}
-	
+
 	private void updateSpeeds(final int downloadBps, final int uploadBps) {
-		SwingUtilities.invokeLater(new CatchingRunnable() {
+		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				StringBuffer sb = new StringBuffer();
-				sb.append(FileUtil.humanReadableSize(uploadBps)).append("/s");
-				sb.append(" up - ");
-				sb.append(FileUtil.humanReadableSize(downloadBps)).append("/s");
-				sb.append(" down");
-				synchronized (StatusPanel.this) {
-					bandwidthLbl.setText(sb.toString());
+				String statusText;
+				if (downloadBps == 0 && uploadBps == 0)
+					statusText = "";
+				else {
+					StringBuffer sb = new StringBuffer();
+					sb.append(FileUtil.humanReadableSize(uploadBps)).append("/s");
+					sb.append(" up, ");
+					sb.append(FileUtil.humanReadableSize(downloadBps)).append("/s");
+					sb.append(" down");
+					statusText = sb.toString();
 				}
+				bandwidthLbl.setText(statusText);
 			}
 		});
 	}
