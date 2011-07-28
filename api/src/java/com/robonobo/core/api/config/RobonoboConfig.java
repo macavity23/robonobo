@@ -29,6 +29,8 @@ public class RobonoboConfig implements Serializable {
 	int dataPageSize = 32768;
 	int userUpdateFrequency = 900; // Secs
 	int downloadCacheTime = 30; // Secs
+	/** Check this often to see if we should start more downloads (secs, <0 to disable) */
+	int downloadCheckFreq = 30;
 	boolean agoric = true;
 	/** "auto", "off", or a gateway port number (which means manual) */
 	String gatewayCfgMode = "auto";
@@ -319,5 +321,13 @@ public class RobonoboConfig implements Serializable {
 
 	public void setUserSpecifiedLocalAddr(boolean userSpecifiedLocalAddr) {
 		this.userSpecifiedLocalAddr = userSpecifiedLocalAddr;
+	}
+
+	public int getDownloadCheckFreq() {
+		return downloadCheckFreq;
+	}
+
+	public void setDownloadCheckFreq(int downloadCheckFreq) {
+		this.downloadCheckFreq = downloadCheckFreq;
 	}
 }

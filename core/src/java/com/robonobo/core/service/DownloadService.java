@@ -5,10 +5,13 @@ import static com.robonobo.common.util.TimeUtil.*;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.TimeUtil;
 import com.robonobo.core.api.RobonoboException;
@@ -25,7 +28,6 @@ import com.robonobo.mina.external.buffer.PageBufferListener;
  * (which have no associated Reception)
  * 
  * @author macavity */
-@SuppressWarnings("unchecked")
 public class DownloadService extends AbstractService implements MinaListener, PageBufferListener {
 	static final int PRIORITY_CURRENT = Integer.MAX_VALUE;
 	static final int PRIORITY_NEXT = Integer.MAX_VALUE - 1;
@@ -47,6 +49,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	 * right order. So, keep track of the last download time, and if it hasn't increased, add 1ms to ensure uniqueness */
 	long lastDlStartTime = 0;
 	private File downloadsDir;
+	ScheduledFuture<?> checkDownloadsTask;
 
 	public DownloadService() {
 		addHardDependency("core.mina");
@@ -97,10 +100,20 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 				log.debug("Queuing download for "+sid);
 		}
 		updatePriorities();
+		if(rbnb.getConfig().getDownloadCheckFreq() > 0) {
+			int freqMs = rbnb.getConfig().getDownloadCheckFreq();
+			checkDownloadsTask = rbnb.getExecutor().scheduleAtFixedRate(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					startMoreDownloads();
+				}
+			}, freqMs, freqMs, TimeUnit.SECONDS);
+		}
 	}
 
 	@Override
 	public void shutdown() throws Exception {
+		if(checkDownloadsTask != null)
+			checkDownloadsTask.cancel(true);
 		for (String streamId : db.getDownloads()) {
 			DownloadingTrack dl = getDownload(streamId);
 			stopDownload(dl);
