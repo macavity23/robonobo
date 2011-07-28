@@ -1775,8 +1775,9 @@ public class SEONConnection extends EONConnection implements PullDataReceiver, P
 				} finally {
 					receiveLock.unlock();
 				}
-				if (debugLogging)
-					log.debug(SEONConnection.this + " - async receiver passing data");
+				log.warn(SEONConnection.this + " - async receiver passing data");
+//				if (debugLogging)
+//					log.debug(SEONConnection.this + " - async receiver passing data");
 				try {
 					dataRec.receiveData(buf, null);
 				} catch (Exception e) {
@@ -1784,6 +1785,9 @@ public class SEONConnection extends EONConnection implements PullDataReceiver, P
 							+ " while passing async data: closing", e);
 					close();
 				}
+				log.warn(SEONConnection.this + " - async receiver finished passing data");
+//				if (debugLogging)
+//					log.debug(SEONConnection.this + " - async receiver finished passing data");
 			}
 		}
 	}

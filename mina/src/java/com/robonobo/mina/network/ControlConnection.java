@@ -713,6 +713,8 @@ public class ControlConnection implements PushDataReceiver {
 		Random rand = new Random();
 
 		public void doRun() {
+			if(isClosing() || isClosed())
+				return;
 			synchronized (ControlConnection.this) {
 				// If we have data flowing, don't bother pinging
 				if (getUpFlowRate() > 0 || getDownFlowRate() > 0)

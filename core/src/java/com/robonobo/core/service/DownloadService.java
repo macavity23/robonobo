@@ -19,6 +19,7 @@ import com.robonobo.core.api.StreamVelocity;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
 import com.robonobo.core.metadata.AbstractMetadataService;
+import com.robonobo.core.metadata.StreamCallback;
 import com.robonobo.core.storage.StorageService;
 import com.robonobo.mina.external.*;
 import com.robonobo.mina.external.buffer.PageBuffer;
@@ -120,12 +121,33 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		}
 	}
 
-	public void addDownload(String streamId) throws RobonoboException {
+	public void addDownload(String sid) throws RobonoboException {
+		Stream s = streams.getKnownStream(sid);
+		if(s != null)
+			addDownload(s);
+		else {
+			streams.fetchStreams(Arrays.asList(sid), new StreamCallback() {
+				public void success(Stream s) {
+					try {
+						addDownload(s);
+					} catch (RobonoboException e) {
+						log.error("Error adding download for stream "+s.getStreamId(), e);
+					}
+				}
+				
+				public void error(String sid, Exception e) {
+					log.error("Error fetching stream for downloading "+sid, e);
+				}
+			});
+		}
+	}
+
+	private void addDownload(Stream s) throws RobonoboException {
+		String sid = s.getStreamId();
 		// If we have a defunct share, replace it with this download
-		rbnb.getShareService().nukeDefunctShare(streamId);
-		File dataFile = new File(downloadsDir, makeFileNameSafe(streamId));
-		log.info("Adding download for " + streamId);
-		Stream s = streams.getKnownStream(streamId);
+		rbnb.getShareService().nukeDefunctShare(sid);
+		File dataFile = new File(downloadsDir, makeFileNameSafe(sid));
+		log.info("Adding download for " + sid);
 		DownloadingTrack d = new DownloadingTrack(s, dataFile, DownloadStatus.Paused);
 		long startTime = System.currentTimeMillis();
 		synchronized (this) {
@@ -139,22 +161,22 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 			if (numRunningDownloads() < rbnb.getConfig().getMaxRunningDownloads())
 				startDownload(d, pb);
 		} catch (Exception e) {
-			log.error("Caught exception when starting download for " + s.getStreamId(), e);
-			storage.nukePageBuf(streamId);
+			log.error("Caught exception when starting download for " + sid, e);
+			storage.nukePageBuf(sid);
 			throw new RobonoboException(e);
 		} 
 		db.putDownload(d);
 		synchronized (dPriority) {
-			dPriority.add(s.getStreamId());
+			dPriority.add(sid);
 		}
 		updatePriorities();
 		synchronized (this) {
-			downloadStreamIds.add(s.getStreamId());
+			downloadStreamIds.add(sid);
 		}
-		event.fireTrackUpdated(s.getStreamId());
-		event.fireMyLibraryUpdated();
+		event.fireTrackUpdated(sid);
+		event.fireMyLibraryUpdated();		
 	}
-
+	
 	public void deleteDownload(String streamId) throws RobonoboException {
 		log.info("Deleting download for stream " + streamId);
 		playback.stopForDeletedStream(streamId);
