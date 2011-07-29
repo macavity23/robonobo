@@ -11,6 +11,8 @@ import org.apache.commons.logging.Log;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.robonobo.common.async.PushDataReceiver;
+import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.util.CodeUtil;
 import com.robonobo.common.util.NetUtil;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.core.api.proto.CoreApi.Node;
@@ -55,8 +57,7 @@ public class EonEndPointMgr implements EndPointMgr {
 		eonMgr = new EONManager("mina", mina.getExecutor(), udpPortToListen);
 		eonMgr.setMaxOutboundBps(mina.getConfig().getMaxOutboundBps());
 		if (mina.getConfig().getGatewayAddress() != null)
-			gatewayEp = new SeonEndPoint(InetAddress.getByName(mina.getConfig().getGatewayAddress()), mina.getConfig()
-					.getGatewayUdpPort(), LISTENER_EON_PORT);
+			gatewayEp = new SeonEndPoint(InetAddress.getByName(mina.getConfig().getGatewayAddress()), mina.getConfig().getGatewayUdpPort(), LISTENER_EON_PORT);
 		// If we're public or have a gateway, we don't need to bugger about with NAT traversal
 		if ((localAddrIsPublic()) || gatewayEp != null)
 			natTraversalDecided = true;
@@ -83,21 +84,88 @@ public class EonEndPointMgr implements EndPointMgr {
 	}
 
 	public boolean canConnectTo(Node node) {
-		// If I am public, I can connect t¤o anyone, by asking them to connect to me
+		// If I am public, I can connect to anyone, by asking them to connect to me
 		if (localAddrIsPublic() || gatewayEp != null)
 			return true;
 		for (EndPoint ep : node.getEndPointList()) {
-			if (isEonUrl(ep.getUrl())) {
-				EonEndPoint eonEp = parse(ep.getUrl());
-				if (eonEp instanceof SeonNatTraversalEndPoint) {
-					// Only connect if I support nat traversal
-					if (natTraversalEp != null)
-						return true;
-				} else if (eonEp instanceof SeonEndPoint)
-					return true;
-			}
+			if(canConnectTo(ep))
+				return true;
 		}
 		return false;
+	}
+
+	@Override
+	public boolean canConnectTo(EndPoint ep) {
+		if (isEonUrl(ep.getUrl())) {
+			EonEndPoint eonEp = parse(ep.getUrl());
+			if (eonEp instanceof SeonNatTraversalEndPoint) {
+				// Only connect if I support nat traversal
+				if (natTraversalEp != null)
+					return true;
+			} else if (eonEp instanceof SeonEndPoint)
+				return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public EndPoint getEndPointForConnectionTo(Node node, List<EndPoint> alreadyTriedEps, boolean indirectAllowed) {
+		// Go through the endpoints of this node. If there is an eon endpoint,
+		// connect to that, otherwise return null.
+		nextEp: for (EndPoint ep : node.getEndPointList()) {
+			if (isEonUrl(ep.getUrl())) {
+				if (alreadyTriedEps != null && alreadyTriedEps.contains(ep))
+					continue nextEp;
+				EonEndPoint eonEp = EonEndPoint.parse(ep.getUrl());
+				if (!(eonEp instanceof SeonEndPoint))
+					continue;
+				if (eonEp instanceof SeonNatTraversalEndPoint) {
+					if ((!natTraversalDecided) || natTraversalEp == null)
+						continue;
+				}
+				return ep;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public ControlConnection connectTo(Node node, EndPoint ep, boolean indirectAllowed) {
+		EonEndPoint eonEp = EonEndPoint.parse(ep.getUrl());
+		try {
+			if (!(eonEp instanceof SeonEndPoint))
+				throw new Errot("EonEndPointMgr cannot connect to endpoint class " + CodeUtil.shortClassName(eonEp.getClass()));
+			if (eonEp instanceof SeonNatTraversalEndPoint) {
+				if ((!natTraversalDecided) || natTraversalEp == null)
+					return null;
+				// w00t, let's do some NAT traversal
+				if (indirectAllowed) {
+					// We're traversing NATs at both ends, and we are the initiating node, so we send a 'NAT
+					// seed'. These packets contain no data, but open up the port on our NAT so that when their
+					// connection arrives, it's allowed through
+					InetSocketAddress natSeedEp = new InetSocketAddress(eonEp.getAddress(), eonEp.getUdpPort());
+					log.debug("Sending NAT seed to " + natSeedEp);
+					eonMgr.sendNATSeed(natSeedEp);
+					// Now we just return null - CCMgr.attemptConnection will then send a ReqConn, which should get
+					// through our NAT
+					return null;
+				}
+				// If we get here, we're doing NAT traversal and we have received the ReqConn - just connect as
+				// per normal, their NAT seed should have opened the NAT and allowed us to connect
+			}
+			log.info("Connecting to node " + node.getId() + " on " + eonEp.getUrl());
+			SEONConnection newConn = eonMgr.createSEONConnection();
+			EonSocketAddress theirSockAddr = new EonSocketAddress(eonEp.getAddress(), eonEp.getUdpPort(), eonEp.getEonPort());
+			newConn.connect(theirSockAddr);
+			EonSocketAddress mySockAddr = newConn.getLocalSocketAddress();
+			EonEndPoint myEp = new SeonEndPoint(mySockAddr.getAddress(), mySockAddr.getUdpPort(), mySockAddr.getEonPort());
+			EonConnectionFactory scm = new EonConnectionFactory(eonMgr, mina);
+			ControlConnection cc = new ControlConnection(mina, node, myEp.toMsg(), eonEp.toMsg(), newConn, scm);
+			return cc;
+		} catch (EONException e) {
+			log.error("Error creating eon control connection to " + eonEp);
+			return null;
+		}
 	}
 
 	public ControlConnection connectTo(Node node, List<EndPoint> alreadyTriedEps, boolean indirectAllowed) {
@@ -123,28 +191,25 @@ public class EonEndPointMgr implements EndPointMgr {
 							// We're traversing NATs at both ends, and we are the initiating node, so we send a 'NAT
 							// seed'. These packets contain no data, but open up the port on our NAT so that when their
 							// connection arrives, it's allowed through
-							InetSocketAddress natSeedEp = new InetSocketAddress(theirEp.getAddress(),
-									theirEp.getUdpPort());
+							InetSocketAddress natSeedEp = new InetSocketAddress(theirEp.getAddress(), theirEp.getUdpPort());
 							log.debug("Sending NAT seed to " + natSeedEp);
 							eonMgr.sendNATSeed(natSeedEp);
 							// Now we just return null - CCMgr.makeCCTo will then send a ReqConn, which should get
 							// through our NAT
 							return null;
-						} 
-						// If we get here, we're doing NAT traversal and we have received the ReqConn - just connect as per
+						}
+						// If we get here, we're doing NAT traversal and we have received the ReqConn - just connect as
+						// per
 						// normal, their NAT seed should have opened the NAT and allowed us to connect
 					}
 					log.info("Connecting to node " + node.getId() + " on " + theirEp.getUrl());
 					SEONConnection newConn = eonMgr.createSEONConnection();
-					EonSocketAddress theirSockAddr = new EonSocketAddress(theirEp.getAddress(), theirEp.getUdpPort(),
-							theirEp.getEonPort());
+					EonSocketAddress theirSockAddr = new EonSocketAddress(theirEp.getAddress(), theirEp.getUdpPort(), theirEp.getEonPort());
 					newConn.connect(theirSockAddr);
 					EonSocketAddress mySockAddr = newConn.getLocalSocketAddress();
-					EonEndPoint myEp = new SeonEndPoint(mySockAddr.getAddress(), mySockAddr.getUdpPort(),
-							mySockAddr.getEonPort());
+					EonEndPoint myEp = new SeonEndPoint(mySockAddr.getAddress(), mySockAddr.getUdpPort(), mySockAddr.getEonPort());
 					EonConnectionFactory scm = new EonConnectionFactory(eonMgr, mina);
-					ControlConnection cc = new ControlConnection(mina, node, myEp.toMsg(), theirEp.toMsg(), newConn,
-							scm);
+					ControlConnection cc = new ControlConnection(mina, node, myEp.toMsg(), theirEp.toMsg(), newConn, scm);
 					return cc;
 				} catch (EONException e) {
 					log.error("Error creating eon control connection to " + theirEp);
@@ -197,8 +262,7 @@ public class EonEndPointMgr implements EndPointMgr {
 			DatagramSocket sock = new DatagramSocket();
 			int locatorPort = mina.getConfig().getLocalLocatorUdpPort();
 			log.debug("Locating local nodes on UDP port " + locatorPort);
-			EonSocketAddress sourceEp = new EonSocketAddress(myListenEp.getAddress(), myListenEp.getUdpPort(),
-					myListenEp.getEonPort());
+			EonSocketAddress sourceEp = new EonSocketAddress(myListenEp.getAddress(), myListenEp.getUdpPort(), myListenEp.getEonPort());
 			EonSocketAddress destEp = new EonSocketAddress("255.255.255.255", locatorPort, LOCAL_LISTENER_EON_PORT);
 			Node myLocalNodeDesc = mina.getNetMgr().getLocalNodeDesc();
 			ByteBuffer payload = ByteBuffer.wrap(myLocalNodeDesc.toByteArray());
@@ -209,8 +273,7 @@ public class EonEndPointMgr implements EndPointMgr {
 			byte[] pktBytes = new byte[buf.limit()];
 			System.arraycopy(buf.array(), 0, pktBytes, 0, buf.limit());
 			sock.setBroadcast(true);
-			sock.send(new DatagramPacket(pktBytes, pktBytes.length, InetAddress.getByName("255.255.255.255"),
-					locatorPort));
+			sock.send(new DatagramPacket(pktBytes, pktBytes.length, InetAddress.getByName("255.255.255.255"), locatorPort));
 			sock.close();
 		} catch (Exception e) {
 			log.error("Caught " + e.getClass().getName() + " when locating local nodes: " + e.getMessage());
@@ -322,7 +385,6 @@ public class EonEndPointMgr implements EndPointMgr {
 				log.fatal("ERROR: caught EONException while listening for local nodes", e);
 				return;
 			}
-
 		}
 
 		public void stop() {
@@ -333,8 +395,7 @@ public class EonEndPointMgr implements EndPointMgr {
 		public void receiveData(ByteBuffer data, Object metadata) throws IOException {
 			EonSocketAddress theirSockAddr = (EonSocketAddress) metadata;
 			if (!NetUtil.getLocalInetAddresses(true).contains(theirSockAddr.getAddress())) {
-				log.error("SECURITY ERROR: Illegal handover attempt from non-local address "
-						+ theirSockAddr.getAddress().getHostAddress());
+				log.error("SECURITY ERROR: Illegal handover attempt from non-local address " + theirSockAddr.getAddress().getHostAddress());
 				return;
 			}
 			String msg = new String(data.array(), data.arrayOffset(), data.remaining());
@@ -371,13 +432,10 @@ public class EonEndPointMgr implements EndPointMgr {
 		public void onNewSEONConnection(EONConnectionEvent event) {
 			SEONConnection conn = (SEONConnection) event.getConnection();
 			EonSocketAddress localSockAddr = conn.getLocalSocketAddress();
-			EonEndPoint myEp = new SeonEndPoint(localSockAddr.getAddress(), localSockAddr.getUdpPort(),
-					localSockAddr.getEonPort());
+			EonEndPoint myEp = new SeonEndPoint(localSockAddr.getAddress(), localSockAddr.getUdpPort(), localSockAddr.getEonPort());
 			EonSocketAddress remoteSockAddr = conn.getRemoteSocketAddress();
-			EonEndPoint theirEp = new SeonEndPoint(remoteSockAddr.getAddress(), remoteSockAddr.getUdpPort(),
-					remoteSockAddr.getEonPort());
-			RemoteNodeHandler handler = new RemoteNodeHandler(mina, conn, myEp.toMsg(), theirEp.toMsg(),
-					connectionFactory);
+			EonEndPoint theirEp = new SeonEndPoint(remoteSockAddr.getAddress(), remoteSockAddr.getUdpPort(), remoteSockAddr.getEonPort());
+			RemoteNodeHandler handler = new RemoteNodeHandler(mina, conn, myEp.toMsg(), theirEp.toMsg(), connectionFactory);
 			handler.handle();
 		}
 	}

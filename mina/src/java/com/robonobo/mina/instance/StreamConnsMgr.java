@@ -402,7 +402,8 @@ public class StreamConnsMgr {
 		private String nid;
 
 		public GetCCAttempt(String sid, SourceStatus ss) {
-			super(mina.getExecutor(), mina.getConfig().getMessageTimeout() * 1000, "GetCCAttempt");
+			// This should never timeout, it should be handled by CCMgr, but just in case...
+			super(mina.getExecutor(), 2 * mina.getConfig().getConnectTimeout() * 1000, "GetCCAttempt");
 			this.sourceStat = ss;
 			this.sid = sid;
 			this.nid = ss.getFromNode().getId();
@@ -448,6 +449,7 @@ public class StreamConnsMgr {
 		 * @syncpriority 180
 		 */
 		protected void onTimeout() {
+			log.error("SCM.GetCCAttempt to "+nid+" for "+sid+" timed out!");
 			onFail();
 		}
 	}

@@ -32,7 +32,7 @@ public interface EndPointMgr {
 	 * Connect to the specified node, but don't use any of the endpoints in
 	 * alreadyTriedEps.
 	 * @param indirectAllowed Are we allowed to ask them to connect to us based on this ep (eg nat traversal) 
-	 * @return The newly-created cc, or null if no connection can be made using this endpoint
+	 * @return The newly-created cc, or null if no connection was made - if canConnectTo() returned true for this ep, this means send a ReqConn (we're doing nat traversal)
 	 */
 	public ControlConnection connectTo(Node node, List<EndPoint> alreadyTriedEps, boolean indirectAllowed);
 
@@ -51,4 +51,10 @@ public interface EndPointMgr {
 	/** Advised of my public details so I can decide if we can holepunch through NAT.
 	 * @return true if I now have an extra endpoint to advertise, false otherwise */
 	public boolean advisePublicDetails(PublicDetails publicDetails, EndPoint source);
+
+	public abstract ControlConnection connectTo(Node node, EndPoint ep, boolean indirectAllowed);
+
+	public abstract EndPoint getEndPointForConnectionTo(Node node, List<EndPoint> alreadyTriedEps, boolean indirectAllowed);
+
+	public abstract boolean canConnectTo(EndPoint ep);
 }

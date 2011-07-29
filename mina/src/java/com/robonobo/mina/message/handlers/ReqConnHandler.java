@@ -16,7 +16,7 @@ public class ReqConnHandler extends AbstractMessageHandler {
 			// TODO: #CC limits
 			Node fromNode = rc.getFromNode();
 			if(mina.getNetMgr().canConnectTo(fromNode))
-				mina.getCCM().makeCCTo(fromNode, null, false, null);
+				mina.getCCM().makeCCAsRequestedTo(fromNode);
 			else
 				log.error("Received ReqConn from node "+fromNode.getId()+", but I cannot connect to them");
 		}

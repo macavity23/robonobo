@@ -20,6 +20,7 @@ public class MinaConfig implements Cloneable, Serializable {
 	int messageMaxSize = 16384; // Bytes
 	int pageReadBufferSize = 262144; // Bytes
 	int messageTimeout = 30; // Seconds
+	int connectTimeout = 60; // Seconds
 	int initialBadNodeTimeout = 60; // Seconds
 	int locateNodesFreq = 120; // Seconds
 	int maxSources = 16; // Maximum number of sources to receive from - per
@@ -424,5 +425,13 @@ public class MinaConfig implements Cloneable, Serializable {
 
 	public void setMaxSourceQueryTime(int maxSourceQueryTime) {
 		this.maxSourceQueryTime = maxSourceQueryTime;
+	}
+
+	public int getConnectTimeout() {
+		return connectTimeout;
+	}
+
+	public void setConnectTimeout(int connectTimeout) {
+		this.connectTimeout = connectTimeout;
 	}
 }
