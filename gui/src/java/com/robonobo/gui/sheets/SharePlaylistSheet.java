@@ -16,11 +16,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.swing.SelectiveListSelectionModel;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.core.api.model.User;
+import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -36,6 +36,7 @@ public class SharePlaylistSheet extends Sheet {
 	private RButton cancelBtn;
 	private Log log = LogFactory.getLog(getClass());
 	private RobonoboController control;
+	private Vector<UserWrapper> friends;
 
 	public SharePlaylistSheet(RobonoboFrame frame, Playlist p) {
 		super(frame);
@@ -53,7 +54,7 @@ public class SharePlaylistSheet extends Sheet {
 		add(new RLabel14B("Share with:"), "1,5,3,5");
 		RLabel exFriendLbl = new RLabel12("Existing friends:");
 		add(exFriendLbl, "1,7,l,t");
-		Vector<UserWrapper> friends = new Vector<UserWrapper>();
+		friends = new Vector<UserWrapper>();
 		for (Long friendId : control.getMyUser().getFriendIds()) {
 			User user = control.getUser(friendId);
 			if (user != null)
@@ -61,14 +62,16 @@ public class SharePlaylistSheet extends Sheet {
 		}
 		friendList = new JList(friends);
 		friendList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		friendList.setSelectionModel(new MySelectionModel(friendList.getModel()));
-		friendList.setCellRenderer(new MyCellRenderer());
+		friendList.setSelectionModel(new FriendListSelectionModel());
+		friendList.setCellRenderer(new FriendListCellRenderer());
 		friendList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
 				shareBtn.setEnabled(targetSelected());
 			}
 		});
-		add(new JScrollPane(friendList), "3,7");
+		friendList.setBorder(BorderFactory.createLineBorder(RoboColor.DARK_GRAY));
+		JScrollPane flScrollPane = new JScrollPane(friendList);
+		add(flScrollPane, "3,7");
 
 		RLabel newFriendLbl = new RLabel12("New friends:");
 		add(newFriendLbl, "1,9");
@@ -174,27 +177,40 @@ public class SharePlaylistSheet extends Sheet {
 		}
 	}
 
-	private class MyCellRenderer extends DefaultListCellRenderer {
+	private class FriendListCellRenderer extends DefaultListCellRenderer {
 		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-			UserWrapper uw = (UserWrapper) value;
 			JLabel lbl = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-			if (p.getOwnerIds().contains(uw.u.getUserId()))
-				lbl.setEnabled(false);
 			lbl.setFont(RoboFont.getFont(12, false));
 			return lbl;
 		}
 	}
 
-	private class MySelectionModel extends SelectiveListSelectionModel {
-		public MySelectionModel(ListModel model) {
-			super(model);
+	private class FriendListSelectionModel extends DefaultListSelectionModel {
+		List<Integer> ownerIdxs = new ArrayList<Integer>();
+		public FriendListSelectionModel() {
+			for(int i=0;i<friends.size();i++) {
+				if(p.getOwnerIds().contains(friends.get(i).u.getUserId())) {
+					ownerIdxs.add(i);
+					super.addSelectionInterval(i, i);
+				}
+			}
 		}
-
+		
 		@Override
-		protected boolean isSelectable(Object obj) {
-			UserWrapper uw = (UserWrapper) obj;
-			// Folks who are already sharing cannot be selected
-			return (!p.getOwnerIds().contains(uw.u.getUserId()));
+		public void setSelectionInterval(int index0, int index1) {
+			super.setSelectionInterval(index0, index1);
+			// Can't deselect owners
+			for(int ownerIdx : ownerIdxs) {
+				addSelectionInterval(ownerIdx, ownerIdx);
+			}
+		}
+		
+		@Override
+		public void removeSelectionInterval(int index0, int index1) {
+			for(int i=index0;i<=index1;i++) {
+				if(!ownerIdxs.contains(i))
+					super.removeSelectionInterval(i, i);
+			}
 		}
 	}
 }
