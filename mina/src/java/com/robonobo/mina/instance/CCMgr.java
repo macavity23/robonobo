@@ -1,11 +1,6 @@
 package com.robonobo.mina.instance;
 
-import static com.robonobo.mina.message.MessageUtil.*;
-
 import java.util.*;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-
-import javax.swing.text.StyledEditorKit.ForegroundAction;
 
 import org.apache.commons.logging.Log;
 
@@ -15,7 +10,6 @@ import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.mina.external.ConnectedNode;
 import com.robonobo.mina.message.HelloHelper;
-import com.robonobo.mina.message.MessageUtil;
 import com.robonobo.mina.message.proto.MinaProtocol.ReqConn;
 import com.robonobo.mina.message.proto.MinaProtocol.ReqPublicDetails;
 import com.robonobo.mina.message.proto.MinaProtocol.WantSource;

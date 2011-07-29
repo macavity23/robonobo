@@ -126,7 +126,11 @@ public class LoginSheet extends Sheet implements LoginListener {
 		statusLbl.setForeground(RoboColor.DARKISH_GRAY);
 		statusLbl.setText("Logging in...");	
 		control.addLoginListener(this);
-		control.login(emailField.getText(), new String(passwordField.getPassword()));
+		control.getExecutor().execute(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				control.login(emailField.getText(), new String(passwordField.getPassword()));
+			}
+		});
 	}
 
 	public boolean getCancelAllowed() {

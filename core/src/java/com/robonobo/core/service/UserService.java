@@ -1,24 +1,20 @@
 package com.robonobo.core.service;
 
-import java.io.IOException;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
-import com.robonobo.common.serialization.*;
-import com.robonobo.core.api.*;
+import com.robonobo.common.serialization.TemporarilyUnavailableException;
+import com.robonobo.common.serialization.UnauthorizedException;
+import com.robonobo.common.util.CodeUtil;
+import com.robonobo.core.api.RobonoboStatus;
+import com.robonobo.core.api.Task;
 import com.robonobo.core.api.config.RobonoboConfig;
 import com.robonobo.core.api.model.*;
-import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
-import com.robonobo.core.api.proto.CoreApi.UserConfigMsg;
-import com.robonobo.core.api.proto.CoreApi.UserMsg;
 import com.robonobo.core.metadata.*;
 import com.robonobo.core.metadata.AbstractMetadataService.RequestFetchOrder;
 import com.robonobo.core.wang.RobonoboWangConfig;
@@ -181,6 +177,9 @@ public class UserService extends AbstractService {
 			} else if(e instanceof TemporarilyUnavailableException) {
 				log.error("Login server temporarily unavailable");
 				events.fireLoginFailed("Down for maintenance, please wait a few minutes");
+			} else if(e instanceof UnknownHostException || e instanceof NoRouteToHostException || e instanceof SocketException) {
+				log.error("Cannot connect to midas server "+rbnb.getConfig().getMidasUrl()+" - caught "+CodeUtil.shortClassName(e.getClass()));
+				events.fireLoginFailed("Cannot connect to server");
 			} else {
 				log.error("Caught exception logging in", e);
 				events.fireLoginFailed("Server error");
