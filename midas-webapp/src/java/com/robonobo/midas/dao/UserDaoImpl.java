@@ -54,7 +54,7 @@ public class UserDaoImpl extends MidasDao implements UserDao {
 	
 	@Override
 	public Long getUserCount() {
-		Query q = getSession().createQuery("select count(user) from MidasUser");
+		Query q = getSession().createQuery("select count(*) from MidasUser");
 		return (Long) q.uniqueResult();
 	}
 }
