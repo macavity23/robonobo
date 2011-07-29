@@ -84,4 +84,6 @@ public interface MidasService {
 	 * Returns message to be displayed to the requesting user
 	 */
 	public String requestAccountTopUp(long userId);
+
+	public abstract MidasInvite getInviteByEmail(String email);
 }

@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.robonobo.common.exceptions.Errot;
-import com.robonobo.common.util.TextUtil;
-import com.robonobo.core.api.model.*;
+import com.robonobo.core.api.model.Library;
+import com.robonobo.core.api.model.Playlist;
 import com.robonobo.midas.dao.*;
 import com.robonobo.midas.model.*;
 import com.robonobo.remote.service.MidasService;
@@ -309,6 +309,11 @@ public class LocalMidasService implements MidasService {
 		return inviteDao.retrieveByInviteCode(inviteCode);
 	}
 
+	@Override
+	public MidasInvite getInviteByEmail(String email) {
+		return inviteDao.retrieveByEmail(email);
+	}
+	
 	@Override
 	public Library getLibrary(MidasUser u, Date since) {
 		Library lib = libraryDao.getLibrary(u.getUserId());

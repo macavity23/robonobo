@@ -150,6 +150,13 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 		return inviteFromByteArr(arr);
 	}
 	
+	public MidasInvite getInviteByEmail(String email) {
+		byte[] arr = (byte[]) invoke("getInviteByEmail", email, null);
+		if(arr == null)
+			return null;
+		return inviteFromByteArr(arr);
+	}
+	
 	@Override
 	public Library getLibrary(MidasUser u, Date since) {
 		// We don't do library remoting yet
@@ -254,5 +261,6 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 	public List<MidasPlaylist> getRecentPlaylists(long maxAgeMs) {
 		return null;
 	}
+
 
 }
