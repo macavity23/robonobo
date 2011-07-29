@@ -12,8 +12,7 @@ import org.apache.log4j.PropertyConfigurator;
 
 import com.robonobo.common.concurrent.SafetyNet;
 import com.robonobo.common.serialization.ConfigBeanSerializer;
-import com.robonobo.common.util.ExceptionEvent;
-import com.robonobo.common.util.ExceptionListener;
+import com.robonobo.common.util.*;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.config.RobonoboConfig;
 import com.robonobo.core.itunes.ITunesService;
@@ -344,7 +343,7 @@ public class RobonoboInstance implements Robonobo {
 		File logDir = new File(homeDir, "logs");
 		if (!logDir.exists())
 			logDir.mkdir();
-		System.setProperty("robo.log.dir", logDir.getAbsolutePath());
+		System.setProperty("rbnb.log.dir", logDir.getAbsolutePath());
 		// If there isn't a log4j properties file in our homedir, copy one from
 		// the jar
 		try {
@@ -354,16 +353,11 @@ public class RobonoboInstance implements Robonobo {
 				// ignoring what we have on the filesystem
 				InputStream is = getClass().getResourceAsStream("/log4j.props.skel");
 				OutputStream os = new FileOutputStream(log4jCfgFile);
-				byte[] arr = new byte[1024];
-				int numRead;
-				while ((numRead = is.read(arr)) > 0)
-					os.write(arr, 0, numRead);
-				is.close();
-				os.close();
+				ByteUtil.streamDump(is, os);
 			}
 			PropertyConfigurator.configureAndWatch(log4jCfgFile.getAbsolutePath());
 			log = LogFactory.getLog(getClass());
-			log.fatal("O HAI!  robonobo starting using homedir " + homeDir.getAbsolutePath());
+			log.fatal("O HAI! robonobo starting using homedir " + homeDir.getAbsolutePath());
 			// Log uncaught exceptions in other threads
 			SafetyNet.addListener(new ExceptionListener() {
 				public void onException(ExceptionEvent e) {

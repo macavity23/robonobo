@@ -170,8 +170,9 @@
 		<fileset file="../common/lib/protobuf-java-2.3.0.jar"/>
 		<fileset file="../common/lib/hsqldb-j1.5-2.2.2.jar"/>
 		<fileset file="../common/lib/commons-logging-1.0.3.jar"/>
-		<fileset file="../common/lib/log4j-1.2.13.jar"/>
-		<fileset file="../common/lib/jug-1.1.2.jar"/>
+		<fileset file="../common/lib/log4j-1.2.16.jar"/>
+		<fileset file="../common/lib/log4j-rolling-appender-20110725.jar"/>
+	 	<fileset file="../common/lib/jug-1.1.2.jar"/>
 		<fileset file="../common/lib/httpclient-4.1.1.jar"/>
 		<fileset file="../common/lib/httpcore-4.1.jar"/>
 		<fileset file="../core/lib/weupnp-0.1.2-SNAPSHOT.jar"/>

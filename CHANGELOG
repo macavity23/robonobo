@@ -3,6 +3,7 @@
 * No longer uses separate homedir for dev versions (can still override with RBNB_HOME env variable)
 * Shows up/download speeds in gui status panel
 * Starts more downloads if existing ones are idle
+* Keeps 3 old logfiles for easier diagnosis
 
 0.5.6
 

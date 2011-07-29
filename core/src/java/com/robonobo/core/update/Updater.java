@@ -5,13 +5,14 @@ import static com.robonobo.common.util.FileUtil.*;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.sql.*;
-import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.PropertyConfigurator;
 
 import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.serialization.ConfigBeanSerializer;
+import com.robonobo.common.util.ByteUtil;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.service.DbService;
 import com.robonobo.mina.external.MinaConfig;
@@ -21,7 +22,7 @@ import com.robonobo.mina.external.MinaConfig;
  * @author macavity */
 @SuppressWarnings("unused")
 public class Updater {
-	static final int CURRENT_VERSION = 3;
+	static final int CURRENT_VERSION = 4;
 	private File homeDir;
 	Log log = LogFactory.getLog(getClass());
 
@@ -56,7 +57,7 @@ public class Updater {
 		int numRead = fis.read(buf);
 		String versionStr = new String(buf, 0, numRead);
 		fis.close();
-		return Integer.parseInt(versionStr);
+		return Integer.parseInt(versionStr.trim());
 	}
 
 	private void saveVersion() throws IOException {
@@ -110,6 +111,16 @@ public class Updater {
 		} catch (SQLException e) {
 			throw new IOException("Caught SQLException: "+e.getMessage());
 		}
+	}
+	
+	private void updateVersion3ToVersion4() throws IOException {
+		log.info("Updating robohome dir " + homeDir.getAbsolutePath() + " from version 3 to version 4");
+		// Update the log4j props to make sure we're using the new rolling appender
+		File l4jProps = new File(homeDir, "log4j.properties");
+		InputStream is = getClass().getResourceAsStream("/log4j.props.skel");
+		OutputStream os = new FileOutputStream(l4jProps);
+		ByteUtil.streamDump(is, os);
+		PropertyConfigurator.configureAndWatch(l4jProps.getAbsolutePath());
 	}
 	
 	private void compactPagesDb() throws SQLException {

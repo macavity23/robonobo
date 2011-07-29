@@ -23,12 +23,9 @@
 	<classpathentry exported="true" kind="lib" path="lib/hsqldb-j1.5-2.2.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/httpclient-4.1.1.jar" sourcepath="/Users/macavity/Downloads/httpcomponents-client-4.1.1-src/httpclient/src/main/java"/>
 	<classpathentry exported="true" kind="lib" path="lib/httpcore-4.1.jar" sourcepath="/Users/macavity/Downloads/httpcomponents-core-4.1.1/httpcore/src/main/java"/>
+	<classpathentry exported="true" kind="lib" path="lib/log4j-rolling-appender-20110725.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.16.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3.8.1"/>
-	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.13.jar">
-		<attributes>
-			<attribute name="org.eclipse.jst.component.dependency" value="../"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="lib/twmacinta-fastmd5.jar">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.dependency" value="../"/>
