@@ -4,6 +4,8 @@
 * Shows up/download speeds in gui status panel
 * Starts more downloads if existing ones are idle
 * Keeps 3 old logfiles for easier diagnosis
+* Fixed networking issues preventing some connections
+* Cosmetic UI improvements
 
 0.5.6
 
