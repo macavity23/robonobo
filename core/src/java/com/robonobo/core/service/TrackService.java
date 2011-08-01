@@ -1,32 +1,24 @@
 package com.robonobo.core.service;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
-import com.robonobo.core.api.*;
-import com.robonobo.core.api.AudioPlayer.Status;
+import com.robonobo.core.api.TransferSpeed;
+import com.robonobo.core.api.TransferSpeedListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.Track.PlaybackStatus;
 import com.robonobo.mina.external.MinaControl;
 
-/**
- * First point of call to get information about a track, whether we're sharing it, downloading it or it just exists in
+/** First point of call to get information about a track, whether we're sharing it, downloading it or it just exists in
  * the cloud.
  * 
  * Get shares and downloads from here rather than Share/Download service as they will then include info on whether
  * they're playing, and their transfer speeds
  * 
- * @author macavity
- * 
- */
+ * @author macavity */
 public class TrackService extends AbstractService implements TransferSpeedListener {
 	Log log = LogFactory.getLog(getClass());
 	private ShareService share;
@@ -61,11 +53,12 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 		playback = rbnb.getPlaybackService();
 		event = rbnb.getEventService();
 		mina = rbnb.getMina();
-		// Do this here rather than in shareservice as we
+		event.addTransferSpeedListener(this);
+		started = true;
+		// Do this here rather than in [share|download]service as we
 		// start after them and we need to be present to fire allTracksLoaded
 		share.startAllShares();
-		event.addTransferSpeedListener(this);
-		started  = true;
+		download.startAllDownloads();
 	}
 
 	@Override
@@ -87,21 +80,18 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 	public void shutdown() throws Exception {
 	}
 
-	/**
-	 * Don't hang onto the object you get returned from here - implement TrackListener, and look it up every time
+	/** Don't hang onto the object you get returned from here - implement TrackListener, and look it up every time
 	 * instead. That way we keep ram usage down and you always have the correct status (tracks start off as CloudTracks,
-	 * then become DownloadingTracks, then SharedTracks, plus they get played, then stopped, etc)
-	 */
+	 * then become DownloadingTracks, then SharedTracks, plus they get played, then stopped, etc) */
 	public Track getTrack(String streamId) {
 		// If we haven't started yet, just wait til we have
-		while(!started) {
+		while (!started) {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				throw new Errot(e);
 			}
 		}
-			
 		Track t;
 		// Are we sharing this track?
 		t = share.getShare(streamId);
@@ -153,7 +143,7 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 	public boolean haveAllSharesStarted() {
 		return allSharesStarted;
 	}
-	
+
 	public void setAllSharesStarted(boolean allSharesStarted) {
 		this.allSharesStarted = allSharesStarted;
 	}

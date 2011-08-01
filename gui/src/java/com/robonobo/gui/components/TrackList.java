@@ -472,7 +472,7 @@ public class TrackList extends JPanel {
 				if (d.getDownloadStatus() == DownloadStatus.Paused) {
 					pBar.setValue(0);
 					pBar.setEnabled(false);
-					pBar.setString("queued");
+					pBar.setString("Queued (" + numSources + ")");
 				} else {
 					pBar.setValue(pcnt);
 					pBar.setEnabled(true);

@@ -230,7 +230,7 @@ public class RobonoboController {
 	}
 
 	public List<String> getDownloads() {
-		return inst.getDbService().getDownloads();
+		return inst.getDbService().getDownloadSids();
 	}
 
 	public String getMimeTypeForFile(File f) {
