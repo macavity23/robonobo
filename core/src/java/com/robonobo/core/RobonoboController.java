@@ -470,9 +470,10 @@ public class RobonoboController {
 		return inst.getDbService().getPlaylistConfig(playlistId);
 	}
 
-	public void putPlaylistConfig(PlaylistConfig pc) {
-		inst.getDbService().putPlaylistConfig(pc);
-		inst.getPlaylistService().playlistConfigUpdated(pc.getPlaylistId());
+	public void putPlaylistConfig(PlaylistConfig newPc) {
+		PlaylistConfig oldPc = inst.getDbService().getPlaylistConfig(newPc.getPlaylistId());
+		inst.getDbService().putPlaylistConfig(newPc);
+		inst.getPlaylistService().playlistConfigUpdated(oldPc, newPc);
 	}
 
 	public void saveUserConfigItem(String itemName, String itemVal) {

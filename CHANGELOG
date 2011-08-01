@@ -1,5 +1,6 @@
 0.5.8
 * Fixed downloads not starting properly and in wrong order
+* Doesn't now make iTunes pop open unnecessarily
 
 0.5.7
 * Moved to new UPnP library for router auto-config - much better

@@ -240,7 +240,6 @@ public class PlaylistService extends AbstractService {
 				// We've loaded all our streams
 				events.firePlaylistChanged(p);
 				downloadTracksIfNecessary(p);
-				syncITunesIfNecessary(p);
 			}
 			if (pFetcher != null)
 				pFetcher.gotStream(sid);
@@ -319,14 +318,17 @@ public class PlaylistService extends AbstractService {
 			rbnb.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					for (Playlist p : affectedPs) {
-						syncITunesIfNecessary(p);
+						PlaylistConfig pc = rbnb.getDbService().getPlaylistConfig(p.getPlaylistId());
+						if(shouldITunesSync(pc))
+							syncITunesIfNecessary(p);
 					}
 				}
 			});
 		}
 	}
 
-	public void playlistConfigUpdated(long plId) {
+	public void playlistConfigUpdated(PlaylistConfig oldPc, PlaylistConfig newPc) {
+		long plId = newPc.getPlaylistId();
 		Playlist p;
 		synchronized(this) {
 			p = playlists.get(plId);
@@ -336,22 +338,26 @@ public class PlaylistService extends AbstractService {
 			return;
 		}
 		downloadTracksIfNecessary(p);
-		syncITunesIfNecessary(p);
+		// Only call to iTunes if necessary as this causes the iTunes program to pop open
+		if(shouldITunesSync(newPc) && !shouldITunesSync(oldPc))
+			syncITunesIfNecessary(p);
 	}
 	
+		
 	private void syncITunesIfNecessary(Playlist p) {
 		try {
-			PlaylistConfig pc = getRobonobo().getDbService().getPlaylistConfig(p.getPlaylistId());
-			if ("true".equalsIgnoreCase(pc.getItem("iTunesExport"))) {
-				for (Long ownerId : p.getOwnerIds()) {
-					User owner = rbnb.getUserService().getUser(ownerId);
-					if(owner != null)
-						rbnb.getITunesService().syncPlaylist(owner, p);
-				}
+			for (Long ownerId : p.getOwnerIds()) {
+				User owner = rbnb.getUserService().getUser(ownerId);
+				if(owner != null)
+					rbnb.getITunesService().syncPlaylist(owner, p);
 			}
 		} catch (IOException e) {
 			log.error("Error syncing playlist id " + p.getPlaylistId() + " to itunes");
 		}
+	}
+
+	private boolean shouldITunesSync(PlaylistConfig pc) {
+		return "true".equalsIgnoreCase(pc.getItem("iTunesExport"));
 	}
 
 	private void downloadTracksIfNecessary(Playlist p) {
