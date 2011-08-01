@@ -32,7 +32,6 @@ import ca.odell.glazedlists.swing.TableComparatorChooser;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.Platform;
-import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
 import com.robonobo.core.api.model.Track.PlaybackStatus;
@@ -333,15 +332,18 @@ public class TrackList extends JPanel {
 			if (action.equals("play"))
 				frame.getPlaybackPanel().playSelectedTracks();
 			else if (action.equals("download")) {
+				final List<String> dlSids = new ArrayList<String>();
 				for (Track t : getSelectedTracks()) {
-					if (t instanceof CloudTrack) {
-						try {
-							frame.getController().addDownload(t.getStream().getStreamId());
-						} catch (RobonoboException ex) {
-							log.error("Caught exception adding download from popup menu", ex);
+					if (t instanceof CloudTrack)
+						dlSids.add(t.getStream().getStreamId());
+				}
+				frame.getController().getExecutor().execute(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						for(String sid : dlSids) {
+							frame.getController().addDownload(sid);
 						}
 					}
-				}
+				});
 			} else if (action.equals("newpl")) {
 				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel().getContentPanel("newplaylist");
 				cp.addTracks(getSelectedStreamIds());

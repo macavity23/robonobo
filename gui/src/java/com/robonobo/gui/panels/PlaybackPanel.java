@@ -5,20 +5,19 @@ import static com.robonobo.gui.RoboColor.*;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.RobonoboController;
-import com.robonobo.core.api.*;
+import com.robonobo.core.api.PlaybackListener;
+import com.robonobo.core.api.TrackListener;
 import com.robonobo.core.api.model.*;
-import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.PlaybackProgressBar;
 import com.robonobo.gui.components.TrackList;
 import com.robonobo.gui.components.base.*;
@@ -127,15 +126,18 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 				TrackList tl = frame.getMainPanel().currentContentPanel().getTrackList();
 				if (tl != null) {
 					List<String> selSids = tl.getSelectedStreamIds();
+					final List<String> dlSids = new ArrayList<String>();
 					for (String sid : selSids) {
 						Track t = control.getTrack(sid);
-						try {
-							if (t instanceof CloudTrack)
-								control.addDownload(sid);
-						} catch (RobonoboException ex) {
-							log.error("Error adding download", ex);
-						}
+						if (t instanceof CloudTrack)
+							dlSids.add(sid);
 					}
+					control.getExecutor().execute(new CatchingRunnable() {
+						public void doRun() throws Exception {
+							for(String sid : dlSids)
+								control.addDownload(sid);
+						}
+					});
 				}
 			}
 		});
