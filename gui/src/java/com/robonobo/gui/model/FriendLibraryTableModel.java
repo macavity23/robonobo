@@ -55,12 +55,12 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	}
 	
 	@Override
-	public void trackUpdated(String streamId, Track t) {
-		if (containsTrack(streamId)) {
+	public void trackUpdated(String sid, Track t) {
+		if (containsTrack(sid)) {
 			// We can't set our date on this track as it will be re-used in other places - clone it instead
-			t = t.clone();
-			t.setDateAdded(lib.getTracks().get(streamId));
-			super.trackUpdated(streamId, t);
+			Track ct = t.clone();
+			ct.setDateAdded(lib.getTracks().get(sid));
+			super.trackUpdated(sid, ct);
 		}
 	}
 
