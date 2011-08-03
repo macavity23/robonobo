@@ -1,7 +1,6 @@
 package com.robonobo.core.api.model;
 
 import java.io.File;
-import java.util.Date;
 
 import com.robonobo.mina.external.buffer.PageBuffer;
 
@@ -29,6 +28,8 @@ public class DownloadingTrack extends Track {
 		super(t);
 		file = t.file;
 		downloadStatus = t.downloadStatus;
+		pageBuf = t.pageBuf;
+		numSources = t.numSources;
 	}
 	
 	@Override

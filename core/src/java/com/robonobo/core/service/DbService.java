@@ -373,7 +373,7 @@ public class DbService extends AbstractService {
 	}
 
 	/** @return All downloads, sorted first-started-first */
-	public List<String> getDownloads() {
+	public List<String> getDownloadSids() {
 		if (!running)
 			return null;
 		Connection conn = null;

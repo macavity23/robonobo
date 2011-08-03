@@ -174,11 +174,11 @@ public class LocalMidasService implements MidasService {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	public void savePlaylist(MidasPlaylist playlist) {
-		if (playlist.getPlaylistId() <= 0)
+	public void savePlaylist(MidasPlaylist p) {
+		if (p.getPlaylistId() <= 0)
 			throw new Errot("playlist id is not set");
-		preventPlaylistXSS(playlist);
-		playlistDao.savePlaylist(playlist);
+		preventPlaylistXSS(p);
+		playlistDao.savePlaylist(p);
 	}
 
 	private void preventPlaylistXSS(MidasPlaylist p) {

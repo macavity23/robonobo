@@ -3,10 +3,7 @@ package com.robonobo.midas.controller;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -14,20 +11,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.api.model.Library;
 import com.robonobo.core.api.model.UserConfig;
 import com.robonobo.core.api.proto.CoreApi.LibraryMsg;
 import com.robonobo.midas.EventService;
-import com.robonobo.midas.LocalMidasService;
+import com.robonobo.midas.NotificationService;
 import com.robonobo.midas.model.MidasLibrary;
 import com.robonobo.midas.model.MidasUser;
-import com.robonobo.remote.service.MidasService;
 
 @Controller
 public class LibraryController extends BaseController {
 	@Autowired
 	EventService event;
+	@Autowired
+	NotificationService notification;
 	
 	@RequestMapping("/library/{userIdStr}")
 	public void getLibrary(@PathVariable("userIdStr") String userIdStr,
@@ -90,6 +87,7 @@ public class LibraryController extends BaseController {
 		LibraryMsg msg = b.build();
 		Library newLib = new MidasLibrary(msg);
 		Library currentLib = midas.getLibrary(authUser, null);
+		int numTrax = newLib.getTracks().size();
 		if ("add".equals(verb)) {
 			if (currentLib == null) {
 				newLib.setUserId(authUser.getUserId());
@@ -100,8 +98,9 @@ public class LibraryController extends BaseController {
 				}
 				midas.putLibrary(currentLib);
 			}
-			log.info("User " + authUser.getEmail() + " added " + newLib.getTracks().size() + " tracks to their library");
-			event.addedToLibrary(authUser, newLib.getTracks().size());
+			log.info("User " + authUser.getEmail() + " added " + numTrax + " tracks to their library");
+			event.addedToLibrary(authUser, numTrax);
+			notification.addedToLibrary(authUser, numTrax);
 		} else if ("del".equals(verb)) {
 			if (currentLib != null) {
 				for (String sid : newLib.getTracks().keySet()) {
@@ -109,9 +108,9 @@ public class LibraryController extends BaseController {
 				}
 				midas.putLibrary(currentLib);
 			}
-			log.info("User " + authUser.getEmail() + " removed " + newLib.getTracks().size()
+			log.info("User " + authUser.getEmail() + " removed " + numTrax
 					+ " tracks from their library");
-			event.removedFromLibrary(authUser, newLib.getTracks().size());
+			event.removedFromLibrary(authUser, numTrax);
 		} else
 			send404(req, resp);
 

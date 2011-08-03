@@ -1,3 +1,9 @@
+0.5.8
+* Fixed downloads not starting properly and in wrong order
+* Doesn't now make iTunes pop open unnecessarily
+* Doesn't hang user interface starting lots of downloads at once
+* Fixed download progress not showing properly in friends' libraries
+
 0.5.7
 * Moved to new UPnP library for router auto-config - much better
 * No longer uses separate homedir for dev versions (can still override with RBNB_HOME env variable)

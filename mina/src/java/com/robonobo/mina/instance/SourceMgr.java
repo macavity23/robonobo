@@ -8,7 +8,6 @@ import org.apache.commons.logging.Log;
 
 import com.robonobo.common.concurrent.*;
 import com.robonobo.core.api.proto.CoreApi.Node;
-import com.robonobo.mina.instance.SourceMgr.ReqSourceStatusBatcher;
 import com.robonobo.mina.message.proto.MinaProtocol.DontWantSource;
 import com.robonobo.mina.message.proto.MinaProtocol.ReqSourceStatus;
 import com.robonobo.mina.message.proto.MinaProtocol.SourceStatus;
@@ -23,7 +22,8 @@ public class SourceMgr {
 	static final int SOURCE_CHECK_FREQ = 30; // Secs
 	private MinaInstance mina;
 	Log log;
-	private Map<String, Set<SourceStatus>> readySources = new HashMap<String, Set<SourceStatus>>();
+	/** Map<StreamId, Map<NodeId, SourceStatus>> - oh for typedefs */
+	private Map<String, Map<String, SourceStatus>> readySources = new HashMap<String, Map<String, SourceStatus>>();
 	/** Stream IDs that want sources */
 	private Set<String> wantSources = new HashSet<String>();
 	/** Information on possible sources, including when to query them next */
@@ -291,22 +291,22 @@ public class SourceMgr {
 	/** Called when this source is good to service us, but we are not ready or able to handle it */
 	public synchronized void cacheSourceUntilReady(SourceStatus sourceStat, StreamStatus streamStat) {
 		if (!readySources.containsKey(streamStat.getStreamId()))
-			readySources.put(streamStat.getStreamId(), new HashSet<SourceStatus>());
-		readySources.get(streamStat.getStreamId()).add(sourceStat);
+			readySources.put(streamStat.getStreamId(), new HashMap<String,SourceStatus>());
+		readySources.get(streamStat.getStreamId()).put(sourceStat.getFromNode().getId(), sourceStat);
 	}
 
 	/** Returns the set of ready sources, and removes trace of them - if you want to cache them, add them again */
 	public synchronized Set<SourceStatus> getReadySources(String streamId) {
 		Set<SourceStatus> result = new HashSet<SourceStatus>();
 		if (readySources.containsKey(streamId))
-			result.addAll(readySources.remove(streamId));
+			result.addAll(readySources.remove(streamId).values());
 		return result;
 	}
 
 	/** Returns the set of ready nodes, but doesn't remove trace of them */
 	public synchronized Set<Node> getReadyNodes(String streamId) {
 		Set<Node> result = new HashSet<Node>();
-		for (SourceStatus ss : readySources.get(streamId)) {
+		for (SourceStatus ss : readySources.get(streamId).values()) {
 			result.add(ss.getFromNode());
 		}
 		return result;
@@ -315,11 +315,8 @@ public class SourceMgr {
 	/** Returns the set of ready nodes, but doesn't remove trace of them */
 	public synchronized Set<String> getReadyNodeIds(String streamId) {
 		Set<String> result = new HashSet<String>();
-		if (readySources.containsKey(streamId)) {
-			for (SourceStatus ss : readySources.get(streamId)) {
-				result.add(ss.getFromNode().getId());
-			}
-		}
+		if (readySources.containsKey(streamId))
+			result.addAll(readySources.get(streamId).keySet());
 		return result;
 	}
 

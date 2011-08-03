@@ -2,8 +2,7 @@ package com.robonobo.midas;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -18,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.ServletContextAware;
 
-import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.midas.model.*;
 import com.robonobo.remote.service.MidasService;
@@ -118,7 +116,7 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 		Map model = newModel(toUser.getFriendlyName(), toUser.getEmail());
 		model.put("fromUser", fromUser);
 		model.put("playlist", p);
-		model.put("playlistUrl", appConfig.getInitParam("playlistShortUrlBase") + Long.toHexString(p.getPlaylistId()));
+		model.put("playlistUrl", playlistUrl(p));
 		sendMail(fromUser.getEmail(),
 				fromUser.getFriendlyName(),
 				toUser.getEmail(),
@@ -128,6 +126,56 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 				model);
 	}
 
+	@Override
+	public void sendPlaylistNotification(MidasUser updateUser, MidasUser notifyUser, Playlist p) throws IOException {
+		Map model = newModel(notifyUser.getFriendlyName(), notifyUser.getEmail());
+		model.put("updateUser", updateUser);
+		model.put("playlist", p);
+		model.put("playlistUrl", playlistUrl(p));
+		sendMail(updateUser.getEmail(), updateUser.getFriendlyName(), notifyUser.getEmail(), notifyUser.getFriendlyName(), updateUser.getFriendlyName()
+				+ " updated their playlist '" + p.getTitle() + "'", "playlist-notif", model);
+	}
+
+	private String playlistUrl(Playlist p) {
+		return appConfig.getInitParam("playlistShortUrlBase") + Long.toHexString(p.getPlaylistId());
+	}
+
+	@Override
+	public void sendLibraryNotification(MidasUser updateUser, MidasUser notifyUser, int numTrax) throws IOException {
+		Map model = newModel(notifyUser.getFriendlyName(), notifyUser.getEmail());
+		model.put("updateUser", updateUser);
+		model.put("numTrax", numTrax);
+		sendMail(updateUser.getEmail(), updateUser.getFriendlyName(), notifyUser.getEmail(), notifyUser.getFriendlyName(), updateUser.getFriendlyName()
+				+ " added to their music library", "library-notif", model);
+	}
+
+	@Override
+	public void sendCombinedNotification(MidasUser notifyUser, Map<MidasUser, Integer> libTraxAdded, Map<Long, List<Playlist>> playlists) throws IOException {
+		List<Map<String, Object>> updateUsers = new ArrayList<Map<String,Object>>();
+		boolean havePlaylists = false;
+		for(MidasUser updateUser : libTraxAdded.keySet()) {
+			Map<String, Object> userMap = new HashMap<String, Object>();
+			userMap.put("friendlyName", updateUser.getFriendlyName());
+			userMap.put("email", updateUser.getEmail());
+			userMap.put("numLibTrax", libTraxAdded.get(updateUser));
+			List<Playlist> pObjList = playlists.get(updateUser.getUserId());
+			List<Map<String,String>> pl = new ArrayList<Map<String,String>>();
+			for(Playlist p : pObjList) {
+				havePlaylists = true;
+				Map<String, String> pm = new HashMap<String, String>();
+				pm.put("title", p.getTitle());
+				pm.put("url", playlistUrl(p));
+				pl.add(pm);
+			}
+			userMap.put("playlists", pl);
+			updateUsers.add(userMap);
+		}
+		Map model = newModel(notifyUser.getFriendlyName(), notifyUser.getEmail());
+		model.put("users", updateUsers);
+		model.put("havePlaylists", havePlaylists);
+		sendMail(null, null, notifyUser.getEmail(), notifyUser.getFriendlyName(), "Your friends have added music to robonobo", "combined-notif", model);
+	}
+	
 	@Override
 	public void sendFriendConfirmation(MidasUser userSentFriendReq, MidasUser userConfirmedFriendReq) throws IOException {
 		Map model = newModel(userSentFriendReq.getFriendlyName(), userSentFriendReq.getEmail());

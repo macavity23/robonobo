@@ -343,6 +343,8 @@ public class RobonoboInstance implements Robonobo {
 		File logDir = new File(homeDir, "logs");
 		if (!logDir.exists())
 			logDir.mkdir();
+		// Add the old property as well for updating
+		System.setProperty("robo.log.dir", logDir.getAbsolutePath());
 		System.setProperty("rbnb.log.dir", logDir.getAbsolutePath());
 		// If there isn't a log4j properties file in our homedir, copy one from
 		// the jar

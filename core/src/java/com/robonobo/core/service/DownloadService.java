@@ -13,12 +13,10 @@ import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
-import com.robonobo.common.util.TimeUtil;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.StreamVelocity;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
-import com.robonobo.core.metadata.AbstractMetadataService;
 import com.robonobo.core.metadata.StreamCallback;
 import com.robonobo.core.storage.StorageService;
 import com.robonobo.mina.external.*;
@@ -40,11 +38,12 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	private ShareService share;
 	private EventService event;
 	private PlaybackService playback;
-	private Set<String> downloadStreamIds;
+	private Set<String> downloadSids;
 	private Set<String> preFetchStreamIds;
 	/** Saves downloads in the order they are added, to make sure they're downloaded in order */
 	private List<String> dPriority = new ArrayList<String>();
-	/** Don't fire the track updated event after receiving a page more than once per sec, to avoid spamming the gui with local downloads */
+	/** Don't fire the track updated event after receiving a page more than once per sec, to avoid spamming the gui with
+	 * local downloads */
 	private Map<String, Date> lastFiredPageEvent = new HashMap<String, Date>();
 	/** Make sure that we don't add two downloads with the same start time, to ensure they're restored from the db in the
 	 * right order. So, keep track of the last download time, and if it hasn't increased, add 1ms to ensure uniqueness */
@@ -69,61 +68,78 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		share = rbnb.getShareService();
 		event = rbnb.getEventService();
 		playback = rbnb.getPlaybackService();
-		downloadStreamIds = new HashSet<String>();
-		downloadStreamIds.addAll(db.getDownloads());
+		downloadSids = new HashSet<String>();
 		preFetchStreamIds = new HashSet<String>();
 		downloadsDir = new File(rbnb.getHomeDir(), "in-progress");
 		downloadsDir.mkdir();
-		int numStarted = 0;
-		for (String sid : downloadStreamIds) {
-			DownloadingTrack d = db.getDownload(sid);
-			if (d.getDownloadStatus() == DownloadStatus.Finished) {
-				db.deleteDownload(sid);
-				continue;
-			}
-			PageBuffer pb = storage.getPageBuf(d.getStream().getStreamId());
-			d.setPageBuf(pb);
-			// If we died or got kill-9d at the wrong point, we might be 100%
-			// finished downloading - turn it into a share here, or it'll never
-			// get added
-			if (pb.isComplete()) {
-				share.addShareFromCompletedDownload(d);
-				db.deleteDownload(sid);
-				continue;
-			}
-			synchronized (dPriority) {
-				dPriority.add(d.getStream().getStreamId());
-			}
-			if (numStarted < rbnb.getConfig().getMaxRunningDownloads()) {
-				startDownload(d, pb);
-				numStarted++;
-			} else
-				log.debug("Queuing download for "+sid);
-		}
-		updatePriorities();
-		if(rbnb.getConfig().getDownloadCheckFreq() > 0) {
-			int freqMs = rbnb.getConfig().getDownloadCheckFreq();
-			checkDownloadsTask = rbnb.getExecutor().scheduleAtFixedRate(new CatchingRunnable() {
-				public void doRun() throws Exception {
-					startMoreDownloads();
-				}
-			}, freqMs, freqMs, TimeUnit.SECONDS);
-		}
+		// Downloads get started once trackservice is up and running
 	}
 
 	@Override
 	public void shutdown() throws Exception {
-		if(checkDownloadsTask != null)
+		if (checkDownloadsTask != null)
 			checkDownloadsTask.cancel(true);
-		for (String streamId : db.getDownloads()) {
+		for (String streamId : db.getDownloadSids()) {
 			DownloadingTrack dl = getDownload(streamId);
 			stopDownload(dl);
 		}
 	}
 
+	public void startAllDownloads() throws RobonoboException {
+		// We could taskify this but we're unlikely to have enough downloads to make it worth it
+		rbnb.getExecutor().execute(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				int numStarted = 0;
+				// This list is in order of date started
+				List<String> dlSidList = db.getDownloadSids();
+				for (String sid : dlSidList){ 
+					DownloadingTrack d = db.getDownload(sid);
+					if (d.getDownloadStatus() == DownloadStatus.Finished) {
+						db.deleteDownload(sid);
+						continue;
+					}
+					PageBuffer pb = storage.getPageBuf(d.getStream().getStreamId());
+					d.setPageBuf(pb);
+					// If we died or got kill-9d at the wrong point, we might be 100%
+					// finished downloading - turn it into a share here, or it'll never
+					// get added
+					if (pb.isComplete()) {
+						share.addShareFromCompletedDownload(d);
+						db.deleteDownload(sid);
+						continue;
+					}
+					synchronized (dPriority) {
+						dPriority.add(d.getStream().getStreamId());
+					}
+					synchronized(this) {
+						downloadSids.add(sid);
+					}
+					if (numStarted < rbnb.getConfig().getMaxRunningDownloads()) {
+						startDownload(d, pb);
+						numStarted++;
+					} else {
+						d.setDownloadStatus(DownloadStatus.Paused);
+						db.putDownload(d);
+						log.debug("Queuing download for " + sid);
+					}
+					rbnb.getEventService().fireTrackUpdated(sid);
+				}
+				updatePriorities();
+				if (rbnb.getConfig().getDownloadCheckFreq() > 0) {
+					int freqMs = rbnb.getConfig().getDownloadCheckFreq();
+					checkDownloadsTask = rbnb.getExecutor().scheduleAtFixedRate(new CatchingRunnable() {
+						public void doRun() throws Exception {
+							startMoreDownloads();
+						}
+					}, freqMs, freqMs, TimeUnit.SECONDS);
+				}
+			}
+		});
+	}
+
 	public void addDownload(String sid) throws RobonoboException {
 		Stream s = streams.getKnownStream(sid);
-		if(s != null)
+		if (s != null)
 			addDownload(s);
 		else {
 			streams.fetchStreams(Arrays.asList(sid), new StreamCallback() {
@@ -131,12 +147,12 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 					try {
 						addDownload(s);
 					} catch (RobonoboException e) {
-						log.error("Error adding download for stream "+s.getStreamId(), e);
+						log.error("Error adding download for stream " + s.getStreamId(), e);
 					}
 				}
-				
+
 				public void error(String sid, Exception e) {
-					log.error("Error fetching stream for downloading "+sid, e);
+					log.error("Error fetching stream for downloading " + sid, e);
 				}
 			});
 		}
@@ -164,19 +180,19 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 			log.error("Caught exception when starting download for " + sid, e);
 			storage.nukePageBuf(sid);
 			throw new RobonoboException(e);
-		} 
+		}
 		db.putDownload(d);
 		synchronized (dPriority) {
 			dPriority.add(sid);
 		}
 		updatePriorities();
 		synchronized (this) {
-			downloadStreamIds.add(sid);
+			downloadSids.add(sid);
 		}
 		event.fireTrackUpdated(sid);
-		event.fireMyLibraryUpdated();		
+		event.fireMyLibraryUpdated();
 	}
-	
+
 	public void deleteDownload(String streamId) throws RobonoboException {
 		log.info("Deleting download for stream " + streamId);
 		playback.stopForDeletedStream(streamId);
@@ -190,7 +206,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		}
 		updatePriorities();
 		synchronized (this) {
-			downloadStreamIds.remove(streamId);
+			downloadSids.remove(streamId);
 		}
 		event.fireTrackUpdated(streamId);
 		event.fireMyLibraryUpdated();
@@ -212,7 +228,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 				dPriority.remove(sid);
 			}
 			synchronized (this) {
-				downloadStreamIds.remove(sid);
+				downloadSids.remove(sid);
 			}
 			event.fireTrackUpdated(sid);
 		}
@@ -280,7 +296,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 
 	public DownloadingTrack getDownload(String streamId) {
 		synchronized (this) {
-			if (!downloadStreamIds.contains(streamId))
+			if (!downloadSids.contains(streamId))
 				return null;
 		}
 		DownloadingTrack d = rbnb.getDbService().getDownload(streamId);
@@ -310,7 +326,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 		}
 		updatePriorities();
 		synchronized (this) {
-			downloadStreamIds.remove(streamId);
+			downloadSids.remove(streamId);
 			lastFiredPageEvent.remove(streamId);
 		}
 		try {
@@ -413,7 +429,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	public void gotPage(PageBuffer pb, long pageNum) {
 		synchronized (this) {
 			Date lastEvt = lastFiredPageEvent.get(pb.getStreamId());
-			if(lastEvt != null && msElapsedSince(lastEvt) < 1000)
+			if (lastEvt != null && msElapsedSince(lastEvt) < 1000)
 				return;
 			lastFiredPageEvent.put(pb.getStreamId(), now());
 		}
