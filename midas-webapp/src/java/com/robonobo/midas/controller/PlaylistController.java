@@ -4,10 +4,7 @@ import static com.robonobo.common.util.TextUtil.*;
 import static com.robonobo.common.util.TimeUtil.*;
 
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -16,15 +13,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import com.robonobo.common.exceptions.Errot;
-import com.robonobo.common.util.TextUtil;
-import com.robonobo.common.util.TimeUtil;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.core.api.model.User;
 import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
 import com.robonobo.midas.*;
 import com.robonobo.midas.model.*;
-import com.robonobo.remote.service.MidasService;
 
 @Controller
 public class PlaylistController extends BaseController {
@@ -34,6 +27,8 @@ public class PlaylistController extends BaseController {
 	FacebookService facebook;
 	@Autowired
 	TwitterService twitter;
+	@Autowired
+	NotificationService notification;
 
 	@RequestMapping(value = "/playlists/{pIdStr}", method = RequestMethod.GET)
 	public void getPlaylist(@PathVariable("pIdStr") String pIdStr, HttpServletRequest req, HttpServletResponse resp)
@@ -116,6 +111,7 @@ public class PlaylistController extends BaseController {
 			log.info(u.getEmail() + " updated playlist " + playlistId);
 			event.playlistUpdated(u, currentP);
 		}
+		notification.playlistUpdated(u, mp);
 	}
 
 	@RequestMapping(value = "/playlists/{pIdStr}", method = RequestMethod.DELETE)
