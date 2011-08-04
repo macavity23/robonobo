@@ -12,7 +12,7 @@ public interface UserConfigDao {
 	
 	public abstract void saveUserConfig(MidasUserConfig config);
 
-	public abstract void deleteUserConfig(MidasUserConfig config);
+	public abstract void deleteUserConfig(long userId);
 
 	public abstract List<MidasUserConfig> getUserConfigsWithKey(String key);
 
