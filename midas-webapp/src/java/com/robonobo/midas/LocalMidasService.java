@@ -139,6 +139,8 @@ public class LocalMidasService implements MidasService {
 		for (MidasFriendRequest fr : frs) {
 			friendRequestDao.delete(fr);
 		}
+		// Delete their userconfig
+		userConfigDao.deleteUserConfig(userId);
 		// Finally, delete the user itself
 		userDao.delete(u);
 	}
@@ -313,7 +315,7 @@ public class LocalMidasService implements MidasService {
 	public MidasInvite getInviteByEmail(String email) {
 		return inviteDao.retrieveByEmail(email);
 	}
-	
+
 	@Override
 	public Library getLibrary(MidasUser u, Date since) {
 		Library lib = libraryDao.getLibrary(u.getUserId());
