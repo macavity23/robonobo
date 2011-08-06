@@ -6669,6 +6669,496 @@ public final class CoreApi {
     // @@protoc_insertion_point(class_scope:coreapi.UpdateMsg)
   }
   
+  public static final class CommentMsg extends
+      com.google.protobuf.GeneratedMessage {
+    // Use CommentMsg.newBuilder() to construct.
+    private CommentMsg() {
+      initFields();
+    }
+    private CommentMsg(boolean noInit) {}
+    
+    private static final CommentMsg defaultInstance;
+    public static CommentMsg getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public CommentMsg getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.robonobo.core.api.proto.CoreApi.internal_static_coreapi_CommentMsg_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.robonobo.core.api.proto.CoreApi.internal_static_coreapi_CommentMsg_fieldAccessorTable;
+    }
+    
+    // required int64 comment_id = 1;
+    public static final int COMMENT_ID_FIELD_NUMBER = 1;
+    private boolean hasCommentId;
+    private long commentId_ = 0L;
+    public boolean hasCommentId() { return hasCommentId; }
+    public long getCommentId() { return commentId_; }
+    
+    // required string resource_id = 2;
+    public static final int RESOURCE_ID_FIELD_NUMBER = 2;
+    private boolean hasResourceId;
+    private java.lang.String resourceId_ = "";
+    public boolean hasResourceId() { return hasResourceId; }
+    public java.lang.String getResourceId() { return resourceId_; }
+    
+    // required int64 user_id = 3;
+    public static final int USER_ID_FIELD_NUMBER = 3;
+    private boolean hasUserId;
+    private long userId_ = 0L;
+    public boolean hasUserId() { return hasUserId; }
+    public long getUserId() { return userId_; }
+    
+    // optional int64 parent_id = 4;
+    public static final int PARENT_ID_FIELD_NUMBER = 4;
+    private boolean hasParentId;
+    private long parentId_ = 0L;
+    public boolean hasParentId() { return hasParentId; }
+    public long getParentId() { return parentId_; }
+    
+    // required int64 date = 5;
+    public static final int DATE_FIELD_NUMBER = 5;
+    private boolean hasDate;
+    private long date_ = 0L;
+    public boolean hasDate() { return hasDate; }
+    public long getDate() { return date_; }
+    
+    // required string text = 6;
+    public static final int TEXT_FIELD_NUMBER = 6;
+    private boolean hasText;
+    private java.lang.String text_ = "";
+    public boolean hasText() { return hasText; }
+    public java.lang.String getText() { return text_; }
+    
+    private void initFields() {
+    }
+    public final boolean isInitialized() {
+      if (!hasCommentId) return false;
+      if (!hasResourceId) return false;
+      if (!hasUserId) return false;
+      if (!hasDate) return false;
+      if (!hasText) return false;
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (hasCommentId()) {
+        output.writeInt64(1, getCommentId());
+      }
+      if (hasResourceId()) {
+        output.writeString(2, getResourceId());
+      }
+      if (hasUserId()) {
+        output.writeInt64(3, getUserId());
+      }
+      if (hasParentId()) {
+        output.writeInt64(4, getParentId());
+      }
+      if (hasDate()) {
+        output.writeInt64(5, getDate());
+      }
+      if (hasText()) {
+        output.writeString(6, getText());
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (hasCommentId()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(1, getCommentId());
+      }
+      if (hasResourceId()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(2, getResourceId());
+      }
+      if (hasUserId()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, getUserId());
+      }
+      if (hasParentId()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(4, getParentId());
+      }
+      if (hasDate()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(5, getDate());
+      }
+      if (hasText()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(6, getText());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsg parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsg parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsg parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsg parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsg parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsg parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsg parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsg parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsg parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsg parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.robonobo.core.api.proto.CoreApi.CommentMsg prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private com.robonobo.core.api.proto.CoreApi.CommentMsg result;
+      
+      // Construct using com.robonobo.core.api.proto.CoreApi.CommentMsg.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new com.robonobo.core.api.proto.CoreApi.CommentMsg();
+        return builder;
+      }
+      
+      protected com.robonobo.core.api.proto.CoreApi.CommentMsg internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new com.robonobo.core.api.proto.CoreApi.CommentMsg();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.robonobo.core.api.proto.CoreApi.CommentMsg.getDescriptor();
+      }
+      
+      public com.robonobo.core.api.proto.CoreApi.CommentMsg getDefaultInstanceForType() {
+        return com.robonobo.core.api.proto.CoreApi.CommentMsg.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public com.robonobo.core.api.proto.CoreApi.CommentMsg build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private com.robonobo.core.api.proto.CoreApi.CommentMsg buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public com.robonobo.core.api.proto.CoreApi.CommentMsg buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        com.robonobo.core.api.proto.CoreApi.CommentMsg returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.robonobo.core.api.proto.CoreApi.CommentMsg) {
+          return mergeFrom((com.robonobo.core.api.proto.CoreApi.CommentMsg)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.robonobo.core.api.proto.CoreApi.CommentMsg other) {
+        if (other == com.robonobo.core.api.proto.CoreApi.CommentMsg.getDefaultInstance()) return this;
+        if (other.hasCommentId()) {
+          setCommentId(other.getCommentId());
+        }
+        if (other.hasResourceId()) {
+          setResourceId(other.getResourceId());
+        }
+        if (other.hasUserId()) {
+          setUserId(other.getUserId());
+        }
+        if (other.hasParentId()) {
+          setParentId(other.getParentId());
+        }
+        if (other.hasDate()) {
+          setDate(other.getDate());
+        }
+        if (other.hasText()) {
+          setText(other.getText());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              setCommentId(input.readInt64());
+              break;
+            }
+            case 18: {
+              setResourceId(input.readString());
+              break;
+            }
+            case 24: {
+              setUserId(input.readInt64());
+              break;
+            }
+            case 32: {
+              setParentId(input.readInt64());
+              break;
+            }
+            case 40: {
+              setDate(input.readInt64());
+              break;
+            }
+            case 50: {
+              setText(input.readString());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // required int64 comment_id = 1;
+      public boolean hasCommentId() {
+        return result.hasCommentId();
+      }
+      public long getCommentId() {
+        return result.getCommentId();
+      }
+      public Builder setCommentId(long value) {
+        result.hasCommentId = true;
+        result.commentId_ = value;
+        return this;
+      }
+      public Builder clearCommentId() {
+        result.hasCommentId = false;
+        result.commentId_ = 0L;
+        return this;
+      }
+      
+      // required string resource_id = 2;
+      public boolean hasResourceId() {
+        return result.hasResourceId();
+      }
+      public java.lang.String getResourceId() {
+        return result.getResourceId();
+      }
+      public Builder setResourceId(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasResourceId = true;
+        result.resourceId_ = value;
+        return this;
+      }
+      public Builder clearResourceId() {
+        result.hasResourceId = false;
+        result.resourceId_ = getDefaultInstance().getResourceId();
+        return this;
+      }
+      
+      // required int64 user_id = 3;
+      public boolean hasUserId() {
+        return result.hasUserId();
+      }
+      public long getUserId() {
+        return result.getUserId();
+      }
+      public Builder setUserId(long value) {
+        result.hasUserId = true;
+        result.userId_ = value;
+        return this;
+      }
+      public Builder clearUserId() {
+        result.hasUserId = false;
+        result.userId_ = 0L;
+        return this;
+      }
+      
+      // optional int64 parent_id = 4;
+      public boolean hasParentId() {
+        return result.hasParentId();
+      }
+      public long getParentId() {
+        return result.getParentId();
+      }
+      public Builder setParentId(long value) {
+        result.hasParentId = true;
+        result.parentId_ = value;
+        return this;
+      }
+      public Builder clearParentId() {
+        result.hasParentId = false;
+        result.parentId_ = 0L;
+        return this;
+      }
+      
+      // required int64 date = 5;
+      public boolean hasDate() {
+        return result.hasDate();
+      }
+      public long getDate() {
+        return result.getDate();
+      }
+      public Builder setDate(long value) {
+        result.hasDate = true;
+        result.date_ = value;
+        return this;
+      }
+      public Builder clearDate() {
+        result.hasDate = false;
+        result.date_ = 0L;
+        return this;
+      }
+      
+      // required string text = 6;
+      public boolean hasText() {
+        return result.hasText();
+      }
+      public java.lang.String getText() {
+        return result.getText();
+      }
+      public Builder setText(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasText = true;
+        result.text_ = value;
+        return this;
+      }
+      public Builder clearText() {
+        result.hasText = false;
+        result.text_ = getDefaultInstance().getText();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:coreapi.CommentMsg)
+    }
+    
+    static {
+      defaultInstance = new CommentMsg(true);
+      com.robonobo.core.api.proto.CoreApi.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:coreapi.CommentMsg)
+  }
+  
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_coreapi_EndPoint_descriptor;
   private static
@@ -6744,6 +7234,11 @@ public final class CoreApi {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_coreapi_UpdateMsg_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_coreapi_CommentMsg_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_coreapi_CommentMsg_fieldAccessorTable;
   
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -6790,8 +7285,11 @@ public final class CoreApi {
       "ame\030\001 \002(\t\022\022\n\nitem_value\030\002 \002(\t\"G\n\rUserCon" +
       "figMsg\022\017\n\007user_id\030\001 \002(\003\022%\n\004item\030\002 \003(\0132\027." +
       "coreapi.UserConfigItem\"4\n\tUpdateMsg\022\022\n\nu" +
-      "pdateHtml\030\001 \002(\t\022\023\n\013updateTitle\030\002 \001(\tB&\n\033" +
-      "com.robonobo.core.api.protoB\007CoreApi"
+      "pdateHtml\030\001 \002(\t\022\023\n\013updateTitle\030\002 \001(\t\"u\n\n" +
+      "CommentMsg\022\022\n\ncomment_id\030\001 \002(\003\022\023\n\013resour" +
+      "ce_id\030\002 \002(\t\022\017\n\007user_id\030\003 \002(\003\022\021\n\tparent_i",
+      "d\030\004 \001(\003\022\014\n\004date\030\005 \002(\003\022\014\n\004text\030\006 \002(\tB&\n\033c" +
+      "om.robonobo.core.api.protoB\007CoreApi"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -6918,6 +7416,14 @@ public final class CoreApi {
               new java.lang.String[] { "UpdateHtml", "UpdateTitle", },
               com.robonobo.core.api.proto.CoreApi.UpdateMsg.class,
               com.robonobo.core.api.proto.CoreApi.UpdateMsg.Builder.class);
+          internal_static_coreapi_CommentMsg_descriptor =
+            getDescriptor().getMessageTypes().get(15);
+          internal_static_coreapi_CommentMsg_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_coreapi_CommentMsg_descriptor,
+              new java.lang.String[] { "CommentId", "ResourceId", "UserId", "ParentId", "Date", "Text", },
+              com.robonobo.core.api.proto.CoreApi.CommentMsg.class,
+              com.robonobo.core.api.proto.CoreApi.CommentMsg.Builder.class);
           return null;
         }
       };
