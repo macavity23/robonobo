@@ -107,3 +107,12 @@ message UpdateMsg {
 	required string updateHtml = 1;
 	optional string updateTitle = 2;
 }
+
+message CommentMsg {
+	required int64 comment_id = 1;
+	required string resource_id = 2;
+	required int64 user_id = 3;
+	optional int64 parent_id = 4;
+	required int64 date = 5;
+	required string text = 6;
+}
