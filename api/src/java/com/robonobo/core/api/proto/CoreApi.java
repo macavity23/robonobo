@@ -7159,6 +7159,852 @@ public final class CoreApi {
     // @@protoc_insertion_point(class_scope:coreapi.CommentMsg)
   }
   
+  public static final class CommentMsgList extends
+      com.google.protobuf.GeneratedMessage {
+    // Use CommentMsgList.newBuilder() to construct.
+    private CommentMsgList() {
+      initFields();
+    }
+    private CommentMsgList(boolean noInit) {}
+    
+    private static final CommentMsgList defaultInstance;
+    public static CommentMsgList getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public CommentMsgList getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.robonobo.core.api.proto.CoreApi.internal_static_coreapi_CommentMsgList_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.robonobo.core.api.proto.CoreApi.internal_static_coreapi_CommentMsgList_fieldAccessorTable;
+    }
+    
+    // repeated .coreapi.CommentMsg comment = 1;
+    public static final int COMMENT_FIELD_NUMBER = 1;
+    private java.util.List<com.robonobo.core.api.proto.CoreApi.CommentMsg> comment_ =
+      java.util.Collections.emptyList();
+    public java.util.List<com.robonobo.core.api.proto.CoreApi.CommentMsg> getCommentList() {
+      return comment_;
+    }
+    public int getCommentCount() { return comment_.size(); }
+    public com.robonobo.core.api.proto.CoreApi.CommentMsg getComment(int index) {
+      return comment_.get(index);
+    }
+    
+    private void initFields() {
+    }
+    public final boolean isInitialized() {
+      for (com.robonobo.core.api.proto.CoreApi.CommentMsg element : getCommentList()) {
+        if (!element.isInitialized()) return false;
+      }
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (com.robonobo.core.api.proto.CoreApi.CommentMsg element : getCommentList()) {
+        output.writeMessage(1, element);
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      for (com.robonobo.core.api.proto.CoreApi.CommentMsg element : getCommentList()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, element);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsgList parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsgList parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsgList parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsgList parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsgList parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsgList parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsgList parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsgList parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsgList parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CommentMsgList parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.robonobo.core.api.proto.CoreApi.CommentMsgList prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private com.robonobo.core.api.proto.CoreApi.CommentMsgList result;
+      
+      // Construct using com.robonobo.core.api.proto.CoreApi.CommentMsgList.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new com.robonobo.core.api.proto.CoreApi.CommentMsgList();
+        return builder;
+      }
+      
+      protected com.robonobo.core.api.proto.CoreApi.CommentMsgList internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new com.robonobo.core.api.proto.CoreApi.CommentMsgList();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.robonobo.core.api.proto.CoreApi.CommentMsgList.getDescriptor();
+      }
+      
+      public com.robonobo.core.api.proto.CoreApi.CommentMsgList getDefaultInstanceForType() {
+        return com.robonobo.core.api.proto.CoreApi.CommentMsgList.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public com.robonobo.core.api.proto.CoreApi.CommentMsgList build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private com.robonobo.core.api.proto.CoreApi.CommentMsgList buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public com.robonobo.core.api.proto.CoreApi.CommentMsgList buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        if (result.comment_ != java.util.Collections.EMPTY_LIST) {
+          result.comment_ =
+            java.util.Collections.unmodifiableList(result.comment_);
+        }
+        com.robonobo.core.api.proto.CoreApi.CommentMsgList returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.robonobo.core.api.proto.CoreApi.CommentMsgList) {
+          return mergeFrom((com.robonobo.core.api.proto.CoreApi.CommentMsgList)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.robonobo.core.api.proto.CoreApi.CommentMsgList other) {
+        if (other == com.robonobo.core.api.proto.CoreApi.CommentMsgList.getDefaultInstance()) return this;
+        if (!other.comment_.isEmpty()) {
+          if (result.comment_.isEmpty()) {
+            result.comment_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.CommentMsg>();
+          }
+          result.comment_.addAll(other.comment_);
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              com.robonobo.core.api.proto.CoreApi.CommentMsg.Builder subBuilder = com.robonobo.core.api.proto.CoreApi.CommentMsg.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addComment(subBuilder.buildPartial());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // repeated .coreapi.CommentMsg comment = 1;
+      public java.util.List<com.robonobo.core.api.proto.CoreApi.CommentMsg> getCommentList() {
+        return java.util.Collections.unmodifiableList(result.comment_);
+      }
+      public int getCommentCount() {
+        return result.getCommentCount();
+      }
+      public com.robonobo.core.api.proto.CoreApi.CommentMsg getComment(int index) {
+        return result.getComment(index);
+      }
+      public Builder setComment(int index, com.robonobo.core.api.proto.CoreApi.CommentMsg value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.comment_.set(index, value);
+        return this;
+      }
+      public Builder setComment(int index, com.robonobo.core.api.proto.CoreApi.CommentMsg.Builder builderForValue) {
+        result.comment_.set(index, builderForValue.build());
+        return this;
+      }
+      public Builder addComment(com.robonobo.core.api.proto.CoreApi.CommentMsg value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        if (result.comment_.isEmpty()) {
+          result.comment_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.CommentMsg>();
+        }
+        result.comment_.add(value);
+        return this;
+      }
+      public Builder addComment(com.robonobo.core.api.proto.CoreApi.CommentMsg.Builder builderForValue) {
+        if (result.comment_.isEmpty()) {
+          result.comment_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.CommentMsg>();
+        }
+        result.comment_.add(builderForValue.build());
+        return this;
+      }
+      public Builder addAllComment(
+          java.lang.Iterable<? extends com.robonobo.core.api.proto.CoreApi.CommentMsg> values) {
+        if (result.comment_.isEmpty()) {
+          result.comment_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.CommentMsg>();
+        }
+        super.addAll(values, result.comment_);
+        return this;
+      }
+      public Builder clearComment() {
+        result.comment_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:coreapi.CommentMsgList)
+    }
+    
+    static {
+      defaultInstance = new CommentMsgList(true);
+      com.robonobo.core.api.proto.CoreApi.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:coreapi.CommentMsgList)
+  }
+  
+  public static final class CombinedMsgList extends
+      com.google.protobuf.GeneratedMessage {
+    // Use CombinedMsgList.newBuilder() to construct.
+    private CombinedMsgList() {
+      initFields();
+    }
+    private CombinedMsgList(boolean noInit) {}
+    
+    private static final CombinedMsgList defaultInstance;
+    public static CombinedMsgList getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public CombinedMsgList getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.robonobo.core.api.proto.CoreApi.internal_static_coreapi_CombinedMsgList_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.robonobo.core.api.proto.CoreApi.internal_static_coreapi_CombinedMsgList_fieldAccessorTable;
+    }
+    
+    // repeated .coreapi.UserMsg user = 1;
+    public static final int USER_FIELD_NUMBER = 1;
+    private java.util.List<com.robonobo.core.api.proto.CoreApi.UserMsg> user_ =
+      java.util.Collections.emptyList();
+    public java.util.List<com.robonobo.core.api.proto.CoreApi.UserMsg> getUserList() {
+      return user_;
+    }
+    public int getUserCount() { return user_.size(); }
+    public com.robonobo.core.api.proto.CoreApi.UserMsg getUser(int index) {
+      return user_.get(index);
+    }
+    
+    // repeated .coreapi.PlaylistMsg playlist = 2;
+    public static final int PLAYLIST_FIELD_NUMBER = 2;
+    private java.util.List<com.robonobo.core.api.proto.CoreApi.PlaylistMsg> playlist_ =
+      java.util.Collections.emptyList();
+    public java.util.List<com.robonobo.core.api.proto.CoreApi.PlaylistMsg> getPlaylistList() {
+      return playlist_;
+    }
+    public int getPlaylistCount() { return playlist_.size(); }
+    public com.robonobo.core.api.proto.CoreApi.PlaylistMsg getPlaylist(int index) {
+      return playlist_.get(index);
+    }
+    
+    // repeated .coreapi.CommentMsg comment = 3;
+    public static final int COMMENT_FIELD_NUMBER = 3;
+    private java.util.List<com.robonobo.core.api.proto.CoreApi.CommentMsg> comment_ =
+      java.util.Collections.emptyList();
+    public java.util.List<com.robonobo.core.api.proto.CoreApi.CommentMsg> getCommentList() {
+      return comment_;
+    }
+    public int getCommentCount() { return comment_.size(); }
+    public com.robonobo.core.api.proto.CoreApi.CommentMsg getComment(int index) {
+      return comment_.get(index);
+    }
+    
+    private void initFields() {
+    }
+    public final boolean isInitialized() {
+      for (com.robonobo.core.api.proto.CoreApi.UserMsg element : getUserList()) {
+        if (!element.isInitialized()) return false;
+      }
+      for (com.robonobo.core.api.proto.CoreApi.PlaylistMsg element : getPlaylistList()) {
+        if (!element.isInitialized()) return false;
+      }
+      for (com.robonobo.core.api.proto.CoreApi.CommentMsg element : getCommentList()) {
+        if (!element.isInitialized()) return false;
+      }
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (com.robonobo.core.api.proto.CoreApi.UserMsg element : getUserList()) {
+        output.writeMessage(1, element);
+      }
+      for (com.robonobo.core.api.proto.CoreApi.PlaylistMsg element : getPlaylistList()) {
+        output.writeMessage(2, element);
+      }
+      for (com.robonobo.core.api.proto.CoreApi.CommentMsg element : getCommentList()) {
+        output.writeMessage(3, element);
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      for (com.robonobo.core.api.proto.CoreApi.UserMsg element : getUserList()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, element);
+      }
+      for (com.robonobo.core.api.proto.CoreApi.PlaylistMsg element : getPlaylistList()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, element);
+      }
+      for (com.robonobo.core.api.proto.CoreApi.CommentMsg element : getCommentList()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, element);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static com.robonobo.core.api.proto.CoreApi.CombinedMsgList parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CombinedMsgList parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CombinedMsgList parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CombinedMsgList parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CombinedMsgList parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CombinedMsgList parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CombinedMsgList parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CombinedMsgList parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CombinedMsgList parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.robonobo.core.api.proto.CoreApi.CombinedMsgList parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.robonobo.core.api.proto.CoreApi.CombinedMsgList prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private com.robonobo.core.api.proto.CoreApi.CombinedMsgList result;
+      
+      // Construct using com.robonobo.core.api.proto.CoreApi.CombinedMsgList.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new com.robonobo.core.api.proto.CoreApi.CombinedMsgList();
+        return builder;
+      }
+      
+      protected com.robonobo.core.api.proto.CoreApi.CombinedMsgList internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new com.robonobo.core.api.proto.CoreApi.CombinedMsgList();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.robonobo.core.api.proto.CoreApi.CombinedMsgList.getDescriptor();
+      }
+      
+      public com.robonobo.core.api.proto.CoreApi.CombinedMsgList getDefaultInstanceForType() {
+        return com.robonobo.core.api.proto.CoreApi.CombinedMsgList.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public com.robonobo.core.api.proto.CoreApi.CombinedMsgList build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private com.robonobo.core.api.proto.CoreApi.CombinedMsgList buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public com.robonobo.core.api.proto.CoreApi.CombinedMsgList buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        if (result.user_ != java.util.Collections.EMPTY_LIST) {
+          result.user_ =
+            java.util.Collections.unmodifiableList(result.user_);
+        }
+        if (result.playlist_ != java.util.Collections.EMPTY_LIST) {
+          result.playlist_ =
+            java.util.Collections.unmodifiableList(result.playlist_);
+        }
+        if (result.comment_ != java.util.Collections.EMPTY_LIST) {
+          result.comment_ =
+            java.util.Collections.unmodifiableList(result.comment_);
+        }
+        com.robonobo.core.api.proto.CoreApi.CombinedMsgList returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.robonobo.core.api.proto.CoreApi.CombinedMsgList) {
+          return mergeFrom((com.robonobo.core.api.proto.CoreApi.CombinedMsgList)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.robonobo.core.api.proto.CoreApi.CombinedMsgList other) {
+        if (other == com.robonobo.core.api.proto.CoreApi.CombinedMsgList.getDefaultInstance()) return this;
+        if (!other.user_.isEmpty()) {
+          if (result.user_.isEmpty()) {
+            result.user_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.UserMsg>();
+          }
+          result.user_.addAll(other.user_);
+        }
+        if (!other.playlist_.isEmpty()) {
+          if (result.playlist_.isEmpty()) {
+            result.playlist_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.PlaylistMsg>();
+          }
+          result.playlist_.addAll(other.playlist_);
+        }
+        if (!other.comment_.isEmpty()) {
+          if (result.comment_.isEmpty()) {
+            result.comment_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.CommentMsg>();
+          }
+          result.comment_.addAll(other.comment_);
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              com.robonobo.core.api.proto.CoreApi.UserMsg.Builder subBuilder = com.robonobo.core.api.proto.CoreApi.UserMsg.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addUser(subBuilder.buildPartial());
+              break;
+            }
+            case 18: {
+              com.robonobo.core.api.proto.CoreApi.PlaylistMsg.Builder subBuilder = com.robonobo.core.api.proto.CoreApi.PlaylistMsg.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addPlaylist(subBuilder.buildPartial());
+              break;
+            }
+            case 26: {
+              com.robonobo.core.api.proto.CoreApi.CommentMsg.Builder subBuilder = com.robonobo.core.api.proto.CoreApi.CommentMsg.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addComment(subBuilder.buildPartial());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // repeated .coreapi.UserMsg user = 1;
+      public java.util.List<com.robonobo.core.api.proto.CoreApi.UserMsg> getUserList() {
+        return java.util.Collections.unmodifiableList(result.user_);
+      }
+      public int getUserCount() {
+        return result.getUserCount();
+      }
+      public com.robonobo.core.api.proto.CoreApi.UserMsg getUser(int index) {
+        return result.getUser(index);
+      }
+      public Builder setUser(int index, com.robonobo.core.api.proto.CoreApi.UserMsg value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.user_.set(index, value);
+        return this;
+      }
+      public Builder setUser(int index, com.robonobo.core.api.proto.CoreApi.UserMsg.Builder builderForValue) {
+        result.user_.set(index, builderForValue.build());
+        return this;
+      }
+      public Builder addUser(com.robonobo.core.api.proto.CoreApi.UserMsg value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        if (result.user_.isEmpty()) {
+          result.user_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.UserMsg>();
+        }
+        result.user_.add(value);
+        return this;
+      }
+      public Builder addUser(com.robonobo.core.api.proto.CoreApi.UserMsg.Builder builderForValue) {
+        if (result.user_.isEmpty()) {
+          result.user_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.UserMsg>();
+        }
+        result.user_.add(builderForValue.build());
+        return this;
+      }
+      public Builder addAllUser(
+          java.lang.Iterable<? extends com.robonobo.core.api.proto.CoreApi.UserMsg> values) {
+        if (result.user_.isEmpty()) {
+          result.user_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.UserMsg>();
+        }
+        super.addAll(values, result.user_);
+        return this;
+      }
+      public Builder clearUser() {
+        result.user_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // repeated .coreapi.PlaylistMsg playlist = 2;
+      public java.util.List<com.robonobo.core.api.proto.CoreApi.PlaylistMsg> getPlaylistList() {
+        return java.util.Collections.unmodifiableList(result.playlist_);
+      }
+      public int getPlaylistCount() {
+        return result.getPlaylistCount();
+      }
+      public com.robonobo.core.api.proto.CoreApi.PlaylistMsg getPlaylist(int index) {
+        return result.getPlaylist(index);
+      }
+      public Builder setPlaylist(int index, com.robonobo.core.api.proto.CoreApi.PlaylistMsg value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.playlist_.set(index, value);
+        return this;
+      }
+      public Builder setPlaylist(int index, com.robonobo.core.api.proto.CoreApi.PlaylistMsg.Builder builderForValue) {
+        result.playlist_.set(index, builderForValue.build());
+        return this;
+      }
+      public Builder addPlaylist(com.robonobo.core.api.proto.CoreApi.PlaylistMsg value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        if (result.playlist_.isEmpty()) {
+          result.playlist_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.PlaylistMsg>();
+        }
+        result.playlist_.add(value);
+        return this;
+      }
+      public Builder addPlaylist(com.robonobo.core.api.proto.CoreApi.PlaylistMsg.Builder builderForValue) {
+        if (result.playlist_.isEmpty()) {
+          result.playlist_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.PlaylistMsg>();
+        }
+        result.playlist_.add(builderForValue.build());
+        return this;
+      }
+      public Builder addAllPlaylist(
+          java.lang.Iterable<? extends com.robonobo.core.api.proto.CoreApi.PlaylistMsg> values) {
+        if (result.playlist_.isEmpty()) {
+          result.playlist_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.PlaylistMsg>();
+        }
+        super.addAll(values, result.playlist_);
+        return this;
+      }
+      public Builder clearPlaylist() {
+        result.playlist_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // repeated .coreapi.CommentMsg comment = 3;
+      public java.util.List<com.robonobo.core.api.proto.CoreApi.CommentMsg> getCommentList() {
+        return java.util.Collections.unmodifiableList(result.comment_);
+      }
+      public int getCommentCount() {
+        return result.getCommentCount();
+      }
+      public com.robonobo.core.api.proto.CoreApi.CommentMsg getComment(int index) {
+        return result.getComment(index);
+      }
+      public Builder setComment(int index, com.robonobo.core.api.proto.CoreApi.CommentMsg value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.comment_.set(index, value);
+        return this;
+      }
+      public Builder setComment(int index, com.robonobo.core.api.proto.CoreApi.CommentMsg.Builder builderForValue) {
+        result.comment_.set(index, builderForValue.build());
+        return this;
+      }
+      public Builder addComment(com.robonobo.core.api.proto.CoreApi.CommentMsg value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        if (result.comment_.isEmpty()) {
+          result.comment_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.CommentMsg>();
+        }
+        result.comment_.add(value);
+        return this;
+      }
+      public Builder addComment(com.robonobo.core.api.proto.CoreApi.CommentMsg.Builder builderForValue) {
+        if (result.comment_.isEmpty()) {
+          result.comment_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.CommentMsg>();
+        }
+        result.comment_.add(builderForValue.build());
+        return this;
+      }
+      public Builder addAllComment(
+          java.lang.Iterable<? extends com.robonobo.core.api.proto.CoreApi.CommentMsg> values) {
+        if (result.comment_.isEmpty()) {
+          result.comment_ = new java.util.ArrayList<com.robonobo.core.api.proto.CoreApi.CommentMsg>();
+        }
+        super.addAll(values, result.comment_);
+        return this;
+      }
+      public Builder clearComment() {
+        result.comment_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:coreapi.CombinedMsgList)
+    }
+    
+    static {
+      defaultInstance = new CombinedMsgList(true);
+      com.robonobo.core.api.proto.CoreApi.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:coreapi.CombinedMsgList)
+  }
+  
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_coreapi_EndPoint_descriptor;
   private static
@@ -7239,6 +8085,16 @@ public final class CoreApi {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_coreapi_CommentMsg_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_coreapi_CommentMsgList_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_coreapi_CommentMsgList_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_coreapi_CombinedMsgList_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_coreapi_CombinedMsgList_fieldAccessorTable;
   
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -7288,8 +8144,13 @@ public final class CoreApi {
       "pdateHtml\030\001 \002(\t\022\023\n\013updateTitle\030\002 \001(\t\"u\n\n" +
       "CommentMsg\022\022\n\ncomment_id\030\001 \002(\003\022\023\n\013resour" +
       "ce_id\030\002 \002(\t\022\017\n\007user_id\030\003 \002(\003\022\021\n\tparent_i",
-      "d\030\004 \001(\003\022\014\n\004date\030\005 \002(\003\022\014\n\004text\030\006 \002(\tB&\n\033c" +
-      "om.robonobo.core.api.protoB\007CoreApi"
+      "d\030\004 \001(\003\022\014\n\004date\030\005 \002(\003\022\014\n\004text\030\006 \002(\t\"6\n\016C" +
+      "ommentMsgList\022$\n\007comment\030\001 \003(\0132\023.coreapi" +
+      ".CommentMsg\"\177\n\017CombinedMsgList\022\036\n\004user\030\001" +
+      " \003(\0132\020.coreapi.UserMsg\022&\n\010playlist\030\002 \003(\013" +
+      "2\024.coreapi.PlaylistMsg\022$\n\007comment\030\003 \003(\0132" +
+      "\023.coreapi.CommentMsgB&\n\033com.robonobo.cor" +
+      "e.api.protoB\007CoreApi"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -7424,6 +8285,22 @@ public final class CoreApi {
               new java.lang.String[] { "CommentId", "ResourceId", "UserId", "ParentId", "Date", "Text", },
               com.robonobo.core.api.proto.CoreApi.CommentMsg.class,
               com.robonobo.core.api.proto.CoreApi.CommentMsg.Builder.class);
+          internal_static_coreapi_CommentMsgList_descriptor =
+            getDescriptor().getMessageTypes().get(16);
+          internal_static_coreapi_CommentMsgList_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_coreapi_CommentMsgList_descriptor,
+              new java.lang.String[] { "Comment", },
+              com.robonobo.core.api.proto.CoreApi.CommentMsgList.class,
+              com.robonobo.core.api.proto.CoreApi.CommentMsgList.Builder.class);
+          internal_static_coreapi_CombinedMsgList_descriptor =
+            getDescriptor().getMessageTypes().get(17);
+          internal_static_coreapi_CombinedMsgList_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_coreapi_CombinedMsgList_descriptor,
+              new java.lang.String[] { "User", "Playlist", "Comment", },
+              com.robonobo.core.api.proto.CoreApi.CombinedMsgList.class,
+              com.robonobo.core.api.proto.CoreApi.CombinedMsgList.Builder.class);
           return null;
         }
       };
