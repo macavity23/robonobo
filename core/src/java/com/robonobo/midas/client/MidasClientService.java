@@ -1,6 +1,5 @@
 package com.robonobo.midas.client;
 
-import static com.robonobo.common.util.CodeUtil.*;
 import static com.robonobo.common.util.TextUtil.*;
 import static java.lang.Math.*;
 
@@ -18,7 +17,6 @@ import org.apache.http.*;
 import org.apache.http.auth.*;
 import org.apache.http.client.methods.*;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
@@ -162,6 +160,21 @@ public class MidasClientService extends AbstractMetadataService {
 		addRequest(new SharePlaylistRequest(cfg, p.getPlaylistId(), shareFriendIds, friendEmails, callback));
 	}
 
+	@Override
+	public void newComment(Comment c, CommentCallback callback) {
+		addRequest(new NewCommentRequest(cfg, c, callback));
+	}
+	
+	@Override
+	public void getAllComments(String itemType, long itemId, Date since, AllCommentsCallback callback) {
+		addRequest(new GetAllCommentsRequest(cfg, itemType, itemId, since, callback));
+	}
+	
+	@Override
+	public void deleteComment(long commentId, CommentCallback callback) {
+		addRequest(new DeleteCommentRequest(cfg, commentId, callback));
+	}
+	
 	@Override
 	public void addFriends(Collection<String> friendEmails, GeneralCallback callback) {
 		addRequest(new AddFriendsRequest(cfg, friendEmails, callback));

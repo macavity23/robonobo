@@ -208,7 +208,7 @@ public class SourceMgr {
 		Date nextQ = timeInFuture(waitMs);
 		SourceDetails sd;
 		if (log.isDebugEnabled())
-			log.debug("Caching source " + node.getId() + " for stream " + streamId + " until " + getTimeFormat().format(nextQ));
+			log.debug("Caching source " + node.getId() + " for stream " + streamId + " until " + getTimeFmt().format(nextQ));
 		boolean addSourceToQ = false;
 		if (possSourcesById.containsKey(node.getId())) {
 			sd = possSourcesById.get(node.getId());
@@ -270,7 +270,7 @@ public class SourceMgr {
 				possSourceQ.add(new PossibleSource(source.getId(), sd.nextQ));
 				possSourcesById.put(source.getId(), sd);
 				if (log.isDebugEnabled())
-					log.debug("Setting retry time for possible source " + source.getId() + " to " + getTimeFormat().format(sd.nextQ));
+					log.debug("Setting retry time for possible source " + source.getId() + " to " + getTimeFmt().format(sd.nextQ));
 			}
 			String sourceId = sd.node.getId();
 			if (log.isDebugEnabled())

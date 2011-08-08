@@ -22,7 +22,7 @@ import com.robonobo.mina.external.MinaConfig;
  * @author macavity */
 @SuppressWarnings("unused")
 public class Updater {
-	static final int CURRENT_VERSION = 4;
+	static final int CURRENT_VERSION = 5;
 	private File homeDir;
 	Log log = LogFactory.getLog(getClass());
 
@@ -122,7 +122,17 @@ public class Updater {
 		ByteUtil.streamDump(is, os);
 		PropertyConfigurator.configureAndWatch(l4jProps.getAbsolutePath());
 	}
-	
+
+	private void updateVersion4ToVersion5() throws IOException {
+		log.info("Updating robohome dir " + homeDir.getAbsolutePath() + " from version 4 to version ");
+		String[] stArr = { DbService.CREATE_SEEN_COMMENTS_TBL };
+		try {
+			updateMetadataDb(stArr);
+		} catch (SQLException e) {
+			throw new IOException("Caught SQLException: "+e.getMessage());
+		}
+	}
+
 	private void compactPagesDb() throws SQLException {
 		String sep = File.separator;
 		String dbPrefix = homeDir.getAbsolutePath() + sep + "db" + sep + "metadata";

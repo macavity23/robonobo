@@ -47,8 +47,11 @@ public class LocalMidasService implements MidasService {
 	private UserConfigDao userConfigDao;
 	@Autowired
 	private UserDao userDao;
+	@Autowired
+	private CommentDao commentDao;
 	Log log = LogFactory.getLog(getClass());
 	private long lastPlaylistId = -1;
+	private long lastCommentId = -1;
 
 	@Transactional(readOnly = true)
 	public List<MidasUser> getAllUsers() {
@@ -145,11 +148,13 @@ public class LocalMidasService implements MidasService {
 		userDao.delete(u);
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	public MidasPlaylist getPlaylistById(long playlistId) {
 		return playlistDao.loadPlaylist(playlistId);
 	}
 
 	@Override
+	@Transactional(rollbackFor = Exception.class)
 	public List<MidasPlaylist> getRecentPlaylists(long maxAgeMs) {
 		return playlistDao.getRecentPlaylists(maxAgeMs);
 	}
@@ -170,11 +175,81 @@ public class LocalMidasService implements MidasService {
 			newPlaylistId = lastPlaylistId;
 		}
 		playlist.setPlaylistId(newPlaylistId);
-		preventPlaylistXSS(playlist);
 		savePlaylist(playlist);
 		return playlist;
 	}
 
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public List<MidasComment> getCommentsForPlaylist(long plId, Date since) {
+		String resourceId = "playlist:" + plId;
+		if (since == null)
+			return commentDao.getAllComments(resourceId);
+		else
+			return commentDao.getCommentsSince(resourceId, since);
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public List<MidasComment> getCommentsForLibrary(long uid, Date since) {
+		String resourceId = "library:"+uid;
+		if (since == null)
+			return commentDao.getAllComments(resourceId);
+		else
+			return commentDao.getCommentsSince(resourceId, since);
+	}
+	
+	@Override
+	public MidasComment newCommentForPlaylist(MidasComment comment, long playlistId) {
+		return newComment(comment, "playlist:"+playlistId);
+	}
+	
+	@Override
+	public MidasComment newCommentForLibrary(MidasComment comment, long userId) {
+		return newComment(comment, "library:"+userId);
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	private MidasComment newComment(MidasComment comment, String resourceId) {
+		if (comment.getCommentId() > 0)
+			throw new Errot("newComment called with non-new comment");
+		long newCommentId;
+		synchronized (this) {
+			if (lastCommentId <= 0)
+				lastCommentId = commentDao.getHighestCommentId();
+			if (lastCommentId == Long.MAX_VALUE)
+				throw new Errot("comment ids wrapped");
+			else
+				lastCommentId++;
+			newCommentId = lastCommentId;
+		}
+		comment.setCommentId(newCommentId);
+		comment.setResourceId(resourceId);
+		saveComment(comment);
+		return comment;
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void saveComment(MidasComment c) {
+		if (c.getCommentId() <= 0)
+			throw new Errot("comment id is not set");
+		preventCommentXSS(c);
+		commentDao.saveComment(c);
+	}
+	
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public MidasComment getComment(long commentId) {
+		return commentDao.getComment(commentId);
+	}
+	
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void deleteComment(MidasComment c) {
+		commentDao.deleteComment(c);
+	}
+	
 	@Transactional(rollbackFor = Exception.class)
 	public void savePlaylist(MidasPlaylist p) {
 		if (p.getPlaylistId() <= 0)
@@ -188,11 +263,17 @@ public class LocalMidasService implements MidasService {
 		p.setDescription(escapeHtml(p.getDescription()));
 	}
 
+	private void preventCommentXSS(MidasComment c) {
+		c.setText(escapeHtml(c.getText()));
+	}
+
 	@Transactional(rollbackFor = Exception.class)
 	public void deletePlaylist(MidasPlaylist playlist) {
 		playlistDao.deletePlaylist(playlist);
+		commentDao.deleteAllComments("playlist:"+playlist.getPlaylistId());
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	public MidasStream getStreamById(String streamId) {
 		return streamDao.loadStream(streamId);
 	}
@@ -207,6 +288,7 @@ public class LocalMidasService implements MidasService {
 		streamDao.deleteStream(stream);
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	public Long countUsers() {
 		return userDao.getUserCount();
 	}

@@ -86,4 +86,18 @@ public interface MidasService {
 	public String requestAccountTopUp(long userId);
 
 	public abstract MidasInvite getInviteByEmail(String email);
+
+	public abstract void deleteComment(MidasComment c);
+
+	public abstract void saveComment(MidasComment c);
+
+	public abstract MidasComment newCommentForLibrary(MidasComment comment, long userId);
+
+	public abstract MidasComment newCommentForPlaylist(MidasComment comment, long playlistId);
+
+	public abstract List<MidasComment> getCommentsForLibrary(long uid, Date since);
+
+	public abstract List<MidasComment> getCommentsForPlaylist(long plId, Date since);
+
+	public abstract MidasComment getComment(long commentId);
 }

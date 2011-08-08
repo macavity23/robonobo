@@ -9,8 +9,6 @@ import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import javax.swing.text.StyledEditorKit.ForegroundAction;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -28,7 +26,6 @@ import com.robonobo.core.storage.StorageService;
 import com.robonobo.mina.external.MinaControl;
 import com.robonobo.mina.external.buffer.PageBuffer;
 import com.robonobo.spi.FormatSupportProvider;
-import com.sun.org.apache.bcel.internal.generic.StoreInstruction;
 
 /** Responsible for translating mina Broadcasts to robonobo Shares
  * 
@@ -51,12 +48,15 @@ public class ShareService extends AbstractService {
 	 * are on removable drives that might be plugged back in later, but we don't show them to the user */
 	Set<String> defunctShareSids = new HashSet<String>();
 	private ScheduledFuture<?> watchDirTask;
+	private ScheduledFuture<?> fetchMyCommentsTask;
 	private boolean watchDirRunning = false;
+	private CommentService comments;
 
 	public ShareService() {
 		addHardDependency("core.mina");
 		addHardDependency("core.streams");
 		addHardDependency("core.storage");
+		addHardDependency("core.comments");
 	}
 
 	@Override
@@ -67,6 +67,7 @@ public class ShareService extends AbstractService {
 		storage = rbnb.getStorageService();
 		streams = rbnb.getStreamService();
 		playback = rbnb.getPlaybackService();
+		comments = rbnb.getCommentService();
 		mina = rbnb.getMina();
 		watchDirTask = getRobonobo().getExecutor().scheduleWithFixedDelay(new WatchDirChecker(), WATCHDIR_INITIAL_WAIT, WATCHDIR_CHECK_FREQ, TimeUnit.SECONDS);
 	}
@@ -75,6 +76,8 @@ public class ShareService extends AbstractService {
 	public void shutdown() {
 		// Don't specifically stop our shares, the mina shutdown will stop them
 		watchDirTask.cancel(true);
+		if(fetchMyCommentsTask != null)
+			fetchMyCommentsTask.cancel(true);
 	}
 
 	/** If there is a defunct share (ie one with a non-existent file behind it), nuke it */
@@ -254,17 +257,29 @@ public class ShareService extends AbstractService {
 	}
 
 	void startAllShares() throws IOException, RobonoboException {
-		if(db.getNumShares() > 0)
+		if (db.getNumShares() > 0)
 			rbnb.getTaskService().runTask(new StartSharesTask());
 		else {
 			rbnb.getTrackService().setAllSharesStarted(true);
 			event.fireAllTracksLoaded();
 			event.fireMyLibraryUpdated();
+			startFetchingComments();
 		}
 	}
 
+	private void startFetchingComments() {
+		fetchMyCommentsTask = rbnb.getExecutor().scheduleAtFixedRate(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				User me = users.getMyUser();
+				if(me != null)
+					comments.fetchCommentsForLibrary(me.getUserId());
+			}
+		}, 0, rbnb.getConfig().getUserUpdateFrequency(), TimeUnit.SECONDS);
+	}
+	
 	class StartSharesTask extends Task {
 		boolean finished = false;
+
 		public StartSharesTask() {
 			title = "Starting my shares";
 		}
@@ -275,19 +290,20 @@ public class ShareService extends AbstractService {
 			final int numToStart = shareSids.size();
 			// Iterate over these and check that they're ok, punting them up to the gui in batches
 			Batcher<String> puntToGuiBatcher = new Batcher<String>(START_SHARE_BATCH_TIME, rbnb.getExecutor()) {
-				int i=1;
+				int i = 1;
+
 				protected void runBatch(Collection<String> sids) throws Exception {
 					rbnb.getMina().startBroadcasts(sids);
 					event.fireTracksUpdated(sids);
 					i += sids.size();
-					if(!finished) {
-						completion = ((float)i)/numToStart;
-						statusText = "Starting share "+i+" of "+numToStart;
+					if (!finished) {
+						completion = ((float) i) / numToStart;
+						statusText = "Starting share " + i + " of " + numToStart;
 						fireUpdated();
 					}
 				}
 			};
-			statusText = "Starting share 1 of "+numToStart;
+			statusText = "Starting share 1 of " + numToStart;
 			fireUpdated();
 			for (String sid : shareSids) {
 				FilePageBuffer pb = storage.getPageBuf(sid, false);
@@ -318,6 +334,7 @@ public class ShareService extends AbstractService {
 			rbnb.getTrackService().setAllSharesStarted(true);
 			event.fireAllTracksLoaded();
 			event.fireMyLibraryUpdated();
+			startFetchingComments();
 		}
 	}
 

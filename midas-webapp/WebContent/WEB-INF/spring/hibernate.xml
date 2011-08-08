@@ -27,6 +27,7 @@
 				<value>com/robonobo/midas/model/MidasUserConfig.hbm.xml</value>
 				<value>com/robonobo/midas/model/MidasEvent.hbm.xml</value>
 				<value>com/robonobo/midas/model/MidasNotification.hbm.xml</value>
+				<value>com/robonobo/midas/model/MidasComment.hbm.xml</value>
 			</list>
 		</property>
 		<property name="hibernateProperties">

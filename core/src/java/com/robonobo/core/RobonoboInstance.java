@@ -26,13 +26,10 @@ import com.robonobo.mina.external.Application;
 import com.robonobo.mina.external.MinaControl;
 import com.robonobo.spi.RuntimeService;
 
-/**
- * Central class that controls a robonobo instance; handles startup, and holds references to services that do the actual
+/** Central class that controls a robonobo instance; handles startup, and holds references to services that do the actual
  * work
  * 
- * @author macavity
- * 
- */
+ * @author macavity */
 public class RobonoboInstance implements Robonobo {
 	protected String version = "dev-unknown";
 	protected Log log;
@@ -86,6 +83,7 @@ public class RobonoboInstance implements Robonobo {
 		serviceMgr.registerService(new PlaylistService());
 		serviceMgr.registerService(new TaskService());
 		serviceMgr.registerService(new LibraryService());
+		serviceMgr.registerService(new CommentService());
 		serviceMgr.registerService(new StreamService());
 		serviceMgr.registerService(new HttpService());
 		// Register our metadata service as defined in config
@@ -199,9 +197,7 @@ public class RobonoboInstance implements Robonobo {
 		return homeDir;
 	}
 
-	/**
-	 * Overrides config properties with values specified in 'cfg_<cfgName>_<propName>' environment vars
-	 */
+	/** Overrides config properties with values specified in 'cfg_<cfgName>_<propName>' environment vars */
 	protected void overrideConfigWithEnv() {
 		ConfigBeanSerializer cbs = new ConfigBeanSerializer();
 		try {
@@ -258,6 +254,10 @@ public class RobonoboInstance implements Robonobo {
 
 	public PlaylistService getPlaylistService() {
 		return (PlaylistService) serviceMgr.getService("core.playlists");
+	}
+
+	public CommentService getCommentService() {
+		return (CommentService) serviceMgr.getService("core.comments");
 	}
 
 	public PlaybackService getPlaybackService() {

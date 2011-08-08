@@ -78,4 +78,10 @@ public abstract class AbstractMetadataService extends AbstractService {
 	public abstract void deleteFromLibrary(long userId, Library delLib, LibraryCallback callback);
 
 	public abstract void search(String query, int firstResult, SearchCallback callback);
+
+	public abstract void deleteComment(long commentId, CommentCallback callback);
+
+	public abstract void getAllComments(String itemType, long itemId, Date since, AllCommentsCallback callback);
+
+	public abstract void newComment(Comment c, CommentCallback callback);
 }

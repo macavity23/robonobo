@@ -22,6 +22,7 @@ public class PlaylistService extends AbstractService {
 	EventService events;
 	StreamService streams;
 	TrackService tracks;
+	CommentService comments;
 
 	public PlaylistService() {
 		addHardDependency("core.db");
@@ -30,6 +31,7 @@ public class PlaylistService extends AbstractService {
 		addHardDependency("core.tasks");
 		addHardDependency("core.streams");
 		addHardDependency("core.tracks");
+		addHardDependency("core.comments");
 	}
 
 	@Override
@@ -240,6 +242,7 @@ public class PlaylistService extends AbstractService {
 				// We've loaded all our streams
 				events.firePlaylistChanged(p);
 				downloadTracksIfNecessary(p);
+				comments.fetchCommentsForPlaylist(p.getPlaylistId());
 			}
 			if (pFetcher != null)
 				pFetcher.gotStream(sid);

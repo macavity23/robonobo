@@ -24,6 +24,7 @@ public class LibraryService extends AbstractService {
 	EventService events;
 	StreamService streams;
 	DbService db;
+	private CommentService comments;
 
 	public LibraryService() {
 		addHardDependency("core.metadata");
@@ -31,6 +32,7 @@ public class LibraryService extends AbstractService {
 		addHardDependency("core.tasks");
 		addHardDependency("core.event");
 		addHardDependency("core.streams");
+		addHardDependency("core.comments");
 	}
 
 	@Override
@@ -51,6 +53,7 @@ public class LibraryService extends AbstractService {
 		events = rbnb.getEventService();
 		streams = rbnb.getStreamService();
 		db = rbnb.getDbService();
+		comments = rbnb.getCommentService();
 		addB = new AddBatcher();
 		delB = new DelBatcher();
 	}
@@ -107,12 +110,24 @@ public class LibraryService extends AbstractService {
 		private Set<String> waitingForStreams;
 		private int streamsToFetch;
 		private long checkTime;
+		Map<String, Date> unknownTracks;
+		Batcher<String> trackBatcher = new Batcher<String>(FIRE_UI_EVENT_DELAY * 1000, rbnb.getExecutor()) {
+			protected void runBatch(Collection<String> sids) throws Exception {
+				Map<String, Date> newTracks = new HashMap<String, Date>(sids.size());
+				for (String sid : sids) {
+					newTracks.put(sid, unknownTracks.get(sid));
+				}
+				LibraryInfo libInfo = db.getLibInfo(friend.getUserId());
+				events.fireFriendLibraryUpdated(friend.getUserId(), libInfo.getNumUnseen(), newTracks);
+			}
+		};
 
 		public LibraryUpdateTask(User friend, Date lastUpdate) {
 			title = "Fetching library for " + friend.getEmail();
 			this.lastUpdate = lastUpdate;
 			this.friend = friend;
 			stillFetchingLibs.add(friend.getUserId());
+			
 		}
 
 		public void runTask() throws Exception {
@@ -127,25 +142,30 @@ public class LibraryService extends AbstractService {
 			completion = 1f;
 			stillFetchingLibs.remove(friend.getUserId());
 			fireUpdated();
+			try {
+				trackBatcher.runNow();
+			} catch (Exception ignore) {
+			}
+			comments.fetchCommentsForLibrary(friend.getUserId());
 		}
-		
+
 		public void success(Library nLib) {
 			final long friendId = friend.getUserId();
 			Map<String, Date> newTrax = nLib.getTracks();
 			log.debug("Received updated library for " + friend.getEmail() + ": " + newTrax.size() + " new tracks");
-			if(newTrax.size() > 0)
+			if (newTrax.size() > 0)
 				db.addUnknownTracksToLibrary(friendId, newTrax, checkTime);
 			else
 				db.markLibraryAsChecked(friendId, checkTime);
 			int numTracks = db.numTracksInLibrary(friendId);
-			if(numTracks == 0) {
+			if (numTracks == 0) {
 				done();
 				return;
 			}
 			// Fetch from the db afresh as there might well have been some tracks we didn't get a chance to look up last
 			// time
-			final Map<String, Date> unknownTracks = db.getUnknownTracksInLibrary(friendId);
-			if(!loadedLibs.contains(friendId)) {
+			unknownTracks = db.getUnknownTracksInLibrary(friendId);
+			if (!loadedLibs.contains(friendId)) {
 				LibraryInfo libInfo = db.getLibInfo(friendId);
 				events.fireFriendLibraryReady(friendId, libInfo.getNumUnseen());
 				loadedLibs.add(friendId);
@@ -176,24 +196,12 @@ public class LibraryService extends AbstractService {
 					String sid = s.getStreamId();
 					db.markTrackAsKnown(friendId, sid);
 					trackBatcher.add(sid);
-					boolean finished = streamUpdated(sid);
-					if (finished) {
-						try {
-							trackBatcher.runNow();
-						} catch (Exception ignore) {
-						}
-					}
+					streamUpdated(sid);
 				}
 
 				public void error(String sid, Exception ex) {
 					log.error("Error fetching stream " + sid, ex);
-					boolean finished = streamUpdated(sid);
-					if (finished) {
-						try {
-							trackBatcher.runNow();
-						} catch (Exception ignore) {
-						}
-					}
+					streamUpdated(sid);
 				}
 			});
 		}
@@ -206,7 +214,7 @@ public class LibraryService extends AbstractService {
 			fireUpdated();
 		}
 
-		boolean streamUpdated(String sid) {
+		void streamUpdated(String sid) {
 			boolean finished;
 			waitingForStreams.remove(sid);
 			int streamsDone = streamsToFetch - waitingForStreams.size();
@@ -221,7 +229,8 @@ public class LibraryService extends AbstractService {
 				finished = false;
 			}
 			fireUpdated();
-			return finished;
+			if(finished)
+				done();
 		}
 	}
 

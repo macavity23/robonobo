@@ -1,13 +1,15 @@
 package com.robonobo.midas.client;
 
-import java.io.Serializable;
-import java.util.*;
-
-import javax.swing.plaf.TextUI;
-
-import com.robonobo.common.util.TextUtil;
-
 import static com.robonobo.common.util.TextUtil.*;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Date;
+import java.util.regex.Matcher;
+
+import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.util.TextUtil;
+import com.robonobo.core.api.model.Comment;
 
 public class MidasClientConfig implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -107,5 +109,23 @@ public class MidasClientConfig implements Serializable {
 		if (firstResult > 0)
 			result += "&start=" + String.valueOf(firstResult);
 		return result;
+	}
+
+	public String getCommentByIdUrl(long commentId) {
+		return baseUrl + "comment/byid/" + commentId;
+	}
+
+	public String getCommentByTypeUrl(String resourceId) {
+		Matcher m = Comment.RESOURCE_ID_PAT.matcher(resourceId);
+		if(!m.matches())
+			throw new Errot();
+		return baseUrl + "comment/"+m.group(1)+"/"+m.group(2);
+	}
+	
+	public String getAllCommentsUrl(String itemType, long itemId, Date since) {
+		StringBuffer sb = new StringBuffer(baseUrl).append("comments/").append(itemType).append("/").append(itemId);
+		if(since != null)
+			sb.append("?since=").append(since.getTime());
+		return sb.toString();
 	}
 }

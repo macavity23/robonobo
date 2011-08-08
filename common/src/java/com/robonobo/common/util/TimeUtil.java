@@ -21,23 +21,24 @@ package com.robonobo.common.util;
 
 import static java.lang.System.*;
 
-import java.text.DateFormat;
-import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
+import java.text.*;
 import java.util.Date;
 
 public class TimeUtil {
 	private static final int MS_IN_SEC = 1000;
 	private static final int MS_IN_MIN = 60000;
 	private static final int MS_IN_HOUR = 3600000;
-	private static DateFormat timeFormat;
-	private static DateFormat dateFormat;
-	private static DateFormat dateTimeFormat;
+	private static DateFormat timeFmt;
+	private static DateFormat dateFmt;
+	private static DateFormat dateTimeFmt;
+	private static NumberFormat twoDigitFmt;
 	
 	static {
-		timeFormat = new SimpleDateFormat("HH:mm:ss:SSS");
-		dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+		timeFmt = new SimpleDateFormat("HH:mm:ss:SSS");
+		dateFmt = new SimpleDateFormat("yyyy-MM-dd");
+		dateTimeFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
+		twoDigitFmt = NumberFormat.getIntegerInstance();
+		twoDigitFmt.setMinimumIntegerDigits(2);
 	}
 	
 	public static Date now() {
@@ -61,34 +62,30 @@ public class TimeUtil {
 	}
 	
 	public static String hoursMinsSecsFromMs(long ms) {
-		NumberFormat nf = NumberFormat.getIntegerInstance();
-		nf.setMinimumIntegerDigits(2);
 		long hours = ms / MS_IN_HOUR;
 		long hourRem = ms - (hours * MS_IN_HOUR);
 		long mins = hourRem / MS_IN_MIN;
 		long minsRem = hourRem - (mins * MS_IN_MIN);
 		long secs = minsRem / MS_IN_SEC;
-		return hours+":"+nf.format(mins)+":"+nf.format(secs);
+		return hours+":"+twoDigitFmt.format(mins)+":"+twoDigitFmt.format(secs);
 	}
 	
 	public static String minsSecsFromMs(long ms) {
-		NumberFormat nf = NumberFormat.getIntegerInstance();
-		nf.setMinimumIntegerDigits(2);
 		long mins = ms / MS_IN_MIN;
 		long minsRem = ms - (mins * MS_IN_MIN);
 		long secs = minsRem / MS_IN_SEC;
-		return mins+":"+nf.format(secs);
+		return mins+":"+twoDigitFmt.format(secs);
 	}
 
-	public static DateFormat getTimeFormat() {
-		return timeFormat;
+	public static DateFormat getTimeFmt() {
+		return timeFmt;
 	}
 
 	public static DateFormat getDateFormat() {
-		return dateFormat;
+		return dateFmt;
 	}
 
-	public static DateFormat getDateTimeFormat() {
-		return dateTimeFormat;
+	public static DateFormat getDateTimeFmt() {
+		return dateTimeFmt;
 	}
 }

@@ -13,16 +13,14 @@ import com.robonobo.core.api.proto.CoreApi.UserConfigMsg;
 import com.robonobo.core.api.proto.CoreApi.UserMsg;
 import com.robonobo.midas.model.*;
 
-/**
- * The client end of a remote midas service
+/** The client end of a remote midas service
  * 
- * @author macavity
- */
+ * @author macavity */
 public class RemoteMidasFacade extends JbossRemotingFacade implements MidasService {
-	/**
-	 * @param url The jboss-remoting url to connect
-	 * @param secret The sekrit string that must be passed with all calls
-	 */
+	/** @param url
+	 *            The jboss-remoting url to connect
+	 * @param secret
+	 *            The sekrit string that must be passed with all calls */
 	public RemoteMidasFacade(String url, String secret) throws Exception {
 		super(url, "midas", secret);
 	}
@@ -45,7 +43,7 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 		// Don't do newPlaylist remotely
 		throw new Errot();
 	}
-	
+
 	public MidasStream getStreamById(String streamId) {
 		byte[] arr = (byte[]) invoke("getStreamById", streamId, null);
 		return streamFromByteArr(arr);
@@ -84,7 +82,7 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 	public void deleteUser(long userId) {
 		invoke("deleteUser", userId, null);
 	}
-	
+
 	public void savePlaylist(MidasPlaylist playlist) {
 		invoke("savePlaylist", playlist.toMsg().toByteArray(), null);
 	}
@@ -102,23 +100,25 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 	}
 
 	public MidasFriendRequest createOrUpdateFriendRequest(MidasUser requestor, MidasUser requestee, MidasPlaylist pl) {
-		byte[] arr = (byte[]) invoke("createOrUpdateFriendRequest", requestor.toMsg(false).toByteArray(), Arrays.asList(requestee.toMsg(false).toByteArray(), pl.toMsg().toByteArray()));
-		if(arr == null)
+		byte[] arr = (byte[]) invoke("createOrUpdateFriendRequest",
+				requestor.toMsg(false).toByteArray(),
+				Arrays.asList(requestee.toMsg(false).toByteArray(), pl.toMsg().toByteArray()));
+		if (arr == null)
 			return null;
 		return friendReqFromByteArr(arr);
 	}
 
 	public MidasFriendRequest getFriendRequest(String requestCode) {
 		byte[] arr = (byte[]) invoke("getFriendRequest", requestCode, null);
-		if(arr == null)
+		if (arr == null)
 			return null;
 		return friendReqFromByteArr(arr);
 	}
-	
+
 	public String acceptFriendRequest(MidasFriendRequest fr) {
 		return (String) invoke("acceptFriendRequest", fr.toMsg().toByteArray(), null);
 	}
-	
+
 	public List<MidasFriendRequest> getPendingFriendRequests(long userId) {
 		byte[][] arrOfArrs = (byte[][]) invoke("getPendingFriendRequests", userId, null);
 		List<MidasFriendRequest> result = new ArrayList<MidasFriendRequest>(arrOfArrs.length);
@@ -127,53 +127,54 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 		}
 		return result;
 	}
-	
+
 	public void ignoreFriendRequest(MidasFriendRequest request) {
 		invoke("ignoreFriendRequest", request.toMsg().toByteArray(), null);
 	}
-	
+
 	public MidasInvite createOrUpdateInvite(String email, MidasUser friend, MidasPlaylist pl) {
 		byte[] arr = (byte[]) invoke("createOrUpdateInvite", email, Arrays.asList(friend.toMsg(false).toByteArray(), pl.toMsg().toByteArray()));
-		if(arr == null)
+		if (arr == null)
 			return null;
 		return inviteFromByteArr(arr);
 	}
-	
+
 	public void inviteAccepted(long acceptedUserId, String inviteCode) {
 		invoke("inviteAccepted", acceptedUserId, Arrays.asList(inviteCode));
 	}
-	
+
 	public MidasInvite getInvite(String inviteCode) {
 		byte[] arr = (byte[]) invoke("getInvite", inviteCode, null);
-		if(arr == null)
+		if (arr == null)
 			return null;
 		return inviteFromByteArr(arr);
 	}
-	
+
 	public MidasInvite getInviteByEmail(String email) {
 		byte[] arr = (byte[]) invoke("getInviteByEmail", email, null);
-		if(arr == null)
+		if (arr == null)
 			return null;
 		return inviteFromByteArr(arr);
 	}
-	
+
 	@Override
 	public Library getLibrary(MidasUser u, Date since) {
 		// We don't do library remoting yet
 		throw new Errot();
 	}
+
 	@Override
 	public void putLibrary(Library lib) {
 		// We don't do library remoting yet
 		throw new Errot();
 	}
-	
+
 	@Override
 	public MidasUserConfig getUserConfig(MidasUser u) {
 		byte[] arr = (byte[]) invoke("getUserConfig", u.getUserId(), null);
 		return userCfgFromByteArr(arr);
 	}
-	
+
 	@Override
 	public void putUserConfig(MidasUserConfig config) {
 		invoke("putUserConfig", config.toMsg().toByteArray(), null);
@@ -183,13 +184,13 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 	public void addFriends(long userId, List<Long> friendIds, List<String> friendEmails) {
 		invoke("addFriends", userId, Arrays.asList(friendIds.toArray(), friendEmails.toArray()));
 	}
-	
+
 	@Override
 	public String requestAccountTopUp(long userId) {
 		byte[] arr = (byte[]) invoke("requestTopUp", userId, null);
 		return new String(arr);
 	}
-	
+
 	private MidasPlaylist playlistFromByteArr(byte[] arr) {
 		if (arr == null)
 			return null;
@@ -215,17 +216,17 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 	}
 
 	private MidasUserConfig userCfgFromByteArr(byte[] arr) {
-		if(arr == null)
+		if (arr == null)
 			return null;
 		UserConfigMsg msg;
 		try {
 			msg = UserConfigMsg.newBuilder().mergeFrom(arr).build();
-		} catch(InvalidProtocolBufferException e) {
+		} catch (InvalidProtocolBufferException e) {
 			return null;
 		}
 		return new MidasUserConfig(msg);
 	}
-	
+
 	private MidasStream streamFromByteArr(byte[] arr) {
 		if (arr == null)
 			return null;
@@ -237,22 +238,22 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 		}
 		return new MidasStream(msg);
 	}
-	
+
 	private MidasInvite inviteFromByteArr(byte[] arr) {
 		InviteMsg msg;
 		try {
 			msg = InviteMsg.newBuilder().mergeFrom(arr).build();
-		} catch(InvalidProtocolBufferException e) {
+		} catch (InvalidProtocolBufferException e) {
 			return null;
 		}
 		return new MidasInvite(msg);
 	}
-	
+
 	private MidasFriendRequest friendReqFromByteArr(byte[] arr) {
 		FriendRequestMsg msg;
 		try {
 			msg = FriendRequestMsg.newBuilder().mergeFrom(arr).build();
-		} catch(InvalidProtocolBufferException e) {
+		} catch (InvalidProtocolBufferException e) {
 			return null;
 		}
 		return new MidasFriendRequest(msg);
@@ -262,5 +263,35 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 		return null;
 	}
 
+	public void deleteComment(MidasComment c) {
+		// No comments via remote
+	}
 
+	public void saveComment(MidasComment c) {
+		// No comments via remote
+	}
+
+	public MidasComment newCommentForLibrary(MidasComment comment, long userId) {
+		// No comments via remote
+		return null;
+	}
+
+	public MidasComment newCommentForPlaylist(MidasComment comment, long playlistId) {
+		// No comments via remote
+		return null;
+	}
+
+	public List<MidasComment> getCommentsForLibrary(long uid, Date since) {
+		// No comments via remote
+		return null;
+	}
+
+	public List<MidasComment> getCommentsForPlaylist(long plId, Date since) {
+		// No comments via remote
+		return null;
+	}
+
+	public MidasComment getComment(long commentId) {
+		return null;
+	}
 }

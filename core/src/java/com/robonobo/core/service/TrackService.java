@@ -57,8 +57,8 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 		started = true;
 		// Do this here rather than in [share|download]service as we
 		// start after them and we need to be present to fire allTracksLoaded
-		share.startAllShares();
 		download.startAllDownloads();
+		share.startAllShares();
 	}
 
 	@Override

@@ -10,14 +10,10 @@ import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.springframework.stereotype.Repository;
 
-import com.robonobo.common.util.TimeUtil;
 import com.robonobo.midas.model.MidasPlaylist;
 
 @Repository("playlistDao")
 public class PlaylistDaoImpl extends MidasDao implements PlaylistDao {
-	/* (non-Javadoc)
-	 * @see com.robonobo.midas.dao.MidasPlaylistDao#getHighestPlaylistId()
-	 */
 	@Override
 	public long getHighestPlaylistId() {
 		String hql = "select max(playlistId) from MidasPlaylist";
@@ -27,25 +23,16 @@ public class PlaylistDaoImpl extends MidasDao implements PlaylistDao {
 		return ((Long)l.get(0)).longValue();
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.robonobo.midas.dao.MidasPlaylistDao#deletePlaylist(com.robonobo.midas.model.MidasPlaylist)
-	 */
 	@Override
 	public void deletePlaylist(MidasPlaylist playlist) {
 		getSession().delete(playlist);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.robonobo.midas.dao.MidasPlaylistDao#loadPlaylist(long)
-	 */
 	@Override
 	public MidasPlaylist loadPlaylist(long playlistId) {
 		return (MidasPlaylist) getSession().get(MidasPlaylist.class, playlistId);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.robonobo.midas.dao.MidasPlaylistDao#savePlaylist(com.robonobo.midas.model.MidasPlaylist)
-	 */
 	@Override
 	public void savePlaylist(MidasPlaylist playlist) {
 		sanitizePlaylist(playlist);

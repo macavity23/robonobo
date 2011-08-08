@@ -504,6 +504,10 @@ public class RobonoboController {
 		inst.getDbService().markAllAsSeen(p);
 	}
 
+	public void markAllCommentsAsSeen(Collection<Comment> comments) {
+		inst.getDbService().markAllCommentsAsSeen(comments);
+	}
+
 	public void markAllLibraryTracksAsSeen(long userId) {
 		inst.getDbService().markAllLibraryTracksAsSeen(userId);
 	}
