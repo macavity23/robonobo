@@ -116,3 +116,13 @@ message CommentMsg {
 	required int64 date = 5;
 	required string text = 6;
 }
+
+message CommentMsgList {
+	repeated CommentMsg comment = 1;
+}
+
+message CombinedMsgList {
+	repeated UserMsg user = 1;
+	repeated PlaylistMsg playlist = 2;
+	repeated CommentMsg comment = 3;
+}
