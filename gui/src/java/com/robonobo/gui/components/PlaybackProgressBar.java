@@ -13,7 +13,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.frames.RobonoboFrame;
 
@@ -297,7 +296,7 @@ public class PlaybackProgressBar extends JProgressBar {
 	}
 
 	private void doRepaint() {
-		RepaintManager.currentManager(this).markCompletelyDirty(this);
+		markAsDirty(this);
 	}
 
 	public interface Listener {

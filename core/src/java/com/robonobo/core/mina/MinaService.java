@@ -21,7 +21,7 @@ public class MinaService extends AbstractService {
 	public MinaService() {
 		super();
 		addHardDependency("core.gateway");
-		addHardDependency("core.event");
+		addHardDependency("core.events");
 		addHardDependency("core.wang");
 		addHardDependency("core.http");
 	}

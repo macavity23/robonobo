@@ -1,11 +1,13 @@
 package com.robonobo.core.api.model;
 
+import static com.robonobo.common.util.TimeUtil.*;
+
 import java.util.Date;
 import java.util.regex.Pattern;
 
 import com.robonobo.core.api.proto.CoreApi.CommentMsg;
 
-public class Comment {
+public class Comment implements Comparable<Comment> {
 	/** Id of this comment */
 	long commentId;
 	/** type and id of whatever this comment is attached to, eg playlist:3456 */ 
@@ -13,7 +15,7 @@ public class Comment {
 	long userId;
 	/** id of the parent comment, or -1 if none */
 	long parentId = -1;
-	Date date;
+	Date date = now();
 	String text;
 	public static final Pattern RESOURCE_ID_PAT = Pattern.compile("^(\\w+):(\\d+)$");
 	
@@ -42,6 +44,11 @@ public class Comment {
 		return b.build();
 	}
 
+	@Override
+	public int compareTo(Comment o) {
+		return date.compareTo(o.date);
+	}
+	
 	public long getCommentId() {
 		return commentId;
 	}

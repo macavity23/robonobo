@@ -6,17 +6,14 @@ import info.clearthought.layout.TableLayout;
 import java.awt.ComponentOrientation;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import javax.swing.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.PlaylistListener;
-import com.robonobo.core.api.RobonoboException;
-import com.robonobo.core.api.model.Playlist;
-import com.robonobo.core.api.model.PlaylistConfig;
+import com.robonobo.core.api.model.*;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -28,11 +25,14 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 	RButton saveBtn;
 	RCheckBox autoDownloadCB;
 	RCheckBox iTunesCB;
+	PlaylistCommentsPanel commentsPanel;
 	protected Map<String, JCheckBox> options = new HashMap<String, JCheckBox>();
 
 	public OtherPlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc) {
 		super(frame, p, pc, false);
 		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
+		commentsPanel = new PlaylistCommentsPanel(frame);
+		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
 		frame.getController().addPlaylistListener(this);
 	}
@@ -54,6 +54,18 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 			getModel().update(p);
 			toolsPanel.checkPlaylistVisibility();
 		}
+	}
+
+	@Override
+	public void gotPlaylistComments(long plId, Map<Comment, Boolean> comments) {
+		if(commentsPanel == null)
+			return;
+		if(plId != p.getPlaylistId())
+			return;
+		// TODO If any comments are new, hilite
+		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
+		Collections.sort(cl);
+		commentsPanel.addComments(cl);
 	}
 
 	void updateFields() {

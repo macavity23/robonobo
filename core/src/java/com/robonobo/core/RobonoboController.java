@@ -13,8 +13,7 @@ import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.config.RobonoboConfig;
 import com.robonobo.core.api.model.*;
-import com.robonobo.core.metadata.PlaylistCallback;
-import com.robonobo.core.metadata.UserConfigCallback;
+import com.robonobo.core.metadata.*;
 import com.robonobo.core.wang.WangListener;
 import com.robonobo.mina.external.*;
 
@@ -405,16 +404,20 @@ public class RobonoboController {
 		}
 	}
 
-	public User getUser(String email) {
-		return inst.getUserService().getUser(email);
+	public User getKnownUser(String email) {
+		return inst.getUserService().getKnownUser(email);
 	}
 
-	public User getUser(long userId) {
-		return inst.getUserService().getUser(userId);
+	public User getKnownUser(long userId) {
+		return inst.getUserService().getKnownUser(userId);
 	}
 
-	public void getOrFetchPlaylist(long playlistId, PlaylistCallback handler) {
-		inst.getPlaylistService().getOrFetchPlaylist(playlistId, handler);
+	public void getOrFetchUser(long userId, UserCallback cb) {
+		inst.getUserService().getOrFetchUser(userId, cb);
+	}
+	
+	public void getOrFetchPlaylist(long playlistId, PlaylistCallback cb) {
+		inst.getPlaylistService().getOrFetchPlaylist(playlistId, cb);
 	}
 
 	public Playlist getKnownPlaylist(long playlistId) {
@@ -433,6 +436,18 @@ public class RobonoboController {
 		});
 	}
 
+	public void newCommentForPlaylist(long playlistId, long parentId, String text, CommentCallback cb) {
+		inst.getCommentService().newCommentForPlaylist(playlistId, parentId, text, cb);
+	}
+	
+	public void newCommentForLibrary(long userId, long parentId, String text, CommentCallback cb) {
+		inst.getCommentService().newCommentForLibrary(userId, parentId, text, cb);
+	}
+	
+	public void deleteComment(long commentId, CommentCallback cb) {
+		inst.getCommentService().deleteComment(commentId, cb);
+	}
+	
 	public void checkUsersUpdate() {
 		inst.getUserService().checkAllUsersUpdate();
 	}

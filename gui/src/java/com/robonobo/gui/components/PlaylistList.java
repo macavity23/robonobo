@@ -160,6 +160,11 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 	}
 
 	@Override
+	public void gotPlaylistComments(long plId, Map<Comment, Boolean> comments) {
+		// Do nothing
+	}
+	
+	@Override
 	public void userConfigChanged(UserConfig cfg) {
 		// Do nothing
 	}

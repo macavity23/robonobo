@@ -49,14 +49,14 @@ public class SharePlaylistSheet extends Sheet {
 		RLabel titleLbl = new RLabel16B("Share playlist '"+p.getTitle()+"':");
 		add(titleLbl, "1,1,3,1");
 		String blurbText = "When you share a playlist with friends, they will be notified by email. They will be able to update the playlist, and you will see any changes they make.";
-		LineBreakTextPanel blurbPnl = new LineBreakTextPanel(blurbText, RoboFont.getFont(13, false), new Dimension(425, 50));
+		LineBreakTextPanel blurbPnl = new LineBreakTextPanel(blurbText, RoboFont.getFont(13, false), 425);
 		add(blurbPnl, "1,3,3,3");
 		add(new RLabel14B("Share with:"), "1,5,3,5");
 		RLabel exFriendLbl = new RLabel12("Existing friends:");
 		add(exFriendLbl, "1,7,l,t");
 		friends = new Vector<UserWrapper>();
 		for (Long friendId : control.getMyUser().getFriendIds()) {
-			User user = control.getUser(friendId);
+			User user = control.getKnownUser(friendId);
 			if (user != null)
 				friends.add(new UserWrapper(user));
 		}

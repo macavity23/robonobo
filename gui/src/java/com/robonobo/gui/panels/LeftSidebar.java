@@ -4,15 +4,13 @@ import static com.robonobo.gui.RoboColor.*;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import javax.swing.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.PlaylistListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.components.*;
@@ -193,7 +191,10 @@ public class LeftSidebar extends JPanel implements PlaylistListener {
 		}
 	}
 	
-
+	@Override
+	public void gotPlaylistComments(long plId, Map<Comment, Boolean> comments) {
+	}
+	
 	@Override
 	public void playlistChanged(Playlist p) {
 		// I'm not sure if this is the best place to create the panels, but this is the lowest common ancestor of the

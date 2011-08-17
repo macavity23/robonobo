@@ -1,5 +1,6 @@
 package com.robonobo.gui.components;
 
+import static com.robonobo.gui.GuiUtil.*;
 import static com.robonobo.gui.RoboColor.*;
 
 import java.awt.Dimension;
@@ -56,7 +57,7 @@ public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarC
 			setBackground(MID_GRAY);
 			setForeground(DARK_GRAY);
 		}
-		RepaintManager.currentManager(this).markCompletelyDirty(this);
+		markAsDirty(this);
 	}
 
 	public void setIcon(Icon icon) {

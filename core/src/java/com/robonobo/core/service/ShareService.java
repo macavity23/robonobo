@@ -76,7 +76,7 @@ public class ShareService extends AbstractService {
 	public void shutdown() {
 		// Don't specifically stop our shares, the mina shutdown will stop them
 		watchDirTask.cancel(true);
-		if(fetchMyCommentsTask != null)
+		if (fetchMyCommentsTask != null)
 			fetchMyCommentsTask.cancel(true);
 	}
 
@@ -267,16 +267,18 @@ public class ShareService extends AbstractService {
 		}
 	}
 
-	private void startFetchingComments() {
+	public void startFetchingComments() {
+		if (fetchMyCommentsTask != null)
+			fetchMyCommentsTask.cancel(false);
 		fetchMyCommentsTask = rbnb.getExecutor().scheduleAtFixedRate(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				User me = users.getMyUser();
-				if(me != null)
+				if (me != null)
 					comments.fetchCommentsForLibrary(me.getUserId());
 			}
 		}, 0, rbnb.getConfig().getUserUpdateFrequency(), TimeUnit.SECONDS);
 	}
-	
+
 	class StartSharesTask extends Task {
 		boolean finished = false;
 
@@ -334,7 +336,6 @@ public class ShareService extends AbstractService {
 			rbnb.getTrackService().setAllSharesStarted(true);
 			event.fireAllTracksLoaded();
 			event.fireMyLibraryUpdated();
-			startFetchingComments();
 		}
 	}
 

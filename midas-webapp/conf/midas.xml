@@ -51,4 +51,5 @@
   <Parameter name="twitterApiSecret" value="EDITME" override="true"/>
   <Parameter name="twitterPimpMsg" value=" @robonobo" override="true"/>
   <Parameter name="playlistShortUrlBase" value="http://localhost:8080/website/p/" override="true"/>
+  <Parameter name="defaultUserImgUrl" value="http://localhost:8080/website/img/defaultuser.png" override="true"/>
 </Context>

@@ -2,18 +2,13 @@ package com.robonobo.gui;
 
 import static javax.swing.SwingUtilities.*;
 
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Window;
+import java.awt.*;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
 import com.robonobo.common.exceptions.Errot;
 
@@ -28,6 +23,14 @@ public class GuiUtil {
 		return new ImageIcon(imgUrl, description);
 	}
 
+	public static ImageIcon imgIconFromUrl(String url) {
+		try {
+			return new ImageIcon(new URL(url));
+		} catch (MalformedURLException e) {
+			throw new Errot(e);
+		}
+	}
+	
 	public static Image getImage(String path) {
 		try {
 			return ImageIO.read(GuiUtil.class.getResource(path));
@@ -63,6 +66,10 @@ public class GuiUtil {
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+	}
+	
+	public static void markAsDirty(JComponent c) {
+		RepaintManager.currentManager(c).markCompletelyDirty(c);
 	}
 	
 	public static void runOnUiThread(Runnable r) {

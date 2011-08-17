@@ -10,8 +10,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JPanel;
 
-import com.robonobo.core.api.model.Playlist;
-import com.robonobo.core.api.model.PlaylistConfig;
+import com.robonobo.core.api.model.*;
+import com.robonobo.core.metadata.CommentCallback;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.PlaylistTableModel;
@@ -40,16 +40,15 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 	protected PlaylistTableModel getModel() {
 		return (PlaylistTableModel) getTrackList().getModel();
 	}
-	
+
 	class PlaylistToolsPanel extends JPanel {
 		private RButton fbBtn;
 		private RButton twitBtn;
 		private RButton copyBtn;
 
 		public PlaylistToolsPanel() {
-			double[][] cellSizen = { {35, 5, 215, 5, 30, 5, 30, 5, 90}, { 25 } };
+			double[][] cellSizen = { { 35, 5, 215, 5, 30, 5, 30, 5, 90 }, { 25 } };
 			setLayout(new TableLayout(cellSizen));
-			
 			RLabel urlLbl = new RLabel13("URL:");
 			add(urlLbl, "0,0");
 			String urlBase = frame.getController().getConfig().getPlaylistUrlBase();
@@ -88,17 +87,17 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			add(copyBtn, "8,0");
 			checkPlaylistVisibility();
 		}
-		
+
 		public void checkPlaylistVisibility() {
 			// If this is a new playlist, disable buttons
-			if(p.getPlaylistId() <= 0) {
+			if (p.getPlaylistId() <= 0) {
 				fbBtn.setEnabled(false);
 				twitBtn.setEnabled(false);
 				copyBtn.setEnabled(false);
 				return;
 			}
 			copyBtn.setEnabled(true);
-			if(frame.getController().getMyUser().getPlaylistIds().contains(p.getPlaylistId())) {
+			if (frame.getController().getMyUser().getPlaylistIds().contains(p.getPlaylistId())) {
 				// It's my playlist, enable everything
 				fbBtn.setEnabled(true);
 				fbBtn.setToolTipText("Post playlist update to facebook");
@@ -106,7 +105,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 				twitBtn.setToolTipText("Post playlist update to twitter");
 			} else {
 				// For playlists that aren't mine, only enable the fb/twit buttons if the playlist is public
-				if(p.getVisibility().equals(Playlist.VIS_ALL)) {
+				if (p.getVisibility().equals(Playlist.VIS_ALL)) {
 					fbBtn.setEnabled(true);
 					fbBtn.setToolTipText("Post playlist update to facebook");
 					twitBtn.setEnabled(true);
@@ -120,9 +119,33 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			}
 		}
 	}
-	
+
 	@Override
 	public void lostOwnership(Clipboard clipboard, Transferable contents) {
 		// Do nothing
+	}
+
+	class PlaylistCommentsPanel extends CommentsTabPanel {
+		public PlaylistCommentsPanel(RobonoboFrame frame) {
+			super(frame);
+		}
+
+		@Override
+		protected boolean canRemoveComment(Comment c) {
+			long myUid = frame.getController().getMyUser().getUserId();
+			// If I own this comment, I can remove it
+			if(c.getUserId() == myUid)
+				return true;
+			// If I don't own this playlist, I can't remove comments
+			if(!p.getOwnerIds().contains(myUid))
+				return false;
+			// I do own this playlist - I can remove this comment unless it's made by another owner
+			return !(p.getOwnerIds().contains(c.getUserId()));
+		}
+
+		@Override
+		protected void newComment(long parentCmtId, String text, CommentCallback cb) {
+			frame.getController().newCommentForPlaylist(p.getPlaylistId(), parentCmtId, text, cb);
+		}
 	}
 }

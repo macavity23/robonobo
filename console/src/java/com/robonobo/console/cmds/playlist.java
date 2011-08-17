@@ -131,7 +131,7 @@ public class playlist implements ConsoleCommand {
 			printHelp(out);
 			return;
 		}
-		final User u = args[1].equalsIgnoreCase("mine") ? control.getMyUser() : control.getUser(args[1]);
+		final User u = args[1].equalsIgnoreCase("mine") ? control.getMyUser() : control.getKnownUser(args[1]);
 		if (u == null) {
 			out.println("No user found with email " + args[1]);
 			return;
@@ -162,7 +162,7 @@ public class playlist implements ConsoleCommand {
 			printHelp(out);
 			return;
 		}
-		final User u = args[1].equalsIgnoreCase("mine") ? control.getMyUser() : control.getUser(args[1]);
+		final User u = args[1].equalsIgnoreCase("mine") ? control.getMyUser() : control.getKnownUser(args[1]);
 		if (u == null) {
 			out.println("No user found with email " + args[1]);
 			return;
@@ -192,7 +192,7 @@ public class playlist implements ConsoleCommand {
 	}
 
 	private void doList(RobonoboController control, String[] args, PrintWriter out) {
-		final User u = args[1].equalsIgnoreCase("mine") ? control.getMyUser() : control.getUser(args[1]);
+		final User u = args[1].equalsIgnoreCase("mine") ? control.getMyUser() : control.getKnownUser(args[1]);
 		if (u == null) {
 			out.println("No user found with email " + args[1]);
 			return;
@@ -224,7 +224,7 @@ public class playlist implements ConsoleCommand {
 		String sendEmail = args[2];
 		long sendUserId = -1;
 		for (Long friendId : me.getFriendIds()) {
-			User friend = control.getUser(friendId);
+			User friend = control.getKnownUser(friendId);
 			if (friend.getEmail().equals(sendEmail)) {
 				sendUserId = friendId;
 				break;

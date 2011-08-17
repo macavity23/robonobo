@@ -35,7 +35,7 @@ public class AddFriendsSheet extends Sheet {
 		setName("playback.background.panel");
 		RLabel titleLbl = new RLabel16B("Add friends");
 		add(titleLbl, "1,1,3,1");
-		JPanel blurb = new LineBreakTextPanel("Enter your friends' email addresses below to invite them to robonobo:", RoboFont.getFont(13, false), new Dimension(345, 30));
+		JPanel blurb = new LineBreakTextPanel("Enter your friends' email addresses below to invite them to robonobo:", RoboFont.getFont(13, false), 345);
 		add(blurb, "1,3,3,3");
 		RLabel newFriendLbl = new RLabel12("New friends:");
 		add(newFriendLbl, "1,5");

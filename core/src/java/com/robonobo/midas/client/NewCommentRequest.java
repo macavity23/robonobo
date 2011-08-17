@@ -25,7 +25,9 @@ public class NewCommentRequest implements Request {
 
 	@Override
 	public Params getNextParams() {
-		return new Params(Operation.Put, comment.toMsg(), CommentMsg.newBuilder(), cfg.getCommentByTypeUrl(comment.getResourceId()), comment);
+		Params result = new Params(Operation.Put, comment.toMsg(), CommentMsg.newBuilder(), cfg.getCommentByTypeUrl(comment.getResourceId()), comment);
+		comment = null;
+		return result;
 	}
 
 	@Override

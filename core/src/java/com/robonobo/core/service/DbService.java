@@ -83,7 +83,7 @@ public class DbService extends AbstractService {
 	Lock streamUpdateLock = new ReentrantLock();
 
 	public DbService() {
-		addHardDependency("core.event");
+		addHardDependency("core.events");
 	}
 
 	public String getName() {

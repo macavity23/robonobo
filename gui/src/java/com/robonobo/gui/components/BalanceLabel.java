@@ -59,7 +59,7 @@ public class BalanceLabel extends JPanel implements LeftSidebarComponent, WangLi
 		} else {
 			setBorder(null);
 		}
-		RepaintManager.currentManager(this).markCompletelyDirty(this);
+		markAsDirty(this);
 	}
 	
 	@Override

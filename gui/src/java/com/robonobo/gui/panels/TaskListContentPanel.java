@@ -1,7 +1,6 @@
 package com.robonobo.gui.panels;
 
 import static com.robonobo.gui.GuiUtil.*;
-import static javax.swing.SwingUtilities.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.Dimension;
@@ -16,7 +15,6 @@ import javax.swing.*;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.Task;
 import com.robonobo.core.api.TaskListener;
-import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -60,8 +58,7 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 		if (p != null) {
 			taskListPanel.remove(p);
 			taskListPanel.revalidate();
-			// For some reason revalidate doesn't cause the panel to repaint...?
-			RepaintManager.currentManager(taskListPanel).markCompletelyDirty(taskListPanel);
+			markAsDirty(taskListPanel);
 		}
 	}
 

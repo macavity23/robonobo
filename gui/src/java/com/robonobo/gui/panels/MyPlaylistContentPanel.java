@@ -18,8 +18,7 @@ import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.PlaylistListener;
-import com.robonobo.core.api.model.Playlist;
-import com.robonobo.core.api.model.PlaylistConfig;
+import com.robonobo.core.api.model.*;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.base.*;
@@ -41,12 +40,15 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	protected RRadioButton visMeBtn;
 	protected RRadioButton visFriendsBtn;
 	protected RRadioButton visAllBtn;
+	protected PlaylistCommentsPanel commentsPanel;
 	private ActionListener saveActionListener;
 	protected Map<String, RCheckBox> options = new HashMap<String, RCheckBox>();
 
 	public MyPlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc) {
 		super(frame, p, pc, true);
 		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
+		commentsPanel = new PlaylistCommentsPanel(frame);
+		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
 		if (addAsListener())
 			frame.getController().addPlaylistListener(this);
@@ -56,6 +58,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		super(frame, p, pc, model);
 		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
 		tabPane.setSelectedIndex(0);
+		// Don't add a comment panel, let the subclass do that if they like
 		if (addAsListener())
 			frame.getController().addPlaylistListener(this);
 	}
@@ -111,6 +114,18 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		}
 	}
 
+	@Override
+	public void gotPlaylistComments(long plId, Map<Comment, Boolean> comments) {
+		if(commentsPanel == null)
+			return;
+		if(plId != p.getPlaylistId())
+			return;
+		// TODO If any comments are new, hilite
+		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
+		Collections.sort(cl);
+		commentsPanel.addComments(cl);
+	}
+	
 	@Override
 	public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
 		for (DataFlavor dataFlavor : transferFlavors) {

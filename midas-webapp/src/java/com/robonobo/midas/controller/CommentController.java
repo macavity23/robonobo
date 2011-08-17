@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import com.robonobo.common.exceptions.Errot;
@@ -23,6 +24,7 @@ import com.robonobo.midas.model.*;
 @Controller
 public class CommentController extends BaseController {
 	@RequestMapping(value = "/comment/byid/{commentId}", method = RequestMethod.DELETE)
+	@Transactional(rollbackFor = Exception.class)
 	public void deleteComment(@PathVariable("commentId") String commentIdStr, HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		MidasUser u = getAuthUser(req);
 		if (u == null) {
@@ -99,7 +101,7 @@ public class CommentController extends BaseController {
 		} else if(itemType.equalsIgnoreCase("library")) {
 			if (u.getUserId() != itemId) {
 				MidasUser libraryU = midas.getUserById(itemId);
-				if (!libraryU.getFriendIds().contains(itemId)) {
+				if (!libraryU.getFriendIds().contains(u.getUserId())) {
 					send401(req, resp);
 					return;
 				}
@@ -117,6 +119,7 @@ public class CommentController extends BaseController {
 	}
 
 	@RequestMapping(value = "/comment/{itemType}/{itemId}", method = RequestMethod.PUT)
+	@Transactional(rollbackFor = Exception.class)
 	public void newComment(@PathVariable("itemType") String itemType, @PathVariable("itemId") String itemIdStr, HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		MidasUser u = getAuthUser(req);

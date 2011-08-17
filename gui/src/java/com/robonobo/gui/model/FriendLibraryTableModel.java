@@ -87,6 +87,11 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 		// Do nothing
 	}
 
+	@Override
+	public void gotLibraryComments(long userId, Map<Comment, Boolean> comments) {
+		// Do nothing
+	}
+	
 	public void foundBroadcaster(String sid, String nodeId) {
 		// Get a fresh track to include this new broadcaster
 		Track t = control.getTrack(sid);

@@ -451,7 +451,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	}
 
 	private void doRepaint() {
-		RepaintManager.currentManager(this).markCompletelyDirty(this);
+		markAsDirty(this);
 	}
 
 	class PlayPauseListener implements ActionListener {

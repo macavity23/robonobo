@@ -2,7 +2,6 @@ package com.robonobo.gui.sheets;
 
 import info.clearthought.layout.TableLayout;
 
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -27,7 +26,7 @@ public abstract class ConfirmWithFeckOffSheet extends Sheet {
 		setName("playback.background.panel");
 		RLabel titleLbl = new RLabel14B(title);
 		add(titleLbl, "1,1,4,1,CENTER,CENTER");
-		JPanel msgLbl = new LineBreakTextPanel(message, RoboFont.getFont(13, false), new Dimension((310 + btnWidth), 50));
+		JPanel msgLbl = new LineBreakTextPanel(message, RoboFont.getFont(13, false), 310 + btnWidth);
 		add(msgLbl, "1,3,4,3");
 		feckOffCB = new RCheckBox(feckOffLbl);
 		feckOffCB.setSelected(feckOffSelected);

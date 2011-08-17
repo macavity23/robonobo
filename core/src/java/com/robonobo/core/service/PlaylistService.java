@@ -27,7 +27,7 @@ public class PlaylistService extends AbstractService {
 	public PlaylistService() {
 		addHardDependency("core.db");
 		addHardDependency("core.metadata");
-		addHardDependency("core.event");
+		addHardDependency("core.events");
 		addHardDependency("core.tasks");
 		addHardDependency("core.streams");
 		addHardDependency("core.tracks");
@@ -52,6 +52,7 @@ public class PlaylistService extends AbstractService {
 		events = rbnb.getEventService();
 		streams = rbnb.getStreamService();
 		tracks = rbnb.getTrackService();
+		comments = rbnb.getCommentService();
 	}
 
 	@Override
@@ -350,7 +351,7 @@ public class PlaylistService extends AbstractService {
 	private void syncITunesIfNecessary(Playlist p) {
 		try {
 			for (Long ownerId : p.getOwnerIds()) {
-				User owner = rbnb.getUserService().getUser(ownerId);
+				User owner = rbnb.getUserService().getKnownUser(ownerId);
 				if(owner != null)
 					rbnb.getITunesService().syncPlaylist(owner, p);
 			}

@@ -28,6 +28,7 @@ import com.robonobo.gui.model.TrackListTableModel;
 @SuppressWarnings("serial")
 public abstract class ContentPanel extends JPanel {
 	protected TrackList trackList;
+	protected JPanel topPane;
 	protected JTabbedPane tabPane;
 	protected RobonoboFrame frame;
 	protected Log log = LogFactory.getLog(getClass());
@@ -38,18 +39,26 @@ public abstract class ContentPanel extends JPanel {
 
 	public ContentPanel(RobonoboFrame frame, TrackListTableModel tableModel) {
 		this.frame = frame;
-		double[][] cellSizen = { { TableLayout.FILL }, { TableLayout.FILL, 5, 175 } };
+		double[][] cellSizen = { { TableLayout.FILL }, { TableLayout.FILL, } };
 		setLayout(new TableLayout(cellSizen));
+		
+		topPane = new JPanel();
+		double[][] tpCells = { { TableLayout.FILL }, { TableLayout.FILL } };
+		topPane.setLayout(new TableLayout(tpCells));
+		
 		trackList = new TrackList(frame, tableModel);
 		trackList.getJTable().setDragEnabled(true);
 		trackList.getJTable().setTransferHandler(createTrackListTransferHandler());
-		add(trackList, "0,0");
+		topPane.add(trackList, "0,0");
 
 		tabPane = new JTabbedPane(JTabbedPane.TOP);
 		tabPane.setFont(RoboFont.getFont(16, true));
 		tabPane.setBorder(BorderFactory.createEmptyBorder(0, 1, 0, 1));
-		add(tabPane, "0,2");
 		tabPane.addTab("track", new TrackTab());
+
+		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topPane, tabPane);
+		splitPane.setDividerLocation(400);
+		add(splitPane,"0,0");
 	}
 	
 	/**
@@ -63,15 +72,15 @@ public abstract class ContentPanel extends JPanel {
 	}
 
 	private void showMessage(MessagePanel mp) {
-		TableLayout tl = (TableLayout) getLayout();
+		TableLayout tl = (TableLayout) topPane.getLayout();
 		tl.insertRow(0, 5);
 		tl.insertRow(0, mp.getPreferredSize().height);
-		add(mp, "0,0");
-		revalidate();
+		topPane.add(mp, "0,0");
+		topPane.revalidate();
 	}
 
 	private void messageClosed() {
-		TableLayout tl = (TableLayout) getLayout();
+		TableLayout tl = (TableLayout) topPane.getLayout();
 		tl.deleteRow(0);
 		tl.deleteRow(0);
 		msgs.remove(0);
@@ -79,7 +88,7 @@ public abstract class ContentPanel extends JPanel {
 			MessagePanel mp = msgs.get(0);
 			showMessage(mp);
 		} else
-			revalidate();
+			topPane.revalidate();
 	}
 
 	public TrackList getTrackList() {

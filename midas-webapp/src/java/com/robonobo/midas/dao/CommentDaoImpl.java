@@ -28,7 +28,13 @@ public class CommentDaoImpl extends MidasDao implements CommentDao {
 
 	@Override
 	public void deleteComment(MidasComment comment) {
+		long cid = comment.getCommentId();
 		getSession().delete(comment);
+		// Delete all child comments too
+		String hql = "from MidasComment where parentId = :cid";
+		for (Object child : getSession().createQuery(hql).setLong("cid", cid).list()) {
+			deleteComment((MidasComment) child);
+		}
 	}
 
 	@Override
@@ -37,9 +43,15 @@ public class CommentDaoImpl extends MidasDao implements CommentDao {
 		getSession().createQuery(hql).setString("resourceId", resourceId).executeUpdate();
 	}
 
+	private void sanitizeComment(MidasComment c) {
+		if (c.getText().length() > 1024)
+			c.setText(c.getText().substring(0, 1024));
+	}
+
 	@Override
 	public void saveComment(MidasComment comment) {
-		getSession().save(comment);
+		sanitizeComment(comment);
+		getSession().saveOrUpdate(comment);
 	}
 
 	@Override

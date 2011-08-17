@@ -8,7 +8,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -23,6 +24,7 @@ import com.robonobo.core.Platform;
 import com.robonobo.core.api.LibraryListener;
 import com.robonobo.core.api.UserListener;
 import com.robonobo.core.api.model.*;
+import com.robonobo.core.metadata.CommentCallback;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.MyLibraryTableModel;
@@ -33,6 +35,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 	private RLabel addLbl;
 	private Document searchDoc;
 	private TrackListSearchPanel searchPanel;
+	CommentsPanel commentsPanel;
 
 	public MyLibraryContentPanel(RobonoboFrame f) {
 		this(f, new PlainDocument());
@@ -41,7 +44,9 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 	private MyLibraryContentPanel(RobonoboFrame f, Document searchDoc) {
 		super(f, MyLibraryTableModel.create(f, searchDoc));
 		this.searchDoc = searchDoc;
-		tabPane.insertTab("library", null, new TabPanel(), null, 0);
+		tabPane.insertTab("library", null, new LibraryTabPanel(), null, 0);
+		commentsPanel = new CommentsPanel(f);
+		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
 		frame.getController().addUserListener(this);
 		frame.getController().addLibraryListener(this);
@@ -63,7 +68,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 	public JComponent defaultComponent() {
 		return searchPanel.getSearchField();
 	}
-	
+
 	@Override
 	public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
 		return Platform.getPlatform().canDnDImport(transferFlavors);
@@ -117,17 +122,45 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 	}
 
 	@Override
+	public void gotLibraryComments(long userId, Map<Comment, Boolean> comments) {
+		long myUid = frame.getController().getMyUser().getUserId();
+		if(userId != myUid)
+			return;
+		// TODO If any comments are new, hilite
+		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
+		Collections.sort(cl);
+		commentsPanel.addComments(cl);
+	}
+	
+	@Override
 	public void friendLibraryReady(long userId, int numUnseen) {
 		// Do nothing
 	}
-	
+
 	@Override
 	public void friendLibraryUpdated(long userId, int numUnseen, Map<String, Date> newTracks) {
 		// Do nothing
 	}
-	
-	class TabPanel extends JPanel {
-		public TabPanel() {
+
+	class CommentsPanel extends CommentsTabPanel {
+		public CommentsPanel(RobonoboFrame frame) {
+			super(frame);
+		}
+
+		@Override
+		protected boolean canRemoveComment(Comment c) {
+			return true;
+		}
+
+		@Override
+		protected void newComment(long parentCmtId, String text, CommentCallback cb) {
+			long myUid = frame.getController().getMyUser().getUserId();
+			frame.getController().newCommentForLibrary(myUid, parentCmtId, text, cb);
+		}
+	}
+
+	class LibraryTabPanel extends JPanel {
+		public LibraryTabPanel() {
 			double[][] cellSizen = { { 10, 400, TableLayout.FILL, 240, 30 }, { TableLayout.FILL } };
 			setLayout(new TableLayout(cellSizen));
 			JPanel lPanel = new JPanel();

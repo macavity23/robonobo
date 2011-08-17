@@ -15,7 +15,6 @@ import com.robonobo.core.api.proto.CoreApi.UserMsg;
 import com.robonobo.midas.EventService;
 import com.robonobo.midas.MessageService;
 import com.robonobo.midas.model.MidasUser;
-import com.robonobo.remote.service.MailService;
 
 @Controller
 public class UserController extends BaseController {
@@ -76,11 +75,6 @@ public class UserController extends BaseController {
 	
 	protected void getUser(MidasUser targetUser, MidasUser authUser, HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		MidasUser returnUser = midas.getUserAsVisibleBy(targetUser, authUser);
-		if(returnUser == null) {
-			// Send a 404 rather than a 401 here, even though the user exists, to prevent user enumeration
-			send404(req, resp);
-			return;
-		}
 		UserMsg uMsg = returnUser.toMsg(false);
 		writeToOutput(uMsg, resp);
 		log.debug("User "+authUser.getEmail()+" retrieving user: "+uMsg);

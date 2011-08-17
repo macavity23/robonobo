@@ -523,6 +523,6 @@ public class EventService extends AbstractService implements MinaListener {
 	}
 
 	public String getProvides() {
-		return "core.event";
+		return "core.events";
 	}
 }

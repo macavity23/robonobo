@@ -1,6 +1,8 @@
 package com.robonobo.gui.panels;
 
 import java.awt.Dimension;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import javax.swing.*;
 import javax.swing.text.Document;
@@ -19,14 +21,21 @@ class TrackListSearchPanel extends JPanel {
 		this.frame = frame;
 		this.trackList = t;
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-		RLabel searchLbl = new RLabel16B("Search "+lblName);
+		RLabel searchLbl = new RLabel16B("Search " + lblName);
 		add(searchLbl);
 		add(Box.createHorizontalStrut(10));
 		searchField = new RTextField(searchDoc, "", 50);
 		searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+		// Deselect the tracklist as soon as they type anything, otherwise glazedlists sometimes gets its panties in a
+		// twist
+		searchField.addKeyListener(new KeyAdapter() {
+			public void keyPressed(KeyEvent e) {
+				trackList.clearTableSelection();
+			}
+		});
 		add(searchField);
 	}
-	
+
 	public RTextField getSearchField() {
 		return searchField;
 	}

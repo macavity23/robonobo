@@ -389,7 +389,7 @@ public class RobonoboInstance implements Robonobo {
 	}
 
 	public EventService getEventService() {
-		return (EventService) serviceMgr.getService("core.event");
+		return (EventService) serviceMgr.getService("core.events");
 	}
 
 	public RobonoboStatus getStatus() {

@@ -19,7 +19,7 @@ public class friends implements ConsoleCommand {
 			return;
 		}
 		for (long friendId : control.getMyUser().getFriendIds()) {
-			User u = control.getUser(friendId);
+			User u = control.getKnownUser(friendId);
 			out.println(u.getEmail()+" ("+u.getFriendlyName()+")");
 		}
 	}

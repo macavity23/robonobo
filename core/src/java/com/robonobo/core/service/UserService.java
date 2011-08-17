@@ -167,6 +167,7 @@ public class UserService extends AbstractService {
 				playlists.refreshMyPlaylists(me);
 			else
 				fetchFriends();
+			rbnb.getShareService().startFetchingComments();
 		}
 
 		@Override
@@ -233,14 +234,39 @@ public class UserService extends AbstractService {
 		metadata.fetchUserConfig(me.getUserId(), handler);
 	}
 
-	public synchronized User getUser(String email) {
+	public synchronized User getKnownUser(String email) {
 		return usersByEmail.get(email);
 	}
 
-	public synchronized User getUser(long userId) {
+	public synchronized User getKnownUser(long userId) {
 		return usersById.get(userId);
 	}
 
+	public void getOrFetchUser(long userId, final UserCallback cb) {
+		User u;
+		synchronized (this) {
+			u = usersById.get(userId);
+		}
+		if(u != null) {
+			cb.success(u);
+			return;
+		}
+		metadata.fetchUser(userId, new UserCallback() {
+			@Override
+			public void success(User u) {
+				synchronized(UserService.this) {
+					usersById.put(u.getUserId(), u);
+				}
+				cb.success(u);
+			}
+			
+			@Override
+			public void error(long userId, Exception e) {
+				cb.error(userId, e);
+			}
+		});
+	}
+	
 	void fetchFriends() {
 		if (me.getFriendIds().size() > 0)
 			tasks.runTask(new FriendFetchTask(me));

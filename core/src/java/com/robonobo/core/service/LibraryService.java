@@ -30,7 +30,7 @@ public class LibraryService extends AbstractService {
 		addHardDependency("core.metadata");
 		addHardDependency("core.users");
 		addHardDependency("core.tasks");
-		addHardDependency("core.event");
+		addHardDependency("core.events");
 		addHardDependency("core.streams");
 		addHardDependency("core.comments");
 	}
@@ -90,7 +90,7 @@ public class LibraryService extends AbstractService {
 			Set<Long> friendIds = new HashSet<Long>(rbnb.getUserService().getMyUser().getFriendIds());
 			int done = 0;
 			for (long friendId : friendIds) {
-				User friend = users.getUser(friendId);
+				User friend = users.getKnownUser(friendId);
 				statusText = "Loading details for " + friend.getEmail();
 				completion = ((float) done) / friendIds.size();
 				fireUpdated();
@@ -113,6 +113,8 @@ public class LibraryService extends AbstractService {
 		Map<String, Date> unknownTracks;
 		Batcher<String> trackBatcher = new Batcher<String>(FIRE_UI_EVENT_DELAY * 1000, rbnb.getExecutor()) {
 			protected void runBatch(Collection<String> sids) throws Exception {
+				if(sids.size() == 0)
+					return;
 				Map<String, Date> newTracks = new HashMap<String, Date>(sids.size());
 				for (String sid : sids) {
 					newTracks.put(sid, unknownTracks.get(sid));

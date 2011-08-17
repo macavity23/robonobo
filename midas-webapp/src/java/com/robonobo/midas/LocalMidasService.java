@@ -59,11 +59,11 @@ public class LocalMidasService implements MidasService {
 	}
 
 	public MidasUser getUserByEmail(String email) {
-		return userDao.getByEmail(email);
+		return populateDefault(userDao.getByEmail(email));
 	}
 
 	public MidasUser getUserById(long userId) {
-		return userDao.getById(userId);
+		return populateDefault(userDao.getById(userId));
 	}
 
 	@Transactional(rollbackFor = Exception.class)
@@ -80,13 +80,19 @@ public class LocalMidasService implements MidasService {
 			log.error("Error sending welcome mail to " + createdUser.getEmail(), e);
 		}
 		event.newUser(createdUser);
-		return createdUser;
+		return populateDefault(createdUser);
 	}
 
+	private MidasUser populateDefault(MidasUser u) {
+		if(isEmpty(u.getImgUrl()))
+			u.setImgUrl(appConfig.getInitParam("defaultUserImgUrl"));
+		return u;
+	}
+	
 	public MidasUser getUserAsVisibleBy(MidasUser targetU, MidasUser requestor) {
 		// If this the user asking for themselves, give them everything. If
 		// they're a friend, they get public and friend-visible playlists, but no friends.
-		// Otherwise, they get a null object
+		// Otherwise, they just get friendly name and image url
 		MidasUser result;
 		if (targetU.equals(requestor)) {
 			result = new MidasUser(targetU);
@@ -101,9 +107,13 @@ public class LocalMidasService implements MidasService {
 				if (p.getVisibility().equals(Playlist.VIS_ME))
 					iter.remove();
 			}
-		} else
-			result = null;
-		return result;
+		} else {
+			result = new MidasUser();
+			result.setUserId(targetU.getUserId());
+			result.setFriendlyName(targetU.getFriendlyName());
+			result.setImgUrl(targetU.getImgUrl());
+		}
+		return populateDefault(result);
 	}
 
 	@Transactional(rollbackFor = Exception.class)
