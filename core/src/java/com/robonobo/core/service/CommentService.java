@@ -10,6 +10,7 @@ import com.robonobo.core.metadata.*;
 
 public class CommentService extends AbstractService {
 	Map<String, Date> lastFetched = new HashMap<String, Date>();
+	Map<String, Map<Comment, Boolean>> cmtsByResId = new HashMap<String, Map<Comment, Boolean>>();
 	private AbstractMetadataService metadata;
 	private DbService db;
 	private EventService events;
@@ -37,9 +38,17 @@ public class CommentService extends AbstractService {
 		events = rbnb.getEventService();
 	}
 
+	private synchronized void storeComments(String resourceId, Map<Comment, Boolean> cMap) {
+		if(cmtsByResId.containsKey(resourceId))
+			cmtsByResId.get(resourceId).putAll(cMap);
+		else
+			cmtsByResId.put(resourceId, cMap);
+	}
+	
 	public void newCommentForPlaylist(final long playlistId, long parentId, String text, final CommentCallback cb) {
 		Comment c = new Comment();
-		c.setResourceId("playlist:" + playlistId);
+		final String resId = "playlist:" + playlistId;
+		c.setResourceId(resId);
 		c.setParentId(parentId);
 		c.setUserId(rbnb.getUserService().getMyUser().getUserId());
 		c.setText(text);
@@ -49,6 +58,7 @@ public class CommentService extends AbstractService {
 				cb.success(c);
 				Map<Comment, Boolean> flarp = new HashMap<Comment, Boolean>();
 				flarp.put(c, false);
+				storeComments(resId, flarp);
 				events.fireGotPlaylistComments(playlistId, flarp);
 			}
 
@@ -58,10 +68,11 @@ public class CommentService extends AbstractService {
 		});
 	}
 
-	public void newCommentForLibrary(long userId, long parentId, String text, final CommentCallback cb) {
+	public void newCommentForLibrary(final long userId, long parentId, String text, final CommentCallback cb) {
 		final User me = rbnb.getUserService().getMyUser();
 		Comment c = new Comment();
-		c.setResourceId("library:" + userId);
+		final String resId = "library:" + userId;
+		c.setResourceId(resId);
 		c.setParentId(parentId);
 		c.setUserId(me.getUserId());
 		c.setText(text);
@@ -70,7 +81,8 @@ public class CommentService extends AbstractService {
 				cb.success(c);
 				Map<Comment, Boolean> flarp = new HashMap<Comment, Boolean>();
 				flarp.put(c, false);
-				events.fireGotLibraryComments(me.getUserId(), flarp);
+				storeComments(resId, flarp);
+				events.fireGotLibraryComments(userId, flarp);
 			}
 
 			public void error(long commentId, Exception ex) {
@@ -79,8 +91,30 @@ public class CommentService extends AbstractService {
 		});
 	}
 
-	public void deleteComment(long commentId, final CommentCallback cb) {
-		metadata.deleteComment(commentId, cb);
+	public Map<Comment, Boolean> getExistingComments(String resourceId) {
+		Map<Comment, Boolean> result = new HashMap<Comment, Boolean>();
+		synchronized (this) {
+			if(cmtsByResId.containsKey(resourceId))
+				result.putAll(cmtsByResId.get(resourceId));
+		}
+		return result;
+	}
+
+	public void markCommentsAsSeen(Collection<Comment> cs) {
+		synchronized (this) {
+			for (Comment c : cs) {
+				cmtsByResId.get(c.getResourceId()).put(c, false);
+			}
+		}
+		db.markCommentsAsSeen(cs);
+	}
+	
+	public void deleteComment(Comment c, final CommentCallback cb) {
+		synchronized (this) {
+			if(cmtsByResId.containsKey(c.getResourceId()))
+				cmtsByResId.get(c.getResourceId()).remove(c);
+		}
+		metadata.deleteComment(c.getCommentId(), cb);
 	}
 	
 	public void fetchCommentsForPlaylist(final long playlistId) {
@@ -93,6 +127,8 @@ public class CommentService extends AbstractService {
 					for (Comment c : pl) {
 						cNewMap.put(c, db.haveSeenComment(c.getCommentId()));
 					}
+					storeComments(resId, cNewMap);
+					log.debug("Fetched "+pl.size()+" comments for playlist "+playlistId);
 					events.fireGotPlaylistComments(playlistId, cNewMap);
 				}
 				lastFetched.put(resId, fetchTime);
@@ -114,6 +150,8 @@ public class CommentService extends AbstractService {
 					for (Comment c : pl) {
 						cNewMap.put(c, db.haveSeenComment(c.getCommentId()));
 					}
+					storeComments(resId, cNewMap);
+					log.debug("Fetched "+pl.size()+" comments for library "+userId);
 					events.fireGotLibraryComments(userId, cNewMap);
 				}
 				lastFetched.put(resId, fetchTime);

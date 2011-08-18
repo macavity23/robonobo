@@ -1,6 +1,7 @@
 package com.robonobo.gui.panels;
 
 import static com.robonobo.gui.GuiUtil.*;
+import static javax.swing.SwingUtilities.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.Point;
@@ -66,12 +67,16 @@ public abstract class CommentsTabPanel extends JPanel {
 				layoutComments();
 				newCmtBtn.setEnabled(false);
 				newCmtForm.textArea.requestFocusInWindow();
-				// Scroll to this panel
-				int offset = 0;
-				for (CommentPanel cp : topLvlCps) {
-					offset += cp.getHeight();
-				}
-				cmtListScrollPane.getViewport().setViewPosition(new Point(0, offset));
+				invokeLater(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						// Scroll to this panel
+						int offset = 0;
+						for (CommentPanel cp : topLvlCps) {
+							offset += cp.getHeight();
+						}
+						cmtListScrollPane.getViewport().setViewPosition(new Point(0, offset));
+					}
+				});
 			}
 		});
 		// Ah, the joys of swing layout
@@ -109,25 +114,56 @@ public abstract class CommentsTabPanel extends JPanel {
 		}
 	}
 
-	/**
-	 * The height offset from the top of the comment list to just below this comment
-	 */
+	/** The height offset from the top of the comment list to just below this comment */
 	private int offsetToComment(CommentPanel cp) {
-		if(cp.c.getParentId() < 0) {
+		int offset = 0;
+		if (cp.c.getParentId() < 0) {
 			// Top level comment - offset is total height of all top-level cmts up to and including this one
-			int offset = 0;
 			for (CommentPanel tlcp : topLvlCps) {
 				offset += tlcp.getHeight();
-				if(tlcp == cp)
+				if (tlcp == cp)
 					break;
 			}
-			return offset;
+		} else {
+			// Nested comment - offset is total height of all siblings up to and including this cmt, plus
+			// 'internalOffset'
+			// (see below) of parent
+			CommentPanel parent = pnlsById.get(cp.c.getParentId());
+			for (CommentPanel sibling : parent.subPanels) {
+				offset += sibling.getHeight();
+				if (sibling == cp)
+					break;
+			}
+			offset += internalOffset(parent);
 		}
-		// Nested comment - offset is total height of all siblings up to and including this cmt, plus...
-		// HERE
-		return 0;
+		offset -= 10; // Otherwise it's a bit off
+		return offset;
 	}
-	
+
+	/** The height of this comment, not including child comments, plus sibling comments above this one, plus the same
+	 * calculation for parents */
+	private int internalOffset(CommentPanel cp) {
+		int result = cp.nameLbl.getHeight() + cp.dateLbl.getHeight() + cp.textLbl.getHeight() + cp.btnsPnl.getHeight() + 15;
+		long parentId = cp.c.getParentId();
+		if (parentId < 0) {
+			// This is a top-level comment
+			for (CommentPanel sibling : topLvlCps) {
+				if (sibling == cp)
+					break;
+				result += sibling.getHeight();
+			}
+		} else {
+			CommentPanel parent = pnlsById.get(parentId);
+			for (CommentPanel sibling : parent.subPanels) {
+				if (sibling == cp)
+					break;
+				result += sibling.getHeight();
+			}
+			result += internalOffset(parent);
+		}
+		return result;
+	}
+
 	abstract class CommentRemover extends CatchingRunnable {
 		protected CommentPanel cp;
 
@@ -216,7 +252,7 @@ public abstract class CommentsTabPanel extends JPanel {
 			BoxLayout epl = new BoxLayout(extendoPanel, BoxLayout.Y_AXIS);
 			extendoPanel.setLayout(epl);
 			Border botLine = BorderFactory.createMatteBorder(0, 0, 1, 0, RoboColor.DARKISH_GRAY);
-			Border margin = BorderFactory.createEmptyBorder(0, 0, 10, 0);
+			Border margin = BorderFactory.createEmptyBorder(0, 0, 5, 0);
 			extendoPanel.setBorder(BorderFactory.createCompoundBorder(margin, botLine));
 			nameLbl = new RLabel16B(u.getFriendlyName());
 			nameLbl.setAlignmentX(LEFT_ALIGNMENT);
@@ -238,10 +274,16 @@ public abstract class CommentsTabPanel extends JPanel {
 							relayoutPanel();
 						}
 					};
+					final int scrollOffset = offsetToComment(CommentPanel.this);
 					newCmtForm = new NewCommentForm(hideNewCmt, CommentPanel.this.c.getCommentId());
 					relayoutPanel();
 					newCmtForm.textArea.requestFocusInWindow();
-					// Scroll 
+					invokeLater(new CatchingRunnable() {
+						public void doRun() throws Exception {
+							// Scroll to this form
+							cmtListScrollPane.getViewport().setViewPosition(new Point(0, scrollOffset));
+						}
+					});
 				}
 			});
 			btnsPnl.add(replyBtn, "0,1");
@@ -250,7 +292,7 @@ public abstract class CommentsTabPanel extends JPanel {
 				final CatchingRunnable doRemove = new CatchingRunnable() {
 					public void doRun() throws Exception {
 						remover.doRemove(CommentPanel.this);
-						frame.getController().deleteComment(CommentPanel.this.c.getCommentId(), new CommentCallback() {
+						frame.getController().deleteComment(CommentPanel.this.c, new CommentCallback() {
 							public void success(Comment c) {
 								// Do nothing
 							}
@@ -315,7 +357,8 @@ public abstract class CommentsTabPanel extends JPanel {
 			setLayout(new TableLayout(cellSizen));
 			User me = frame.getController().getMyUser();
 			add(new JLabel(imgIconFromUrl(me.getImgUrl())), "1,1,1,3,LEFT,TOP");
-			add(new RLabel14B("Post New Comment"), "3,1,LEFT,TOP");
+			String lblText = (parentCmtId < 0) ? "Post New Comment" : "Post Reply";
+			add(new RLabel14B(lblText), "3,1,LEFT,TOP");
 			textArea = new RTextArea(3, 50);
 			textArea.addKeyListener(new KeyAdapter() {
 				public void keyReleased(KeyEvent e) {

@@ -45,6 +45,13 @@ public class Comment implements Comparable<Comment> {
 	}
 
 	@Override
+	public boolean equals(Object o) {
+		if(!(o instanceof Comment))
+			return false;
+		return commentId == ((Comment)o).commentId;
+	}
+	
+	@Override
 	public int compareTo(Comment o) {
 		return date.compareTo(o.date);
 	}

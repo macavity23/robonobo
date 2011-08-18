@@ -979,7 +979,7 @@ public class DbService extends AbstractService {
 		}
 	}
 	
-	public void markAllCommentsAsSeen(Collection<Comment> comments) {
+	public void markCommentsAsSeen(Collection<Comment> comments) {
 		if (!running)
 			return;
 		Connection conn = null;

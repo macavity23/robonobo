@@ -44,14 +44,27 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	private ActionListener saveActionListener;
 	protected Map<String, RCheckBox> options = new HashMap<String, RCheckBox>();
 
-	public MyPlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc) {
-		super(frame, p, pc, true);
+	public MyPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc) {
+		super(f, pl, pc, true);
 		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
-		commentsPanel = new PlaylistCommentsPanel(frame);
+		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
-		if (addAsListener())
-			frame.getController().addPlaylistListener(this);
+		// Call invokeLater with this to make sure the panel is all setup properly, otherwise getWidth() can return 0
+		SwingUtilities.invokeLater(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				if (addAsListener()) {
+					frame.getController().addPlaylistListener(MyPlaylistContentPanel.this);
+					frame.getController().getExecutor().execute(new CatchingRunnable() {
+						public void doRun() throws Exception {
+							Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForPlaylist(p.getPlaylistId());
+							if(cs.size() > 0)
+								gotPlaylistComments(p.getPlaylistId(), cs);
+						}
+					});
+				}
+			}
+		});
 	}
 
 	protected MyPlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, PlaylistTableModel model) {
@@ -78,7 +91,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	protected boolean showITunes() {
 		return true;
 	}
-	
+
 	protected boolean detailsChanged() {
 		return isNonEmpty(titleField.getText());
 	}
@@ -116,16 +129,16 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 
 	@Override
 	public void gotPlaylistComments(long plId, Map<Comment, Boolean> comments) {
-		if(commentsPanel == null)
+		if (commentsPanel == null)
 			return;
-		if(plId != p.getPlaylistId())
+		if (plId != p.getPlaylistId())
 			return;
 		// TODO If any comments are new, hilite
 		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
 		Collections.sort(cl);
 		commentsPanel.addComments(cl);
 	}
-	
+
 	@Override
 	public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
 		for (DataFlavor dataFlavor : transferFlavors) {
@@ -185,7 +198,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		PlaylistTableModel tm = (PlaylistTableModel) trackList.getModel();
 		tm.addStreams(streamIds, tm.getRowCount());
 	}
-	
+
 	class PlaylistImportTask extends ImportFilesTask {
 		int insertRow;
 
@@ -202,10 +215,8 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	}
 
 	class PlaylistDetailsPanel extends JPanel {
-
 		public PlaylistDetailsPanel() {
-			double[][] cellSizen = { { 5, 35, 5, 380, 10, 150, 5, TableLayout.FILL, 5 },
-					{ 5, 25, 5, 25, 25, 0, TableLayout.FILL, 5, 30, 5 } };
+			double[][] cellSizen = { { 5, 35, 5, 380, 10, 150, 5, TableLayout.FILL, 5 }, { 5, 25, 5, 25, 25, 0, TableLayout.FILL, 5, 30, 5 } };
 			setLayout(new TableLayout(cellSizen));
 			KeyListener kl = new KeyAdapter() {
 				@Override
@@ -215,7 +226,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			};
 			saveActionListener = new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					if(!detailsChanged())
+					if (!detailsChanged())
 						return;
 					Playlist p = getModel().getPlaylist();
 					if (visAllBtn.isSelected())
@@ -259,13 +270,11 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	class VisPanel extends JPanel {
 		public VisPanel() {
 			setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-
 			ActionListener al = new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					saveBtn.setEnabled(detailsChanged());
 				}
 			};
-
 			RLabel visLbl = new RLabel13B("Show playlist to:");
 			add(visLbl);
 			add(Box.createVerticalStrut(5));
@@ -314,11 +323,9 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	}
 
 	class ButtonsPanel extends JPanel {
-
 		public ButtonsPanel() {
 			setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 			setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-
 			// Laying out right-to-left
 			if (allowDel()) {
 				delBtn = new RRedGlassButton("DELETE");
@@ -331,7 +338,6 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				add(delBtn);
 				add(Box.createHorizontalStrut(5));
 			}
-
 			if (allowShare()) {
 				shareBtn = new RGlassButton("SHARE");
 				shareBtn.addActionListener(new ActionListener() {
@@ -343,12 +349,10 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				add(shareBtn);
 				add(Box.createHorizontalStrut(5));
 			}
-
 			saveBtn = new RGlassButton("SAVE");
 			saveBtn.addActionListener(saveActionListener);
 			saveBtn.setEnabled(false);
 			add(saveBtn);
-
 		}
 	}
 }

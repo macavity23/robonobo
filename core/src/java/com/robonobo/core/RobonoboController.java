@@ -444,8 +444,16 @@ public class RobonoboController {
 		inst.getCommentService().newCommentForLibrary(userId, parentId, text, cb);
 	}
 	
-	public void deleteComment(long commentId, CommentCallback cb) {
-		inst.getCommentService().deleteComment(commentId, cb);
+	public Map<Comment, Boolean> getExistingCommentsForLibrary(long uid) {
+		return inst.getCommentService().getExistingComments("library:"+uid);
+	}
+	
+	public Map<Comment, Boolean> getExistingCommentsForPlaylist(long plId) {
+		return inst.getCommentService().getExistingComments("playlist:"+plId);
+	}
+
+	public void deleteComment(Comment c, CommentCallback cb) {
+		inst.getCommentService().deleteComment(c, cb);
 	}
 	
 	public void checkUsersUpdate() {
@@ -519,8 +527,8 @@ public class RobonoboController {
 		inst.getDbService().markAllAsSeen(p);
 	}
 
-	public void markAllCommentsAsSeen(Collection<Comment> comments) {
-		inst.getDbService().markAllCommentsAsSeen(comments);
+	public void markCommentsAsSeen(Collection<Comment> comments) {
+		inst.getCommentService().markCommentsAsSeen(comments);
 	}
 
 	public void markAllLibraryTracksAsSeen(long userId) {

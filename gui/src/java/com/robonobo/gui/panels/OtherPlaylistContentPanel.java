@@ -28,13 +28,25 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 	PlaylistCommentsPanel commentsPanel;
 	protected Map<String, JCheckBox> options = new HashMap<String, JCheckBox>();
 
-	public OtherPlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc) {
-		super(frame, p, pc, false);
+	public OtherPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc) {
+		super(f, pl, pc, false);
 		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
-		commentsPanel = new PlaylistCommentsPanel(frame);
+		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
-		frame.getController().addPlaylistListener(this);
+		// Call invokeLater with this to make sure the panel is all setup properly, otherwise getWidth() can return 0
+		SwingUtilities.invokeLater(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				frame.getController().addPlaylistListener(OtherPlaylistContentPanel.this);
+				frame.getController().getExecutor().execute(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForPlaylist(p.getPlaylistId());
+						if(cs.size() > 0)
+							gotPlaylistComments(p.getPlaylistId(), cs);
+					}
+				});
+			}
+		});
 	}
 
 	@Override
