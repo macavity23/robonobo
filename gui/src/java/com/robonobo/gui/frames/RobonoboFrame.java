@@ -8,7 +8,6 @@ import info.clearthought.layout.TableLayout;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -414,7 +413,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 								if (p.getVisibility().equals(Playlist.VIS_ALL))
 									showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));
 								else {
-									String msg = "This playlist must be publically-visible to your friends for you to post it to Twitter.";
+									String msg = "This playlist must be publically-visible for you to post it to Twitter.";
 									final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Twitter", msg, "make playlist public", new CatchingRunnable() {
 										public void doRun() throws Exception {
 											p.setVisibility(Playlist.VIS_ALL);

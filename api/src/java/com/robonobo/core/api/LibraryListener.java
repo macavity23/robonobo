@@ -13,6 +13,6 @@ public interface LibraryListener {
 	 */
 	public void friendLibraryUpdated(long userId, int numUnseen, Map<String, Date> newTracks);
 	/** Map<Comment, haveSeenBefore> */
-	public void gotLibraryComments(long userId, Map<Comment, Boolean> comments);
+	public void gotLibraryComments(long userId, boolean anyUnread, Map<Comment, Boolean> comments);
 
 }

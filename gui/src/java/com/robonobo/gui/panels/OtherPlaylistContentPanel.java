@@ -42,8 +42,15 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 					public void doRun() throws Exception {
 						log.debug("Getting existing comments for playlist cp "+p.getPlaylistId());
 						Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForPlaylist(p.getPlaylistId());
+						boolean hasUnseen = false;
+						for (boolean unseen : cs.values()) {
+							if(unseen) {
+								hasUnseen = true;
+								break;
+							}
+						}
 						if(cs.size() > 0)
-							gotPlaylistComments(p.getPlaylistId(), cs);
+							gotPlaylistComments(p.getPlaylistId(), hasUnseen, cs);
 					}
 				});
 			}
@@ -70,7 +77,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 	}
 
 	@Override
-	public void gotPlaylistComments(long plId, Map<Comment, Boolean> comments) {
+	public void gotPlaylistComments(long plId, boolean anyUnseen, Map<Comment, Boolean> comments) {
 		if(commentsPanel == null)
 			return;
 		if(plId != p.getPlaylistId())

@@ -147,11 +147,11 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 	}
 
 	@Override
-	public void gotLibraryComments(long userId, Map<Comment, Boolean> comments) {
+	public void gotLibraryComments(long userId, boolean anyUnread, Map<Comment, Boolean> comments) {
 	}
 	
 	@Override
-	public void gotPlaylistComments(long plId, Map<Comment, Boolean> comments) {
+	public void gotPlaylistComments(long plId, boolean anyUnseen, Map<Comment, Boolean> comments) {
 	}
 	
 	@Override

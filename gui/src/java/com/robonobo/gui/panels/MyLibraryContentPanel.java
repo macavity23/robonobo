@@ -15,6 +15,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.Document;
 import javax.swing.text.PlainDocument;
 
@@ -23,6 +25,7 @@ import com.robonobo.core.Platform;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.metadata.CommentCallback;
+import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.MyLibraryTableModel;
@@ -46,6 +49,13 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 		commentsPanel = new CommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
+		tabPane.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (tabPane.getSelectedIndex() == 1) {
+					tabPane.setForegroundAt(1, RoboColor.DARK_GRAY);
+				}
+			}
+		});
 		frame.getController().addUserListener(this);
 		// Wait til we're shown before getting comments as they need to know our width
 		User me = frame.getController().getMyUser();
@@ -137,11 +147,17 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 	}
 
 	@Override
-	public void gotLibraryComments(long userId, Map<Comment, Boolean> comments) {
+	public void gotLibraryComments(long userId, boolean anyUnread, Map<Comment, Boolean> comments) {
 		long myUid = frame.getController().getMyUser().getUserId();
 		if (userId != myUid)
 			return;
-		// TODO If any comments are new, hilite
+		if (anyUnread && !(tabPane.getSelectedIndex() == 1)) {
+			runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					tabPane.setForegroundAt(1, RoboColor.RED);
+				}
+			});
+		}
 		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
 		Collections.sort(cl);
 		commentsPanel.addComments(cl);
@@ -165,8 +181,15 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 			public void doRun() throws Exception {
 				log.debug("Fetching existing comments for my library; my uid = " + myUid);
 				Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForLibrary(myUid);
+				boolean anyUnread = false;
+				for (Boolean unread : cs.values()) {
+					if (unread) {
+						anyUnread = true;
+						break;
+					}
+				}
 				if (cs.size() > 0)
-					gotLibraryComments(myUid, cs);
+					gotLibraryComments(myUid, anyUnread, cs);
 			}
 		});
 	}

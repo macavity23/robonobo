@@ -1,5 +1,6 @@
 package com.robonobo.gui.panels;
 
+import static com.robonobo.gui.GuiUtil.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.Component;
@@ -9,6 +10,8 @@ import java.awt.event.ComponentEvent;
 import java.util.*;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.Document;
 import javax.swing.text.PlainDocument;
 
@@ -17,6 +20,7 @@ import com.robonobo.core.api.LibraryListener;
 import com.robonobo.core.api.model.Comment;
 import com.robonobo.core.api.model.Library;
 import com.robonobo.core.metadata.CommentCallback;
+import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.FriendLibraryTableModel;
 
@@ -38,6 +42,13 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 		commentsPanel = new CommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
+		tabPane.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (tabPane.getSelectedIndex() == 1) {
+					tabPane.setForegroundAt(1, RoboColor.DARK_GRAY);
+				}
+			}
+		});
 		this.userId = lib.getUserId();
 		log.warn("FriendLibrary adding listener for " + userId);
 		// Make sure the panel is all setup properly before doing this, otherwise getWidth() can return 0
@@ -46,9 +57,16 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 				frame.getController().addLibraryListener(FriendLibraryContentPanel.this);
 				frame.getController().getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
+						boolean anyUnread = false;
 						Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForLibrary(userId);
+						for (Boolean unread : cs.values()) {
+							if (unread) {
+								anyUnread = true;
+								break;
+							}
+						}
 						if (cs.size() > 0)
-							gotLibraryComments(userId, cs);
+							gotLibraryComments(userId, anyUnread, cs);
 					}
 				});
 			}
@@ -61,10 +79,16 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 	}
 
 	@Override
-	public void gotLibraryComments(long userId, Map<Comment, Boolean> comments) {
+	public void gotLibraryComments(long userId, boolean anyUnread, Map<Comment, Boolean> comments) {
 		if (userId != this.userId)
 			return;
-		// TODO If any comments are new, hilite
+		if (anyUnread && !(tabPane.getSelectedIndex() == 1)) {
+			runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					tabPane.setForegroundAt(1, RoboColor.RED);
+				}
+			});
+		}
 		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
 		Collections.sort(cl);
 		commentsPanel.addComments(cl);
@@ -97,7 +121,7 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 		protected void newComment(long parentCmtId, String text, CommentCallback cb) {
 			frame.getController().newCommentForLibrary(userId, parentCmtId, text, cb);
 		}
-		
+
 		@Override
 		public void addComments(Collection<Comment> comments) {
 			super.addComments(comments);

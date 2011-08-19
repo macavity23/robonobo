@@ -10,6 +10,7 @@ public class PlaylistListModel extends SortedListModel<Playlist> {
 	RobonoboController control;
 	Set<Long> plIds = new HashSet<Long>();
 	Map<Long, Integer> unseenMap = new HashMap<Long, Integer>();
+	Map<Long, Boolean> hasCommentMap = new HashMap<Long, Boolean>();
 
 	public PlaylistListModel(RobonoboController control) {
 		this.control = control;
@@ -38,6 +39,24 @@ public class PlaylistListModel extends SortedListModel<Playlist> {
 		return result;
 	}
 	
+	public boolean hasComments(long plId) {
+		Boolean result = hasCommentMap.get(plId);
+		if(result == null)
+			return false;
+		return result;
+	}
+	
+	/**
+	 * @return whether the value changed or not
+	 */
+	public boolean setHasComments(long plId, boolean has) {
+		Boolean had = hasCommentMap.get(plId);
+		hasCommentMap.put(plId, has);
+		if(had == null)
+			return has;
+		return (had != has);
+	}
+	
 	public void markAllAsSeen(int index) {
 		Playlist p = get(index);
 		Long plId = p.getPlaylistId();
@@ -58,6 +77,7 @@ public class PlaylistListModel extends SortedListModel<Playlist> {
 		long plId = p.getPlaylistId();
 		plIds.remove(plId);
 		unseenMap.remove(plId);
+		hasCommentMap.remove(plId);
 		super.remove(p);
 	}
 	

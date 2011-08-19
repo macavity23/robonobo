@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.util.*;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
@@ -19,8 +21,7 @@ import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.PlaylistListener;
 import com.robonobo.core.api.model.*;
-import com.robonobo.gui.RoboColor;
-import com.robonobo.gui.RoboFont;
+import com.robonobo.gui.*;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.PlaylistTableModel;
@@ -50,6 +51,12 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
+		tabPane.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if(tabPane.getSelectedIndex() == 1)
+					tabPane.setForeground(RoboColor.DARK_GRAY);
+			}
+		});
 		// Call invokeLater with this to make sure the panel is all setup properly as comments need to know width
 		addComponentListener(new ComponentAdapter() {
 			public void componentShown(ComponentEvent e) {
@@ -60,8 +67,15 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 					frame.getController().getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForPlaylist(p.getPlaylistId());
+							boolean hasUnseen = false;
+							for (boolean unseen : cs.values()) {
+								if (unseen) {
+									hasUnseen = true;
+									break;
+								}
+							}
 							if (cs.size() > 0)
-								gotPlaylistComments(p.getPlaylistId(), cs);
+								gotPlaylistComments(p.getPlaylistId(), hasUnseen, cs);
 						}
 					});
 				}
@@ -130,12 +144,18 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	}
 
 	@Override
-	public void gotPlaylistComments(long plId, Map<Comment, Boolean> comments) {
+	public void gotPlaylistComments(long plId, boolean anyUnread, Map<Comment, Boolean> comments) {
 		if (commentsPanel == null)
 			return;
 		if (plId != p.getPlaylistId())
 			return;
-		// TODO If any comments are new, hilite
+		if (anyUnread && !(tabPane.getSelectedIndex() == 1)) {
+			GuiUtil.runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					tabPane.setForegroundAt(1, RoboColor.RED);
+				}
+			});
+		}
 		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
 		Collections.sort(cl);
 		commentsPanel.addComments(cl);

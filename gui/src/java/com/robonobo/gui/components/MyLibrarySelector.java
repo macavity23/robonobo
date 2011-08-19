@@ -13,6 +13,7 @@ import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.panels.LeftSidebar;
 
 public class MyLibrarySelector extends LeftSidebarSelector implements ActionListener {
+	boolean hasComments = false;
 	public MyLibrarySelector(LeftSidebar sideBar, RobonoboFrame frame) {
 		super(sideBar, frame, "My Music Library", true, createImageIcon("/icon/home.png", null), "mymusiclibrary");
 	}
@@ -40,5 +41,13 @@ public class MyLibrarySelector extends LeftSidebarSelector implements ActionList
 			frame.showAddSharesDialog();
 		else if(action.equals("addFromITunes"))
 			frame.importITunes();
+	}
+
+	public boolean hasComments() {
+		return hasComments;
+	}
+
+	public void setHasComments(boolean hasComments) {
+		this.hasComments = hasComments;
 	}
 }

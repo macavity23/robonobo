@@ -251,13 +251,13 @@ public class EventService extends AbstractService implements MinaListener {
 		}
 	}
 
-	public void fireGotPlaylistComments(long plId, Map<Comment, Boolean> cNewMap) {
+	public void fireGotPlaylistComments(long plId, boolean hasUnseen, Map<Comment, Boolean> cNewMap) {
 		PlaylistListener[] arr;
 		synchronized (this) {
 			arr = getPlArr();
 		}
 		for (PlaylistListener listener : arr) {
-			listener.gotPlaylistComments(plId, cNewMap);
+			listener.gotPlaylistComments(plId, hasUnseen, cNewMap);
 		}
 	}
 
@@ -311,13 +311,13 @@ public class EventService extends AbstractService implements MinaListener {
 		}
 	}
 
-	public void fireGotLibraryComments(long userId, Map<Comment, Boolean> cNewMap) {
+	public void fireGotLibraryComments(long userId, boolean anyUnread, Map<Comment, Boolean> cNewMap) {
 		LibraryListener[] arr;
 		synchronized (this) {
 			arr = getLlArr();
 		}
 		for (LibraryListener listener : arr) {
-			listener.gotLibraryComments(userId, cNewMap);
+			listener.gotLibraryComments(userId, anyUnread, cNewMap);
 		}
 	}
 

@@ -88,7 +88,7 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	}
 
 	@Override
-	public void gotLibraryComments(long userId, Map<Comment, Boolean> comments) {
+	public void gotLibraryComments(long userId, boolean anyUnread, Map<Comment, Boolean> comments) {
 		// Do nothing
 	}
 	

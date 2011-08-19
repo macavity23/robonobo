@@ -53,6 +53,7 @@ public abstract class ContentPanel extends JPanel {
 
 		tabPane = new JTabbedPane(JTabbedPane.TOP);
 		tabPane.setFont(RoboFont.getFont(16, true));
+		tabPane.setForeground(RoboColor.DARK_GRAY);
 		tabPane.setBorder(BorderFactory.createEmptyBorder(0, 1, 0, 1));
 		tabPane.addTab("track", new TrackTab());
 

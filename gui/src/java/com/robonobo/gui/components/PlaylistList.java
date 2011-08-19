@@ -106,7 +106,7 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 		invokeLater(new CatchingRunnable() {
 			public void doRun() throws Exception {
 
-				Playlist selP = (getSelectedIndex() < 0) ? null : getModel().getPlaylistAt(getSelectedIndex());
+				Playlist selP = selectedPlaylist();
 				boolean selPGone = false;
 
 				// Check for removed playlists
@@ -135,6 +135,7 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 		});
 	}
 
+	
 	@Override
 	public void playlistChanged(final Playlist p) {
 		User me = frame.getController().getMyUser();
@@ -145,7 +146,7 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 				log.error("Error updating playlist: playlist says it's mine, but my playlist ids do not contain it");
 			invokeLater(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					Playlist selP = (getSelectedIndex() < 0) ? null : getModel().getPlaylistAt(getSelectedIndex());
+					Playlist selP = selectedPlaylist();
 					boolean needReselect = p.equals(selP);
 					getModel().remove(p);
 					getModel().insertSorted(p);
@@ -153,15 +154,19 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 						int idx = getModel().getPlaylistIndex(p);
 						setSelectedIndex(idx);
 					}
-					invalidate();
+					revalidate();
 				}
 			});		
 		} 
 	}
 
 	@Override
-	public void gotPlaylistComments(long plId, Map<Comment, Boolean> comments) {
-		// Do nothing
+	public void gotPlaylistComments(long plId, boolean anyUnseen, Map<Comment, Boolean> comments) {
+		PlaylistListModel m = getModel();
+		if(!m.hasPlaylist(plId))
+			return;
+		if(m.setHasComments(plId, anyUnseen))
+			revalidate();
 	}
 	
 	@Override
@@ -171,12 +176,32 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 
 	@Override
 	protected void itemSelected(int index) {
-		frame.getMainPanel().selectContentPanel("playlist/" + getModel().getPlaylistAt(index).getPlaylistId());
-		int unseen = getModel().numUnseen(index);
+		PlaylistListModel m = getModel();
+		final Playlist p = m.getPlaylistAt(index);
+		final long plId = p.getPlaylistId();
+		frame.getMainPanel().selectContentPanel("playlist/" + plId);
+		int unseen = m.numUnseen(index);
 		if(unseen > 0) {
-			frame.getController().markAllAsSeen(getModel().getPlaylistAt(index));
-			getModel().markAllAsSeen(index);
+			m.markAllAsSeen(index);
+			frame.getController().getExecutor().execute(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					frame.getController().markAllAsSeen(p);
+				}
+			});
 		}
+		boolean hasUnseen = m.hasComments(plId);
+		if(hasUnseen) {
+			m.setHasComments(plId, false);
+			frame.getController().getExecutor().execute(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					frame.getController().markPlaylistCommentsAsSeen(plId);
+				}
+			});
+		}
+	}
+
+	private Playlist selectedPlaylist() {
+		return (getSelectedIndex() < 0) ? null : getModel().getPlaylistAt(getSelectedIndex());
 	}
 
 	class PopupMenu extends JPopupMenu implements ActionListener {
@@ -236,12 +261,21 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
 				boolean cellHasFocus) {
 			String text = (String) value;
-			int unseen = getModel().numUnseen(index);
+			PlaylistListModel m = getModel();
+			int unseen = m.numUnseen(index);
+			boolean hasCmts = m.hasComments(m.getPlaylistAt(index).getPlaylistId());
 			if(unseen > 0) {
 				text = text + "[" + unseen+ "]";
 				lbl.setFont(boldFont);
 			} else
 				lbl.setFont(normalFont);
+			if(hasCmts && !isSelected) {
+				lbl.setFont(boldFont);
+				lbl.setForeground(RED);
+			} else {
+				lbl.setFont(normalFont);
+				lbl.setForeground(BLUE_GRAY);
+			}
 			lbl.setText(text);
 			lbl.setIcon(playlistIcon);
 			if (isSelected) {

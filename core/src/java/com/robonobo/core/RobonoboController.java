@@ -415,7 +415,7 @@ public class RobonoboController {
 	public void getOrFetchUser(long userId, UserCallback cb) {
 		inst.getUserService().getOrFetchUser(userId, cb);
 	}
-	
+
 	public void getOrFetchPlaylist(long playlistId, PlaylistCallback cb) {
 		inst.getPlaylistService().getOrFetchPlaylist(playlistId, cb);
 	}
@@ -439,23 +439,23 @@ public class RobonoboController {
 	public void newCommentForPlaylist(long playlistId, long parentId, String text, CommentCallback cb) {
 		inst.getCommentService().newCommentForPlaylist(playlistId, parentId, text, cb);
 	}
-	
+
 	public void newCommentForLibrary(long userId, long parentId, String text, CommentCallback cb) {
 		inst.getCommentService().newCommentForLibrary(userId, parentId, text, cb);
 	}
-	
+
 	public Map<Comment, Boolean> getExistingCommentsForLibrary(long uid) {
-		return inst.getCommentService().getExistingComments("library:"+uid);
+		return inst.getCommentService().getExistingComments("library:" + uid);
 	}
-	
+
 	public Map<Comment, Boolean> getExistingCommentsForPlaylist(long plId) {
-		return inst.getCommentService().getExistingComments("playlist:"+plId);
+		return inst.getCommentService().getExistingComments("playlist:" + plId);
 	}
 
 	public void deleteComment(Comment c, CommentCallback cb) {
 		inst.getCommentService().deleteComment(c, cb);
 	}
-	
+
 	public void checkUsersUpdate() {
 		inst.getUserService().checkAllUsersUpdate();
 	}
@@ -527,8 +527,12 @@ public class RobonoboController {
 		inst.getDbService().markAllAsSeen(p);
 	}
 
-	public void markCommentsAsSeen(Collection<Comment> comments) {
-		inst.getCommentService().markCommentsAsSeen(comments);
+	public void markPlaylistCommentsAsSeen(long plId) {
+		inst.getCommentService().markAllCommentsAsSeen("playlist:" + plId);
+	}
+
+	public void markLibraryCommentsAsSeen(long userId) {
+		inst.getCommentService().markAllCommentsAsSeen("library:" + userId);
 	}
 
 	public void markAllLibraryTracksAsSeen(long userId) {

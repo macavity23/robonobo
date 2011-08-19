@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.core.api.LibraryListener;
 import com.robonobo.core.api.PlaylistListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.GuiUtil;
@@ -21,7 +22,7 @@ import com.robonobo.gui.model.ActiveSearchListModel;
 import com.robonobo.gui.model.SearchResultTableModel;
 
 @SuppressWarnings("serial")
-public class LeftSidebar extends JPanel implements PlaylistListener {
+public class LeftSidebar extends JPanel implements PlaylistListener, LibraryListener {
 	List<LeftSidebarComponent> sideBarComps = new ArrayList<LeftSidebarComponent>();
 	RobonoboFrame frame;
 	private ActiveSearchList activeSearchList;
@@ -182,9 +183,13 @@ public class LeftSidebar extends JPanel implements PlaylistListener {
 	}
 
 	@Override
-	public void gotPlaylistComments(long plId, Map<Comment, Boolean> comments) {
+	public void gotPlaylistComments(long plId, boolean anyUnread, Map<Comment, Boolean> comments) {
 	}
 
+	@Override
+	public void gotLibraryComments(long userId, Map<Comment, Boolean> comments) {
+	}
+	
 	@Override
 	public void playlistChanged(final Playlist p) {
 		// I'm not sure if this is the best place to create the panels, but this is the lowest common ancestor of the
@@ -212,5 +217,17 @@ public class LeftSidebar extends JPanel implements PlaylistListener {
 				}
 			}
 		});
+	}
+	
+	@Override
+	public void friendLibraryReady(long userId, int numUnseen) {
+	}
+	
+	@Override
+	public void friendLibraryUpdated(long userId, int numUnseen, Map<String, Date> newTracks) {
+	}
+	
+	@Override
+	public void myLibraryUpdated() {
 	}
 }
