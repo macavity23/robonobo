@@ -142,7 +142,7 @@ public class LoginSheet extends Sheet implements LoginListener {
 			setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 			setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 			// Laying out right-to-left
-			cancelBtn = new RRedGlassButton("CANCEL");
+			cancelBtn = new RRedGlassButton("Cancel");
 			cancelBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					LoginSheet.this.setVisible(false);
@@ -153,7 +153,7 @@ public class LoginSheet extends Sheet implements LoginListener {
 
 			add(Box.createHorizontalStrut(10));
 
-			loginBtn = new RGlassButton("LOGIN");
+			loginBtn = new RGlassButton("Login");
 			loginBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					tryLogin();

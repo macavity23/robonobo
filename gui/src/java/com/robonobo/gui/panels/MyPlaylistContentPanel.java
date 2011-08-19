@@ -50,15 +50,17 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
-		// Call invokeLater with this to make sure the panel is all setup properly, otherwise getWidth() can return 0
-		SwingUtilities.invokeLater(new CatchingRunnable() {
-			public void doRun() throws Exception {
+		// Call invokeLater with this to make sure the panel is all setup properly as comments need to know width
+		addComponentListener(new ComponentAdapter() {
+			public void componentShown(ComponentEvent e) {
+				if (getWidth() == 0)
+					throw new Errot();
 				if (addAsListener()) {
 					frame.getController().addPlaylistListener(MyPlaylistContentPanel.this);
 					frame.getController().getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForPlaylist(p.getPlaylistId());
-							if(cs.size() > 0)
+							if (cs.size() > 0)
 								gotPlaylistComments(p.getPlaylistId(), cs);
 						}
 					});

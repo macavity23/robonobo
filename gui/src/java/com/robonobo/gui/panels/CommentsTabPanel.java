@@ -17,6 +17,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.api.model.Comment;
 import com.robonobo.core.api.model.User;
 import com.robonobo.core.metadata.CommentCallback;
@@ -30,6 +31,7 @@ import com.robonobo.gui.sheets.ConfirmSheet;
 @SuppressWarnings("serial")
 public abstract class CommentsTabPanel extends JPanel {
 	static DateFormat df = new SimpleDateFormat("dd MMM yyyy HH:mm");
+	Set<Long> gotComments = new HashSet<Long>();
 	Map<Long, CommentPanel> pnlsById = new HashMap<Long, CommentPanel>();
 	List<CommentPanel> topLvlCps = new ArrayList<CommentPanel>();
 	JPanel cmtListPnl;
@@ -39,6 +41,7 @@ public abstract class CommentsTabPanel extends JPanel {
 	JPanel newCmtBtnPnl;
 	Log log = LogFactory.getLog(getClass());
 	RobonoboFrame frame;
+	boolean hasBeenShown = false;
 
 	public CommentsTabPanel(RobonoboFrame frame) {
 		this.frame = frame;
@@ -108,8 +111,12 @@ public abstract class CommentsTabPanel extends JPanel {
 
 	public void addComments(Collection<Comment> comments) {
 		for (Comment cmt : comments) {
-			if (pnlsById.containsKey(cmt.getCommentId()))
-				continue;
+			long cid = cmt.getCommentId();
+			synchronized (this) {
+				if(gotComments.contains(cid))
+					continue;
+				gotComments.add(cid);
+			}
 			frame.getController().getOrFetchUser(cmt.getUserId(), new AddCommentCallback(cmt));
 		}
 	}
@@ -181,45 +188,54 @@ public abstract class CommentsTabPanel extends JPanel {
 		}
 
 		@Override
-		public void success(User u) {
-			int topLvlWidth = getWidth() - 20;
-			int indent = 60;
-			boolean canRemove = canRemoveComment(c);
-			CommentRemover remover = null;
-			if (c.getParentId() <= 0) {
-				// Top-level comment
-				if (canRemove) {
-					remover = new CommentRemover() {
-						public void doRun() throws Exception {
-							topLvlCps.remove(cp);
-							pnlsById.remove(cp.c.getCommentId());
-							layoutComments();
+		public void success(final User u) {
+			if(getWidth() == 0)
+				throw new Errot();
+			
+			runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					final int totalWidth = getWidth();
+					int topLvlWidth = totalWidth - 20;
+					
+					int indent = 60;
+					boolean canRemove = canRemoveComment(c);
+					CommentRemover remover = null;
+					if (c.getParentId() <= 0) {
+						// Top-level comment
+						if (canRemove) {
+							remover = new CommentRemover() {
+								public void doRun() throws Exception {
+									topLvlCps.remove(cp);
+									pnlsById.remove(cp.c.getCommentId());
+									layoutComments();
+								}
+							};
 						}
-					};
-				}
-				CommentPanel pnl = new CommentPanel(c, u, topLvlWidth, 0, remover);
-				topLvlCps.add(pnl);
-				pnlsById.put(c.getCommentId(), pnl);
-				layoutComments();
-			} else if (pnlsById.containsKey(c.getParentId())) {
-				// Sub-comment to existing comment
-				final CommentPanel parent = pnlsById.get(c.getParentId());
-				int indentLvl = parent.indentLvl + 1;
-				if (canRemove) {
-					remover = new CommentRemover() {
-						public void doRun() throws Exception {
-							parent.removeSubPanel(cp);
+						CommentPanel pnl = new CommentPanel(c, u, topLvlWidth, 0, remover);
+						topLvlCps.add(pnl);
+						pnlsById.put(c.getCommentId(), pnl);
+						layoutComments();
+					} else if (pnlsById.containsKey(c.getParentId())) {
+						// Sub-comment to existing comment
+						final CommentPanel parent = pnlsById.get(c.getParentId());
+						int indentLvl = parent.indentLvl + 1;
+						if (canRemove) {
+							remover = new CommentRemover() {
+								public void doRun() throws Exception {
+									parent.removeSubPanel(cp);
+								}
+							};
 						}
-					};
+						CommentPanel pnl = new CommentPanel(c, u, (topLvlWidth - (indentLvl * indent)), indentLvl, remover);
+						pnlsById.put(c.getCommentId(), pnl);
+						parent.addSubPanel(pnl);
+						layoutComments();
+					} else {
+						// Oops
+						log.error("Cannot add comment " + c.getCommentId() + " - no parent comment " + c.getParentId());
+					}
 				}
-				CommentPanel pnl = new CommentPanel(c, u, (topLvlWidth - (indentLvl * indent)), indentLvl, remover);
-				pnlsById.put(c.getCommentId(), pnl);
-				parent.addSubPanel(pnl);
-				layoutComments();
-			} else {
-				// Oops
-				log.error("Cannot add comment " + c.getCommentId() + " - no parent comment " + c.getParentId());
-			}
+			});
 		}
 
 		@Override
@@ -366,17 +382,17 @@ public abstract class CommentsTabPanel extends JPanel {
 				}
 			});
 			add(new JScrollPane(textArea), "3,3,6,3");
-			RButton cancelBtn = new RRedGlassButton("CANCEL");
+			RButton cancelBtn = new RRedGlassButton("Cancel");
 			cancelBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					remover.run();
 				}
 			});
 			add(cancelBtn, "4,5");
-			postBtn = new RGlassButton("POST");
+			postBtn = new RGlassButton("Post");
 			postBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					postBtn.setText("POSTING...");
+					postBtn.setText("Posting...");
 					postBtn.setEnabled(false);
 					newComment(parentCmtId, textArea.getText(), new CommentCallback() {
 						public void success(Comment c) {

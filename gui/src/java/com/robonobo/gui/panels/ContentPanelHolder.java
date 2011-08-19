@@ -55,16 +55,22 @@ public class ContentPanelHolder extends JPanel {
 			log.error("Tried to select non-existent main panel: "+panelName);
 			return;
 		}
-		final CardLayout cl = (CardLayout) getLayout();
 		currentPanel = panelName;
 		if(SwingUtilities.isEventDispatchThread())
-			cl.show(this, panelName);
+			showPanel(panelName);
 		else {
 			SwingUtilities.invokeLater(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					cl.show(ContentPanelHolder.this, panelName);
+					showPanel(panelName);
 				}
 			});
 		}
+	}
+
+	private void showPanel(final String panelName) {
+		CardLayout cl = (CardLayout) getLayout();
+		cl.show(this, panelName);
+		getContentPanel(panelName).setVisible(false);
+		getContentPanel(panelName).setVisible(true);
 	}
 }

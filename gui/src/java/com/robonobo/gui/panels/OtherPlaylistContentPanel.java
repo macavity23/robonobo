@@ -4,8 +4,7 @@ import static com.robonobo.gui.GuiUtil.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.ComponentOrientation;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.util.*;
 
 import javax.swing.*;
@@ -34,12 +33,14 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
-		// Call invokeLater with this to make sure the panel is all setup properly, otherwise getWidth() can return 0
-		SwingUtilities.invokeLater(new CatchingRunnable() {
-			public void doRun() throws Exception {
+		// Make sure the panel is all setup properly before we do this as comments need to know the width
+		addComponentListener(new ComponentAdapter() {
+			public void componentShown(ComponentEvent e) {
+				log.debug("Adding listener for playlist cp "+p.getPlaylistId());
 				frame.getController().addPlaylistListener(OtherPlaylistContentPanel.this);
 				frame.getController().getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
+						log.debug("Getting existing comments for playlist cp "+p.getPlaylistId());
 						Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForPlaylist(p.getPlaylistId());
 						if(cs.size() > 0)
 							gotPlaylistComments(p.getPlaylistId(), cs);
@@ -74,6 +75,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 			return;
 		if(plId != p.getPlaylistId())
 			return;
+		log.debug("playlist cp "+plId+" updated with "+comments.size()+" comments");
 		// TODO If any comments are new, hilite
 		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
 		Collections.sort(cl);

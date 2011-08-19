@@ -4,6 +4,8 @@ import info.clearthought.layout.TableLayout;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.*;
 
 import javax.swing.*;
@@ -37,15 +39,15 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
 		this.userId = lib.getUserId();
-		log.warn("FriendLibrary adding listener for "+userId);
-		f.getController().addLibraryListener(this);
-		// Call invokeLater with this to make sure the panel is all setup properly, otherwise getWidth() can return 0
-		SwingUtilities.invokeLater(new CatchingRunnable() {
-			public void doRun() throws Exception {
+		log.warn("FriendLibrary adding listener for " + userId);
+		// Make sure the panel is all setup properly before doing this, otherwise getWidth() can return 0
+		addComponentListener(new ComponentAdapter() {
+			public void componentShown(ComponentEvent e) {
+				frame.getController().addLibraryListener(FriendLibraryContentPanel.this);
 				frame.getController().getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
 						Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForLibrary(userId);
-						if(cs.size() > 0)
+						if (cs.size() > 0)
 							gotLibraryComments(userId, cs);
 					}
 				});
@@ -57,44 +59,48 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 	public JComponent defaultComponent() {
 		return searchPanel.getSearchField();
 	}
-	
+
 	@Override
 	public void gotLibraryComments(long userId, Map<Comment, Boolean> comments) {
-		if(userId != this.userId)
+		if (userId != this.userId)
 			return;
 		// TODO If any comments are new, hilite
 		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
 		Collections.sort(cl);
 		commentsPanel.addComments(cl);
 	}
-	
+
 	@Override
 	public void friendLibraryReady(long userId, int numUnseen) {
 	}
-	
+
 	@Override
 	public void friendLibraryUpdated(long userId, int numUnseen, Map<String, Date> newTracks) {
 	}
-	
+
 	@Override
 	public void myLibraryUpdated() {
 	}
-	
-	class CommentsPanel extends CommentsTabPanel {
 
+	class CommentsPanel extends CommentsTabPanel {
 		public CommentsPanel(RobonoboFrame frame) {
 			super(frame);
 		}
-		
+
 		@Override
 		protected boolean canRemoveComment(Comment c) {
 			long myUid = frame.getController().getMyUser().getUserId();
 			return (c.getUserId() == myUid);
 		}
-		
+
 		@Override
 		protected void newComment(long parentCmtId, String text, CommentCallback cb) {
 			frame.getController().newCommentForLibrary(userId, parentCmtId, text, cb);
+		}
+		
+		@Override
+		public void addComments(Collection<Comment> comments) {
+			super.addComments(comments);
 		}
 	}
 

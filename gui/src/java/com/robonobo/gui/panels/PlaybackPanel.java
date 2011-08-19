@@ -99,7 +99,6 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		add(playerPanel, BorderLayout.EAST);
 		playerPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 8));
 		playbackProgress = new PlaybackProgressBar(frame);
-		playbackProgress.lock();
 		playerPanel.add(playbackProgress, BorderLayout.NORTH);
 		final JPanel playerCtrlPanel = new JPanel(new BorderLayout());
 		playerPanel.add(playerCtrlPanel, BorderLayout.CENTER);
@@ -134,7 +133,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 					}
 					control.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
-							for(String sid : dlSids)
+							for (String sid : dlSids)
 								control.addDownload(sid);
 						}
 					});
@@ -174,6 +173,12 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		updateNextPrev();
 		control.addPlaybackListener(this);
 		control.addTrackListener(this);
+		// Make sure the component is ready as this requires our dimensions to be setup
+		addComponentListener(new ComponentAdapter() {
+			public void componentShown(ComponentEvent e) {
+				playbackProgress.lock();
+			}
+		});
 	}
 
 	public void trackSelectionChanged() {

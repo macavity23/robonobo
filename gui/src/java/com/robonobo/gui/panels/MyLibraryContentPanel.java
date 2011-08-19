@@ -8,8 +8,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -21,8 +20,7 @@ import javax.swing.text.PlainDocument;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
-import com.robonobo.core.api.LibraryListener;
-import com.robonobo.core.api.UserListener;
+import com.robonobo.core.api.*;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.metadata.CommentCallback;
 import com.robonobo.gui.components.base.*;
@@ -49,12 +47,29 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
 		frame.getController().addUserListener(this);
-		frame.getController().addLibraryListener(this);
+		// Wait til we're shown before getting comments as they need to know our width
+		User me = frame.getController().getMyUser();
+		if (me != null) {
+			// Unlikely
+			addComponentListener(new ComponentAdapter() {
+				public void componentShown(ComponentEvent e) {
+					log.debug("MyLibraryContentPanel shown!");
+					fetchComments();
+				}
+			});
+		} else {
+			frame.getController().addLoginListener(new LoginAdapter() {
+				public void loginSucceeded(User me) {
+					fetchComments();
+				}
+			});
+		}
+		// Fetch our update msg (if any)
 		frame.getController().getExecutor().schedule(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				final UpdateInfo updateInfo = frame.getController().getUpdateInfo();
 				if (isNonEmpty(updateInfo.getUpdateHtml())) {
-					SwingUtilities.invokeLater(new CatchingRunnable() {
+					runOnUiThread(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							showMessage(updateInfo.getUpdateTitle(), updateInfo.getUpdateHtml());
 						}
@@ -124,14 +139,14 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 	@Override
 	public void gotLibraryComments(long userId, Map<Comment, Boolean> comments) {
 		long myUid = frame.getController().getMyUser().getUserId();
-		if(userId != myUid)
+		if (userId != myUid)
 			return;
 		// TODO If any comments are new, hilite
 		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
 		Collections.sort(cl);
 		commentsPanel.addComments(cl);
 	}
-	
+
 	@Override
 	public void friendLibraryReady(long userId, int numUnseen) {
 		// Do nothing
@@ -140,6 +155,20 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 	@Override
 	public void friendLibraryUpdated(long userId, int numUnseen, Map<String, Date> newTracks) {
 		// Do nothing
+	}
+
+	private void fetchComments() {
+		final long myUid = frame.getController().getMyUser().getUserId();
+		log.debug("Fetching existing comments for my library; my uid = " + myUid);
+		frame.getController().addLibraryListener(this);
+		frame.getController().getExecutor().execute(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				log.debug("Fetching existing comments for my library; my uid = " + myUid);
+				Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForLibrary(myUid);
+				if (cs.size() > 0)
+					gotLibraryComments(myUid, cs);
+			}
+		});
 	}
 
 	class CommentsPanel extends CommentsTabPanel {
