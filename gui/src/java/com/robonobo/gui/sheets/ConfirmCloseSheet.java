@@ -20,8 +20,8 @@ public class ConfirmCloseSheet extends ConfirmWithFeckOffSheet {
 	@Override
 	protected void confirmed(boolean feckOffSelected) {
 		if (!feckOffSelected) {
-			frame.getGuiConfig().setConfirmExit(false);
-			frame.getController().saveConfig();
+			frame.guiCfg.setConfirmExit(false);
+			frame.ctrl.saveConfig();
 		}
 		frame.shutdown();
 	}

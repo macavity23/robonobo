@@ -35,7 +35,7 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 		taskListPanel.setOpaque(true);
 		add(new JScrollPane(taskListPanel, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER), "1,1");
-		frame.getController().addTaskListener(this);
+		frame.ctrl.addTaskListener(this);
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 	}
 
 	private boolean contentPanelSelected() {
-		return "tasklist".equals(frame.getMainPanel().currentContentPanelName());
+		return "tasklist".equals(frame.mainPanel.currentContentPanelName());
 	}
 
 	class TaskPanel extends JPanel {
@@ -98,7 +98,7 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 						t.cancel();
 					removeTask(t);
 					if (tasks.size() == 0)
-						frame.getLeftSidebar().selectMyMusic();
+						frame.leftSidebar.selectMyMusic();
 				}
 			});
 			add(cancelBtn, "5,3");
@@ -124,11 +124,11 @@ public class TaskListContentPanel extends ContentPanel implements TaskListener {
 						if (contentPanelSelected()) {
 							cancelBtn.setText("Clear");
 							// Start a timer to nuke this pFetcher
-							frame.getController().getExecutor().schedule(new CatchingRunnable() {
+							frame.ctrl.getExecutor().schedule(new CatchingRunnable() {
 								public void doRun() throws Exception {
 									removeTask(t);
 								}
-							}, frame.getGuiConfig().getZombieTaskLifetime(), TimeUnit.SECONDS);
+							}, frame.guiCfg.getZombieTaskLifetime(), TimeUnit.SECONDS);
 						} else {
 							// They're not looking - just remove it
 							removeTask(t);

@@ -24,7 +24,7 @@ public abstract class PrefPanel extends JPanel {
 		String[] toks = propName.split("\\.");
 		String cfgName = toks[0];
 		String prop = toks[1];
-		Object config = frame.getController().getConfig(cfgName);
+		Object config = frame.ctrl.getConfig(cfgName);
 		if(config == null)
 			throw new Errot();
 		try {
@@ -40,7 +40,7 @@ public abstract class PrefPanel extends JPanel {
 		String[] toks = propName.split("\\.");
 		String cfgName = toks[0];
 		String prop = toks[1];
-		Object config = frame.getController().getConfig(cfgName);
+		Object config = frame.ctrl.getConfig(cfgName);
 		if(config == null)
 			throw new Errot();
 		try {

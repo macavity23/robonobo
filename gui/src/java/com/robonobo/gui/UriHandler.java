@@ -34,11 +34,11 @@ public class UriHandler {
 			}
 			if (objType.equalsIgnoreCase("playlist")) {
 				final long pId = Long.parseLong(objId, 16);
-				frame.getController().getOrFetchPlaylist(pId, new PlaylistCallback() {
+				frame.ctrl.getOrFetchPlaylist(pId, new PlaylistCallback() {
 					public void success(final Playlist p) {
 						runOnUiThread(new CatchingRunnable() {
 							public void doRun() throws Exception {
-								frame.getLeftSidebar().showPlaylist(p);
+								frame.leftSidebar.showPlaylist(p);
 							}
 						});
 					}

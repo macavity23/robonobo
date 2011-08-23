@@ -2,6 +2,9 @@ package com.robonobo.gui.model;
 
 import java.util.*;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.model.Playlist;
 
@@ -11,6 +14,7 @@ public class PlaylistListModel extends SortedListModel<Playlist> {
 	Set<Long> plIds = new HashSet<Long>();
 	Map<Long, Integer> unseenMap = new HashMap<Long, Integer>();
 	Map<Long, Boolean> hasCommentMap = new HashMap<Long, Boolean>();
+	Log log = LogFactory.getLog(getClass());
 
 	public PlaylistListModel(RobonoboController control) {
 		this.control = control;
@@ -49,12 +53,15 @@ public class PlaylistListModel extends SortedListModel<Playlist> {
 	/**
 	 * @return whether the value changed or not
 	 */
-	public boolean setHasComments(long plId, boolean has) {
+	public void setHasComments(long plId, boolean has) {
 		Boolean had = hasCommentMap.get(plId);
-		hasCommentMap.put(plId, has);
 		if(had == null)
-			return has;
-		return (had != has);
+			had = false;
+		hasCommentMap.put(plId, has);
+		boolean changed = (has != had);
+		log.warn("PLM comments: "+plId+", "+has+", changed:"+changed);
+		if(changed)
+			fireContentsChanged(this, 0, getSize()-1);
 	}
 	
 	public void markAllAsSeen(int index) {
@@ -66,6 +73,11 @@ public class PlaylistListModel extends SortedListModel<Playlist> {
 	@Override
 	public void insertSorted(Playlist p) {
 		long plId = p.getPlaylistId();
+		if(plIds.contains(plId)) {
+			reInsertSorted(p);
+			return;
+		}
+		log.warn("PLM inserting "+plId);
 		plIds.add(plId);
 		int unseen = control.numUnseenTracks(p);
 		unseenMap.put(plId, unseen);
@@ -75,10 +87,18 @@ public class PlaylistListModel extends SortedListModel<Playlist> {
 	@Override
 	public void remove(Playlist p) {
 		long plId = p.getPlaylistId();
+		log.warn("PLM removing "+plId);
 		plIds.remove(plId);
 		unseenMap.remove(plId);
 		hasCommentMap.remove(plId);
 		super.remove(p);
+	}
+	
+	private void reInsertSorted(Playlist p) {
+		long plId = p.getPlaylistId();
+		log.warn("PLM reinserting "+plId);
+		super.remove(p);
+		super.insertSorted(p);
 	}
 	
 	public boolean hasPlaylist(long plId) {

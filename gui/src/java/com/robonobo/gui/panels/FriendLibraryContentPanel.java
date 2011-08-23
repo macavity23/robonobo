@@ -30,6 +30,7 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 	private TrackListSearchPanel searchPanel;
 	private long userId;
 	private CommentsPanel commentsPanel;
+	boolean unreadComments = false;
 
 	public FriendLibraryContentPanel(RobonoboFrame frame, Library lib) {
 		this(frame, lib, new PlainDocument());
@@ -37,6 +38,7 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 
 	public FriendLibraryContentPanel(RobonoboFrame f, Library lib, Document doc) {
 		super(f, FriendLibraryTableModel.create(f, lib, doc));
+		this.userId = lib.getUserId();
 		searchTextDoc = doc;
 		tabPane.insertTab("library", null, new LibraryTabPanel(), null, 0);
 		commentsPanel = new CommentsPanel(f);
@@ -45,20 +47,28 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 		tabPane.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				if (tabPane.getSelectedIndex() == 1) {
-					tabPane.setForegroundAt(1, RoboColor.DARK_GRAY);
+					if (unreadComments) {
+						unreadComments = false;
+						tabPane.setForeground(RoboColor.DARK_GRAY);
+						frame.leftSidebar.markLibraryCommentsAsRead(userId);
+						frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+							public void doRun() throws Exception {
+								frame.ctrl.markLibraryCommentsAsSeen(userId);
+							}
+						});
+					}
 				}
 			}
 		});
-		this.userId = lib.getUserId();
 		log.warn("FriendLibrary adding listener for " + userId);
 		// Make sure the panel is all setup properly before doing this, otherwise getWidth() can return 0
 		addComponentListener(new ComponentAdapter() {
 			public void componentShown(ComponentEvent e) {
-				frame.getController().addLibraryListener(FriendLibraryContentPanel.this);
-				frame.getController().getExecutor().execute(new CatchingRunnable() {
+				frame.ctrl.addLibraryListener(FriendLibraryContentPanel.this);
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
 						boolean anyUnread = false;
-						Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForLibrary(userId);
+						Map<Comment, Boolean> cs = frame.ctrl.getExistingCommentsForLibrary(userId);
 						for (Boolean unread : cs.values()) {
 							if (unread) {
 								anyUnread = true;
@@ -83,6 +93,7 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 		if (userId != this.userId)
 			return;
 		if (anyUnread && !(tabPane.getSelectedIndex() == 1)) {
+			unreadComments = true;
 			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					tabPane.setForegroundAt(1, RoboColor.RED);
@@ -113,13 +124,13 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 
 		@Override
 		protected boolean canRemoveComment(Comment c) {
-			long myUid = frame.getController().getMyUser().getUserId();
+			long myUid = frame.ctrl.getMyUser().getUserId();
 			return (c.getUserId() == myUid);
 		}
 
 		@Override
 		protected void newComment(long parentCmtId, String text, CommentCallback cb) {
-			frame.getController().newCommentForLibrary(userId, parentCmtId, text, cb);
+			frame.ctrl.newCommentForLibrary(userId, parentCmtId, text, cb);
 		}
 
 		@Override

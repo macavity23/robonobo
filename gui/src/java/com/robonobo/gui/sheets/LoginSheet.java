@@ -49,7 +49,7 @@ public class LoginSheet extends Sheet implements LoginListener {
 
 		add(new RLabel12("Email:"), "1,5,r,f");
 		emailField = new RTextField();
-		String email = frame.getController().getConfig().getMetadataUsername();
+		String email = frame.ctrl.getConfig().getMetadataUsername();
 		if(email != null)
 			emailField.setText(email);
 		add(emailField, "3,5");
@@ -57,7 +57,7 @@ public class LoginSheet extends Sheet implements LoginListener {
 		add(new RLabel12("Password:"), "1,7,r,f");
 
 		passwordField = new RPasswordField();
-		String pwd = frame.getController().getConfig().getMetadataPassword();
+		String pwd = frame.ctrl.getConfig().getMetadataPassword();
 		if(pwd != null)
 			passwordField.setText(pwd);
 		add(passwordField, "3,7");
@@ -66,7 +66,7 @@ public class LoginSheet extends Sheet implements LoginListener {
 		add(statusLbl, "1,9,3,9,RIGHT,CENTER");
 
 		add(new ButtonPanel(), "1,11,3,11");
-		control = frame.getController();
+		control = frame.ctrl;
 
 	}
 

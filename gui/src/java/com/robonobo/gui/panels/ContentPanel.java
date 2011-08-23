@@ -1,5 +1,6 @@
 package com.robonobo.gui.panels;
 
+import static com.robonobo.common.util.CodeUtil.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.datatransfer.DataFlavor;
@@ -14,17 +15,14 @@ import javax.swing.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.gui.RoboColor;
-import com.robonobo.gui.RoboFont;
+import com.robonobo.gui.*;
 import com.robonobo.gui.components.TrackList;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.StreamTransfer;
 import com.robonobo.gui.model.TrackListTableModel;
 
-/**
- * The track list and the tabs below
- */
+/** The track list and the tabs below */
 @SuppressWarnings("serial")
 public abstract class ContentPanel extends JPanel {
 	protected TrackList trackList;
@@ -33,6 +31,7 @@ public abstract class ContentPanel extends JPanel {
 	protected RobonoboFrame frame;
 	protected Log log = LogFactory.getLog(getClass());
 	private List<MessagePanel> msgs = new ArrayList<MessagePanel>();
+	protected Icon bangIcon = GuiUtil.createImageIcon("/icon/exclamation.png", null);
 
 	public ContentPanel() {
 	}
@@ -41,30 +40,42 @@ public abstract class ContentPanel extends JPanel {
 		this.frame = frame;
 		double[][] cellSizen = { { TableLayout.FILL }, { TableLayout.FILL, } };
 		setLayout(new TableLayout(cellSizen));
-		
 		topPane = new JPanel();
 		double[][] tpCells = { { TableLayout.FILL }, { TableLayout.FILL } };
 		topPane.setLayout(new TableLayout(tpCells));
-		
 		trackList = new TrackList(frame, tableModel);
 		trackList.getJTable().setDragEnabled(true);
 		trackList.getJTable().setTransferHandler(createTrackListTransferHandler());
 		topPane.add(trackList, "0,0");
-
 		tabPane = new JTabbedPane(JTabbedPane.TOP);
 		tabPane.setFont(RoboFont.getFont(16, true));
 		tabPane.setForeground(RoboColor.DARK_GRAY);
 		tabPane.setBorder(BorderFactory.createEmptyBorder(0, 1, 0, 1));
 		tabPane.addTab("track", new TrackTab());
-
 		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topPane, tabPane);
 		splitPane.setDividerLocation(400);
-		add(splitPane,"0,0");
+		add(splitPane, "0,0");
 	}
-	
-	/**
-	 * Only call this from the swing UI thread, or else you might get concurrency issues
-	 */
+
+	protected void addBangToTab(int idx) {
+		// JTabbedPane.setTabComponentAt() is j6+, so for <=5 we just mark with the bang
+		if (javaMajorVersion() >= 6) {
+			RLabel16B lbl = new RLabel16B(tabPane.getTitleAt(idx), bangIcon, SwingConstants.LEFT);
+			lbl.setForeground(RoboColor.RED);
+			tabPane.setTabComponentAt(idx, lbl);
+		} else
+			tabPane.setIconAt(idx, bangIcon);
+	}
+
+	protected void removeBangFromTab(int idx) {
+		// JTabbedPane.setTabComponentAt() is j6+, so for <=5 we just mark with the bang
+		if (javaMajorVersion() >= 6) {
+			tabPane.setTabComponentAt(idx, new RLabel16B(tabPane.getTitleAt(idx)));
+		} else
+			tabPane.setIconAt(idx, null);
+	}
+
+	/** Only call this from the swing UI thread, or else you might get concurrency issues */
 	public void showMessage(String title, String htmlMsg) {
 		MessagePanel mp = new MessagePanel(title, htmlMsg);
 		if (msgs.size() == 0)
@@ -100,17 +111,13 @@ public abstract class ContentPanel extends JPanel {
 	public JComponent defaultComponent() {
 		return null;
 	}
-	
-	/**
-	 * For dropping stuff onto the tracklist - default impl can't import nothin
-	 */
+
+	/** For dropping stuff onto the tracklist - default impl can't import nothin */
 	public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
 		return false;
 	}
 
-	/**
-	 * For dropping onto the track list - default impl does nothing (and in fact will never get called)
-	 */
+	/** For dropping onto the track list - default impl does nothing (and in fact will never get called) */
 	public boolean importData(JComponent comp, Transferable t) {
 		return false;
 	}

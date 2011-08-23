@@ -27,7 +27,7 @@ public class OpenURISheet extends Sheet {
 		add(openBtn, "3,5");
 		openBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				frame.getController().getExecutor().execute(new CatchingRunnable() {
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
 						frame.openRbnbUri(uriField.getText());
 					}

@@ -26,7 +26,7 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 	List<LeftSidebarComponent> sideBarComps = new ArrayList<LeftSidebarComponent>();
 	RobonoboFrame frame;
 	private ActiveSearchList activeSearchList;
-	private MyLibrarySelector myMusic;
+	private MyLibrarySelector myLib;
 	private TaskListSelector taskList;
 	private boolean showTasks = false;
 	private NewPlaylistSelector newPlaylist;
@@ -61,9 +61,9 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 		friendTree.setBorder(BorderFactory.createEmptyBorder(5, 10, 3, 10));
 		sideBarPanel.add(friendTree);
 		sideBarComps.add(friendTree);
-		myMusic = new MyLibrarySelector(this, frame);
-		sideBarPanel.add(myMusic);
-		sideBarComps.add(myMusic);
+		myLib = new MyLibrarySelector(this, frame);
+		sideBarPanel.add(myLib);
+		sideBarComps.add(myLib);
 		taskList = new TaskListSelector(this, frame);
 		sideBarComps.add(taskList);
 		newPlaylist = new NewPlaylistSelector(this, frame);
@@ -80,7 +80,8 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 		StatusPanel statusPnl = new StatusPanel(frame);
 		sideBarComps.add(statusPnl.getBalanceLbl());
 		add(statusPnl);
-		frame.getController().addPlaylistListener(this);
+		frame.ctrl.addPlaylistListener(this);
+		frame.ctrl.addLibraryListener(this);
 	}
 
 	private void relayoutSidebar() {
@@ -90,7 +91,7 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 		if (showPublicPlaylists)
 			sideBarPanel.add(pubPlTree);
 		sideBarPanel.add(friendTree);
-		sideBarPanel.add(myMusic);
+		sideBarPanel.add(myLib);
 		if (showTasks)
 			sideBarPanel.add(taskList);
 		sideBarPanel.add(newPlaylist);
@@ -114,14 +115,14 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 
 	public void selectForContentPanel(String cpName) {
 		if (cpName.equals("mymusiclibrary"))
-			myMusic.setSelected(true);
+			myLib.setSelected(true);
 		else if (cpName.equals("newplaylist"))
 			newPlaylist.setSelected(true);
 		else if (cpName.startsWith("search/"))
 			activeSearchList.selectForQuery(cpName.substring("search/".length()));
 		else if (cpName.startsWith("playlist/")) {
 			long plId = Long.parseLong(cpName.substring("playlist/".length()));
-			Playlist p = frame.getController().getKnownPlaylist(plId);
+			Playlist p = frame.ctrl.getKnownPlaylist(plId);
 			selectForPlaylist(p);
 		} else if (cpName.startsWith("library/")) {
 			long uid = Long.parseLong(cpName.substring("library/".length()));
@@ -139,11 +140,11 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 		else {
 			// Public playlist
 			if (!pubPlTree.getModel().hasPlaylist(plId)) {
-				PlaylistConfig pc = frame.getController().getPlaylistConfig(p.getPlaylistId());
+				PlaylistConfig pc = frame.ctrl.getPlaylistConfig(p.getPlaylistId());
 				// TODO Don't use friend panel, have separate public one
 				// TODO Need to change playlistChanged() as well in case public panel gets replaced
 				OtherPlaylistContentPanel cp = new OtherPlaylistContentPanel(frame, p, pc);
-				frame.getMainPanel().addContentPanel("playlist/" + plId, cp);
+				frame.mainPanel.addContentPanel("playlist/" + plId, cp);
 				pubPlTree.getModel().addPlaylist(p);
 			}
 			pubPlTree.selectForPlaylist(plId);
@@ -160,15 +161,15 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 		SearchResultTableModel srtm = model.addSearch(query);
 		if (srtm != null) {
 			SearchResultContentPanel srcm = new SearchResultContentPanel(frame, srtm);
-			frame.getMainPanel().addContentPanel("search/" + query, srcm);
+			frame.mainPanel.addContentPanel("search/" + query, srcm);
 		}
 		activeSearchList.setSelectedIndex(model.indexOfQuery(query));
 		clearSelectionExcept(activeSearchList);
-		frame.getMainPanel().selectContentPanel("search/" + query);
+		frame.mainPanel.selectContentPanel("search/" + query);
 	}
 
 	public void selectMyMusic() {
-		myMusic.setSelected(true);
+		myLib.setSelected(true);
 	}
 
 	public void selectMyPlaylist(Playlist p) {
@@ -184,49 +185,72 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 
 	@Override
 	public void gotPlaylistComments(long plId, boolean anyUnread, Map<Comment, Boolean> comments) {
+		// Do nothing
 	}
 
 	@Override
-	public void gotLibraryComments(long userId, Map<Comment, Boolean> comments) {
+	public void gotLibraryComments(long userId, boolean anyUnread, Map<Comment, Boolean> comments) {
+		if(anyUnread && userId == frame.ctrl.getMyUser().getUserId())
+			myLib.setHasComments(true);
 	}
-	
+
+	public void markPlaylistCommentsAsRead(long plId) {
+		User me = frame.ctrl.getMyUser();
+		if(me.getPlaylistIds().contains(plId))
+			myPlList.markPlaylistCommentsAsRead(plId);
+		else 
+			friendTree.getModel().markPlaylistCommentsAsRead(plId);
+	}
+
+	public void markLibraryCommentsAsRead(long userId) {
+		User me = frame.ctrl.getMyUser();
+		if(me.getUserId() == userId)
+			myLib.setHasComments(false);
+		else 
+			friendTree.getModel().markLibraryCommentsAsRead(userId);
+	}
+
+	public void markMyLibraryCommentsAsRead() {
+		myLib.setHasComments(false);
+	}
+
 	@Override
 	public void playlistChanged(final Playlist p) {
 		// I'm not sure if this is the best place to create the panels, but this is the lowest common ancestor of the
 		// playlistlist and the friendtree, and we need to think about both
 		final String panelName = "playlist/" + p.getPlaylistId();
-		final PlaylistConfig pc = frame.getController().getPlaylistConfig(p.getPlaylistId());
-		final long myUserId = frame.getController().getMyUser().getUserId();
+		final PlaylistConfig pc = frame.ctrl.getPlaylistConfig(p.getPlaylistId());
+		final long myUserId = frame.ctrl.getMyUser().getUserId();
 		GuiUtil.runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				ContentPanel pPanel = frame.getMainPanel().getContentPanel(panelName);
+				ContentPanel pPanel = frame.mainPanel.getContentPanel(panelName);
 				// TODO If there is a public playlist with this plId, replace it with a friend/my playlist
 				if (pPanel == null) {
 					// Create playlist panel
 					if (p.getOwnerIds().contains(myUserId))
-						frame.getMainPanel().addContentPanel(panelName, new MyPlaylistContentPanel(frame, p, pc));
+						frame.mainPanel.addContentPanel(panelName, new MyPlaylistContentPanel(frame, p, pc));
 					else
-						frame.getMainPanel().addContentPanel(panelName, new OtherPlaylistContentPanel(frame, p, pc));
+						frame.mainPanel.addContentPanel(panelName, new OtherPlaylistContentPanel(frame, p, pc));
 				} else {
 					// Playlist panel already exists - check to see if I'm now an owner and wasn't (or vice versa)
 					if ((pPanel instanceof MyPlaylistContentPanel) && !p.getOwnerIds().contains(myUserId)) {
-						frame.getMainPanel().addContentPanel(panelName, new OtherPlaylistContentPanel(frame, p, pc));
+						frame.mainPanel.addContentPanel(panelName, new OtherPlaylistContentPanel(frame, p, pc));
 					} else if ((pPanel instanceof OtherPlaylistContentPanel) && p.getOwnerIds().contains(myUserId)) {
-						frame.getMainPanel().addContentPanel(panelName, new MyPlaylistContentPanel(frame, p, pc));
+						frame.mainPanel.addContentPanel(panelName, new MyPlaylistContentPanel(frame, p, pc));
 					}
 				}
 			}
 		});
 	}
-	
+
 	@Override
 	public void friendLibraryReady(long userId, int numUnseen) {
 	}
-	
+
 	@Override
 	public void friendLibraryUpdated(long userId, int numUnseen, Map<String, Date> newTracks) {
 	}
-	
+
 	@Override
 	public void myLibraryUpdated() {
 	}

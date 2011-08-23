@@ -61,7 +61,7 @@ public class MenuBar extends JMenuBar {
 			iTunesImport.setAccelerator(getPlatform().getAccelKeystroke(KeyEvent.VK_I));
 			iTunesImport.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					frame.getController().getExecutor().execute(new CatchingRunnable() {
+					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							frame.importITunes();
 						}
@@ -96,7 +96,7 @@ public class MenuBar extends JMenuBar {
 		RMenuItem updateUsers = new RMenuItem("Update friends & playlists");
 		updateUsers.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				frame.getController().checkUsersUpdate();
+				frame.ctrl.checkUsersUpdate();
 			}
 		});
 		networkMenu.add(updateUsers);
@@ -144,21 +144,21 @@ public class MenuBar extends JMenuBar {
 		RMenuItem showHelpPage = new RMenuItem("Online help/feedback...");
 		showHelpPage.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				openUrl(frame.getController().getConfig().getHelpUrl());
+				openUrl(frame.ctrl.getConfig().getHelpUrl());
 			}
 		});
 		helpMenu.add(showHelpPage);
 		RMenuItem showWiki = new RMenuItem("Go to developer webpage...");
 		showWiki.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				openUrl(frame.getController().getConfig().getDeveloperUrl());
+				openUrl(frame.ctrl.getConfig().getDeveloperUrl());
 			}
 		});
 		helpMenu.add(showWiki);
 		RMenuItem submitBugReport = new RMenuItem("Submit bug report...");
 		submitBugReport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
-				openUrl(frame.getController().getConfig().getBugReportUrl());
+				openUrl(frame.ctrl.getConfig().getBugReportUrl());
 			}
 		});
 		helpMenu.add(submitBugReport);

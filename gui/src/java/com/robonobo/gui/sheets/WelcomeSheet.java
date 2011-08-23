@@ -73,15 +73,15 @@ public class WelcomeSheet extends Sheet {
 		feckOffBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (shutUpCB.isSelected()) {
-					frame.getGuiConfig().setShowWelcomePanel(false);
-					frame.getController().saveConfig();
+					frame.guiCfg.setShowWelcomePanel(false);
+					frame.ctrl.saveConfig();
 				}
 				setVisible(false);
 			}
 		});
 		addButton(feckOffBtn, "1,20");
 		shutUpCB = new RCheckBox("Don't show this screen on startup");
-		shutUpCB.setSelected(!frame.getGuiConfig().getShowWelcomePanel());
+		shutUpCB.setSelected(!frame.guiCfg.getShowWelcomePanel());
 		add(shutUpCB, "1,22");
 	}
 
@@ -115,7 +115,7 @@ public class WelcomeSheet extends Sheet {
 			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 			tf = new RTextField();
 			tf.setMaximumSize(new Dimension(300, 30));
-			tf.setText(frame.getController().getConfig().getFinishedDownloadsDirectory());
+			tf.setText(frame.ctrl.getConfig().getFinishedDownloadsDirectory());
 			tf.setEnabled(false);
 			add(tf);
 			add(Box.createHorizontalStrut(10));
@@ -128,8 +128,8 @@ public class WelcomeSheet extends Sheet {
 					if (retVal == JFileChooser.APPROVE_OPTION) {
 						File f = fc.getSelectedFile();
 						tf.setText(f.getAbsolutePath());
-						frame.getController().getConfig().setFinishedDownloadsDirectory(f.getAbsolutePath());
-						frame.getController().saveConfig();
+						frame.ctrl.getConfig().setFinishedDownloadsDirectory(f.getAbsolutePath());
+						frame.ctrl.saveConfig();
 					}
 				}
 			});

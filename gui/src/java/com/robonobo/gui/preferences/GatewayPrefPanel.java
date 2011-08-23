@@ -26,7 +26,7 @@ public class GatewayPrefPanel extends PrefPanel {
 		RLabel ipLbl = new RLabel12("Router IP address and port");
 		add(ipLbl, "1,0");
 
-		roboCfg = frame.getController().getConfig();
+		roboCfg = frame.ctrl.getConfig();
 		ButtonGroup butGr = new ButtonGroup();
 		ActionListener radLis = new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -34,7 +34,7 @@ public class GatewayPrefPanel extends PrefPanel {
 			}
 		};
 		
-		String result = frame.getController().getConfig().getGatewayCfgResult();
+		String result = frame.ctrl.getConfig().getGatewayCfgResult();
 		autoBut = new RRadioButton("Automatically detect - "+result);
 		autoBut.addActionListener(radLis);
 		butGr.add(autoBut);

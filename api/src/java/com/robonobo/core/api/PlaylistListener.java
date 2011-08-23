@@ -7,6 +7,6 @@ import com.robonobo.core.api.model.Playlist;
 
 public interface PlaylistListener {
 	public void playlistChanged(Playlist p);
-	/** Map<Comment, haveSeenBefore> */
-	public void gotPlaylistComments(long plId, boolean hasUnseen, Map<Comment, Boolean> comments);
+	/** Map<Comment, unread> */
+	public void gotPlaylistComments(long plId, boolean anyUnread, Map<Comment, Boolean> comments);
 }

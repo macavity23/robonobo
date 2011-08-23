@@ -15,7 +15,7 @@ public class NewPlaylistTableModel extends PlaylistTableModel {
 	public static NewPlaylistTableModel create(RobonoboFrame frame, Playlist p) {
 		List<Track> trax = new ArrayList<Track>();
 		for (String sid : p.getStreamIds()) {
-			trax.add(frame.control.getTrack(sid));
+			trax.add(frame.ctrl.getTrack(sid));
 		}
 		EventList<Track> el = GlazedLists.eventList(trax);
 		return new NewPlaylistTableModel(frame, p, el);

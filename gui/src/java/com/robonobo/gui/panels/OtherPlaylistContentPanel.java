@@ -5,9 +5,12 @@ import info.clearthought.layout.TableLayout;
 
 import java.awt.ComponentOrientation;
 import java.awt.event.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
@@ -24,7 +27,6 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 	RButton saveBtn;
 	RCheckBox autoDownloadCB;
 	RCheckBox iTunesCB;
-	PlaylistCommentsPanel commentsPanel;
 	protected Map<String, JCheckBox> options = new HashMap<String, JCheckBox>();
 
 	public OtherPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc) {
@@ -33,15 +35,31 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
+		tabPane.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (tabPane.getSelectedIndex() == 1) {
+					if (unreadComments) {
+						unreadComments = false;
+						tabPane.setForeground(RoboColor.DARK_GRAY);
+						frame.leftSidebar.markPlaylistCommentsAsRead(p.getPlaylistId());
+						frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+							public void doRun() throws Exception {
+								frame.ctrl.markPlaylistCommentsAsSeen(p.getPlaylistId());
+							}
+						});
+					}
+				}
+			}
+		});
 		// Make sure the panel is all setup properly before we do this as comments need to know the width
 		addComponentListener(new ComponentAdapter() {
 			public void componentShown(ComponentEvent e) {
 				log.debug("Adding listener for playlist cp "+p.getPlaylistId());
-				frame.getController().addPlaylistListener(OtherPlaylistContentPanel.this);
-				frame.getController().getExecutor().execute(new CatchingRunnable() {
+				frame.ctrl.addPlaylistListener(OtherPlaylistContentPanel.this);
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
 						log.debug("Getting existing comments for playlist cp "+p.getPlaylistId());
-						Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForPlaylist(p.getPlaylistId());
+						Map<Comment, Boolean> cs = frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId());
 						boolean hasUnseen = false;
 						for (boolean unseen : cs.values()) {
 							if(unseen) {
@@ -60,7 +78,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 	@Override
 	public void playlistChanged(Playlist p) {
 		if (p.equals(this.p)) {
-			if (p.getOwnerIds().contains(frame.getController().getMyUser().getUserId())) {
+			if (p.getOwnerIds().contains(frame.ctrl.getMyUser().getUserId())) {
 				log.debug("DEBUG: not updating playlist content panel for playlist '" + p.getTitle()
 						+ "' - I am an owner!");
 				return;
@@ -74,19 +92,6 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 			getModel().update(p);
 			toolsPanel.checkPlaylistVisibility();
 		}
-	}
-
-	@Override
-	public void gotPlaylistComments(long plId, boolean anyUnseen, Map<Comment, Boolean> comments) {
-		if(commentsPanel == null)
-			return;
-		if(plId != p.getPlaylistId())
-			return;
-		log.debug("playlist cp "+plId+" updated with "+comments.size()+" comments");
-		// TODO If any comments are new, hilite
-		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
-		Collections.sort(cl);
-		commentsPanel.addComments(cl);
 	}
 
 	void updateFields() {
@@ -162,10 +167,10 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 					}
 					saveBtn.setEnabled(false);
 					pc.setPlaylistId(p.getPlaylistId());
-					frame.getController().getExecutor().execute(new CatchingRunnable() {
+					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							// This will kick of auto-downloads & itunes integration if necessary
-							frame.getController().putPlaylistConfig(pc);
+							frame.ctrl.putPlaylistConfig(pc);
 //							try {
 								// Checking playlist update will kick off autodownloads, if necessary
 //								frame.getController().checkPlaylistUpdate(p.getPlaylistId());

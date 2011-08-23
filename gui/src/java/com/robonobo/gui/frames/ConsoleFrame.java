@@ -46,7 +46,7 @@ public class ConsoleFrame extends JFrame {
 		public void console(DataInputStream stdin, PrintStream stdout, PrintStream stderr) throws IOException {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(stdin));
 			PrintWriter writer = new PrintWriter(stdout);
-			RobonoboConsole console = new RobonoboConsole(frame.getController(), reader, writer);
+			RobonoboConsole console = new RobonoboConsole(frame.ctrl, reader, writer);
 			try {
 				console.doRun();
 			} catch (Exception e) {
@@ -60,7 +60,7 @@ public class ConsoleFrame extends JFrame {
 		}
 
 		public String userVersion() {
-			return "Robonobo Console v"+frame.getController().getVersion();
+			return "Robonobo Console v"+frame.ctrl.getVersion();
 		}
 	}
 }

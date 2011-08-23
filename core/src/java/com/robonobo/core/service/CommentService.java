@@ -131,7 +131,7 @@ public class CommentService extends AbstractService {
 					Map<Comment, Boolean> cNewMap = new HashMap<Comment, Boolean>();
 					boolean anyUnseen = false;
 					for (Comment c : pl) {
-						boolean unseen = db.haveSeenComment(c.getCommentId());
+						boolean unseen = !db.haveSeenComment(c.getCommentId());
 						if (unseen)
 							anyUnseen = true;
 						cNewMap.put(c, unseen);
@@ -158,7 +158,7 @@ public class CommentService extends AbstractService {
 					Map<Comment, Boolean> cNewMap = new HashMap<Comment, Boolean>();
 					boolean anyUnread = false;
 					for (Comment c : pl) {
-						boolean unread = db.haveSeenComment(c.getCommentId());
+						boolean unread = !db.haveSeenComment(c.getCommentId());
 						if(unread)
 							anyUnread = true;
 						cNewMap.put(c, unread);

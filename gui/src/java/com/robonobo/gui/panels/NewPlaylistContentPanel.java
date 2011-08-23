@@ -39,7 +39,7 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 		p.setTitle(titleField.getText());
 		p.setDescription(descField.getText());
 		// Create the new playlist in midas
-		RobonoboController control = frame.getController();
+		RobonoboController control = frame.ctrl;
 		p.getOwnerIds().add(control.getMyUser().getUserId());
 		control.createPlaylist(p, new PlaylistCallback() {
 			public void success(final Playlist newP) {
@@ -47,7 +47,7 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 					public void doRun() throws Exception {
 						// A content panel should have been created for the new
 						// playlist - switch to it now
-						frame.getLeftSidebar().selectMyPlaylist(newP);
+						frame.leftSidebar.selectMyPlaylist(newP);
 						// Now that they're not looking, re-init everything with
 						// a new empty playlist
 						Playlist newP = new Playlist();

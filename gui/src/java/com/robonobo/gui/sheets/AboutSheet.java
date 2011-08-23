@@ -27,7 +27,7 @@ public class AboutSheet extends Sheet {
 		setLayout(new TableLayout(cellSizen));
 		setPreferredSize(sz);
 		
-		RLabel title = new RLabel14B("About robonobo (version "+f.getController().getVersion()+")");
+		RLabel title = new RLabel14B("About robonobo (version "+f.ctrl.getVersion()+")");
 		add(title, "1,1,2,1,LEFT,CENTER");
 		
 		RTextPane textPane = new RTextPane();
@@ -69,6 +69,6 @@ public class AboutSheet extends Sheet {
 		} catch (IOException e) {
 			throw new Errot(e);
 		}
-		return sb.toString().replace("!VERSION!", frame.getController().getVersion());
+		return sb.toString().replace("!VERSION!", frame.ctrl.getVersion());
 	}
 }

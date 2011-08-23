@@ -41,7 +41,7 @@ public class SharePlaylistSheet extends Sheet {
 	public SharePlaylistSheet(RobonoboFrame frame, Playlist p) {
 		super(frame);
 		this.p = p;
-		control = frame.getController();
+		control = frame.ctrl;
 		setPreferredSize(size);
 		double[][] cellSizen = { { 10, 170, 5, 250, 10 }, { 10, 25, 5, 50, 5, 20, 5, 100, 10, 25, 10, 30, 10 } };
 		setLayout(new TableLayout(cellSizen));
@@ -122,7 +122,7 @@ public class SharePlaylistSheet extends Sheet {
 			shareBtn = new RGlassButton("SHARE");
 			shareBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					frame.getController().getExecutor().execute(new CatchingRunnable() {
+					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							Set<Long> selFriendIds = new HashSet<Long>();
 							for (Object obj : friendList.getSelectedValues()) {

@@ -12,7 +12,7 @@ public class LocalIpPrefPanel extends ChoicePrefPanel {
 	boolean userOverrode = false;
 
 	public LocalIpPrefPanel(RobonoboFrame frame) {
-		super(frame, "mina.localAddress", "Local IP Address", getLocalAddrs(frame.getController().getConfig().getAllowLoopbackAddress()));
+		super(frame, "mina.localAddress", "Local IP Address", getLocalAddrs(frame.ctrl.getConfig().getAllowLoopbackAddress()));
 		// Add a listener that registers when the user specifies the address themselves - this helps us when we pick
 		// gateway config on startup
 		combo.addActionListener(new ActionListener() {

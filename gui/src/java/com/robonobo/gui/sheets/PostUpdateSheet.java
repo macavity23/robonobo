@@ -31,7 +31,7 @@ public abstract class PostUpdateSheet extends Sheet {
 	public PostUpdateSheet(RobonoboFrame f, Playlist pl) {
 		super(f);
 		this.p = pl;
-		playlistUrl = frame.getController().getConfig().getPlaylistUrlBase() + Long.toHexString(p.getPlaylistId());
+		playlistUrl = frame.ctrl.getConfig().getPlaylistUrlBase() + Long.toHexString(p.getPlaylistId());
 		boolean showCharLimit = (charLimit() > 0);
 		double[][] cellSizen = { { 10, 300, 10 }, { 10, 20, 5, showCharLimit ? 80 : 100, 5, showCharLimit ? 20 : 0, 0, 20, 5, 30, 10 } };
 		setLayout(new TableLayout(cellSizen));
@@ -80,7 +80,7 @@ public abstract class PostUpdateSheet extends Sheet {
 	protected abstract int charLimit();
 
 	public void postUpdate() {
-		frame.getController().postPlaylistServiceUpdate(getServiceName().toLowerCase(), p.getPlaylistId(), getMsg());
+		frame.ctrl.postPlaylistServiceUpdate(getServiceName().toLowerCase(), p.getPlaylistId(), getMsg());
 	}
 
 	private String truncateTitle(String title) {
@@ -107,7 +107,7 @@ public abstract class PostUpdateSheet extends Sheet {
 			postBtn = new RGlassButton("POST UPDATE");
 			postBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					frame.getController().getExecutor().execute(new CatchingRunnable() {
+					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							postUpdate();
 						}

@@ -81,7 +81,7 @@ public class TrackList extends JPanel {
 		// When the selection changes, notify our playback panel
 		table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
-				frame.getPlaybackPanel().trackSelectionChanged();
+				frame.mainPanel.getPlaybackPanel().trackSelectionChanged();
 			}
 		});
 		// Cell renderers
@@ -146,7 +146,7 @@ public class TrackList extends JPanel {
 		table.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					frame.getPlaybackPanel().playSelectedTracks();
+					frame.mainPanel.getPlaybackPanel().playSelectedTracks();
 					e.consume();
 				}
 			}
@@ -217,7 +217,9 @@ public class TrackList extends JPanel {
 	}
 
 	public void clearTableSelection() {
-		table.removeRowSelectionInterval(0, table.getRowCount() - 1);
+		int rowCount = table.getRowCount();
+		if(rowCount > 0)
+			table.removeRowSelectionInterval(0, rowCount - 1);
 	}
 
 	/** Returns String[2], first is prev sid, second is next sid, either might be null - we get both at the same time to
@@ -247,12 +249,12 @@ public class TrackList extends JPanel {
 		if (!SwingUtilities.isEventDispatchThread())
 			throw new Errot();
 		if (model.allowDelete()) {
-			if (frame.getGuiConfig().getConfirmTrackDelete())
+			if (frame.guiCfg.getConfirmTrackDelete())
 				frame.showSheet(new ConfirmTrackDeleteSheet(frame, model, getSelectedStreamIds()));
 			else {
 				final List<String> selSids = getSelectedStreamIds();
 				if (selSids.size() > 0) {
-					frame.getController().getExecutor().execute(new CatchingRunnable() {
+					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							model.deleteTracks(selSids);
 						}
@@ -301,8 +303,8 @@ public class TrackList extends JPanel {
 			newPl.setActionCommand("newpl");
 			newPl.addActionListener(this);
 			plMenu.add(newPl);
-			for (long plId : frame.getController().getMyUser().getPlaylistIds()) {
-				Playlist p = frame.getController().getKnownPlaylist(plId);
+			for (long plId : frame.ctrl.getMyUser().getPlaylistIds()) {
+				Playlist p = frame.ctrl.getKnownPlaylist(plId);
 				if (p != null) {
 					RMenuItem pmi = new RMenuItem(p.getTitle());
 					pmi.setActionCommand("pl-" + p.getPlaylistId());
@@ -330,29 +332,29 @@ public class TrackList extends JPanel {
 		public void actionPerformed(ActionEvent e) {
 			String action = e.getActionCommand();
 			if (action.equals("play"))
-				frame.getPlaybackPanel().playSelectedTracks();
+				frame.mainPanel.getPlaybackPanel().playSelectedTracks();
 			else if (action.equals("download")) {
 				final List<String> dlSids = new ArrayList<String>();
 				for (Track t : getSelectedTracks()) {
 					if (t instanceof CloudTrack)
 						dlSids.add(t.getStream().getStreamId());
 				}
-				frame.getController().getExecutor().execute(new CatchingRunnable() {
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
 						for(String sid : dlSids) {
-							frame.getController().addDownload(sid);
+							frame.ctrl.addDownload(sid);
 						}
 					}
 				});
 			} else if (action.equals("newpl")) {
-				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel().getContentPanel("newplaylist");
+				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.mainPanel.getContentPanel("newplaylist");
 				cp.addTracks(getSelectedStreamIds());
 			} else if (action.startsWith("pl-")) {
 				long plId = Long.parseLong(action.substring(3));
-				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.getMainPanel().getContentPanel("playlist/" + plId);
+				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.mainPanel.getContentPanel("playlist/" + plId);
 				cp.addTracks(getSelectedStreamIds());
 			} else if (action.equals("delete")) {
-				frame.getMainPanel().currentContentPanel().getTrackList().deleteSelectedTracks();
+				frame.mainPanel.currentContentPanel().getTrackList().deleteSelectedTracks();
 			} else if (action.equals("show")) {
 				File showFile = null;
 				for (Track t : getSelectedTracks()) {
@@ -363,7 +365,7 @@ public class TrackList extends JPanel {
 				}
 				if (showFile != null) {
 					final File finalFile = showFile;
-					frame.getController().getExecutor().execute(new CatchingRunnable() {
+					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							Platform.getPlatform().showFileInFileManager(finalFile);
 						}

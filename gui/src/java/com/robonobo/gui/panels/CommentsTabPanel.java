@@ -117,7 +117,7 @@ public abstract class CommentsTabPanel extends JPanel {
 					continue;
 				gotComments.add(cid);
 			}
-			frame.getController().getOrFetchUser(cmt.getUserId(), new AddCommentCallback(cmt));
+			frame.ctrl.getOrFetchUser(cmt.getUserId(), new AddCommentCallback(cmt));
 		}
 	}
 
@@ -308,7 +308,7 @@ public abstract class CommentsTabPanel extends JPanel {
 				final CatchingRunnable doRemove = new CatchingRunnable() {
 					public void doRun() throws Exception {
 						remover.doRemove(CommentPanel.this);
-						frame.getController().deleteComment(CommentPanel.this.c, new CommentCallback() {
+						frame.ctrl.deleteComment(CommentPanel.this.c, new CommentCallback() {
 							public void success(Comment c) {
 								// Do nothing
 							}
@@ -371,7 +371,7 @@ public abstract class CommentsTabPanel extends JPanel {
 		public NewCommentForm(final Runnable remover, final long parentCmtId) {
 			double[][] cellSizen = { { 0, 50, 10, TableLayout.FILL, 100, 10, 100, 10 }, { 0, 25, 0, 60, 10, 30, 10 } };
 			setLayout(new TableLayout(cellSizen));
-			User me = frame.getController().getMyUser();
+			User me = frame.ctrl.getMyUser();
 			add(new JLabel(imgIconFromUrl(me.getImgUrl())), "1,1,1,3,LEFT,TOP");
 			String lblText = (parentCmtId < 0) ? "Post New Comment" : "Post Reply";
 			add(new RLabel14B(lblText), "3,1,LEFT,TOP");

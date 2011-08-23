@@ -37,7 +37,7 @@ public class StatusPanel extends JPanel implements RobonoboStatusListener, Trans
 	private BalanceLabel balanceLbl;
 
 	public StatusPanel(RobonoboFrame frame) {
-		this.control = frame.getController();
+		this.control = frame.ctrl;
 		setPreferredSize(new Dimension(200, 85));
 		setMaximumSize(new Dimension(200, 85));
 		double[][] cellSizen = { { 1, 9, 32, 5, 110, TableLayout.FILL, 5 }, { 10, 30, 5, 15, 15, 5, TableLayout.FILL } };

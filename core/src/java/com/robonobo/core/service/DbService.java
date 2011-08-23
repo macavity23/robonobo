@@ -108,7 +108,7 @@ public class DbService extends AbstractService {
 		if (!dbPropsFile.exists()) {
 			log.info("Creating metadata db with prefix " + dbPrefix);
 			String[] creatStats = { CREATE_STREAMS_TBL, CREATE_ATTRIBUTES_TBL, CREATE_SHARES_TBL, CREATE_DOWNLOADS_TBL, CREATE_WATCHDIRS_TBL, CREATE_CHECKED_FILES_TBL,
-					CREATE_PLAYLIST_CFG_TBL, CREATE_PLAYLIST_SEEN_SIDS_TBL, CREATE_LIBRARY_KNOWN_TRACKS_TBL, CREATE_LIBRARY_UNKNOWN_TRACKS_TBL, CREATE_LIBRARY_INFO_TBL };
+					CREATE_PLAYLIST_CFG_TBL, CREATE_PLAYLIST_SEEN_SIDS_TBL, CREATE_SEEN_COMMENTS_TBL, CREATE_LIBRARY_KNOWN_TRACKS_TBL, CREATE_LIBRARY_UNKNOWN_TRACKS_TBL, CREATE_LIBRARY_INFO_TBL };
 			Connection conn = getConnection();
 			for (String stat : creatStats) {
 				try {
@@ -971,7 +971,7 @@ public class DbService extends AbstractService {
 			ps.close();
 			return result;
 		} catch (SQLException e) {
-			log.error("Error checking if seen comment" + commentId, e);
+			log.error("Error checking if seen comment " + commentId, e);
 			return false;
 		} finally {
 			if (conn != null)

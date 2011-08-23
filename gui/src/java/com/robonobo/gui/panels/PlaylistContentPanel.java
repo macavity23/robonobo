@@ -7,11 +7,14 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.*;
 
 import javax.swing.JPanel;
 
+import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.metadata.CommentCallback;
+import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.PlaylistTableModel;
@@ -21,6 +24,9 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 	protected RobonoboFrame frame;
 	protected Playlist p;
 	protected PlaylistConfig pc;
+	/** Note, you must initialize this in the subclass constructor */
+	protected PlaylistCommentsPanel commentsPanel;
+	boolean unreadComments = false;
 	protected PlaylistToolsPanel toolsPanel;
 
 	public PlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, boolean myPlaylist) {
@@ -51,7 +57,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			setLayout(new TableLayout(cellSizen));
 			RLabel urlLbl = new RLabel13("URL:");
 			add(urlLbl, "0,0");
-			String urlBase = frame.getController().getConfig().getPlaylistUrlBase();
+			String urlBase = frame.ctrl.getConfig().getPlaylistUrlBase();
 			String urlText = (p.getPlaylistId() > 0) ? urlBase + Long.toHexString(p.getPlaylistId()) : "(none)";
 			final RTextField urlField = new RTextField(urlText);
 			urlField.setEnabled(false);
@@ -97,7 +103,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 				return;
 			}
 			copyBtn.setEnabled(true);
-			if (frame.getController().getMyUser().getPlaylistIds().contains(p.getPlaylistId())) {
+			if (frame.ctrl.getMyUser().getPlaylistIds().contains(p.getPlaylistId())) {
 				// It's my playlist, enable everything
 				fbBtn.setEnabled(true);
 				fbBtn.setToolTipText("Post playlist update to facebook");
@@ -125,6 +131,24 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 		// Do nothing
 	}
 
+	public void gotPlaylistComments(long plId, boolean anyUnread, Map<Comment, Boolean> comments) {
+		if (commentsPanel == null)
+			return;
+		if (plId != p.getPlaylistId())
+			return;
+		if (anyUnread && !(tabPane.getSelectedIndex() == 1)) {
+			unreadComments = true;
+			runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					tabPane.setForegroundAt(1, RoboColor.RED);
+				}
+			});
+		}
+		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
+		Collections.sort(cl);
+		commentsPanel.addComments(cl);
+	}
+
 	class PlaylistCommentsPanel extends CommentsTabPanel {
 		public PlaylistCommentsPanel(RobonoboFrame frame) {
 			super(frame);
@@ -132,7 +156,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 
 		@Override
 		protected boolean canRemoveComment(Comment c) {
-			long myUid = frame.getController().getMyUser().getUserId();
+			long myUid = frame.ctrl.getMyUser().getUserId();
 			// If I own this comment, I can remove it
 			if(c.getUserId() == myUid)
 				return true;
@@ -145,7 +169,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 
 		@Override
 		protected void newComment(long parentCmtId, String text, CommentCallback cb) {
-			frame.getController().newCommentForPlaylist(p.getPlaylistId(), parentCmtId, text, cb);
+			frame.ctrl.newCommentForPlaylist(p.getPlaylistId(), parentCmtId, text, cb);
 		}
 	}
 }

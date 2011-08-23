@@ -3,6 +3,7 @@ package com.robonobo.gui.components;
 import static com.robonobo.gui.GuiUtil.*;
 import static com.robonobo.gui.RoboColor.*;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -20,10 +21,11 @@ import com.robonobo.gui.panels.LeftSidebar;
  *
  */
 public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarComponent {
+	boolean sel;
 	protected LeftSidebar sideBar;
 	protected RobonoboFrame frame;
 	protected String contentPanelName;
-	private RLabel lbl;
+	protected RLabel lbl;
 	private static final Dimension SIZE = new Dimension(188, 19);
 
 	public LeftSidebarSelector(LeftSidebar sideBar, RobonoboFrame frame, String label, boolean lblBold, Icon icon, String contentPanelName) {
@@ -49,17 +51,33 @@ public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarC
 	
 	public void setSelected(boolean isSelected) {
 		if (isSelected) {
-			frame.getMainPanel().selectContentPanel(contentPanelName);
-			setBackground(LIGHT_GRAY);
-			setForeground(BLUE_GRAY);
+			frame.mainPanel.selectContentPanel(contentPanelName);
 			sideBar.clearSelectionExcept(this);
-		} else {
-			setBackground(MID_GRAY);
-			setForeground(DARK_GRAY);
 		}
+		this.sel = isSelected;
+		updateColors();
+	}
+
+	protected void updateColors() {
+		setForeground(fgColor(sel));
+		setBackground(bgColor(sel));
 		markAsDirty(this);
 	}
 
+	protected Color fgColor(boolean isSel) {
+		if(isSel)
+			return BLUE_GRAY;
+		else 
+			return DARK_GRAY;
+	}
+	
+	protected Color bgColor(boolean isSel) {
+		if(isSel)
+			return LIGHT_GRAY;
+		else
+			return MID_GRAY;
+	}
+	
 	public void setIcon(Icon icon) {
 		lbl.setIcon(icon);
 	}

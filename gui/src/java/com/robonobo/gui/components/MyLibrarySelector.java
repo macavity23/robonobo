@@ -2,18 +2,24 @@ package com.robonobo.gui.components;
 
 import static com.robonobo.gui.GuiUtil.*;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JPopupMenu;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.robonobo.core.Platform;
+import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.RMenuItem;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.panels.LeftSidebar;
 
 public class MyLibrarySelector extends LeftSidebarSelector implements ActionListener {
-	boolean hasComments = false;
+	private boolean hasComments = false;
+	Log log = LogFactory.getLog(getClass());
 	public MyLibrarySelector(LeftSidebar sideBar, RobonoboFrame frame) {
 		super(sideBar, frame, "My Music Library", true, createImageIcon("/icon/home.png", null), "mymusiclibrary");
 	}
@@ -43,11 +49,16 @@ public class MyLibrarySelector extends LeftSidebarSelector implements ActionList
 			frame.importITunes();
 	}
 
-	public boolean hasComments() {
-		return hasComments;
+	@Override
+	protected Color fgColor(boolean isSel) {
+		if(hasComments)
+			return RoboColor.RED;
+		return super.fgColor(isSel);
 	}
-
+	
 	public void setHasComments(boolean hasComments) {
+		log.debug("MyLib has comments: "+hasComments);
 		this.hasComments = hasComments;
+		updateColors();
 	}
 }

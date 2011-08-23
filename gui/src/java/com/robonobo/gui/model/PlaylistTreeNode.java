@@ -15,13 +15,14 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 	Log log = LogFactory.getLog(getClass());
 	RobonoboFrame frame;
 	private Playlist playlist;
-	int numUnseenTracks;
+	public int numUnseenTracks;
+	public boolean hasComments;
 
 	public PlaylistTreeNode(Playlist p, RobonoboFrame frame) {
 		super(p.getTitle());
 		this.playlist = p;
 		this.frame = frame;
-		numUnseenTracks = frame.getController().numUnseenTracks(p);
+		numUnseenTracks = frame.ctrl.numUnseenTracks(p);
 	}
 
 	public Playlist getPlaylist() {
@@ -33,13 +34,13 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 		setUserObject(playlist.getTitle());
 		if (isSelected) {
 			numUnseenTracks = 0;
-			frame.getController().getExecutor().execute(new CatchingRunnable() {
+			frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					frame.getController().markAllAsSeen(playlist);
+					frame.ctrl.markAllAsSeen(playlist);
 				}
 			});
 		} else
-			numUnseenTracks = frame.getController().numUnseenTracks(playlist);
+			numUnseenTracks = frame.ctrl.numUnseenTracks(playlist);
 	}
 
 	@Override
@@ -50,21 +51,17 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 	@Override
 	public boolean handleSelect() {
 		numUnseenTracks = 0;
-		frame.getMainPanel().selectContentPanel(contentPanelName());
-		frame.getController().getExecutor().execute(new CatchingRunnable() {
+		frame.mainPanel.selectContentPanel(contentPanelName());
+		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				frame.getController().markAllAsSeen(playlist);
+				frame.ctrl.markAllAsSeen(playlist);
 				// Start finding sources for this guy
-				PlaylistTableModel model = (PlaylistTableModel) frame.getMainPanel()
+				PlaylistTableModel model = (PlaylistTableModel) frame.mainPanel
 						.getContentPanel(contentPanelName()).getTrackList().getModel();
 				model.activate();
 			}
 		});
 		return true;
-	}
-
-	public int getNumUnseenTracks() {
-		return numUnseenTracks;
 	}
 
 	protected String contentPanelName() {

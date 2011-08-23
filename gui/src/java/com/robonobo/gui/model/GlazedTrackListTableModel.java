@@ -41,7 +41,7 @@ public abstract class GlazedTrackListTableModel extends EventTableModel<Track> i
 		// Use first non-null of fl, sl, el
 		super((fl != null) ? fl : ((sl != null) ? sl : el), new TrackTableFormat());
 		this.frame = frame;
-		this.control = frame.getController();
+		this.control = frame.ctrl;
 		eventList = el;
 		sortedList = sl;
 		filterList = fl;

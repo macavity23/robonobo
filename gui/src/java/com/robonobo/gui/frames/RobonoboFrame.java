@@ -27,7 +27,8 @@ import com.robonobo.core.api.TrackListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.metadata.UserConfigCallback;
 import com.robonobo.gui.*;
-import com.robonobo.gui.panels.*;
+import com.robonobo.gui.panels.LeftSidebar;
+import com.robonobo.gui.panels.MainPanel;
 import com.robonobo.gui.preferences.PrefDialog;
 import com.robonobo.gui.sheets.*;
 import com.robonobo.gui.tasks.ImportFilesTask;
@@ -36,14 +37,14 @@ import com.robonobo.mina.external.HandoverHandler;
 
 @SuppressWarnings("serial")
 public class RobonoboFrame extends SheetableFrame implements TrackListener {
-	public RobonoboController control;
-	private String[] cmdLineArgs;
-	private JMenuBar menuBar;
-	private MainPanel mainPanel;
-	private LeftSidebar leftSidebar;
-	private Log log = LogFactory.getLog(RobonoboFrame.class);
-	private GuiConfig guiConfig;
-	UriHandler uriHandler;
+	public RobonoboController ctrl;
+	String[] cmdLineArgs;
+	public JMenuBar menuBar;
+	public MainPanel mainPanel;
+	public LeftSidebar leftSidebar;
+	Log log = LogFactory.getLog(RobonoboFrame.class);
+	public GuiConfig guiCfg;
+	public UriHandler uriHandler;
 	private boolean tracksLoaded;
 	private boolean shownLogin;
 	static RobonoboFrame instance;
@@ -53,7 +54,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	public RobonoboFrame(RobonoboController control, String[] args) {
-		this.control = control;
+		this.ctrl = control;
 		this.cmdLineArgs = args;
 		setTitle("robonobo");
 		setIconImage(getRobonoboIconImage());
@@ -72,17 +73,17 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		setPreferredSize(new Dimension(1024, 723));
 		pack();
 		leftSidebar.selectMyMusic();
-		guiConfig = (GuiConfig) control.getConfig("gui");
+		guiCfg = (GuiConfig) control.getConfig("gui");
 		addListeners();
 		uriHandler = new UriHandler(this);
 		instance = this;
 	}
 
 	private void addListeners() {
-		control.addTrackListener(this);
+		ctrl.addTrackListener(this);
 		// There's a chance the control might have loaded all its tracks before we add ourselves as a tracklistener, so
 		// spawn a thread to check if this is so
-		control.getExecutor().execute(new CatchingRunnable() {
+		ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				checkTracksLoaded();
 			}
@@ -116,22 +117,6 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		}
 	}
 
-	public LeftSidebar getLeftSidebar() {
-		return leftSidebar;
-	}
-
-	public GuiConfig getGuiConfig() {
-		return guiConfig;
-	}
-
-	public PlaybackPanel getPlaybackPanel() {
-		return mainPanel.getPlaybackPanel();
-	}
-
-	public MainPanel getMainPanel() {
-		return mainPanel;
-	}
-
 	/** Once this is called, everything is up and running */
 	@Override
 	public void allTracksLoaded() {
@@ -146,7 +131,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	private void checkTracksLoaded() {
 		if (tracksLoaded)
 			return;
-		if (control.haveAllSharesStarted())
+		if (ctrl.haveAllSharesStarted())
 			allTracksLoaded();
 	}
 
@@ -159,7 +144,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	private void setupHandoverHandler() {
-		control.setHandoverHandler(new HandoverHandler() {
+		ctrl.setHandoverHandler(new HandoverHandler() {
 			@Override
 			public String gotHandover(String arg) {
 				handleArg(arg);
@@ -196,8 +181,8 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 
 	public void showWelcome(boolean forceShow) {
 		// If we have no shares (or we're forcing it), show the welcome dialog
-		final boolean gotShares = (control.getNumShares() > 0);
-		if (forceShow || (!gotShares && guiConfig.getShowWelcomePanel())) {
+		final boolean gotShares = (ctrl.getNumShares() > 0);
+		if (forceShow || (!gotShares && guiCfg.getShowWelcomePanel())) {
 			SwingUtilities.invokeLater(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					showSheet(new WelcomeSheet(RobonoboFrame.this));
@@ -228,13 +213,13 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	public void importFiles(final List<File> files) {
-		ImportFilesTask t = new ImportFilesTask(control, files);
-		control.runTask(t);
+		ImportFilesTask t = new ImportFilesTask(ctrl, files);
+		ctrl.runTask(t);
 	}
 
 	public void importITunes() {
-		ImportITunesTask t = new ImportITunesTask(control);
-		control.runTask(t);
+		ImportITunesTask t = new ImportITunesTask(ctrl);
+		ctrl.runTask(t);
 	}
 
 	public void showAddSharesDialog() {
@@ -259,7 +244,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				int retVal = fc.showOpenDialog(RobonoboFrame.this);
 				if (retVal == JFileChooser.APPROVE_OPTION) {
 					final File[] selFiles = fc.getSelectedFiles();
-					control.getExecutor().execute(new CatchingRunnable() {
+					ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							importFilesOrDirectories(Arrays.asList(selFiles));
 						}
@@ -267,7 +252,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				}
 			}
 		};
-		if (control.getMyUser() != null)
+		if (ctrl.getMyUser() != null)
 			flarp.run();
 		else
 			showLogin(flarp);
@@ -314,13 +299,13 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	public void postToFacebook(final Playlist p) {
 		if (!SwingUtilities.isEventDispatchThread())
 			throw new Errot();
-		UserConfig uc = control.getMyUserConfig();
+		UserConfig uc = ctrl.getMyUserConfig();
 		if (uc == null || uc.getItem("facebookId") == null) {
 			// They don't seem to be registered for facebook - fetch a fresh copy of the usercfg from midas in
 			// case they've recently added themselves to fb
 			final Sheet waitSheet = new PleaseWaitSheet(this, "checking Facebook details");
 			showSheet(waitSheet);
-			control.fetchMyUserConfig(new UserConfigCallback() {
+			ctrl.fetchMyUserConfig(new UserConfigCallback() {
 				public void success(UserConfig freshUc) {
 					waitSheet.setVisible(false);
 					if (freshUc.getItem("facebookId") == null) {
@@ -329,7 +314,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 						String facebookBounceMsg = "Before you can post playlists to Facebook, you must add your Facebook details to your account on the robonobo website.";
 						final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Facebook", facebookBounceMsg, "go to robonobo website", new CatchingRunnable() {
 							public void doRun() throws Exception {
-								NetUtil.browse(control.getConfig().getWebsiteUrlBase() + "before-facebook-attach");
+								NetUtil.browse(ctrl.getConfig().getWebsiteUrlBase() + "before-facebook-attach");
 							}
 						});
 						runOnUiThread(new CatchingRunnable() {
@@ -346,7 +331,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 									final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Facebook", msg, "make playlist visible", new CatchingRunnable() {
 										public void doRun() throws Exception {
 											p.setVisibility(Playlist.VIS_FRIENDS);
-											control.updatePlaylist(p);
+											ctrl.updatePlaylist(p);
 											showSheet(new PostToFacebookSheet(RobonoboFrame.this, p));
 										}
 									});
@@ -370,7 +355,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 					public void doRun() throws Exception {
 						p.setVisibility(Playlist.VIS_FRIENDS);
 						showSheet(new PostToFacebookSheet(RobonoboFrame.this, p));
-						control.updatePlaylist(p);
+						ctrl.updatePlaylist(p);
 					}
 				});
 				showSheet(sheet);
@@ -382,13 +367,13 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	public void postToTwitter(final Playlist p) {
 		if (!SwingUtilities.isEventDispatchThread())
 			throw new Errot();
-		UserConfig uc = control.getMyUserConfig();
+		UserConfig uc = ctrl.getMyUserConfig();
 		if (uc == null || uc.getItem("twitterId") == null) {
 			// They don't seem to be registered for twitter - fetch a fresh copy of the usercfg from midas in
 			// case they've recently added themselves
 			final Sheet waitSheet = new PleaseWaitSheet(this, "checking Twitter details");
 			showSheet(waitSheet);
-			control.fetchMyUserConfig(new UserConfigCallback() {
+			ctrl.fetchMyUserConfig(new UserConfigCallback() {
 				public void success(UserConfig freshUc) {
 					waitSheet.setVisible(false);
 					if (freshUc.getItem("twitterId") == null) {
@@ -397,7 +382,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 						String facebookBounceMsg = "Before you can post playlists to Twitter, you must add your Twitter details to your account on the robonobo website.";
 						Runnable gotoAcct = new CatchingRunnable() {
 							public void doRun() throws Exception {
-								NetUtil.browse(control.getConfig().getWebsiteUrlBase() + "before-twitter-attach");
+								NetUtil.browse(ctrl.getConfig().getWebsiteUrlBase() + "before-twitter-attach");
 							}
 						};
 						final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Twitter", facebookBounceMsg, "go to robonobo website", gotoAcct);
@@ -418,7 +403,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 										public void doRun() throws Exception {
 											p.setVisibility(Playlist.VIS_ALL);
 											showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));
-											control.updatePlaylist(p);
+											ctrl.updatePlaylist(p);
 										}
 									});
 									showSheet(sheet);
@@ -442,7 +427,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 					public void doRun() throws Exception {
 						p.setVisibility(Playlist.VIS_ALL);
 						showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));
-						control.updatePlaylist(p);
+						ctrl.updatePlaylist(p);
 					}
 				});
 				showSheet(sheet);
@@ -458,7 +443,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		setVisible(false);
 		Thread shutdownThread = new Thread(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				control.shutdown();
+				ctrl.shutdown();
 				System.exit(0);
 			}
 		});
@@ -490,7 +475,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				});
 				// Shut down the controller - this will block until the
 				// controller exits
-				control.shutdown();
+				ctrl.shutdown();
 				// Hide this frame - don't dispose of it yet as this might make
 				// the jvm exit
 				SwingUtilities.invokeLater(new CatchingRunnable() {
@@ -508,20 +493,16 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		restartThread.start();
 	}
 
-	public RobonoboController getController() {
-		return control;
-	}
-
 	public void confirmThenShutdown() {
 		invokeLater(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				// If we aren't sharing anything, just close
-				if (getController().getNumShares() == 0) {
+				if (ctrl.getNumShares() == 0) {
 					shutdown();
 					return;
 				}
 				// Likewise, if they've asked us not to confirm
-				if (!getGuiConfig().getConfirmExit()) {
+				if (!guiCfg.getConfirmExit()) {
 					shutdown();
 					return;
 				}

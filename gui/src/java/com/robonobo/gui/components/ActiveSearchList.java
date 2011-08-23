@@ -38,7 +38,7 @@ public class ActiveSearchList extends LeftSidebarList {
 	@Override
 	protected void itemSelected(int index) {
 		String query = (String) aslm.getElementAt(index);
-		frame.getMainPanel().selectContentPanel("search/" + query);
+		frame.mainPanel.selectContentPanel("search/" + query);
 	}
 
 	public void searchAdded(String query) {
@@ -54,7 +54,7 @@ public class ActiveSearchList extends LeftSidebarList {
 				// They clicked on the close 'X'
 				String query = (String) aslm.getElementAt(clickIdx);
 				aslm.removeElementAt(clickIdx);
-				ContentPanel cp = frame.getMainPanel().removeContentPanel("search/" + query);
+				ContentPanel cp = frame.mainPanel.removeContentPanel("search/" + query);
 				SearchResultTableModel srtm = (SearchResultTableModel) cp.getTrackList().getModel();
 				srtm.die();
 				// Bring the next search into focus if there is one, else select MyMusicLibrary

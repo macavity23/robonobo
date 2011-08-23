@@ -37,10 +37,10 @@ public class DeletePlaylistSheet extends Sheet {
 		delBtn = new RGlassButton("DELETE");
 		delBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				frame.getLeftSidebar().selectMyMusic();
-				frame.getController().getExecutor().execute(new CatchingRunnable() {
+				frame.leftSidebar.selectMyMusic();
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
-						frame.getController().deletePlaylist(p);
+						frame.ctrl.deletePlaylist(p);
 					}
 				});
 				DeletePlaylistSheet.this.setVisible(false);

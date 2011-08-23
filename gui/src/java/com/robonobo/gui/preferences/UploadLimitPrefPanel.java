@@ -19,7 +19,7 @@ public class UploadLimitPrefPanel extends PrefPanel {
 	
 	public UploadLimitPrefPanel(RobonoboFrame frame) {
 		super(frame);
-		minaCfg = (MinaConfig) frame.getController().getConfig("mina");
+		minaCfg = (MinaConfig) frame.ctrl.getConfig("mina");
 		double[][] cellSizen = { { 5, TableLayout.FILL, 120, 30, 50, 40, 5}, { 25 } };
 		setLayout(new TableLayout(cellSizen));
 		ActionListener as = new ActionListener() {

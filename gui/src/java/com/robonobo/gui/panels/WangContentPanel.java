@@ -91,17 +91,17 @@ public class WangContentPanel extends ContentPanel implements WangListener, Logi
 		cm.getColumn(2).setPreferredWidth(75);
 		cm.getColumn(3).setPreferredWidth(545);
 		add(new JScrollPane(table), "1,8,2,8");
-		frame.getController().addWangListener(this);
-		frame.getController().addLoginListener(this);
+		frame.ctrl.addWangListener(this);
+		frame.ctrl.addLoginListener(this);
 	}
 	
 	protected void requestTopUp() {
 		topUpBtn.setText("Requesting...");
 		topUpBtn.setEnabled(false);
-		frame.getController().getExecutor().execute(new CatchingRunnable() {
+		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				try {
-					frame.getController().requestTopUp();
+					frame.ctrl.requestTopUp();
 					SwingUtilities.invokeLater(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							topUpBtn.setText("Request sent");

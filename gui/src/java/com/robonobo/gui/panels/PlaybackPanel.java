@@ -59,7 +59,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 
 	public PlaybackPanel(final RobonoboFrame frame) {
 		this.frame = frame;
-		control = frame.getController();
+		control = frame.ctrl;
 		setLayout(new BorderLayout());
 		setName("playback.background.panel");
 		setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -72,7 +72,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 				// Double click on title shows the playing track in the content panel
 				if (e.getClickCount() == 2) {
 					if (playingStream != null) {
-						frame.getLeftSidebar().selectForContentPanel(playingContentPanel);
+						frame.leftSidebar.selectForContentPanel(playingContentPanel);
 						playingTrackList.scrollTableToStream(playingStream.getStreamId());
 					}
 					e.consume();
@@ -122,7 +122,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		dloadBtn.setPreferredSize(new Dimension(50, 50));
 		dloadBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				TrackList tl = frame.getMainPanel().currentContentPanel().getTrackList();
+				TrackList tl = frame.mainPanel.currentContentPanel().getTrackList();
 				if (tl != null) {
 					List<String> selSids = tl.getSelectedStreamIds();
 					final List<String> dlSids = new ArrayList<String>();
@@ -162,7 +162,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		delBtn.setPreferredSize(new Dimension(40, 40));
 		delBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				TrackList tl = frame.getMainPanel().currentContentPanel().getTrackList();
+				TrackList tl = frame.mainPanel.currentContentPanel().getTrackList();
 				if (tl != null)
 					tl.deleteSelectedTracks();
 			}
@@ -238,7 +238,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	@Override
 	public void playbackStarting() {
 		state = PlayState.Starting;
-		Stream s = frame.getController().currentPlayingStream();
+		Stream s = frame.ctrl.currentPlayingStream();
 		if (!s.equals(playingStream)) {
 			synchronized (this) {
 				playingStream = s;
@@ -357,8 +357,8 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	}
 
 	public void playSelectedTracks() {
-		playingTrackList = frame.getMainPanel().currentContentPanel().getTrackList();
-		playingContentPanel = frame.getMainPanel().currentContentPanelName();
+		playingTrackList = frame.mainPanel.currentContentPanel().getTrackList();
+		playingContentPanel = frame.mainPanel.currentContentPanelName();
 		List<String> selSids = playingTrackList.getSelectedStreamIds();
 		if (selSids.size() > 0) {
 			playingTrackList.clearTableSelection();
@@ -390,7 +390,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 			return;
 		}
 		// getPrevAndNextSids might have to iterate over tracklist (10^4 trax) so fire off a thread
-		frame.control.getExecutor().execute(new CatchingRunnable() {
+		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				if (playingTrackList == null || playingStream == null)
 					prevSid = nextSid = null;
@@ -410,8 +410,8 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		boolean tracksSelected = false;
 		boolean allowDownload = false;
 		boolean allowDel = false;
-		if (frame.getMainPanel() != null && frame.getMainPanel().currentContentPanel() != null) {
-			ContentPanel cp = frame.getMainPanel().currentContentPanel();
+		if (frame.mainPanel != null && frame.mainPanel.currentContentPanel() != null) {
+			ContentPanel cp = frame.mainPanel.currentContentPanel();
 			TrackList tl = cp.getTrackList();
 			if (tl != null) {
 				List<String> selSids = tl.getSelectedStreamIds();
@@ -443,7 +443,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	}
 
 	private synchronized void updateDataAvailable() {
-		Track t = frame.getController().getTrack(playingStream.getStreamId());
+		Track t = frame.ctrl.getTrack(playingStream.getStreamId());
 		float dataAvailable = 0;
 		if (t instanceof SharedTrack)
 			dataAvailable = 1f;

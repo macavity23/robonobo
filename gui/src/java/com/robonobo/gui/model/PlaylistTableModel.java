@@ -26,7 +26,7 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	public static PlaylistTableModel create(RobonoboFrame frame, Playlist p, boolean myPlaylist) {
 		List<Track> trax = new ArrayList<Track>();
 		for (String sid : p.getStreamIds()) {
-			trax.add(frame.control.getTrack(sid));
+			trax.add(frame.ctrl.getTrack(sid));
 		}
 		EventList<Track> el = GlazedLists.eventList(trax);
 		return new PlaylistTableModel(frame, p, myPlaylist, el);

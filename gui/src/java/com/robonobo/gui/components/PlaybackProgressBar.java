@@ -93,7 +93,7 @@ public class PlaybackProgressBar extends JProgressBar {
 				if (dragging) {
 					dragging = false;
 					mouseDownPt = null;
-					frame.getController().getExecutor().execute(new CatchingRunnable() {
+					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							for (Listener l : listeners) {
 								l.sliderReleased(trackPositionMs);
@@ -129,7 +129,7 @@ public class PlaybackProgressBar extends JProgressBar {
 		addListener(new Listener() {
 			@Override
 			public void sliderReleased(long trackPositionMs) {
-				frame.getController().seek(trackPositionMs);
+				frame.ctrl.seek(trackPositionMs);
 			}
 		});
 	}

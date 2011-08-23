@@ -36,7 +36,7 @@ public class BalanceLabel extends JPanel implements LeftSidebarComponent, WangLi
 		setBackground(RoboColor.DARK_GRAY);
 		setBalance(0d);
 		addMouseListener(new MouseListener());
-		frame.getController().addWangListener(this);
+		frame.ctrl.addWangListener(this);
 		Dimension sz = new Dimension(200, 30);
 		setPreferredSize(sz);
 	}
@@ -53,9 +53,9 @@ public class BalanceLabel extends JPanel implements LeftSidebarComponent, WangLi
 
 	public void setSelected(boolean selected) {
 		if(selected) {
-			frame.getMainPanel().selectContentPanel("wang");
+			frame.mainPanel.selectContentPanel("wang");
 			setBorder(BorderFactory.createLoweredBevelBorder());
-			frame.getLeftSidebar().clearSelectionExcept(this);
+			frame.leftSidebar.clearSelectionExcept(this);
 		} else {
 			setBorder(null);
 		}

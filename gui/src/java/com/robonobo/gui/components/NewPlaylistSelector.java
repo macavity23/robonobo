@@ -43,7 +43,7 @@ public class NewPlaylistSelector extends LeftSidebarSelector {
 		
 		@Override
 		public boolean importData(JComponent comp, Transferable t) {
-			ContentPanel cp = frame.getMainPanel().getContentPanel("newplaylist");
+			ContentPanel cp = frame.mainPanel.getContentPanel("newplaylist");
 			return cp.importData(comp, t);
 		}
 	}

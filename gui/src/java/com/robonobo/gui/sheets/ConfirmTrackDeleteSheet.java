@@ -19,11 +19,11 @@ public class ConfirmTrackDeleteSheet extends ConfirmWithFeckOffSheet {
 
 	@Override
 	protected void confirmed(final boolean feckOffSelected) {
-		frame.getController().getExecutor().execute(new CatchingRunnable() {
+		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				if (!feckOffSelected) {
-					frame.getGuiConfig().setConfirmTrackDelete(false);
-					frame.getController().saveConfig();
+					frame.guiCfg.setConfirmTrackDelete(false);
+					frame.ctrl.saveConfig();
 				}
 				model.deleteTracks(sids);
 			}

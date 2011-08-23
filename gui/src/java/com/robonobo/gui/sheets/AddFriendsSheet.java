@@ -77,7 +77,7 @@ public class AddFriendsSheet extends Sheet {
 			shareBtn = new RGlassButton("SHARE");
 			shareBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					frame.getController().getExecutor().execute(new CatchingRunnable() {
+					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							Set<String> emails = new HashSet<String>();
 							String emailFieldTxt = emailField.getText();
@@ -87,7 +87,7 @@ public class AddFriendsSheet extends Sheet {
 										emails.add(emailStr.trim());
 								}
 							}
-							frame.control.addFriends(emails);
+							frame.ctrl.addFriends(emails);
 							log.info("Add friend request sent for " + emails.size() + " emails");
 						}
 					});

@@ -90,7 +90,7 @@ public class PreferencesSheet extends Sheet {
 		bp.add(mrdPanel);
 		bp.add(vertSpacer());
 
-		Set<InetAddress> localIps = NetUtil.getLocalInetAddresses(frame.getController().getConfig().getAllowLoopbackAddress());
+		Set<InetAddress> localIps = NetUtil.getLocalInetAddresses(frame.ctrl.getConfig().getAllowLoopbackAddress());
 		String[] ipArr = new String[localIps.size()];
 		int i = 0;
 		for (InetAddress addr : localIps) {
@@ -168,7 +168,7 @@ public class PreferencesSheet extends Sheet {
 				for (PrefPanel pp : changedPrefs) {
 					pp.applyChanges();
 				}
-				frame.getController().saveConfig();
+				frame.ctrl.saveConfig();
 				frame.restart();
 			}
 		}

@@ -30,7 +30,7 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 		for (Entry<String, Date> e : lib.getTracks().entrySet()) {
 			String sid = e.getKey();
 			Date added = e.getValue();
-			Track t = frame.control.getTrack(sid);
+			Track t = frame.ctrl.getTrack(sid);
 			t.setDateAdded(added);
 			trax.add(t);
 		}
@@ -46,7 +46,7 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 		super(frame, el, sl, fl);
 		this.lib = lib;
 		this.matchEdit = matchEdit;
-		frame.control.addLibraryListener(this);
+		frame.ctrl.addLibraryListener(this);
 	}
 
 	@Override

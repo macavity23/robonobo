@@ -40,7 +40,7 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 		myRoot = new SelectableTreeNode("Friends");
 		setRoot(myRoot);
 		frame = rFrame;
-		control = frame.getController();
+		control = frame.ctrl;
 		control.addUserListener(this);
 		control.addPlaylistListener(this);
 		control.addLibraryListener(this);
@@ -147,13 +147,85 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 	}
 
 	@Override
-	public void gotLibraryComments(long userId, boolean anyUnread, Map<Comment, Boolean> comments) {
+	public void gotLibraryComments(final long userId, boolean anyUnread, Map<Comment, Boolean> comments) {
+		if (!anyUnread)
+			return;
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				LibraryTreeNode ltn;
+				boolean had;
+				synchronized (FriendTreeModel.this) {
+					ltn = libNodes.get(userId);
+					if(ltn == null)
+						return;
+					had = ltn.hasComments;
+					ltn.hasComments = true;
+				}
+				if (!had)
+					firePathToRootChanged(ltn);
+			}
+		});
 	}
-	
+
+	public void markLibraryCommentsAsRead(final long userId) {
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				LibraryTreeNode ltn;
+				boolean had;
+				synchronized (FriendTreeModel.this) {
+					ltn = libNodes.get(userId);
+					had = ltn.hasComments;
+					ltn.hasComments = false;
+				}
+				if (had)
+					firePathToRootChanged(ltn);
+			}
+		});
+	}
+
 	@Override
-	public void gotPlaylistComments(long plId, boolean anyUnseen, Map<Comment, Boolean> comments) {
+	public void gotPlaylistComments(final long plId, boolean anyUnread, Map<Comment, Boolean> comments) {
+		if (!anyUnread)
+			return;
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				synchronized (FriendTreeModel.this) {
+					for (FriendTreeNode ftn : friendNodes.values()) {
+						if (ftn.getFriend().getPlaylistIds().contains(plId)) {
+							// This user has this playlist - do we have a node for this yet?
+							long friendId = ftn.getFriend().getUserId();
+							PlaylistTreeNode ptn = playlistNodes.get(friendId).get(plId);
+							if (ptn == null)
+								return;
+							ptn.hasComments = true;
+							firePathToRootChanged(ptn);
+						}
+					}
+				}
+			}
+		});
 	}
-	
+
+	public void markPlaylistCommentsAsRead(final long plId) {
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				synchronized (FriendTreeModel.this) {
+					for (FriendTreeNode ftn : friendNodes.values()) {
+						if (ftn.getFriend().getPlaylistIds().contains(plId)) {
+							// This user has this playlist - do we have a node for this yet?
+							long friendId = ftn.getFriend().getUserId();
+							PlaylistTreeNode ptn = playlistNodes.get(friendId).get(plId);
+							if (ptn == null)
+								return;
+							ptn.hasComments = false;
+							firePathToRootChanged(ptn);
+						}
+					}
+				}
+			}
+		});
+	}
+
 	@Override
 	public void friendLibraryReady(final long uid, final int numUnseen) {
 		runOnUiThread(new CatchingRunnable() {
@@ -178,7 +250,7 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 			}
 		});
 	}
-	
+
 	@Override
 	public void friendLibraryUpdated(final long uid, final int numUnseen, Map<String, Date> newTracks) {
 		runOnUiThread(new CatchingRunnable() {
@@ -193,14 +265,14 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 						return;
 					} else {
 						// If they are selected, keep everything as unseen
-						if(tree.isSelectedNode(ltn)) {
+						if (tree.isSelectedNode(ltn)) {
 							control.getExecutor().execute(new CatchingRunnable() {
 								public void doRun() throws Exception {
 									control.markAllLibraryTracksAsSeen(uid);
 								}
 							});
 						} else
-							ltn.setNumUnseenTracks(numUnseen);
+							ltn.numUnseenTracks = numUnseen;
 					}
 				}
 				firePathToRootChanged(ltn);

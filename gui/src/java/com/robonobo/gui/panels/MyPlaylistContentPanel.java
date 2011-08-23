@@ -21,7 +21,8 @@ import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.PlaylistListener;
 import com.robonobo.core.api.model.*;
-import com.robonobo.gui.*;
+import com.robonobo.gui.RoboColor;
+import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.PlaylistTableModel;
@@ -41,8 +42,8 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	protected RRadioButton visMeBtn;
 	protected RRadioButton visFriendsBtn;
 	protected RRadioButton visAllBtn;
-	protected PlaylistCommentsPanel commentsPanel;
 	private ActionListener saveActionListener;
+	private boolean unreadComments = false;
 	protected Map<String, RCheckBox> options = new HashMap<String, RCheckBox>();
 
 	public MyPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc) {
@@ -53,8 +54,18 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		tabPane.setSelectedIndex(0);
 		tabPane.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				if(tabPane.getSelectedIndex() == 1)
-					tabPane.setForeground(RoboColor.DARK_GRAY);
+				if (tabPane.getSelectedIndex() == 1) {
+					if (unreadComments) {
+						unreadComments = false;
+						tabPane.setForeground(RoboColor.DARK_GRAY);
+						frame.leftSidebar.markPlaylistCommentsAsRead(p.getPlaylistId());
+						frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+							public void doRun() throws Exception {
+								frame.ctrl.markPlaylistCommentsAsSeen(p.getPlaylistId());
+							}
+						});
+					}
+				}
 			}
 		});
 		// Call invokeLater with this to make sure the panel is all setup properly as comments need to know width
@@ -63,10 +74,10 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				if (getWidth() == 0)
 					throw new Errot();
 				if (addAsListener()) {
-					frame.getController().addPlaylistListener(MyPlaylistContentPanel.this);
-					frame.getController().getExecutor().execute(new CatchingRunnable() {
+					frame.ctrl.addPlaylistListener(MyPlaylistContentPanel.this);
+					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
-							Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForPlaylist(p.getPlaylistId());
+							Map<Comment, Boolean> cs = frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId());
 							boolean hasUnseen = false;
 							for (boolean unseen : cs.values()) {
 								if (unseen) {
@@ -89,7 +100,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		tabPane.setSelectedIndex(0);
 		// Don't add a comment panel, let the subclass do that if they like
 		if (addAsListener())
-			frame.getController().addPlaylistListener(this);
+			frame.ctrl.addPlaylistListener(this);
 	}
 
 	protected boolean addAsListener() {
@@ -113,13 +124,13 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	}
 
 	protected void savePlaylist() {
-		frame.getController().getExecutor().execute(new CatchingRunnable() {
+		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				Playlist p = getModel().getPlaylist();
 				p.setTitle(titleField.getText());
 				p.setDescription(descField.getText());
-				frame.getController().updatePlaylist(p);
-				frame.getController().putPlaylistConfig(pc);
+				frame.ctrl.updatePlaylist(p);
+				frame.ctrl.putPlaylistConfig(pc);
 			}
 		});
 	}
@@ -141,24 +152,6 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			getModel().update(p);
 			toolsPanel.checkPlaylistVisibility();
 		}
-	}
-
-	@Override
-	public void gotPlaylistComments(long plId, boolean anyUnread, Map<Comment, Boolean> comments) {
-		if (commentsPanel == null)
-			return;
-		if (plId != p.getPlaylistId())
-			return;
-		if (anyUnread && !(tabPane.getSelectedIndex() == 1)) {
-			GuiUtil.runOnUiThread(new CatchingRunnable() {
-				public void doRun() throws Exception {
-					tabPane.setForegroundAt(1, RoboColor.RED);
-				}
-			});
-		}
-		List<Comment> cl = new ArrayList<Comment>(comments.keySet());
-		Collections.sort(cl);
-		commentsPanel.addComments(cl);
 	}
 
 	@Override
@@ -211,7 +204,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 					allFiles.addAll(FileUtil.getFilesWithinPath(selFile, "mp3"));
 				else
 					allFiles.add(selFile);
-			frame.getController().runTask(new PlaylistImportTask(allFiles, insertRow));
+			frame.ctrl.runTask(new PlaylistImportTask(allFiles, insertRow));
 			return true;
 		}
 	}
@@ -225,7 +218,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		int insertRow;
 
 		public PlaylistImportTask(List<File> files, int insertRow) {
-			super(frame.getController(), files);
+			super(frame.ctrl, files);
 			this.insertRow = insertRow;
 		}
 

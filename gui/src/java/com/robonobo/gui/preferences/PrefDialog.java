@@ -156,7 +156,7 @@ public class PrefDialog extends JDialog {
 				for (PrefPanel pp : changedPrefs) {
 					pp.applyChanges();
 				}
-				frame.getController().saveConfig();
+				frame.ctrl.saveConfig();
 				frame.restart();
 			}
 		}

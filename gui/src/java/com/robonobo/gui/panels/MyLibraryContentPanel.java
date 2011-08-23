@@ -25,7 +25,6 @@ import com.robonobo.core.Platform;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.metadata.CommentCallback;
-import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.MyLibraryTableModel;
@@ -37,6 +36,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 	private Document searchDoc;
 	private TrackListSearchPanel searchPanel;
 	CommentsPanel commentsPanel;
+	boolean unreadComments = false;
 
 	public MyLibraryContentPanel(RobonoboFrame f) {
 		this(f, new PlainDocument());
@@ -52,13 +52,23 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 		tabPane.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				if (tabPane.getSelectedIndex() == 1) {
-					tabPane.setForegroundAt(1, RoboColor.DARK_GRAY);
+					if (unreadComments) {
+						unreadComments = false;
+						removeBangFromTab(1);
+						final long myUid = frame.ctrl.getMyUser().getUserId();
+						frame.leftSidebar.markMyLibraryCommentsAsRead();
+						frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+							public void doRun() throws Exception {
+								frame.ctrl.markLibraryCommentsAsSeen(myUid);
+							}
+						});
+					}
 				}
 			}
 		});
-		frame.getController().addUserListener(this);
+		frame.ctrl.addUserListener(this);
 		// Wait til we're shown before getting comments as they need to know our width
-		User me = frame.getController().getMyUser();
+		User me = frame.ctrl.getMyUser();
 		if (me != null) {
 			// Unlikely
 			addComponentListener(new ComponentAdapter() {
@@ -68,16 +78,16 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 				}
 			});
 		} else {
-			frame.getController().addLoginListener(new LoginAdapter() {
+			frame.ctrl.addLoginListener(new LoginAdapter() {
 				public void loginSucceeded(User me) {
 					fetchComments();
 				}
 			});
 		}
 		// Fetch our update msg (if any)
-		frame.getController().getExecutor().schedule(new CatchingRunnable() {
+		frame.ctrl.getExecutor().schedule(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				final UpdateInfo updateInfo = frame.getController().getUpdateInfo();
+				final UpdateInfo updateInfo = frame.ctrl.getUpdateInfo();
 				if (isNonEmpty(updateInfo.getUpdateHtml())) {
 					runOnUiThread(new CatchingRunnable() {
 						public void doRun() throws Exception {
@@ -109,7 +119,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 			return false;
 		}
 		final List<File> fl = l;
-		frame.getController().getExecutor().execute(new CatchingRunnable() {
+		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				frame.importFilesOrDirectories(fl);
 			}
@@ -138,7 +148,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 
 	@Override
 	public void myLibraryUpdated() {
-		final int libSz = frame.getController().getNumSharesAndDownloads();
+		final int libSz = frame.ctrl.getNumSharesAndDownloads();
 		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				addLbl.setText("Add to library (" + libSz + " tracks)");
@@ -148,13 +158,14 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 
 	@Override
 	public void gotLibraryComments(long userId, boolean anyUnread, Map<Comment, Boolean> comments) {
-		long myUid = frame.getController().getMyUser().getUserId();
+		long myUid = frame.ctrl.getMyUser().getUserId();
 		if (userId != myUid)
 			return;
 		if (anyUnread && !(tabPane.getSelectedIndex() == 1)) {
+			unreadComments = true;
 			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					tabPane.setForegroundAt(1, RoboColor.RED);
+					addBangToTab(1);
 				}
 			});
 		}
@@ -174,13 +185,12 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 	}
 
 	private void fetchComments() {
-		final long myUid = frame.getController().getMyUser().getUserId();
-		log.debug("Fetching existing comments for my library; my uid = " + myUid);
-		frame.getController().addLibraryListener(this);
-		frame.getController().getExecutor().execute(new CatchingRunnable() {
+		final long myUid = frame.ctrl.getMyUser().getUserId();
+		frame.ctrl.addLibraryListener(this);
+		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				log.debug("Fetching existing comments for my library; my uid = " + myUid);
-				Map<Comment, Boolean> cs = frame.getController().getExistingCommentsForLibrary(myUid);
+				Map<Comment, Boolean> cs = frame.ctrl.getExistingCommentsForLibrary(myUid);
 				boolean anyUnread = false;
 				for (Boolean unread : cs.values()) {
 					if (unread) {
@@ -206,8 +216,8 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 
 		@Override
 		protected void newComment(long parentCmtId, String text, CommentCallback cb) {
-			long myUid = frame.getController().getMyUser().getUserId();
-			frame.getController().newCommentForLibrary(myUid, parentCmtId, text, cb);
+			long myUid = frame.ctrl.getMyUser().getUserId();
+			frame.ctrl.newCommentForLibrary(myUid, parentCmtId, text, cb);
 		}
 	}
 
@@ -231,9 +241,9 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 			shareLibCheckBox.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					final boolean sel = shareLibCheckBox.isSelected();
-					frame.getController().getExecutor().execute(new CatchingRunnable() {
+					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
-							frame.getController().saveUserConfigItem("sharelibrary", sel ? "true" : "false");
+							frame.ctrl.saveUserConfigItem("sharelibrary", sel ? "true" : "false");
 						}
 					});
 				}
@@ -275,9 +285,9 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 
 		private void onStartup() {
 			// Deal with concurrency issues arising from controller and ui starting independently
-			frame.getController().getExecutor().execute(new CatchingRunnable() {
+			frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					if (frame.getController().haveAllSharesStarted())
+					if (frame.ctrl.haveAllSharesStarted())
 						myLibraryUpdated();
 				}
 			});

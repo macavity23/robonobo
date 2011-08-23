@@ -2,8 +2,6 @@ package com.robonobo.gui.model;
 
 import java.awt.datatransfer.Transferable;
 
-import javax.swing.SwingUtilities;
-
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.swing.SortableTreeNode;
 import com.robonobo.core.api.model.Library;
@@ -11,13 +9,13 @@ import com.robonobo.gui.components.TrackList;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.panels.ContentPanel;
 import com.robonobo.gui.panels.FriendLibraryContentPanel;
-import com.robonobo.gui.sheets.PleaseWaitSheet;
 
 @SuppressWarnings("serial")
 public class LibraryTreeNode extends SelectableTreeNode {
-	long userId;
+	public long userId;
 	RobonoboFrame frame;
-	int numUnseenTracks;
+	public int numUnseenTracks;
+	public boolean hasComments;
 
 	public LibraryTreeNode(RobonoboFrame frame, long userId, int numUnseenTracks) {
 		super("Library");
@@ -34,14 +32,6 @@ public class LibraryTreeNode extends SelectableTreeNode {
 		return -1;
 	}
 
-	public void setNumUnseenTracks(int numUnseenTracks) {
-		this.numUnseenTracks = numUnseenTracks;
-	}
-
-	public int getNumUnseenTracks() {
-		return numUnseenTracks;
-	}
-
 	protected String contentPanelName() {
 		return "library/" + userId;
 	}
@@ -55,9 +45,9 @@ public class LibraryTreeNode extends SelectableTreeNode {
 	public boolean handleSelect() {
 		boolean hadUnseen = (numUnseenTracks > 0);
 		numUnseenTracks = 0;
-		ContentPanel cp = frame.getMainPanel().getContentPanel(contentPanelName());
+		ContentPanel cp = frame.mainPanel.getContentPanel(contentPanelName());
 		if (cp != null) {
-			frame.getMainPanel().selectContentPanel(contentPanelName());
+			frame.mainPanel.selectContentPanel(contentPanelName());
 			activatePanel();
 		} else {
 			// Need to create the content panel - this hangs the ui thread as it looks up the tracks and creates the
@@ -66,9 +56,9 @@ public class LibraryTreeNode extends SelectableTreeNode {
 			// on there, so might as well do the whole thing there and just show a loading screen to the user
 			CatchingRunnable task = new CatchingRunnable() {
 				public void doRun() throws Exception {
-					Library lib = frame.getController().getFriendLibrary(userId);
-					frame.getMainPanel().addContentPanel(contentPanelName(), new FriendLibraryContentPanel(frame, lib));
-					frame.getMainPanel().selectContentPanel(contentPanelName());
+					Library lib = frame.ctrl.getFriendLibrary(userId);
+					frame.mainPanel.addContentPanel(contentPanelName(), new FriendLibraryContentPanel(frame, lib));
+					frame.mainPanel.selectContentPanel(contentPanelName());
 					activatePanel();
 				}
 			};
@@ -78,9 +68,9 @@ public class LibraryTreeNode extends SelectableTreeNode {
 	}
 
 	private void activatePanel() {
-		frame.getController().markAllLibraryTracksAsSeen(userId);
+		frame.ctrl.markAllLibraryTracksAsSeen(userId);
 		// Activate this panel so it can find sources
-		TrackList trackList = frame.getMainPanel().getContentPanel(contentPanelName()).getTrackList();
+		TrackList trackList = frame.mainPanel.getContentPanel(contentPanelName()).getTrackList();
 		FriendLibraryTableModel model = (FriendLibraryTableModel) trackList.getModel();
 		model.activate();
 		trackList.updateViewport();

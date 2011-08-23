@@ -23,7 +23,7 @@ public class TaskListSelector extends LeftSidebarSelector implements TaskListene
 
 	public TaskListSelector(LeftSidebar sideBar, RobonoboFrame frame) {
 		super(sideBar, frame, "0 tasks running", true, runningIcon, "tasklist");
-		frame.getController().addTaskListener(this);
+		frame.ctrl.addTaskListener(this);
 	}
 
 	@Override

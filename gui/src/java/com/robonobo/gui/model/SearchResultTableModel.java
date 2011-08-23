@@ -45,7 +45,7 @@ public class SearchResultTableModel extends GlazedTrackListTableModel implements
 	}
 
 	public void foundBroadcaster(String streamId, String nodeId) {
-		Track t = frame.control.getTrack(streamId);
+		Track t = frame.ctrl.getTrack(streamId);
 		trackUpdated(streamId, t);
 	}
 
