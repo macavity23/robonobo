@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.ServletContextAware;
 
 import com.robonobo.core.api.model.Playlist;
+import com.robonobo.midas.dao.UserDao;
 import com.robonobo.midas.model.*;
 import com.robonobo.remote.service.MidasService;
 
@@ -39,6 +40,8 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 	AppConfig appConfig;
 	@Autowired
 	MidasService midas;
+	@Autowired
+	UserDao userDao;
 
 	public MessageServiceImpl() {
 	}
@@ -150,17 +153,70 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 	}
 
 	@Override
+	public void sendCommentNotificationForPlaylist(MidasUser owner, MidasUser commentUser, MidasPlaylist p) throws IOException {
+		if (owner.getUserId() == commentUser.getUserId())
+			return;
+		sendCommentNotification(owner, commentUser, "in your playlist '"+p.getTitle()+"'");
+	}
+
+	@Override
+	public void sendCommentNotificationForLibrary(MidasUser libUser, MidasUser commentUser) throws IOException {
+		if (libUser.getUserId() == commentUser.getUserId())
+			return;
+		sendCommentNotification(libUser, commentUser, "in your music library");
+	}
+
+	private void sendCommentNotification(MidasUser updateUser, MidasUser commentUser, String whereIsComment) throws IOException {
+		Map model = newModel(updateUser.getFriendlyName(), updateUser.getEmail());
+		model.put("replyUser", commentUser);
+		model.put("whereIsComment", whereIsComment);
+		sendMail(commentUser.getEmail(), commentUser.getFriendlyName(), updateUser.getEmail(), updateUser.getFriendlyName(), commentUser.getFriendlyName() + " commented "
+				+ whereIsComment, "comment", model);
+	}
+
+	@Override
+	public void sendReplyNotificationForPlaylist(MidasUser origUser, MidasUser replyUser, MidasPlaylist p) throws IOException {
+		if (origUser.getUserId() == replyUser.getUserId())
+			return;
+		sendCommentReplyNotification(origUser, replyUser, "in the playlist '" + p.getTitle() + "'");
+	}
+
+	@Override
+	public void sendReplyNotificationForLibrary(MidasUser origUser, MidasUser replyUser, long libUserId) throws IOException {
+		if (origUser.getUserId() == replyUser.getUserId())
+			return;
+		String whereIs;
+		if (libUserId == origUser.getUserId())
+			whereIs = "in your music library";
+		else if (libUserId == replyUser.getUserId())
+			whereIs = "in their music library";
+		else {
+			MidasUser libUser = userDao.getById(libUserId);
+			whereIs = "in " + libUser.getFriendlyName() + "'s library";
+		}
+		sendCommentReplyNotification(origUser, replyUser, whereIs);
+	}
+
+	private void sendCommentReplyNotification(MidasUser origUser, MidasUser replyUser, String whereIsComment) throws IOException {
+		Map model = newModel(origUser.getFriendlyName(), origUser.getEmail());
+		model.put("replyUser", replyUser);
+		model.put("whereIsComment", whereIsComment);
+		sendMail(replyUser.getEmail(), replyUser.getFriendlyName(), origUser.getEmail(), origUser.getFriendlyName(), replyUser.getFriendlyName()
+				+ " replied to your robonobo comment", "commentreply", model);
+	}
+
+	@Override
 	public void sendCombinedNotification(MidasUser notifyUser, Map<MidasUser, Integer> libTraxAdded, Map<Long, List<Playlist>> playlists) throws IOException {
-		List<Map<String, Object>> updateUsers = new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> updateUsers = new ArrayList<Map<String, Object>>();
 		boolean havePlaylists = false;
-		for(MidasUser updateUser : libTraxAdded.keySet()) {
+		for (MidasUser updateUser : libTraxAdded.keySet()) {
 			Map<String, Object> userMap = new HashMap<String, Object>();
 			userMap.put("friendlyName", updateUser.getFriendlyName());
 			userMap.put("email", updateUser.getEmail());
 			userMap.put("numLibTrax", libTraxAdded.get(updateUser));
 			List<Playlist> pObjList = playlists.get(updateUser.getUserId());
-			List<Map<String,String>> pl = new ArrayList<Map<String,String>>();
-			for(Playlist p : pObjList) {
+			List<Map<String, String>> pl = new ArrayList<Map<String, String>>();
+			for (Playlist p : pObjList) {
 				havePlaylists = true;
 				Map<String, String> pm = new HashMap<String, String>();
 				pm.put("title", p.getTitle());
@@ -175,7 +231,7 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 		model.put("havePlaylists", havePlaylists);
 		sendMail(null, null, notifyUser.getEmail(), notifyUser.getFriendlyName(), "Your friends have added music to robonobo", "combined-notif", model);
 	}
-	
+
 	@Override
 	public void sendFriendConfirmation(MidasUser userSentFriendReq, MidasUser userConfirmedFriendReq) throws IOException {
 		Map model = newModel(userSentFriendReq.getFriendlyName(), userSentFriendReq.getEmail());

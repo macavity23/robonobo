@@ -38,14 +38,63 @@ public class NotificationServiceImpl implements NotificationService {
 	PlaylistDao playlistDao;
 	@Autowired
 	UserConfigDao userCfgDao;
+	@Autowired
+	CommentDao commentDao;
 	Log log = LogFactory.getLog(getClass());
+
+	@Override
+	public void newComment(MidasComment c) throws IOException {
+		MidasUser commentUser = userDao.getById(c.getUserId());
+		// Send notification to owner of parent comment
+		if (c.getParentId() > 0) {
+			MidasComment par = commentDao.getComment(c.getParentId());
+			MidasUserConfig muc = userCfgDao.getUserConfig(par.getUserId());
+			String creStr = muc.getItem("commentReplyEmails");
+			boolean cre = (creStr == null) ? true : Boolean.valueOf(creStr);
+			if (cre) {
+				MidasUser origUser = userDao.getById(par.getUserId());
+				Matcher pm = PLAYLIST_ITEM_PAT.matcher(c.getResourceId());
+				if (pm.matches()) {
+					MidasPlaylist p = playlistDao.loadPlaylist(Long.parseLong(pm.group(1)));
+					message.sendReplyNotificationForPlaylist(origUser, commentUser, p);
+				} else {
+					Matcher lm = LIBRARY_ITEM_PAT.matcher(c.getResourceId());
+					if(lm.matches())
+						message.sendReplyNotificationForLibrary(origUser, commentUser, Long.parseLong(lm.group(1)));
+				}
+			}
+		}
+		// Send notification to owner of resource
+		Matcher pm = PLAYLIST_ITEM_PAT.matcher(c.getResourceId());
+		if (pm.matches()) {
+			MidasPlaylist p = playlistDao.loadPlaylist(Long.parseLong(pm.group(1)));
+			long ownerId = Long.parseLong(pm.group(1));
+			MidasUserConfig muc = userCfgDao.getUserConfig(ownerId);
+			String pceStr = muc.getItem("playlistCommentEmails");
+			boolean pce = (pceStr == null) ? true : Boolean.valueOf(pceStr);
+			if (pce) {
+				MidasUser owner = userDao.getById(ownerId);
+				message.sendCommentNotificationForPlaylist(owner, commentUser, p);
+			}
+		} else {
+			Matcher lm = LIBRARY_ITEM_PAT.matcher(c.getResourceId());
+			long ownerId = Long.parseLong(lm.group(1));
+			MidasUserConfig muc = userCfgDao.getUserConfig(ownerId);
+			String pceStr = muc.getItem("playlistCommentEmails");
+			boolean pce = (pceStr == null) ? true : Boolean.valueOf(pceStr);
+			if (pce) {
+				MidasUser owner = userDao.getById(ownerId);
+				message.sendCommentNotificationForLibrary(owner, commentUser);
+			}
+		}
+	}
 
 	@Override
 	public void playlistUpdated(MidasUser owner, MidasPlaylist p) {
 		if (p.getVisibility().equals(Playlist.VIS_ME))
 			return;
 		for (long friendId : owner.getFriendIds()) {
-			String pref = getUpdatePref(friendId);
+			String pref = getUpdateFreq(friendId);
 			if (pref.equals(IMMEDIATE)) {
 				MidasUser friend = userDao.getById(friendId);
 				try {
@@ -63,7 +112,7 @@ public class NotificationServiceImpl implements NotificationService {
 		// We don't actually send library notifications immediately as there might well be more coming in down the pipe
 		// - instead we send them every hour
 		for (long friendId : user.getFriendIds()) {
-			if (!getUpdatePref(friendId).equals(NONE))
+			if (!getUpdateFreq(friendId).equals(NONE))
 				notifDao.saveNotification(new MidasNotification(user.getUserId(), friendId, "library:" + numTrax));
 		}
 	}
@@ -75,7 +124,7 @@ public class NotificationServiceImpl implements NotificationService {
 		Map<Long, List<MidasNotification>> nMap = getAllNotificationsByNotifUser();
 		int numSent = 0;
 		for (Long notifUid : nMap.keySet()) {
-			if (!getUpdatePref(notifUid).equals(IMMEDIATE))
+			if (!getUpdateFreq(notifUid).equals(IMMEDIATE))
 				continue;
 			Map<Long, List<MidasNotification>> notsBySource = mapNotsByUpdateUser(nMap.get(notifUid));
 			updateUser: for (Long updateUid : notsBySource.keySet()) {
@@ -113,7 +162,7 @@ public class NotificationServiceImpl implements NotificationService {
 		Iterator<Entry<Long, List<MidasNotification>>> it = nMap.entrySet().iterator();
 		while (it.hasNext()) {
 			Entry<Long, List<MidasNotification>> en = it.next();
-			if (!getUpdatePref(en.getKey()).equals(DAILY))
+			if (!getUpdateFreq(en.getKey()).equals(DAILY))
 				it.remove();
 		}
 		log.info("Sending daily notifications to " + nMap.size() + " users");
@@ -128,7 +177,7 @@ public class NotificationServiceImpl implements NotificationService {
 		Iterator<Entry<Long, List<MidasNotification>>> it = nMap.entrySet().iterator();
 		while (it.hasNext()) {
 			Entry<Long, List<MidasNotification>> en = it.next();
-			if (!getUpdatePref(en.getKey()).equals(WEEKLY))
+			if (!getUpdateFreq(en.getKey()).equals(WEEKLY))
 				it.remove();
 		}
 		log.info("Sending weekly notifications to " + nMap.size() + " users");
@@ -198,7 +247,7 @@ public class NotificationServiceImpl implements NotificationService {
 		return result;
 	}
 
-	private String getUpdatePref(long userId) {
+	private String getUpdateFreq(long userId) {
 		// By default, we update weekly - if they haven't set their preference yet, use that
 		MidasUserConfig muc = userCfgDao.getUserConfig(userId);
 		if (muc == null)
