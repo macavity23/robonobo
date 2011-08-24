@@ -108,7 +108,7 @@ public class LoginSheet extends Sheet implements LoginListener {
 				emailField.setEnabled(true);
 				passwordField.setEnabled(true);
 				loginBtn.setEnabled(true);
-				statusLbl.setForeground(RoboColor.RED);
+				statusLbl.setForeground(RoboColor.GREEN);
 				statusLbl.setText(reason);
 				passwordField.selectAll();
 				passwordField.requestFocusInWindow();

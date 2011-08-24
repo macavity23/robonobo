@@ -354,7 +354,7 @@ public class TrackList extends JPanel {
 				MyPlaylistContentPanel cp = (MyPlaylistContentPanel) frame.mainPanel.getContentPanel("playlist/" + plId);
 				cp.addTracks(getSelectedStreamIds());
 			} else if (action.equals("delete")) {
-				frame.mainPanel.currentContentPanel().getTrackList().deleteSelectedTracks();
+				frame.mainPanel.currentContentPanel().trackList.deleteSelectedTracks();
 			} else if (action.equals("show")) {
 				File showFile = null;
 				for (Track t : getSelectedTracks()) {

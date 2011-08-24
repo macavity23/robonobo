@@ -21,6 +21,7 @@ import com.robonobo.core.api.*;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.components.FriendTree;
 import com.robonobo.gui.frames.RobonoboFrame;
+import com.robonobo.gui.panels.ContentPanel;
 
 @SuppressWarnings("serial")
 public class FriendTreeModel extends SortedTreeModel implements UserListener, PlaylistListener, LibraryListener, LoginListener {
@@ -134,6 +135,21 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 								insertNodeSorted(ftn, ptn);
 								playlistIds.add(p.getPlaylistId());
 								firePathToRootChanged(ptn);
+								// There might be some comments already for this playlist, check
+								frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+									public void doRun() throws Exception {
+										Map<Comment, Boolean> cm = frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId());
+										if (cm.size() > 0) {
+											// Only fire if there are any new cmts
+											for (Boolean b : cm.values()) {
+												if (b) {
+													gotPlaylistComments(p.getPlaylistId(), true, cm);
+													return;
+												}
+											}
+										}
+									}
+								});
 							} else {
 								ptn.setPlaylist(p, tree.isSelectedNode(ptn));
 								replaceNodeSorted(ftn, ptn);
@@ -156,8 +172,14 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 				boolean had;
 				synchronized (FriendTreeModel.this) {
 					ltn = libNodes.get(userId);
-					if(ltn == null)
+					if (ltn == null)
 						return;
+					// If this is the selected node, and the comments tab is showing, don't update us as having comments
+					if (tree.isSelectedNode(ltn)) {
+						ContentPanel cp = frame.mainPanel.getContentPanel("library/" + userId);
+						if (cp.tabPane.getSelectedIndex() == 1)
+							return;
+					}
 					had = ltn.hasComments;
 					ltn.hasComments = true;
 				}
@@ -192,11 +214,19 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 				synchronized (FriendTreeModel.this) {
 					for (FriendTreeNode ftn : friendNodes.values()) {
 						if (ftn.getFriend().getPlaylistIds().contains(plId)) {
-							// This user has this playlist - do we have a node for this yet?
 							long friendId = ftn.getFriend().getUserId();
 							PlaylistTreeNode ptn = playlistNodes.get(friendId).get(plId);
-							if (ptn == null)
+							if (ptn == null) {
+								log.warn("FTM NOT updating PTN for plid " + plId + " with friend " + friendId);
 								return;
+							}
+							// If this is the selected node, and the comments tab is showing, don't update us as having
+							// comments
+							if (tree.isSelectedNode(ptn)) {
+								ContentPanel cp = frame.mainPanel.getContentPanel("playlist/" + plId);
+								if (cp.tabPane.getSelectedIndex() == 1)
+									return;
+							}
 							ptn.hasComments = true;
 							firePathToRootChanged(ptn);
 						}

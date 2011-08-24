@@ -43,8 +43,8 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	protected RRadioButton visFriendsBtn;
 	protected RRadioButton visAllBtn;
 	private ActionListener saveActionListener;
-	private boolean unreadComments = false;
 	protected Map<String, RCheckBox> options = new HashMap<String, RCheckBox>();
+	boolean haveShown = false;
 
 	public MyPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc) {
 		super(f, pl, pc, true);
@@ -57,7 +57,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				if (tabPane.getSelectedIndex() == 1) {
 					if (unreadComments) {
 						unreadComments = false;
-						tabPane.setForeground(RoboColor.DARK_GRAY);
+						removeBangFromTab(1);
 						frame.leftSidebar.markPlaylistCommentsAsRead(p.getPlaylistId());
 						frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 							public void doRun() throws Exception {
@@ -68,9 +68,12 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				}
 			}
 		});
-		// Call invokeLater with this to make sure the panel is all setup properly as comments need to know width
+		// make sure the panel is all setup properly as comments need to know width
 		addComponentListener(new ComponentAdapter() {
 			public void componentShown(ComponentEvent e) {
+				if(haveShown)
+					return;
+				haveShown = true;
 				if (getWidth() == 0)
 					throw new Errot();
 				if (addAsListener()) {

@@ -20,7 +20,6 @@ import com.robonobo.core.api.LibraryListener;
 import com.robonobo.core.api.model.Comment;
 import com.robonobo.core.api.model.Library;
 import com.robonobo.core.metadata.CommentCallback;
-import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.FriendLibraryTableModel;
 
@@ -31,6 +30,7 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 	private long userId;
 	private CommentsPanel commentsPanel;
 	boolean unreadComments = false;
+	boolean haveShown = false;
 
 	public FriendLibraryContentPanel(RobonoboFrame frame, Library lib) {
 		this(frame, lib, new PlainDocument());
@@ -49,7 +49,7 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 				if (tabPane.getSelectedIndex() == 1) {
 					if (unreadComments) {
 						unreadComments = false;
-						tabPane.setForeground(RoboColor.DARK_GRAY);
+						removeBangFromTab(1);
 						frame.leftSidebar.markLibraryCommentsAsRead(userId);
 						frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 							public void doRun() throws Exception {
@@ -64,6 +64,9 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 		// Make sure the panel is all setup properly before doing this, otherwise getWidth() can return 0
 		addComponentListener(new ComponentAdapter() {
 			public void componentShown(ComponentEvent e) {
+				if(haveShown)
+					return;
+				haveShown = true;
 				frame.ctrl.addLibraryListener(FriendLibraryContentPanel.this);
 				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
@@ -96,7 +99,7 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 			unreadComments = true;
 			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					tabPane.setForegroundAt(1, RoboColor.RED);
+					addBangToTab(1);
 				}
 			});
 		}

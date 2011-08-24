@@ -14,6 +14,7 @@ import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.*;
+import com.robonobo.gui.panels.ContentPanel;
 import com.robonobo.gui.panels.LeftSidebar;
 
 @SuppressWarnings("serial")
@@ -43,29 +44,7 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 		setCellRenderer(new CellRenderer());
 		setSelectionModel(new SelectionModel());
 		getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		addTreeSelectionListener(new TreeSelectionListener() {
-			public void valueChanged(TreeSelectionEvent e) {
-				TreePath tp = e.getNewLeadSelectionPath();
-				if (tp == null)
-					return;
-				Object selNode = tp.getLastPathComponent();
-				if (selNode instanceof ButtonTreeNode) {
-					ButtonTreeNode btn = (ButtonTreeNode) selNode;
-					btn.onClick();
-					setSelectionPath(e.getOldLeadSelectionPath());
-					return;
-				}
-				if (!(selNode instanceof SelectableTreeNode))
-					return;
-				SelectableTreeNode stn = (SelectableTreeNode) selNode;
-				if (stn.wantSelect()) {
-					sideBar.clearSelectionExcept(FriendTree.this);
-					if (stn.handleSelect())
-						getModel().firePathToRootChanged(stn);
-				} else
-					setSelectionPath(e.getOldLeadSelectionPath());
-			}
-		});
+		addTreeSelectionListener(new SelectionListener());
 	}
 
 	@Override
@@ -81,6 +60,46 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 		setSelectionPath(getModel().getLibraryTreePath(userId));
 	}
 
+	private class SelectionListener implements TreeSelectionListener {
+		public void valueChanged(TreeSelectionEvent e) {
+			TreePath tp = e.getNewLeadSelectionPath();
+			if (tp == null)
+				return;
+			Object selNode = tp.getLastPathComponent();
+			if (selNode instanceof ButtonTreeNode) {
+				ButtonTreeNode btn = (ButtonTreeNode) selNode;
+				btn.onClick();
+				setSelectionPath(e.getOldLeadSelectionPath());
+				return;
+			}
+			if (!(selNode instanceof SelectableTreeNode))
+				return;
+			SelectableTreeNode stn = (SelectableTreeNode) selNode;
+			if (stn.wantSelect()) {
+				sideBar.clearSelectionExcept(FriendTree.this);
+				// If this is a library or playlist node with comments, and the comments tab is showing, mark the
+				// comments as read
+				FriendTreeModel m = getModel();
+				if (stn instanceof LibraryTreeNode) {
+					LibraryTreeNode ltn = (LibraryTreeNode) stn;
+					ContentPanel cp = frame.mainPanel.getContentPanel("library/" + ltn.userId);
+					// library content panel gets created on demand, so might be null
+					if (cp != null && cp.tabPane.getSelectedIndex() == 1)
+						m.markLibraryCommentsAsRead(ltn.userId);
+				} else if (stn instanceof PlaylistTreeNode) {
+					PlaylistTreeNode ptn = (PlaylistTreeNode) stn;
+					long plId = ptn.getPlaylist().getPlaylistId();
+					ContentPanel cp = frame.mainPanel.getContentPanel("playlist/" + plId);
+					if (cp.tabPane.getSelectedIndex() == 1)
+						m.markPlaylistCommentsAsRead(plId);
+				}
+				if (stn.handleSelect())
+					m.firePathToRootChanged(stn);
+			} else
+				setSelectionPath(e.getOldLeadSelectionPath());
+		}
+	}
+
 	private class CellRenderer extends DefaultTreeCellRenderer {
 		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
 			final TreeNode node = (TreeNode) value;
@@ -93,8 +112,12 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 				lbl.setPreferredSize(MAX_LVL2_SZ);
 				PlaylistTreeNode ptn = (PlaylistTreeNode) node;
 				int unseen = ptn.numUnseenTracks;
-				if (sel && unseen > 0) {
+				if (!sel && unseen > 0) {
 					lbl.setText("[" + unseen + "] " + lbl.getText());
+					useBold = true;
+				}
+				if (ptn.hasComments) {
+					useRed = true;
 					useBold = true;
 				}
 			} else if (node instanceof LibraryTreeNode) {
@@ -107,6 +130,10 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 					lbl.setText("[" + unseen + "] " + lbl.getText());
 					useBold = true;
 				}
+				if (ltn.hasComments) {
+					useRed = true;
+					useBold = true;
+				}
 			} else if (node instanceof FriendTreeNode) {
 				lbl.setIcon(friendIcon);
 				lbl.setMaximumSize(MAX_LVL1_SZ);
@@ -115,6 +142,10 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 				if (!sel && unseen > 0) {
 					lbl.setText("[" + unseen + "] " + lbl.getText());
 					useBold = true;
+				}
+				if (anyComments(node)) {
+					useBold = true;
+					useRed = true;
 				}
 			} else if (node instanceof AddFriendsTreeNode) {
 				lbl.setIcon(addFriendsIcon);
@@ -128,6 +159,10 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 				int unseen = getTotalUnseen(node);
 				if (unseen > 0)
 					useBold = true;
+				if (anyComments(node)) {
+					useBold = true;
+					useRed = true;
+				}
 			}
 			if (useBold)
 				lbl.setFont(boldFont);
@@ -141,7 +176,7 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 				lbl.setBackground(MID_GRAY);
 			}
 			if (useRed)
-				lbl.setForeground(RED);
+				lbl.setForeground(GREEN);
 			return lbl;
 		}
 
@@ -167,6 +202,23 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 					unseen += getTotalUnseen(child);
 			}
 			return unseen;
+		}
+
+		boolean anyComments(TreeNode n) {
+			for (int i = 0; i < n.getChildCount(); i++) {
+				TreeNode child = n.getChildAt(i);
+				if (child instanceof PlaylistTreeNode) {
+					if (((PlaylistTreeNode) child).hasComments)
+						return true;
+				} else if (child instanceof LibraryTreeNode) {
+					if (((LibraryTreeNode) child).hasComments)
+						return true;
+				} else {
+					if (anyComments(child))
+						return true;
+				}
+			}
+			return false;
 		}
 	}
 }

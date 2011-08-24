@@ -25,13 +25,13 @@ import com.robonobo.gui.model.TrackListTableModel;
 /** The track list and the tabs below */
 @SuppressWarnings("serial")
 public abstract class ContentPanel extends JPanel {
-	protected TrackList trackList;
-	protected JPanel topPane;
-	protected JTabbedPane tabPane;
+	public TrackList trackList;
+	public JPanel topPane;
+	public JTabbedPane tabPane;
 	protected RobonoboFrame frame;
 	protected Log log = LogFactory.getLog(getClass());
 	private List<MessagePanel> msgs = new ArrayList<MessagePanel>();
-	protected Icon bangIcon = GuiUtil.createImageIcon("/icon/exclamation.png", null);
+	protected Icon bangIcon = GuiUtil.createImageIcon("/icon/exclamation-green.png", null);
 
 	public ContentPanel() {
 	}
@@ -61,7 +61,7 @@ public abstract class ContentPanel extends JPanel {
 		// JTabbedPane.setTabComponentAt() is j6+, so for <=5 we just mark with the bang
 		if (javaMajorVersion() >= 6) {
 			RLabel16B lbl = new RLabel16B(tabPane.getTitleAt(idx), bangIcon, SwingConstants.LEFT);
-			lbl.setForeground(RoboColor.RED);
+			lbl.setForeground(RoboColor.GREEN);
 			tabPane.setTabComponentAt(idx, lbl);
 		} else
 			tabPane.setIconAt(idx, bangIcon);
@@ -101,10 +101,6 @@ public abstract class ContentPanel extends JPanel {
 			showMessage(mp);
 		} else
 			topPane.revalidate();
-	}
-
-	public TrackList getTrackList() {
-		return trackList;
 	}
 
 	/** If non-null, this will be focused when the contentpanel is shown */

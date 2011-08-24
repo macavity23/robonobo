@@ -112,18 +112,20 @@ public class MidasClientConfig implements Serializable {
 	}
 
 	public String getCommentByIdUrl(long commentId) {
-		return baseUrl + "comment/byid/" + commentId;
+		return baseUrl + "comment/byid/" + Long.toHexString(commentId);
 	}
 
 	public String getCommentByTypeUrl(String resourceId) {
 		Matcher m = Comment.RESOURCE_ID_PAT.matcher(resourceId);
 		if(!m.matches())
 			throw new Errot();
-		return baseUrl + "comment/"+m.group(1)+"/"+m.group(2);
+		String type = m.group(1);
+		long id = Long.parseLong(m.group(2));
+		return baseUrl + "comment/"+type+"/"+Long.toHexString(id);
 	}
 	
 	public String getAllCommentsUrl(String itemType, long itemId, Date since) {
-		StringBuffer sb = new StringBuffer(baseUrl).append("comments/").append(itemType).append("/").append(itemId);
+		StringBuffer sb = new StringBuffer(baseUrl).append("comments/").append(itemType).append("/").append(Long.toHexString(itemId));
 		if(since != null)
 			sb.append("?since=").append(since.getTime());
 		return sb.toString();

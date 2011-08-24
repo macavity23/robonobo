@@ -16,7 +16,7 @@ public class RoboColor {
 	public static final Color LIGHT_GRAY = new Color(0xcc, 0xcc, 0xcc);
 	public static final Color OFF_WHITE = new Color(0xd7, 0xd7, 0xd7);
 	public static final Color ORANGE = new Color(0xfe, 0xd2, 0x05);
-	public static final Color RED = new Color(0xaf, 0x0, 0x0);
+	public static final Color GREEN = new Color(0x0a, 0x6c, 0x0a);
 	
 	/** Never instantiate this class */
 	private RoboColor() {

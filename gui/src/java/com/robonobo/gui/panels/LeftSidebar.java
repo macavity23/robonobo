@@ -190,15 +190,24 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 
 	@Override
 	public void gotLibraryComments(long userId, boolean anyUnread, Map<Comment, Boolean> comments) {
-		if(anyUnread && userId == frame.ctrl.getMyUser().getUserId())
+		if(anyUnread && userId == frame.ctrl.getMyUser().getUserId()) {
+			// If mylib is selected and comments tab is showing, don't mark comments as unread
+			if(myLib.selected) {
+				ContentPanel cp = frame.mainPanel.getContentPanel("mymusiclibrary");
+				if(cp.tabPane.getSelectedIndex() == 1)
+					return;
+			}
 			myLib.setHasComments(true);
+		}
 	}
 
 	public void markPlaylistCommentsAsRead(long plId) {
 		User me = frame.ctrl.getMyUser();
-		if(me.getPlaylistIds().contains(plId))
+		if(me.getPlaylistIds().contains(plId)) {
 			myPlList.markPlaylistCommentsAsRead(plId);
-		else 
+			if(me.getPlaylistIds().size() > 1)
+				friendTree.getModel().markPlaylistCommentsAsRead(plId);
+		} else
 			friendTree.getModel().markPlaylistCommentsAsRead(plId);
 	}
 

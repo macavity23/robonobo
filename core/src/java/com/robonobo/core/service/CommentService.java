@@ -61,6 +61,7 @@ public class CommentService extends AbstractService {
 				flarp.put(c, false);
 				storeComments(resId, flarp);
 				events.fireGotPlaylistComments(playlistId, false, flarp);
+				db.markCommentsAsSeen(flarp.keySet());
 			}
 
 			public void error(long commentId, Exception ex) {
@@ -84,6 +85,7 @@ public class CommentService extends AbstractService {
 				flarp.put(c, false);
 				storeComments(resId, flarp);
 				events.fireGotLibraryComments(userId, false, flarp);
+				db.markCommentsAsSeen(flarp.keySet());
 			}
 
 			public void error(long commentId, Exception ex) {

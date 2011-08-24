@@ -48,7 +48,6 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 		setMaximumSize(new Dimension(65535, 65535));
 		// We do the listener stuff here rather than in the model as we may need to reselect or resize as a consequence
 		frame.ctrl.addUserListener(this);
-		log.debug("PlaylistList adding listener");
 		frame.ctrl.addPlaylistListener(this);
 		frame.ctrl.addLoginListener(this);
 		setTransferHandler(new DnDHandler());
@@ -157,17 +156,20 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 
 	@Override
 	public void gotPlaylistComments(final long plId, boolean anyUnseen, Map<Comment, Boolean> comments) {
-		log.warn("PL can haz comments for "+plId+"?");
 		if (!anyUnseen) {
-			log.warn("PL got nuffin");
 			return;
+		}
+		// If this playlist is selected and the comments tab is showing, comments have already been seen
+		Playlist selP = selectedPlaylist();
+		if(selP != null && selP.getPlaylistId() == plId) {
+			ContentPanel cp = frame.mainPanel.getContentPanel("playlist/"+plId);
+			if(cp.tabPane.getSelectedIndex() == 1)
+				return;
 		}
 		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				log.warn("PL setting haz comments for "+plId);
 				final PlaylistListModel m = getModel();
 				if (!m.hasPlaylist(plId)) {
-					log.warn(":'(");
 					return;
 				}
 				m.setHasComments(plId, true);
@@ -190,7 +192,8 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 		PlaylistListModel m = getModel();
 		final Playlist p = m.getPlaylistAt(index);
 		final long plId = p.getPlaylistId();
-		frame.mainPanel.selectContentPanel("playlist/" + plId);
+		String pnlName = "playlist/" + plId;
+		frame.mainPanel.selectContentPanel(pnlName);
 		int unseen = m.numUnseen(index);
 		if (unseen > 0) {
 			m.markAllAsSeen(index);
@@ -200,6 +203,10 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 				}
 			});
 		}
+		// If the panel's comments tab is showing, mark comments as read
+		ContentPanel cp = frame.mainPanel.getContentPanel(pnlName);
+		if(cp.tabPane.getSelectedIndex() == 1)
+			markPlaylistCommentsAsRead(plId);
 	}
 
 	private Playlist selectedPlaylist() {
@@ -266,7 +273,6 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 			int unseen = m.numUnseen(index);
 			Playlist p = m.getPlaylistAt(index);
 			boolean hasCmts = m.hasComments(p.getPlaylistId());
-			log.warn("PL rendering for "+p.getPlaylistId()+": "+hasCmts);
 			boolean useBold = false;
 			boolean useRed = false;
 			if (unseen > 0) {
@@ -291,7 +297,7 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 				lbl.setForeground(DARK_GRAY);
 			}
 			if (useRed)
-				lbl.setForeground(RED);
+				lbl.setForeground(GREEN);
 			return lbl;
 		}
 	}

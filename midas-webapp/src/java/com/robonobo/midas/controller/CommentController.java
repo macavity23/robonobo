@@ -31,7 +31,7 @@ public class CommentController extends BaseController {
 			send401(req, resp);
 			return;
 		}
-		long commentId = Long.parseLong(commentIdStr);
+		long commentId = Long.parseLong(commentIdStr, 16);
 		MidasComment c = midas.getComment(commentId);
 		if (c == null) {
 			send404(req, resp);
@@ -69,7 +69,7 @@ public class CommentController extends BaseController {
 			send401(req, resp);
 			return;
 		}
-		long itemId = Long.parseLong(itemIdStr);
+		long itemId = Long.parseLong(itemIdStr, 16);
 		Date since = null;
 		if(sinceStr != null)
 			since = new Date(Long.parseLong(sinceStr));
@@ -127,7 +127,7 @@ public class CommentController extends BaseController {
 			send401(req, resp);
 			return;
 		}
-		long itemId = Long.parseLong(itemIdStr);
+		long itemId = Long.parseLong(itemIdStr, 16);
 		CommentMsg.Builder b = CommentMsg.newBuilder();
 		readFromInput(b, req);
 		MidasComment c = new MidasComment(b.build());

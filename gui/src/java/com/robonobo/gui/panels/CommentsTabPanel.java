@@ -110,14 +110,14 @@ public abstract class CommentsTabPanel extends JPanel {
 	protected abstract void newComment(long parentCmtId, String text, CommentCallback cb);
 
 	public void addComments(Collection<Comment> comments) {
+		// Fetch all the userids before showing any of the comments as we need to ensure the comments are loaded in order so that parent comments are always there
+		Set<Long> uids = new HashSet<Long>();
 		for (Comment cmt : comments) {
-			long cid = cmt.getCommentId();
-			synchronized (this) {
-				if(gotComments.contains(cid))
-					continue;
-				gotComments.add(cid);
-			}
-			frame.ctrl.getOrFetchUser(cmt.getUserId(), new AddCommentCallback(cmt));
+			uids.add(cmt.getUserId());
+		}
+		AddCommentCallback cb = new AddCommentCallback(uids, comments);
+		for (Long uid : uids) {
+			frame.ctrl.getOrFetchUser(uid, cb);
 		}
 	}
 
@@ -181,14 +181,24 @@ public abstract class CommentsTabPanel extends JPanel {
 	}
 
 	class AddCommentCallback implements UserCallback {
-		Comment c;
+		Set<Long> usersToGet = new HashSet<Long>();
+		Collection<Comment> cl;
+		Map<Long, User> gotUsers = new HashMap<Long, User>();
 
-		public AddCommentCallback(Comment c) {
-			this.c = c;
+		public AddCommentCallback(Set<Long> usersToGet, Collection<Comment> cl) {
+			this.usersToGet.addAll(usersToGet);
+			this.cl = cl;
 		}
 
 		@Override
-		public void success(final User u) {
+		public void success(User gotUser) {
+			synchronized (this) {
+				long uid = gotUser.getUserId();
+				usersToGet.remove(uid);
+				gotUsers.put(uid, gotUser);
+				if(usersToGet.size() > 0)
+					return;
+			}
 			if(getWidth() == 0)
 				throw new Errot();
 			
@@ -196,43 +206,47 @@ public abstract class CommentsTabPanel extends JPanel {
 				public void doRun() throws Exception {
 					final int totalWidth = getWidth();
 					int topLvlWidth = totalWidth - 20;
-					
 					int indent = 60;
-					boolean canRemove = canRemoveComment(c);
-					CommentRemover remover = null;
-					if (c.getParentId() <= 0) {
-						// Top-level comment
-						if (canRemove) {
-							remover = new CommentRemover() {
-								public void doRun() throws Exception {
-									topLvlCps.remove(cp);
-									pnlsById.remove(cp.c.getCommentId());
-									layoutComments();
-								}
-							};
+					for (Comment c : cl) {
+						if(pnlsById.containsKey(c.getCommentId()))
+							continue;
+						User u = gotUsers.get(c.getUserId());
+						boolean canRemove = canRemoveComment(c);
+						CommentRemover remover = null;
+						if (c.getParentId() <= 0) {
+							// Top-level comment
+							if (canRemove) {
+								remover = new CommentRemover() {
+									public void doRun() throws Exception {
+										topLvlCps.remove(cp);
+										pnlsById.remove(cp.c.getCommentId());
+										layoutComments();
+									}
+								};
+							}
+							CommentPanel pnl = new CommentPanel(c, u, topLvlWidth, 0, remover);
+							topLvlCps.add(pnl);
+							pnlsById.put(c.getCommentId(), pnl);
+							layoutComments();
+						} else if (pnlsById.containsKey(c.getParentId())) {
+							// Sub-comment to existing comment
+							final CommentPanel parent = pnlsById.get(c.getParentId());
+							int indentLvl = parent.indentLvl + 1;
+							if (canRemove) {
+								remover = new CommentRemover() {
+									public void doRun() throws Exception {
+										parent.removeSubPanel(cp);
+									}
+								};
+							}
+							CommentPanel pnl = new CommentPanel(c, u, (topLvlWidth - (indentLvl * indent)), indentLvl, remover);
+							pnlsById.put(c.getCommentId(), pnl);
+							parent.addSubPanel(pnl);
+							layoutComments();
+						} else {
+							// Oops
+							log.error("Cannot add comment " + c.getCommentId() + " - no parent comment " + c.getParentId());
 						}
-						CommentPanel pnl = new CommentPanel(c, u, topLvlWidth, 0, remover);
-						topLvlCps.add(pnl);
-						pnlsById.put(c.getCommentId(), pnl);
-						layoutComments();
-					} else if (pnlsById.containsKey(c.getParentId())) {
-						// Sub-comment to existing comment
-						final CommentPanel parent = pnlsById.get(c.getParentId());
-						int indentLvl = parent.indentLvl + 1;
-						if (canRemove) {
-							remover = new CommentRemover() {
-								public void doRun() throws Exception {
-									parent.removeSubPanel(cp);
-								}
-							};
-						}
-						CommentPanel pnl = new CommentPanel(c, u, (topLvlWidth - (indentLvl * indent)), indentLvl, remover);
-						pnlsById.put(c.getCommentId(), pnl);
-						parent.addSubPanel(pnl);
-						layoutComments();
-					} else {
-						// Oops
-						log.error("Cannot add comment " + c.getCommentId() + " - no parent comment " + c.getParentId());
 					}
 				}
 			});
@@ -240,7 +254,7 @@ public abstract class CommentsTabPanel extends JPanel {
 
 		@Override
 		public void error(long userId, Exception e) {
-			log.error("Error fetching user " + userId + " for comment " + c.getCommentId(), e);
+			log.error("Error fetching user " + userId + " for comments");
 		}
 	}
 
@@ -325,8 +339,8 @@ public abstract class CommentsTabPanel extends JPanel {
 					}
 				});
 				btnsPnl.add(removeBtn, "2,1");
-				relayoutPanel();
 			}
+			relayoutPanel();
 		}
 
 		public void addSubPanel(CommentPanel sp) {

@@ -14,7 +14,6 @@ import javax.swing.JPanel;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.metadata.CommentCallback;
-import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.PlaylistTableModel;
@@ -44,7 +43,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 	}
 
 	protected PlaylistTableModel getModel() {
-		return (PlaylistTableModel) getTrackList().getModel();
+		return (PlaylistTableModel) trackList.getModel();
 	}
 
 	class PlaylistToolsPanel extends JPanel {
@@ -140,7 +139,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			unreadComments = true;
 			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					tabPane.setForegroundAt(1, RoboColor.RED);
+					addBangToTab(1);
 				}
 			});
 		}

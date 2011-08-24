@@ -124,7 +124,7 @@ public class Updater {
 	}
 
 	private void updateVersion4ToVersion5() throws IOException {
-		log.info("Updating robohome dir " + homeDir.getAbsolutePath() + " from version 4 to version ");
+		log.info("Updating robohome dir " + homeDir.getAbsolutePath() + " from version 4 to version 5");
 		String[] stArr = { DbService.CREATE_SEEN_COMMENTS_TBL };
 		try {
 			updateMetadataDb(stArr);

@@ -57,7 +57,7 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 				frame.ctrl.markAllAsSeen(playlist);
 				// Start finding sources for this guy
 				PlaylistTableModel model = (PlaylistTableModel) frame.mainPanel
-						.getContentPanel(contentPanelName()).getTrackList().getModel();
+				.getContentPanel(contentPanelName()).trackList.getModel();
 				model.activate();
 			}
 		});

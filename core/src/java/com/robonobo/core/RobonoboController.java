@@ -458,6 +458,7 @@ public class RobonoboController {
 
 	public void checkUsersUpdate() {
 		inst.getUserService().checkAllUsersUpdate();
+		inst.getCommentService().fetchCommentsForLibrary(inst.getUserService().getMyUser().getUserId());
 	}
 
 	public void updatePlaylist(Playlist p) {

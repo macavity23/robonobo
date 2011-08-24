@@ -127,6 +127,11 @@ public class PlaylistService extends AbstractService {
 						if (p != null)
 							streams.fetchStreams(p.getStreamIds(), new StreamFetcher(p, this));
 					}
+				} else {
+					// No streams to fetch - check for comments
+					for(long plId : plIds) {
+						comments.fetchCommentsForPlaylist(plId);
+					}
 				}
 			}
 		}
@@ -240,10 +245,12 @@ public class PlaylistService extends AbstractService {
 		private void update(String sid) {
 			waitingForSids.remove(sid);
 			if (waitingForSids.size() == 0) {
+				long plId = p.getPlaylistId();
+				log.warn("Finished fetching streams for playlist "+plId);
 				// We've loaded all our streams
 				events.firePlaylistChanged(p);
 				downloadTracksIfNecessary(p);
-				comments.fetchCommentsForPlaylist(p.getPlaylistId());
+				comments.fetchCommentsForPlaylist(plId);
 			}
 			if (pFetcher != null)
 				pFetcher.gotStream(sid);

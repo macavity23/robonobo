@@ -122,7 +122,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		dloadBtn.setPreferredSize(new Dimension(50, 50));
 		dloadBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				TrackList tl = frame.mainPanel.currentContentPanel().getTrackList();
+				TrackList tl = frame.mainPanel.currentContentPanel().trackList;
 				if (tl != null) {
 					List<String> selSids = tl.getSelectedStreamIds();
 					final List<String> dlSids = new ArrayList<String>();
@@ -162,7 +162,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		delBtn.setPreferredSize(new Dimension(40, 40));
 		delBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				TrackList tl = frame.mainPanel.currentContentPanel().getTrackList();
+				TrackList tl = frame.mainPanel.currentContentPanel().trackList;
 				if (tl != null)
 					tl.deleteSelectedTracks();
 			}
@@ -357,7 +357,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	}
 
 	public void playSelectedTracks() {
-		playingTrackList = frame.mainPanel.currentContentPanel().getTrackList();
+		playingTrackList = frame.mainPanel.currentContentPanel().trackList;
 		playingContentPanel = frame.mainPanel.currentContentPanelName();
 		List<String> selSids = playingTrackList.getSelectedStreamIds();
 		if (selSids.size() > 0) {
@@ -374,7 +374,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	public void trackListPanelChanged(ContentPanel cp) {
 		// checkButtonsEnabled();
 		checkPlayPauseDeleteEnabled();
-		TrackList tl = cp.getTrackList();
+		TrackList tl = cp.trackList;
 		if (tl == null)
 			delBtn.setToolTipText("");
 		else
@@ -412,7 +412,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		boolean allowDel = false;
 		if (frame.mainPanel != null && frame.mainPanel.currentContentPanel() != null) {
 			ContentPanel cp = frame.mainPanel.currentContentPanel();
-			TrackList tl = cp.getTrackList();
+			TrackList tl = cp.trackList;
 			if (tl != null) {
 				List<String> selSids = tl.getSelectedStreamIds();
 				tracksSelected = (selSids.size() > 0);

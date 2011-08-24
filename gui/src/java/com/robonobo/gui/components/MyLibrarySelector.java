@@ -15,6 +15,7 @@ import com.robonobo.core.Platform;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.RMenuItem;
 import com.robonobo.gui.frames.RobonoboFrame;
+import com.robonobo.gui.panels.ContentPanel;
 import com.robonobo.gui.panels.LeftSidebar;
 
 public class MyLibrarySelector extends LeftSidebarSelector implements ActionListener {
@@ -41,6 +42,18 @@ public class MyLibrarySelector extends LeftSidebarSelector implements ActionList
 	}
 	
 	@Override
+	public void setSelected(boolean isSelected) {
+		if(isSelected && hasComments) {
+			// If playlist tab is selected, mark comments as read
+			ContentPanel cp = frame.mainPanel.getContentPanel(contentPanelName);
+			if(cp.tabPane.getSelectedIndex() == 1)
+				setHasComments(false);
+		}
+		super.setSelected(isSelected);
+	}
+	
+	
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		String action = e.getActionCommand();
 		if(action.equals("addFromFiles"))
@@ -52,12 +65,11 @@ public class MyLibrarySelector extends LeftSidebarSelector implements ActionList
 	@Override
 	protected Color fgColor(boolean isSel) {
 		if(hasComments)
-			return RoboColor.RED;
+			return RoboColor.GREEN;
 		return super.fgColor(isSel);
 	}
 	
 	public void setHasComments(boolean hasComments) {
-		log.debug("MyLib has comments: "+hasComments);
 		this.hasComments = hasComments;
 		updateColors();
 	}

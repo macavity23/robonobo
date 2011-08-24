@@ -21,7 +21,7 @@ import com.robonobo.gui.panels.LeftSidebar;
  *
  */
 public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarComponent {
-	boolean sel;
+	public boolean selected;
 	protected LeftSidebar sideBar;
 	protected RobonoboFrame frame;
 	protected String contentPanelName;
@@ -54,13 +54,13 @@ public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarC
 			frame.mainPanel.selectContentPanel(contentPanelName);
 			sideBar.clearSelectionExcept(this);
 		}
-		this.sel = isSelected;
+		this.selected = isSelected;
 		updateColors();
 	}
 
 	protected void updateColors() {
-		setForeground(fgColor(sel));
-		setBackground(bgColor(sel));
+		setForeground(fgColor(selected));
+		setBackground(bgColor(selected));
 		markAsDirty(this);
 	}
 

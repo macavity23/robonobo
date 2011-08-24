@@ -28,6 +28,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 	RCheckBox autoDownloadCB;
 	RCheckBox iTunesCB;
 	protected Map<String, JCheckBox> options = new HashMap<String, JCheckBox>();
+	boolean haveShown = false;
 
 	public OtherPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc) {
 		super(f, pl, pc, false);
@@ -40,7 +41,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 				if (tabPane.getSelectedIndex() == 1) {
 					if (unreadComments) {
 						unreadComments = false;
-						tabPane.setForeground(RoboColor.DARK_GRAY);
+						removeBangFromTab(1);
 						frame.leftSidebar.markPlaylistCommentsAsRead(p.getPlaylistId());
 						frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 							public void doRun() throws Exception {
@@ -54,6 +55,9 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 		// Make sure the panel is all setup properly before we do this as comments need to know the width
 		addComponentListener(new ComponentAdapter() {
 			public void componentShown(ComponentEvent e) {
+				if(haveShown)
+					return;
+				haveShown = true;
 				log.debug("Adding listener for playlist cp "+p.getPlaylistId());
 				frame.ctrl.addPlaylistListener(OtherPlaylistContentPanel.this);
 				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
