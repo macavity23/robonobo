@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +20,14 @@ import com.robonobo.core.api.model.Comment;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.core.api.proto.CoreApi.CommentMsg;
 import com.robonobo.core.api.proto.CoreApi.CommentMsgList;
+import com.robonobo.midas.NotificationService;
 import com.robonobo.midas.model.*;
 
 @Controller
 public class CommentController extends BaseController {
+	@Autowired
+	NotificationService notification;
+	
 	@RequestMapping(value = "/comment/byid/{commentId}", method = RequestMethod.DELETE)
 	@Transactional(rollbackFor = Exception.class)
 	public void deleteComment(@PathVariable("commentId") String commentIdStr, HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -171,5 +176,6 @@ public class CommentController extends BaseController {
 			return;
 		}
 		writeToOutput(c.toMsg(), resp);
+		notification.newComment(c);
 	}
 }
