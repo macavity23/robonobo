@@ -18,6 +18,7 @@ import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.PlaybackListener;
 import com.robonobo.core.api.TrackListener;
 import com.robonobo.core.api.model.*;
+import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.components.PlaybackProgressBar;
 import com.robonobo.gui.components.TrackList;
 import com.robonobo.gui.components.base.*;
@@ -115,7 +116,13 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 				prev();
 			}
 		});
+		
 		buttonsPanel.add(prevBtn);
+		RRoundButton loveBtn = new RRoundButton();
+		loveBtn.setIcon(GuiUtil.createImageIcon("/icon/play-love.png", null));
+		loveBtn.setPreferredSize(new Dimension(50, 50));
+		buttonsPanel.add(loveBtn);
+		
 		dloadBtn = new RRoundButton();
 		dloadBtn.setIcon(dloadIcon);
 		dloadBtn.setToolTipText(DOWNLOAD_TOOLTIP);

@@ -294,6 +294,27 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		logFrame.setVisible(true);
 	}
 
+	public void showFacebookSignupSheet(String title, String msg) {
+		showWebsitePageSheet(title, msg, ctrl.getConfig().getWebsiteUrlBase() + "before-facebook-attach");
+	}
+
+	public void showTwitterSignupSheet(String title, String msg) {
+		showWebsitePageSheet(title, msg, ctrl.getConfig().getWebsiteUrlBase() + "before-twitter-attach");
+	}
+
+	public void showWebsitePageSheet(String title, String msg, final String url) {
+		final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, title, msg, "go to robonobo website", new CatchingRunnable() {
+			public void doRun() throws Exception {
+				NetUtil.browse(url);
+			}
+		});
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				showSheet(sheet);
+			}
+		});
+	}
+
 	// TODO Generalise fb/twitter into SocialNetwork or something
 	/** Call only from UI thread */
 	public void postToFacebook(final Playlist p) {
@@ -308,27 +329,19 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 			ctrl.fetchMyUserConfig(new UserConfigCallback() {
 				public void success(UserConfig freshUc) {
 					waitSheet.setVisible(false);
+					final String title = "Post to Facebook";
 					if (freshUc.getItem("facebookId") == null) {
 						// They haven't associated their facebook account with their rbnb one... open a browser window
 						// on the page to do so
 						String facebookBounceMsg = "Before you can post playlists to Facebook, you must add your Facebook details to your account on the robonobo website.";
-						final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Facebook", facebookBounceMsg, "go to robonobo website", new CatchingRunnable() {
-							public void doRun() throws Exception {
-								NetUtil.browse(ctrl.getConfig().getWebsiteUrlBase() + "before-facebook-attach");
-							}
-						});
-						runOnUiThread(new CatchingRunnable() {
-							public void doRun() throws Exception {
-								showSheet(sheet);
-							}
-						});
+						showFacebookSignupSheet(title, facebookBounceMsg);
 					} else {
 						runOnUiThread(new CatchingRunnable() {
 							public void doRun() throws Exception {
 								// Playlist must be public or friends-visible to post to fb
 								if (p.getVisibility().equals(Playlist.VIS_ME)) {
 									String msg = "This playlist is currently set to be visible to you only; it must be visible to your friends for you to post it to Facebook.";
-									final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Facebook", msg, "make playlist visible", new CatchingRunnable() {
+									final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, title, msg, "make playlist visible", new CatchingRunnable() {
 										public void doRun() throws Exception {
 											p.setVisibility(Playlist.VIS_FRIENDS);
 											ctrl.updatePlaylist(p);
@@ -376,21 +389,12 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 			ctrl.fetchMyUserConfig(new UserConfigCallback() {
 				public void success(UserConfig freshUc) {
 					waitSheet.setVisible(false);
+					final String title = "Post to Twitter";
 					if (freshUc.getItem("twitterId") == null) {
 						// They haven't associated their twitter account with their rbnb one... open a browser window on
 						// the page to do so
-						String facebookBounceMsg = "Before you can post playlists to Twitter, you must add your Twitter details to your account on the robonobo website.";
-						Runnable gotoAcct = new CatchingRunnable() {
-							public void doRun() throws Exception {
-								NetUtil.browse(ctrl.getConfig().getWebsiteUrlBase() + "before-twitter-attach");
-							}
-						};
-						final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Twitter", facebookBounceMsg, "go to robonobo website", gotoAcct);
-						runOnUiThread(new CatchingRunnable() {
-							public void doRun() throws Exception {
-								showSheet(sheet);
-							}
-						});
+						String twitBounceMsg = "Before you can post playlists to Twitter, you must add your Twitter details to your account on the robonobo website.";
+						showTwitterSignupSheet(title, twitBounceMsg);
 					} else {
 						runOnUiThread(new CatchingRunnable() {
 							public void doRun() throws Exception {
@@ -399,7 +403,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 									showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));
 								else {
 									String msg = "This playlist must be publically-visible for you to post it to Twitter.";
-									final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Twitter", msg, "make playlist public", new CatchingRunnable() {
+									final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, title, msg, "make playlist public", new CatchingRunnable() {
 										public void doRun() throws Exception {
 											p.setVisibility(Playlist.VIS_ALL);
 											showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));

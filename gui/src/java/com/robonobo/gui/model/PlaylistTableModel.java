@@ -18,29 +18,29 @@ import com.robonobo.mina.external.FoundSourceListener;
 public class PlaylistTableModel extends GlazedTrackListTableModel implements FoundSourceListener {
 	private static final int[] PLAYLIST_HIDDEN_COLS = new int[] { 4, 11, 12 };
 	private Playlist p;
-	private boolean myPlaylist;
+	private boolean canEdit;
 	/** Are we actively looking for sources for streams on this playlist? */
 	private boolean activated = false;
 	Log log = LogFactory.getLog(getClass());
 
-	public static PlaylistTableModel create(RobonoboFrame frame, Playlist p, boolean myPlaylist) {
+	public static PlaylistTableModel create(RobonoboFrame frame, Playlist p, boolean canEdit) {
 		List<Track> trax = new ArrayList<Track>();
 		for (String sid : p.getStreamIds()) {
 			trax.add(frame.ctrl.getTrack(sid));
 		}
 		EventList<Track> el = GlazedLists.eventList(trax);
-		return new PlaylistTableModel(frame, p, myPlaylist, el);
+		return new PlaylistTableModel(frame, p, canEdit, el);
 	}
 
-	public PlaylistTableModel(RobonoboFrame frame, Playlist p, boolean myPlaylist, EventList<Track> el) {
+	protected PlaylistTableModel(RobonoboFrame frame, Playlist p, boolean canEdit, EventList<Track> el) {
 		super(frame, el, null, null);
 		this.p = p;
-		this.myPlaylist = myPlaylist;
+		this.canEdit = canEdit;
 		int i = 0;
 		for (String sid : p.getStreamIds()) {
 			trackIndices.put(sid, i++);
 		}
-		if (myPlaylist) {
+		if (canEdit) {
 			control.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					activate();
@@ -69,7 +69,7 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 		} finally {
 			updateLock.unlock();
 		}
-		if (myPlaylist || activated)
+		if (canEdit || activated)
 			activate();
 	}
 
@@ -96,7 +96,7 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	@Override
 	public void trackUpdated(String streamId, Track t) {
 		super.trackUpdated(streamId, t);
-		if (activated || myPlaylist) {
+		if (activated || canEdit) {
 			updateLock.lock();
 			try {
 				if (trackIndices.containsKey(streamId))
@@ -121,7 +121,7 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	/** If any of these streams are already in this playlist, they will be removed before being added in their new
 	 * position */
 	public void addStreams(List<String> streamIds, int position) {
-		if (!myPlaylist)
+		if (!canEdit)
 			throw new Errot();
 		updateLock.lock();
 		try {
@@ -164,7 +164,7 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	@Override
 	public boolean allowDelete() {
 		// Allow deletions only from my playlists
-		return myPlaylist;
+		return canEdit;
 	}
 
 	@Override
@@ -179,7 +179,7 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	
 	@Override
 	public void deleteTracks(List<String> streamIds) {
-		if (!myPlaylist)
+		if (!canEdit)
 			throw new Errot();
 		updateLock.lock();
 		try {

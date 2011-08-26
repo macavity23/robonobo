@@ -24,17 +24,17 @@ public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarC
 	public boolean selected;
 	protected LeftSidebar sideBar;
 	protected RobonoboFrame frame;
-	protected String contentPanelName;
+	protected String cpName;
 	protected RLabel lbl;
 	private static final Dimension SIZE = new Dimension(188, 19);
 
 	public LeftSidebarSelector(LeftSidebar sideBar, RobonoboFrame frame, String label, boolean lblBold, Icon icon, String contentPanelName) {
 		this.sideBar = sideBar;
 		this.frame = frame;
-		this.contentPanelName = contentPanelName;
+		this.cpName = contentPanelName;
 		setOpaque(true);
 		setAlignmentX(0f);
-		setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+		setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 1));
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setPreferredSize(SIZE);
 		setMinimumSize(SIZE);
@@ -51,7 +51,7 @@ public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarC
 	
 	public void setSelected(boolean isSelected) {
 		if (isSelected) {
-			frame.mainPanel.selectContentPanel(contentPanelName);
+			frame.mainPanel.selectContentPanel(cpName);
 			sideBar.clearSelectionExcept(this);
 		}
 		this.selected = isSelected;

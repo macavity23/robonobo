@@ -21,6 +21,8 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 	
 	private NewPlaylistContentPanel(RobonoboFrame frame, Playlist p) {
 		super(frame, p, new PlaylistConfig(), NewPlaylistTableModel.create(frame, p));
+		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
+		tabPane.setSelectedIndex(0);
 		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				showMessage("How do I add tracks?", "<html>Drag tracks from your library, or a friend's library, or any other playlist, and drop them on the highlighted 'New Playlist' entry on the left, or on the track list below.<br>You can also drag files directly from your computer.</html>");
@@ -35,7 +37,7 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 	
 	@Override
 	protected void savePlaylist() {
-		final Playlist p = getModel().getPlaylist();
+		final Playlist p = ptm().getPlaylist();
 		p.setTitle(titleField.getText());
 		p.setDescription(descField.getText());
 		// Create the new playlist in midas
@@ -55,7 +57,7 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 						descField.setText("");
 						if(iTunesCB != null)
 							iTunesCB.setSelected(false);
-						getModel().update(newP);
+						ptm().update(newP);
 					}
 				});
 			}

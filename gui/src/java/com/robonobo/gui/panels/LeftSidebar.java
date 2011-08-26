@@ -34,6 +34,7 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 	private FriendTree friendTree;
 	private PublicPlaylistTree pubPlTree;
 	private boolean showPublicPlaylists = false;
+	List<SpecialPlaylistSelector> spSels = new ArrayList<SpecialPlaylistSelector>();
 	Log log = LogFactory.getLog(getClass());
 	private JPanel sideBarPanel;
 	private SearchField searchField;
@@ -66,6 +67,14 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 		sideBarComps.add(myLib);
 		taskList = new TaskListSelector(this, frame);
 		sideBarComps.add(taskList);
+		SpecialPlaylistSelector lovesSel = new SpecialPlaylistSelector(this, frame, GuiUtil.createImageIcon("/icon/heart-small.png", null), "loves");
+		sideBarPanel.add(lovesSel);
+		sideBarComps.add(lovesSel);
+		spSels.add(lovesSel);
+		SpecialPlaylistSelector radioSel = new SpecialPlaylistSelector(this, frame, GuiUtil.createImageIcon("/icon/radio-small.png", null), "radio");
+		sideBarPanel.add(radioSel);
+		sideBarComps.add(radioSel);
+		spSels.add(radioSel);
 		newPlaylist = new NewPlaylistSelector(this, frame);
 		sideBarPanel.add(newPlaylist);
 		sideBarComps.add(newPlaylist);
@@ -94,6 +103,9 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 		sideBarPanel.add(myLib);
 		if (showTasks)
 			sideBarPanel.add(taskList);
+		for (SpecialPlaylistSelector spSel : spSels) {
+			sideBarPanel.add(spSel);
+		}
 		sideBarPanel.add(newPlaylist);
 		sideBarPanel.add(myPlList);
 		sideBarPanel.revalidate();

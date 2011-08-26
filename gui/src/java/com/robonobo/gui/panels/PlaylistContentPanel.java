@@ -17,10 +17,10 @@ import com.robonobo.core.metadata.CommentCallback;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.model.PlaylistTableModel;
+import com.robonobo.gui.model.TrackListTableModel;
 
 @SuppressWarnings("serial")
 public abstract class PlaylistContentPanel extends ContentPanel implements ClipboardOwner {
-	protected RobonoboFrame frame;
 	protected Playlist p;
 	protected PlaylistConfig pc;
 	/** Note, you must initialize this in the subclass constructor */
@@ -32,21 +32,20 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 		super(frame, PlaylistTableModel.create(frame, p, myPlaylist));
 		this.p = p;
 		this.pc = pc;
-		this.frame = frame;
 	}
 
-	public PlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, PlaylistTableModel model) {
+	public PlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, TrackListTableModel model) {
 		super(frame, model);
 		this.p = p;
 		this.pc = pc;
 		this.frame = frame;
 	}
 
-	protected PlaylistTableModel getModel() {
+	protected PlaylistTableModel ptm() {
 		return (PlaylistTableModel) trackList.getModel();
 	}
 
-	class PlaylistToolsPanel extends JPanel {
+	public class PlaylistToolsPanel extends JPanel {
 		private RButton fbBtn;
 		private RButton twitBtn;
 		private RButton copyBtn;
@@ -148,7 +147,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 		commentsPanel.addComments(cl);
 	}
 
-	class PlaylistCommentsPanel extends CommentsTabPanel {
+	public class PlaylistCommentsPanel extends CommentsTabPanel {
 		public PlaylistCommentsPanel(RobonoboFrame frame) {
 			super(frame);
 		}

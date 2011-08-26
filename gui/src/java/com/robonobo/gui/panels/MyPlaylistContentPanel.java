@@ -52,26 +52,13 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
-		tabPane.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				if (tabPane.getSelectedIndex() == 1) {
-					if (unreadComments) {
-						unreadComments = false;
-						removeBangFromTab(1);
-						frame.leftSidebar.markPlaylistCommentsAsRead(p.getPlaylistId());
-						frame.ctrl.getExecutor().execute(new CatchingRunnable() {
-							public void doRun() throws Exception {
-								frame.ctrl.markPlaylistCommentsAsSeen(p.getPlaylistId());
-							}
-						});
-					}
-				}
-			}
-		});
-		// make sure the panel is all setup properly as comments need to know width
+		setupComments();
+	}
+
+	protected void setupComments() {
 		addComponentListener(new ComponentAdapter() {
 			public void componentShown(ComponentEvent e) {
-				if(haveShown)
+				if (haveShown)
 					return;
 				haveShown = true;
 				if (getWidth() == 0)
@@ -95,13 +82,27 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				}
 			}
 		});
+		tabPane.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				if (tabPane.getSelectedIndex() == 1) {
+					if (unreadComments) {
+						unreadComments = false;
+						removeBangFromTab(1);
+						frame.leftSidebar.markPlaylistCommentsAsRead(p.getPlaylistId());
+						frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+							public void doRun() throws Exception {
+								frame.ctrl.markPlaylistCommentsAsSeen(p.getPlaylistId());
+							}
+						});
+					}
+				}
+			}
+		});
 	}
 
 	protected MyPlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, PlaylistTableModel model) {
 		super(frame, p, pc, model);
-		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
-		tabPane.setSelectedIndex(0);
-		// Don't add a comment panel, let the subclass do that if they like
+		// Don't add tab panels, let the subclass do that if they like
 		if (addAsListener())
 			frame.ctrl.addPlaylistListener(this);
 	}
@@ -129,7 +130,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	protected void savePlaylist() {
 		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				Playlist p = getModel().getPlaylist();
+				Playlist p = ptm().getPlaylist();
 				p.setTitle(titleField.getText());
 				p.setDescription(descField.getText());
 				frame.ctrl.updatePlaylist(p);
@@ -140,7 +141,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 
 	@Override
 	public void playlistChanged(Playlist p) {
-		if (p.equals(getModel().getPlaylist())) {
+		if (p.equals(ptm().getPlaylist())) {
 			titleField.setText(p.getTitle());
 			descField.setText(p.getDescription());
 			String vis = p.getVisibility();
@@ -152,7 +153,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				visMeBtn.setSelected(true);
 			else
 				throw new Errot("invalid visibility " + vis);
-			getModel().update(p);
+			ptm().update(p);
 			toolsPanel.checkPlaylistVisibility();
 		}
 	}
@@ -246,7 +247,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				public void actionPerformed(ActionEvent e) {
 					if (!detailsChanged())
 						return;
-					Playlist p = getModel().getPlaylist();
+					Playlist p = ptm().getPlaylist();
 					if (visAllBtn.isSelected())
 						p.setVisibility(Playlist.VIS_ALL);
 					else if (visFriendsBtn.isSelected())
@@ -263,7 +264,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 					saveBtn.setEnabled(false);
 				}
 			};
-			final Playlist p = getModel().getPlaylist();
+			final Playlist p = ptm().getPlaylist();
 			JLabel titleLbl = new JLabel("Title:");
 			titleLbl.setFont(RoboFont.getFont(13, false));
 			add(titleLbl, "1,1");
@@ -298,7 +299,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			add(Box.createVerticalStrut(5));
 			ButtonGroup bg = new ButtonGroup();
 			// TODO multiple owners?
-			Playlist p = getModel().getPlaylist();
+			Playlist p = ptm().getPlaylist();
 			String vis = p.getVisibility();
 			visMeBtn = new RRadioButton("Just me");
 			visMeBtn.addActionListener(al);
@@ -349,7 +350,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				delBtn = new RRedGlassButton("DELETE");
 				delBtn.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						DeletePlaylistSheet dPanel = new DeletePlaylistSheet(frame, getModel().getPlaylist());
+						DeletePlaylistSheet dPanel = new DeletePlaylistSheet(frame, ptm().getPlaylist());
 						frame.showSheet(dPanel);
 					}
 				});
@@ -360,7 +361,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				shareBtn = new RGlassButton("SHARE");
 				shareBtn.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						SharePlaylistSheet shPanel = new SharePlaylistSheet(frame, getModel().getPlaylist());
+						SharePlaylistSheet shPanel = new SharePlaylistSheet(frame, ptm().getPlaylist());
 						frame.showSheet(shPanel);
 					}
 				});

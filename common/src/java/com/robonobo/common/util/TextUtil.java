@@ -19,18 +19,12 @@ package com.robonobo.common.util;
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.awt.*;
+import java.io.*;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

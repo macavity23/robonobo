@@ -93,7 +93,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 					updateFields();
 				}
 			});
-			getModel().update(p);
+			ptm().update(p);
 			toolsPanel.checkPlaylistVisibility();
 		}
 	}

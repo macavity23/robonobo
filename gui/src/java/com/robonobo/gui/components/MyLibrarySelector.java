@@ -45,7 +45,7 @@ public class MyLibrarySelector extends LeftSidebarSelector implements ActionList
 	public void setSelected(boolean isSelected) {
 		if(isSelected && hasComments) {
 			// If playlist tab is selected, mark comments as read
-			ContentPanel cp = frame.mainPanel.getContentPanel(contentPanelName);
+			ContentPanel cp = frame.mainPanel.getContentPanel(cpName);
 			if(cp.tabPane.getSelectedIndex() == 1)
 				setHasComments(false);
 		}
