@@ -185,7 +185,31 @@ public class PlaylistController extends BaseController {
 		else if ("twitter".equals(service))
 			twitter.postPlaylistUpdateToTwitter(muc, p, msg);
 		else
-			log.error("Error: user " + u.getEmail() + " tried to update their playlist to service: '" + service);
+			log.error("Error: user " + u.getEmail() + " tried to update their playlist to service: " + service);
 		event.playlistPosted(u, p, service);
+	}
+	
+	@RequestMapping("/special-playlists/{uidStr}/{plName}/post-update")
+	public void postSpecialPlaylist(@PathVariable("uidStr") String uidStr,@PathVariable("plName") String plName, @RequestParam("service") String service, @RequestParam("msg") String msg, HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		long uid = Long.parseLong(uidStr, 16);
+		service = service.toLowerCase();
+		MidasUser u = getAuthUser(req);
+		if (u == null) {
+			send401(req, resp);
+			return;
+		}
+		if(!(u.getUserId() == uid || u.getFriendIds().contains(uid))) {
+			send401(req, resp);
+			return;
+		}
+		msg = urlDecode(msg);
+		MidasUserConfig muc = midas.getUserConfig(u);
+		if("facebook".equals(service))
+			facebook.postSpecialPlaylistToFacebook(muc, uid, plName, msg);
+		else if("twitter".equals(service))
+			twitter.postSpecialPlaylistToTwitter(muc, uid, plName, msg);
+		else
+			log.error("Error: user "+u.getEmail()+" tried to post their special playlist to service: "+service);
+		event.specialPlaylistPosted(u, uid, plName, service);
 	}
 }

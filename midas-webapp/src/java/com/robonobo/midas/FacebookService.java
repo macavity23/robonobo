@@ -24,4 +24,6 @@ public interface FacebookService {
 	public abstract void postPlaylistUpdateToFacebook(MidasUserConfig muc, Playlist p, String msg) throws IOException;
 
 	public abstract FacebookClient getFacebookClient(String accessToken);
+
+	public abstract void postSpecialPlaylistToFacebook(MidasUserConfig muc, long uid, String plName, String msg) throws IOException;
 }

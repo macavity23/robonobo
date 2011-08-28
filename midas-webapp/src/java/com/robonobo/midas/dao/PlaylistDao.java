@@ -13,10 +13,12 @@ public interface PlaylistDao {
 
 	public abstract void deletePlaylist(MidasPlaylist playlist);
 
-	public abstract MidasPlaylist loadPlaylist(long playlistId);
+	public abstract MidasPlaylist getPlaylistById(long playlistId);
 
 	public abstract void savePlaylist(MidasPlaylist playlist);
 
 	public abstract List<MidasPlaylist> getRecentPlaylists(long maxAgeMs);
+
+	public abstract MidasPlaylist getPlaylistByUserIdAndTitle(long uid, String title);
 
 }

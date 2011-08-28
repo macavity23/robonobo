@@ -218,7 +218,7 @@ public class TrackList extends JPanel {
 
 	public void clearTableSelection() {
 		int rowCount = table.getRowCount();
-		if(rowCount > 0)
+		if (rowCount > 0)
 			table.removeRowSelectionInterval(0, rowCount - 1);
 	}
 
@@ -292,6 +292,14 @@ public class TrackList extends JPanel {
 				if (track instanceof SharedTrack)
 					needShow = true;
 			}
+			List<String> selSids = getSelectedStreamIds();
+			boolean needLove = !(frame.ctrl.lovingAll(selSids));
+			if (needLove) {
+				RMenuItem lmi = new RMenuItem("Love");
+				lmi.setActionCommand("love");
+				lmi.addActionListener(this);
+				add(lmi);
+			}
 			if (needDownload) {
 				RMenuItem dl = new RMenuItem("Download");
 				dl.setActionCommand("download");
@@ -341,7 +349,7 @@ public class TrackList extends JPanel {
 				}
 				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
-						for(String sid : dlSids) {
+						for (String sid : dlSids) {
 							frame.ctrl.addDownload(sid);
 						}
 					}
@@ -371,6 +379,13 @@ public class TrackList extends JPanel {
 						}
 					});
 				}
+			} else if (action.equals("love")) {
+				final List<String> selSids = getSelectedStreamIds();
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						frame.ctrl.love(selSids);
+					}
+				});
 			} else
 				log.error("PopupMenu generated unknown action: " + action);
 		}

@@ -17,29 +17,16 @@ import com.robonobo.gui.panels.LeftSidebar;
 
 @SuppressWarnings("serial")
 public class SpecialPlaylistSelector extends LeftSidebarSelector {
-	protected String plName;
-	private long plId = -1;
+	Playlist p;
 	private boolean hasComments = false;
 
-	public SpecialPlaylistSelector(LeftSidebar sideBar, RobonoboFrame f, Icon icon, String playlistName) {
-		super(sideBar, f, capitalizeFirst(playlistName), false, icon, "specialplaylist/me/"+playlistName);
-		this.plName = playlistName;
+	public SpecialPlaylistSelector(LeftSidebar sideBar, RobonoboFrame f, Icon icon, String title, Playlist pl) {
+		super(sideBar, f, capitalizeFirst(title), false, icon, "playlist/"+pl.getPlaylistId());
+		this.p = pl;
 		frame.ctrl.addPlaylistListener(new PlaylistAdapter() {
 			@Override
-			public void playlistChanged(Playlist p) {
-				if (plId < 0) {
-					if (p.getTitle().equalsIgnoreCase("loves")) {
-						long myUid = frame.ctrl.getMyUser().getUserId();
-						if (p.getOwnerIds().size() == 1 && p.getOwnerIds().contains(myUid))
-							plId = p.getPlaylistId();
-					}
-				}
-				super.playlistChanged(p);
-			}
-
-			@Override
 			public void gotPlaylistComments(long updatePlId, boolean anyUnread, Map<Comment, Boolean> comments) {
-				if (anyUnread && plId == updatePlId) {
+				if (anyUnread && updatePlId == p.getPlaylistId()) {
 					// Don't show unread if we're selected and comments tab is showing
 					if(selected && frame.mainPanel.getContentPanel(cpName).tabPane.getSelectedIndex() == 1)
 						return;

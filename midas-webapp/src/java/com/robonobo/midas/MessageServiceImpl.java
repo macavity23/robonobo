@@ -140,7 +140,7 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 	}
 
 	private String playlistUrl(Playlist p) {
-		return appConfig.getInitParam("playlistShortUrlBase") + Long.toHexString(p.getPlaylistId());
+		return appConfig.getInitParam("shortUrlBase") + "p/" + Long.toHexString(p.getPlaylistId());
 	}
 
 	@Override

@@ -103,7 +103,7 @@ public class LocalMidasService implements MidasService {
 			result.setInvitesLeft(0);
 			Iterator<Long> iter = result.getPlaylistIds().iterator();
 			while (iter.hasNext()) {
-				Playlist p = playlistDao.loadPlaylist(iter.next());
+				Playlist p = playlistDao.getPlaylistById(iter.next());
 				if (p.getVisibility().equals(Playlist.VIS_ME))
 					iter.remove();
 			}
@@ -134,7 +134,7 @@ public class LocalMidasService implements MidasService {
 		// Go through all their playlists - if they are the only owner, delete it, otherwise remove them from the owners
 		// list
 		for (Long plId : u.getPlaylistIds()) {
-			MidasPlaylist p = playlistDao.loadPlaylist(plId);
+			MidasPlaylist p = playlistDao.getPlaylistById(plId);
 			p.getOwnerIds().remove(userId);
 			if (p.getOwnerIds().size() == 0)
 				playlistDao.deletePlaylist(p);
@@ -160,9 +160,14 @@ public class LocalMidasService implements MidasService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public MidasPlaylist getPlaylistById(long playlistId) {
-		return playlistDao.loadPlaylist(playlistId);
+		return playlistDao.getPlaylistById(playlistId);
 	}
 
+	@Transactional(rollbackFor = Exception.class)
+	public MidasPlaylist getPlaylistByUserIdAndTitle(long uid, String title) {
+		return playlistDao.getPlaylistByUserIdAndTitle(uid, title);
+	}
+	
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public List<MidasPlaylist> getRecentPlaylists(long maxAgeMs) {
@@ -350,7 +355,7 @@ public class LocalMidasService implements MidasService {
 		if (requestee == null)
 			return "Requested user " + req.getRequesteeId() + " not found";
 		for (Long plId : req.getPlaylistIds()) {
-			MidasPlaylist p = playlistDao.loadPlaylist(plId);
+			MidasPlaylist p = playlistDao.getPlaylistById(plId);
 			p.getOwnerIds().add(requestee.getUserId());
 			playlistDao.savePlaylist(p);
 			requestee.getPlaylistIds().add(plId);

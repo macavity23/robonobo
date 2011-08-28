@@ -4,6 +4,8 @@ import static com.robonobo.gui.GuiUtil.*;
 import static com.robonobo.gui.RoboColor.*;
 
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -24,6 +26,7 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 	static final Dimension MAX_LVL2_SZ = new Dimension(135, Integer.MAX_VALUE);
 	LeftSidebar sideBar;
 	ImageIcon rootIcon, addFriendsIcon, friendIcon, playlistIcon, libraryIcon;
+	Map<String, ImageIcon> specIcons = new HashMap<String, ImageIcon>();
 	Font normalFont, boldFont;
 
 	public FriendTree(LeftSidebar sb, RobonoboFrame frame) {
@@ -41,6 +44,9 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 		friendIcon = createImageIcon("/icon/friend.png", null);
 		playlistIcon = createImageIcon("/icon/playlist.png", null);
 		libraryIcon = createImageIcon("/icon/home.png", null);
+		// Special playlist icons
+		specIcons.put("loves", createImageIcon("/icon/heart-small.png", null));
+		specIcons.put("radio", createImageIcon("/icon/radio-small.png", null));
 		setCellRenderer(new CellRenderer());
 		setSelectionModel(new SelectionModel());
 		getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -107,10 +113,14 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 			boolean useBold = false;
 			boolean useRed = false;
 			if (node instanceof PlaylistTreeNode) {
-				lbl.setIcon(playlistIcon);
+				PlaylistTreeNode ptn = (PlaylistTreeNode) node;
+				Icon specIcon = specIcons.get(ptn.getPlaylist().getTitle().toLowerCase());
+				if(specIcon != null)
+					lbl.setIcon(specIcon);
+				else
+					lbl.setIcon(playlistIcon);
 				lbl.setMaximumSize(MAX_LVL2_SZ);
 				lbl.setPreferredSize(MAX_LVL2_SZ);
-				PlaylistTreeNode ptn = (PlaylistTreeNode) node;
 				int unseen = ptn.numUnseenTracks;
 				if (!sel && unseen > 0) {
 					lbl.setText("[" + unseen + "] " + lbl.getText());

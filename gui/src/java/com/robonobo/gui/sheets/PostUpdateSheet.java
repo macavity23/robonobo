@@ -31,7 +31,7 @@ public abstract class PostUpdateSheet extends Sheet {
 	public PostUpdateSheet(RobonoboFrame f, Playlist pl) {
 		super(f);
 		this.p = pl;
-		playlistUrl = frame.ctrl.getConfig().getPlaylistUrlBase() + Long.toHexString(p.getPlaylistId());
+		playlistUrl = frame.ctrl.getConfig().getShortUrlBase() + "p/" + Long.toHexString(p.getPlaylistId());
 		boolean showCharLimit = (charLimit() > 0);
 		double[][] cellSizen = { { 10, 300, 10 }, { 10, 20, 5, showCharLimit ? 80 : 100, 5, showCharLimit ? 20 : 0, 0, 20, 5, 30, 10 } };
 		setLayout(new TableLayout(cellSizen));

@@ -175,11 +175,11 @@ public class UserService extends AbstractService {
 			if (e instanceof UnauthorizedException) {
 				log.error("Login failed");
 				events.fireLoginFailed("Login failed");
-			} else if(e instanceof TemporarilyUnavailableException) {
+			} else if (e instanceof TemporarilyUnavailableException) {
 				log.error("Login server temporarily unavailable");
 				events.fireLoginFailed("Down for maintenance, please wait a few minutes");
-			} else if(e instanceof UnknownHostException || e instanceof NoRouteToHostException || e instanceof SocketException) {
-				log.error("Cannot connect to midas server "+rbnb.getConfig().getMidasUrl()+" - caught "+CodeUtil.shortClassName(e.getClass()));
+			} else if (e instanceof UnknownHostException || e instanceof NoRouteToHostException || e instanceof SocketException) {
+				log.error("Cannot connect to midas server " + rbnb.getConfig().getMidasUrl() + " - caught " + CodeUtil.shortClassName(e.getClass()));
 				events.fireLoginFailed("Cannot connect to server");
 			} else {
 				log.error("Caught exception logging in", e);
@@ -234,6 +234,19 @@ public class UserService extends AbstractService {
 		metadata.fetchUserConfig(me.getUserId(), handler);
 	}
 
+	/** Polls the server for our user config every minute for ten mins - we're expecting an update */
+	public void watchMyUserConfig() {
+		int minsToWatch = 10;
+		Runnable r = new CatchingRunnable() {
+			public void doRun() throws Exception {
+				refreshMyUserConfig(null);
+			}
+		};
+		for (int i = 1; i <= minsToWatch; i++) {
+			rbnb.getExecutor().schedule(r, i, TimeUnit.MINUTES);
+		}
+	}
+
 	public synchronized User getKnownUser(String email) {
 		return usersByEmail.get(email);
 	}
@@ -247,26 +260,26 @@ public class UserService extends AbstractService {
 		synchronized (this) {
 			u = usersById.get(userId);
 		}
-		if(u != null) {
+		if (u != null) {
 			cb.success(u);
 			return;
 		}
 		metadata.fetchUser(userId, new UserCallback() {
 			@Override
 			public void success(User u) {
-				synchronized(UserService.this) {
+				synchronized (UserService.this) {
 					usersById.put(u.getUserId(), u);
 				}
 				cb.success(u);
 			}
-			
+
 			@Override
 			public void error(long userId, Exception e) {
 				cb.error(userId, e);
 			}
 		});
 	}
-	
+
 	void fetchFriends() {
 		if (me.getFriendIds().size() > 0)
 			tasks.runTask(new FriendFetchTask(me));
@@ -396,7 +409,7 @@ public class UserService extends AbstractService {
 				plLoop: for (Long plId : myPlIds) {
 					Playlist p = playlists.getExistingPlaylist(plId);
 					for (Long ownerId : p.getOwnerIds()) {
-						if(myFriendIds.contains(ownerId)) {
+						if (myFriendIds.contains(ownerId)) {
 							events.firePlaylistChanged(p);
 							continue plLoop;
 						}

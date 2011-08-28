@@ -1,6 +1,7 @@
 package com.robonobo.remote.service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 import com.robonobo.core.api.model.Library;
 import com.robonobo.midas.model.*;
@@ -26,6 +27,8 @@ public interface MidasService {
 	
 	public MidasPlaylist getPlaylistById(long playlistId);
 
+	public MidasPlaylist getPlaylistByUserIdAndTitle(long uid, String title);
+		
 	/**
 	 * Returns the playlist with the playlistId set
 	 */

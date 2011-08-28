@@ -388,6 +388,10 @@ public class RobonoboController {
 		inst.getUserService().refreshMyUserConfig(handler);
 	}
 
+	public void watchMyUserConfig() {
+		inst.getUserService().watchMyUserConfig();
+	}
+	
 	public double getBankBalance() throws RobonoboException {
 		try {
 			return inst.getWangService().getBankBalance();
@@ -556,6 +560,24 @@ public class RobonoboController {
 		}
 	}
 
+	public boolean isSpecialPlaylist(String title) {
+		return inst.getPlaylistService().isSpecialPlaylist(title);
+	}
+	
+	/**
+	 * Add these stream ids to our 'loves' list
+	 */
+	public void love(Collection<String> sids) {
+		inst.getPlaylistService().love(sids);
+	}
+	
+	/**
+	 * Returns true iff there are no stream ids in the collection which we are NOT loving
+	 */
+	public boolean lovingAll(Collection<String> sids) {
+		return inst.getPlaylistService().lovingAll(sids);
+	}
+	
 	public void setHandoverHandler(HandoverHandler handler) {
 		inst.getMina().setHandoverHandler(handler);
 	}

@@ -121,6 +121,9 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 	}
 
 	public void playlistChanged(final Playlist p) {
+		// Only show playlists with at least one track
+		if(p.getStreamIds().size() == 0)
+			return;
 		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				synchronized (FriendTreeModel.this) {
@@ -130,7 +133,12 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 							long friendId = ftn.getFriend().getUserId();
 							PlaylistTreeNode ptn = playlistNodes.get(friendId).get(p.getPlaylistId());
 							if (ptn == null) {
-								ptn = new PlaylistTreeNode(p, frame);
+								if(p.getTitle().equalsIgnoreCase("loves"))
+									ptn = new LovesTreeNode(p, frame);
+								else if(p.getTitle().equalsIgnoreCase("radio"))
+									ptn = new RadioTreeNode(p, frame);
+								else
+									ptn = new PlaylistTreeNode(p, frame);
 								playlistNodes.get(friendId).put(p.getPlaylistId(), ptn);
 								insertNodeSorted(ftn, ptn);
 								playlistIds.add(p.getPlaylistId());

@@ -56,8 +56,7 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 			public void doRun() throws Exception {
 				frame.ctrl.markAllAsSeen(playlist);
 				// Start finding sources for this guy
-				PlaylistTableModel model = (PlaylistTableModel) frame.mainPanel
-				.getContentPanel(contentPanelName()).trackList.getModel();
+				PlaylistTableModel model = (PlaylistTableModel) frame.mainPanel.getContentPanel(contentPanelName()).trackList.getModel();
 				model.activate();
 			}
 		});
@@ -66,6 +65,10 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 
 	protected String contentPanelName() {
 		return "playlist/" + playlist.getPlaylistId();
+	}
+
+	protected int getSpecialIndex() {
+		return Integer.MAX_VALUE;
 	}
 
 	@Override
@@ -78,6 +81,12 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 		if (o instanceof LibraryTreeNode)
 			return 1;
 		PlaylistTreeNode other = (PlaylistTreeNode) o;
-		return playlist.getTitle().compareTo(other.getPlaylist().getTitle());
+		int specIdx = getSpecialIndex();
+		int oSpecIdx = other.getSpecialIndex();
+		if (specIdx < oSpecIdx)
+			return -1;
+		if (oSpecIdx > specIdx)
+			return 1;
+		return playlist.getTitle().toLowerCase().compareTo(other.getPlaylist().getTitle().toLowerCase());
 	}
 }

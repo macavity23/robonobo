@@ -1,26 +1,26 @@
 package com.robonobo.gui.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import ca.odell.glazedlists.EventList;
-import ca.odell.glazedlists.GlazedLists;
+import ca.odell.glazedlists.SortedList;
 
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.core.api.model.Track;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 public class SpecialPlaylistTableModel extends PlaylistTableModel {
-	public static PlaylistTableModel create(RobonoboFrame frame, Playlist p, boolean canEdit) {
-		List<Track> trax = new ArrayList<Track>();
-		for (String sid : p.getStreamIds()) {
-			trax.add(frame.ctrl.getTrack(sid));
-		}
-		EventList<Track> el = GlazedLists.eventList(trax);
-		return new SpecialPlaylistTableModel(frame, p, canEdit, el);
+	protected SpecialPlaylistTableModel(RobonoboFrame frame, Playlist p, boolean canEdit, EventList<Track> el, SortedList<Track> sl) {
+		super(frame, p, canEdit, el, sl);
 	}
-
-	protected SpecialPlaylistTableModel(RobonoboFrame frame, Playlist p, boolean canEdit, EventList<Track> el) {
-		super(frame, p, canEdit, el);
+	
+	public void setCanEdit(boolean canEdit) {
+		this.canEdit = canEdit;
+		if(canEdit)
+			activate();
+	}
+	
+	@Override
+	public boolean allowDelete() {
+		// We always allow delete, even if we can't edit
+		return true;
 	}
 }

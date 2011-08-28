@@ -48,6 +48,11 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
+	public void specialPlaylistPosted(MidasUser u, long uid, String plName, String postService) {
+		saveEvent(u, "specPlaylistPosted", "uid="+uid+",name="+plName+",svc="+postService);
+	}
+
+	@Override
 	public void addedToLibrary(MidasUser u, int numTracks) {
 		saveEvent(u, "addToLibrary", "num="+numTracks);
 	}

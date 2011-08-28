@@ -15,7 +15,7 @@ import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.components.base.RLabel16B;
 import com.robonobo.gui.components.base.RRadioButton;
 import com.robonobo.gui.frames.RobonoboFrame;
-import com.robonobo.gui.model.PlaylistTableModel;
+import com.robonobo.gui.model.RadioTableModel;
 
 @SuppressWarnings("serial")
 public class RadioContentPanel extends MyPlaylistContentPanel {
@@ -24,8 +24,8 @@ public class RadioContentPanel extends MyPlaylistContentPanel {
 	public RRadioButton offRb;
 
 	public RadioContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc) {
-		super(f, pl, pc, PlaylistTableModel.create(f, pl, false));
-		tabPane.insertTab("radio", null, new RadioSettingsPanel(), null, 0);
+		super(f, pl, pc, RadioTableModel.create(f, pl, false));
+		tabPane.insertTab("my radio station", null, new RadioSettingsPanel(), null, 0);
 		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, UNDEFINED_CONDITION);
 		tabPane.setSelectedIndex(0);
@@ -41,6 +41,10 @@ public class RadioContentPanel extends MyPlaylistContentPanel {
 			userCfgUpdated(uc);
 	}
 
+	private RadioTableModel rtm() {
+		return (RadioTableModel) trackList.getModel();
+	}
+
 	private void userCfgUpdated(final UserConfig uc) {
 		GuiUtil.runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
@@ -54,11 +58,12 @@ public class RadioContentPanel extends MyPlaylistContentPanel {
 					manualRb.setSelected(true);
 				else if (cfg.equalsIgnoreCase("off"))
 					offRb.setSelected(true);
+				updateModel(cfg);
 			}
 		});
 	}
 
-	private void settingsChanged() {
+	private void settingsUiChanged() {
 		String cfg = null;
 		if (autoRb.isSelected())
 			cfg = "auto";
@@ -68,12 +73,31 @@ public class RadioContentPanel extends MyPlaylistContentPanel {
 			cfg = "off";
 		if (cfg == null)
 			return;
+		updateModel(cfg);
 		final String flarp = cfg;
 		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				frame.ctrl.saveUserConfigItem("radioPlaylist", flarp);
 			}
 		});
+	}
+
+	private void updateModel(String cfg) {
+		if (cfg == null || cfg.equalsIgnoreCase("auto"))
+			rtm().setCanEdit(false);
+		else if (cfg.equalsIgnoreCase("manual"))
+			rtm().setCanEdit(true);
+		else if (cfg.equalsIgnoreCase("off")) {
+			rtm().setCanEdit(false);
+			if (p.getStreamIds().size() > 0) {
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						p.getStreamIds().clear();
+						frame.ctrl.updatePlaylist(p);
+					}
+				});
+			}
+		}
 	}
 
 	class RadioSettingsPanel extends JPanel {
@@ -83,7 +107,7 @@ public class RadioContentPanel extends MyPlaylistContentPanel {
 			add(new RLabel16B("Radio playlist"), "1,1");
 			ActionListener al = new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					settingsChanged();
+					settingsUiChanged();
 				}
 			};
 			autoRb = new RRadioButton("Add the tracks I play in robonobo");
@@ -102,7 +126,16 @@ public class RadioContentPanel extends MyPlaylistContentPanel {
 			bg.add(autoRb);
 			bg.add(manualRb);
 			bg.add(offRb);
-			add(new PlaylistToolsPanel(), "1,9");
+			add(new ToolsPanel(), "1,9");
 		}
 	}
+	
+	class ToolsPanel extends PlaylistToolsPanel {
+		@Override
+		protected String urlText() {
+			long myUid = frame.ctrl.getMyUser().getUserId();
+			return frame.ctrl.getConfig().getShortUrlBase() + "sp/" + Long.toHexString(myUid) + "/radio";
+		}
+	}
+
 }

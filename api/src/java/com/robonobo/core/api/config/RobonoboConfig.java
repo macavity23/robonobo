@@ -43,7 +43,7 @@ public class RobonoboConfig implements Serializable {
 	boolean userSpecifiedLocalAddr = false;
 	boolean agreedToEula = false;
 	boolean allowLoopbackAddress = false;
-	String playlistUrlBase = "http://rbnb.co/p/";
+	String shortUrlBase = "http://rbnb.co/";
 	String websiteUrlBase = "http://robonobo.com/";
 	String mplayerExePath = null;
 	String topUpUrl = "http://midas.robonobo.com/users/testing-topup";
@@ -235,14 +235,6 @@ public class RobonoboConfig implements Serializable {
 		this.allowLoopbackAddress = allowLoopbackAddress;
 	}
 
-	public String getPlaylistUrlBase() {
-		return playlistUrlBase;
-	}
-
-	public void setPlaylistUrlBase(String playlistUrlBase) {
-		this.playlistUrlBase = playlistUrlBase;
-	}
-
 	public boolean getLookupGatewayIP() {
 		return lookupGatewayIP;
 	}
@@ -329,5 +321,13 @@ public class RobonoboConfig implements Serializable {
 
 	public void setDownloadCheckFreq(int downloadCheckFreq) {
 		this.downloadCheckFreq = downloadCheckFreq;
+	}
+
+	public String getShortUrlBase() {
+		return shortUrlBase;
+	}
+
+	public void setShortUrlBase(String shortUrlBase) {
+		this.shortUrlBase = shortUrlBase;
 	}
 }

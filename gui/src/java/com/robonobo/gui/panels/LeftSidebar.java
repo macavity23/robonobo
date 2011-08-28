@@ -12,8 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.core.api.LibraryListener;
-import com.robonobo.core.api.PlaylistListener;
+import com.robonobo.core.api.*;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.components.*;
@@ -67,14 +66,6 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 		sideBarComps.add(myLib);
 		taskList = new TaskListSelector(this, frame);
 		sideBarComps.add(taskList);
-		SpecialPlaylistSelector lovesSel = new SpecialPlaylistSelector(this, frame, GuiUtil.createImageIcon("/icon/heart-small.png", null), "loves");
-		sideBarPanel.add(lovesSel);
-		sideBarComps.add(lovesSel);
-		spSels.add(lovesSel);
-		SpecialPlaylistSelector radioSel = new SpecialPlaylistSelector(this, frame, GuiUtil.createImageIcon("/icon/radio-small.png", null), "radio");
-		sideBarPanel.add(radioSel);
-		sideBarComps.add(radioSel);
-		spSels.add(radioSel);
 		newPlaylist = new NewPlaylistSelector(this, frame);
 		sideBarPanel.add(newPlaylist);
 		sideBarComps.add(newPlaylist);
@@ -91,6 +82,15 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 		add(statusPnl);
 		frame.ctrl.addPlaylistListener(this);
 		frame.ctrl.addLibraryListener(this);
+		frame.ctrl.addLoginListener(new LoginAdapter() {
+			public void loginSucceeded(User me) {
+				for (SpecialPlaylistSelector sel : spSels) {
+					sideBarComps.remove(sel);
+				}
+				spSels.clear();
+				relayoutSidebar();
+			}
+		});
 	}
 
 	private void relayoutSidebar() {
@@ -248,10 +248,34 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 				// TODO If there is a public playlist with this plId, replace it with a friend/my playlist
 				if (pPanel == null) {
 					// Create playlist panel
-					if (p.getOwnerIds().contains(myUserId))
-						frame.mainPanel.addContentPanel(panelName, new MyPlaylistContentPanel(frame, p, pc));
-					else
-						frame.mainPanel.addContentPanel(panelName, new OtherPlaylistContentPanel(frame, p, pc));
+					if (p.getOwnerIds().contains(myUserId)) {
+						ContentPanel cp;
+						String title = p.getTitle().toLowerCase();
+						if(title.equals("loves")) {
+							cp = new LovesContentPanel(frame, p, pc);
+							Icon i = GuiUtil.createImageIcon("/icon/heart-small.png", null);
+							SpecialPlaylistSelector sel = new SpecialPlaylistSelector(LeftSidebar.this, frame, i, "Loves", p);
+							sideBarComps.add(sel);
+							spSels.add(0, sel);
+							relayoutSidebar();
+						} else if(title.equals("radio")) {
+							cp = new RadioContentPanel(frame, p, pc);
+							Icon i = GuiUtil.createImageIcon("/icon/radio-small.png", null);
+							SpecialPlaylistSelector sel = new SpecialPlaylistSelector(LeftSidebar.this, frame, i, "My Radio Station", p);
+							sideBarComps.add(sel);
+							spSels.add(sel);
+							relayoutSidebar();
+						} else
+							cp = new MyPlaylistContentPanel(frame, p, pc);
+						frame.mainPanel.addContentPanel(panelName, cp);
+					} else {
+						ContentPanel cp;
+						if(frame.ctrl.isSpecialPlaylist(p.getTitle()))
+							cp = new FriendSpecialPlaylistContentPanel(frame, myUserId, p, pc);
+						else
+							cp = new OtherPlaylistContentPanel(frame, p, pc);
+						frame.mainPanel.addContentPanel(panelName, cp);
+					}
 				} else {
 					// Playlist panel already exists - check to see if I'm now an owner and wasn't (or vice versa)
 					if ((pPanel instanceof MyPlaylistContentPanel) && !p.getOwnerIds().contains(myUserId)) {

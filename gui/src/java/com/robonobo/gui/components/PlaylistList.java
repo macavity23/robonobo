@@ -135,6 +135,9 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 	public void playlistChanged(final Playlist p) {
 		User me = frame.ctrl.getMyUser();
 		if (p.getOwnerIds().contains(me.getUserId())) {
+			// Don't include special playlists, they're handled separately
+			if(frame.ctrl.isSpecialPlaylist(p.getTitle()))
+				return;
 			Long plId = p.getPlaylistId();
 			Set<Long> myPlIds = frame.ctrl.getMyUser().getPlaylistIds();
 			if (!myPlIds.contains(plId))

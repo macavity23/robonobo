@@ -55,7 +55,7 @@ public class NotificationServiceImpl implements NotificationService {
 				MidasUser origUser = userDao.getById(par.getUserId());
 				Matcher pm = PLAYLIST_ITEM_PAT.matcher(c.getResourceId());
 				if (pm.matches()) {
-					MidasPlaylist p = playlistDao.loadPlaylist(Long.parseLong(pm.group(1)));
+					MidasPlaylist p = playlistDao.getPlaylistById(Long.parseLong(pm.group(1)));
 					message.sendReplyNotificationForPlaylist(origUser, commentUser, p);
 				} else {
 					Matcher lm = LIBRARY_ITEM_PAT.matcher(c.getResourceId());
@@ -67,7 +67,7 @@ public class NotificationServiceImpl implements NotificationService {
 		// Send notification to owner of resource
 		Matcher pm = PLAYLIST_ITEM_PAT.matcher(c.getResourceId());
 		if (pm.matches()) {
-			MidasPlaylist p = playlistDao.loadPlaylist(Long.parseLong(pm.group(1)));
+			MidasPlaylist p = playlistDao.getPlaylistById(Long.parseLong(pm.group(1)));
 			long ownerId = Long.parseLong(pm.group(1));
 			MidasUserConfig muc = userCfgDao.getUserConfig(ownerId);
 			String pceStr = muc.getItem("playlistCommentEmails");
@@ -202,7 +202,7 @@ public class NotificationServiceImpl implements NotificationService {
 					else {
 						m = PLAYLIST_ITEM_PAT.matcher(n.getItem());
 						if (m.matches()) {
-							Playlist p = playlistDao.loadPlaylist(Long.parseLong(m.group(1)));
+							Playlist p = playlistDao.getPlaylistById(Long.parseLong(m.group(1)));
 							if (p != null)
 								pl.add(p);
 						}

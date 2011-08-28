@@ -151,6 +151,11 @@ public class MidasClientService extends AbstractMetadataService {
 	}
 
 	@Override
+	public void postSpecialPlaylistToService(String service, long userId, String plName, String msg, PlaylistCallback callback) {
+		addRequest(new SpecialPlaylistPostRequest(cfg, service, userId, plName, msg, callback));
+	}
+	
+	@Override
 	public void deletePlaylist(Playlist p, PlaylistCallback callback) {
 		addRequest(new DeletePlaylistRequest(cfg, p.getPlaylistId(), callback));
 	}

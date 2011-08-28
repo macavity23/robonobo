@@ -1,5 +1,7 @@
 package com.robonobo.midas;
 
+import java.io.IOException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.scribe.builder.ServiceBuilder;
@@ -39,8 +41,23 @@ public class TwitterServiceImpl implements InitializingBean, TwitterService {
 			return;
 		if (msg == null)
 			msg = "I updated my playlist '" + p.getTitle() + "': ";
-		String playlistUrl = appConfig.getInitParam("playlistShortUrlBase") + Long.toHexString(p.getPlaylistId());
+		String playlistUrl = appConfig.getInitParam("shortUrlBase") + "p/"+ Long.toHexString(p.getPlaylistId());
 		msg += playlistUrl;
+		postToTwitter(muc, msg);
+	}
+
+	@Override
+	public void postSpecialPlaylistToTwitter(MidasUserConfig muc, long uid, String plName, String msg) throws IOException {
+		String accTok = muc.getItem("twitterAccessToken");
+		if (accTok == null)
+			return;
+		// Truncate the msg if necessary, make sure the url gets in
+		String url = appConfig.getInitParam("shortUrlBase") + "sp/" + Long.toHexString(uid) + "/" + plName;
+		if((msg.length() + url.length() + 1) > TWITTER_MSG_LIMIT) {
+			int numToRemove = TWITTER_MSG_LIMIT - (msg.length() + url.length() + 1);
+			msg = msg.substring(0, msg.length() - numToRemove);
+		}
+		msg += " " + url;
 		postToTwitter(muc, msg);
 	}
 

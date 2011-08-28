@@ -73,6 +73,10 @@ public class MidasClientConfig implements Serializable {
 		return baseUrl + "playlists/" + Long.toHexString(playlistId) + "/post-update?service=" + service + "&msg=" + urlEncode(msg);
 	}
 
+	public String getSpecialPlaylistPostUrl(String service, long userId, String plName, String msg) {
+		return baseUrl + "special-playlists/" + Long.toHexString(userId) + "/" + plName + "/post-update?service=" + service + "&msg=" + urlEncode(msg);
+	}
+
 	public String getStreamUrl(String streamId) {
 		return baseUrl + "streams/" + streamId;
 	}
@@ -117,16 +121,16 @@ public class MidasClientConfig implements Serializable {
 
 	public String getCommentByTypeUrl(String resourceId) {
 		Matcher m = Comment.RESOURCE_ID_PAT.matcher(resourceId);
-		if(!m.matches())
+		if (!m.matches())
 			throw new Errot();
 		String type = m.group(1);
 		long id = Long.parseLong(m.group(2));
-		return baseUrl + "comment/"+type+"/"+Long.toHexString(id);
+		return baseUrl + "comment/" + type + "/" + Long.toHexString(id);
 	}
-	
+
 	public String getAllCommentsUrl(String itemType, long itemId, Date since) {
 		StringBuffer sb = new StringBuffer(baseUrl).append("comments/").append(itemType).append("/").append(Long.toHexString(itemId));
-		if(since != null)
+		if (since != null)
 			sb.append("?since=").append(since.getTime());
 		return sb.toString();
 	}

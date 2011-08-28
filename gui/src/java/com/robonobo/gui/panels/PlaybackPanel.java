@@ -2,11 +2,11 @@ package com.robonobo.gui.panels;
 
 import static com.robonobo.gui.GuiUtil.*;
 import static com.robonobo.gui.RoboColor.*;
+import info.clearthought.layout.TableLayout;
 
-import java.awt.*;
+import java.awt.Dimension;
 import java.awt.event.*;
 import java.util.*;
-import java.util.List;
 
 import javax.swing.*;
 
@@ -18,7 +18,6 @@ import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.PlaybackListener;
 import com.robonobo.core.api.TrackListener;
 import com.robonobo.core.api.model.*;
-import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.components.PlaybackProgressBar;
 import com.robonobo.gui.components.TrackList;
 import com.robonobo.gui.components.base.*;
@@ -31,6 +30,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	private static final String DOWNLOAD_TOOLTIP = "Download selected tracks";
 	private static final String NEXT_TOOLTIP = "Next track";
 	private static final String PREV_TOOLTIP = "Previous track";
+	private static final String LOVE_TOOLTIP = "Love these tracks";
 	/** If we're within this time (ms) after the start of a track, calling prev() goes to the previous track (otherwise,
 	 * returns to the start of the current one) */
 	public static final int PREV_TRACK_GRACE_PERIOD = 5000;
@@ -44,15 +44,16 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	ImageIcon dloadIcon = createImageIcon("/icon/play_download.png", DOWNLOAD_TOOLTIP);
 	ImageIcon playIcon = createImageIcon("/icon/play_play.png", PLAY_TOOLTIP);
 	ImageIcon pauseIcon = createImageIcon("/icon/play_pause.png", PAUSE_TOOLTIP);
+	ImageIcon loveIcon = createImageIcon("/icon/play_love.png", LOVE_TOOLTIP);
 	RobonoboFrame frame;
-	RobonoboController control;
+	RobonoboController ctrl;
 	RLabel titleLbl, artistLbl, albumLbl;
 	PlaybackProgressBar playbackProgress;
 	Stream playingStream = null;
 	PlayState state = PlayState.Stopped;
 	TrackList playingTrackList;
 	String playingContentPanel;
-	RButton prevBtn, dloadBtn, playPauseBtn, nextBtn, delBtn;
+	RButton prevBtn, loveBtn, dloadBtn, playPauseBtn, nextBtn, delBtn;
 	boolean checkedNextTrack = false;
 	boolean seeking = false;
 	Log log = LogFactory.getLog(getClass());
@@ -60,15 +61,15 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 
 	public PlaybackPanel(final RobonoboFrame frame) {
 		this.frame = frame;
-		control = frame.ctrl;
-		setLayout(new BorderLayout());
+		ctrl = frame.ctrl;
 		setName("playback.background.panel");
-		setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		double[][] cells = { { 10, TableLayout.FILL, 10, 325, 10 }, { 10, TableLayout.FILL, 10 } };
+		setLayout(new TableLayout(cells));
 		setBackground(MID_GRAY);
-		JPanel titlesPanel = new JPanel();
-		titlesPanel.setLayout(new BoxLayout(titlesPanel, BoxLayout.Y_AXIS));
-		titlesPanel.setOpaque(false);
-		titlesPanel.addMouseListener(new MouseAdapter() {
+		JPanel titlesPnl = new JPanel();
+		titlesPnl.setLayout(new BoxLayout(titlesPnl, BoxLayout.Y_AXIS));
+		titlesPnl.setOpaque(false);
+		titlesPnl.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				// Double click on title shows the playing track in the content panel
 				if (e.getClickCount() == 2) {
@@ -80,53 +81,53 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 				}
 			}
 		});
-		add(titlesPanel, BorderLayout.CENTER);
+		add(titlesPnl, "1,1");
 		titleLbl = new RLabel26("");
-		titleLbl.setPreferredSize(new Dimension(450, 35));
-		titleLbl.setMinimumSize(new Dimension(450, 35));
-		titleLbl.setMaximumSize(new Dimension(450, 35));
-		titleLbl.setBorder(BorderFactory.createEmptyBorder(5, 10, 0, 0));
+		titleLbl.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 		titleLbl.setForeground(BLUE_GRAY);
-		titlesPanel.add(titleLbl);
+		titlesPnl.add(titleLbl);
 		artistLbl = new RLabel20B("");
-		artistLbl.setPreferredSize(new Dimension(450, 20));
 		artistLbl.setBorder(BorderFactory.createEmptyBorder(1, 10, 0, 0));
-		titlesPanel.add(artistLbl);
+		titlesPnl.add(artistLbl);
 		albumLbl = new RLabel18("");
-		albumLbl.setPreferredSize(new Dimension(450, 20));
 		albumLbl.setBorder(BorderFactory.createEmptyBorder(2, 10, 0, 0));
-		titlesPanel.add(albumLbl);
-		final JPanel playerPanel = new JPanel(new BorderLayout(5, 5));
-		add(playerPanel, BorderLayout.EAST);
-		playerPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 8));
+		titlesPnl.add(albumLbl);
+		JPanel controlPnl = new JPanel();
+		double[][] controlCells = { { 50, 3, 50, 3, 50, 3, 50, 3, 50, TableLayout.FILL, 40, 3 }, { 3, 24, 5, 50, TableLayout.FILL } };
+		controlPnl.setLayout(new TableLayout(controlCells));
+		controlPnl.setOpaque(false);
+		add(controlPnl, "3,1");
 		playbackProgress = new PlaybackProgressBar(frame);
-		playerPanel.add(playbackProgress, BorderLayout.NORTH);
-		final JPanel playerCtrlPanel = new JPanel(new BorderLayout());
-		playerPanel.add(playerCtrlPanel, BorderLayout.CENTER);
-		playerCtrlPanel.setOpaque(false);
-		final JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-		playerCtrlPanel.add(buttonsPanel, BorderLayout.WEST);
-		buttonsPanel.setOpaque(false);
+		controlPnl.add(playbackProgress, "0,1,11,1");
 		prevBtn = new RRoundButton();
 		prevBtn.setIcon(prevIcon);
 		prevBtn.setToolTipText(PREV_TOOLTIP);
-		prevBtn.setPreferredSize(new Dimension(50, 50));
 		prevBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				prev();
 			}
 		});
-		
-		buttonsPanel.add(prevBtn);
-		RRoundButton loveBtn = new RRoundButton();
-		loveBtn.setIcon(GuiUtil.createImageIcon("/icon/play-love.png", null));
-		loveBtn.setPreferredSize(new Dimension(50, 50));
-		buttonsPanel.add(loveBtn);
-		
+		controlPnl.add(prevBtn, "0,3");
+		loveBtn = new RRoundButton();
+		loveBtn.setIcon(loveIcon);
+		loveBtn.setToolTipText(LOVE_TOOLTIP);
+		loveBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				TrackList tl = frame.mainPanel.currentContentPanel().trackList;
+				if (tl != null) {
+					final List<String> selSids = tl.getSelectedStreamIds();
+					ctrl.getExecutor().execute(new CatchingRunnable() {
+						public void doRun() throws Exception {
+							ctrl.love(selSids);
+						}
+					});
+				}
+			}
+		});
+		controlPnl.add(loveBtn, "2,3");
 		dloadBtn = new RRoundButton();
 		dloadBtn.setIcon(dloadIcon);
 		dloadBtn.setToolTipText(DOWNLOAD_TOOLTIP);
-		dloadBtn.setPreferredSize(new Dimension(50, 50));
 		dloadBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				TrackList tl = frame.mainPanel.currentContentPanel().trackList;
@@ -134,37 +135,34 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 					List<String> selSids = tl.getSelectedStreamIds();
 					final List<String> dlSids = new ArrayList<String>();
 					for (String sid : selSids) {
-						Track t = control.getTrack(sid);
+						Track t = ctrl.getTrack(sid);
 						if (t instanceof CloudTrack)
 							dlSids.add(sid);
 					}
-					control.getExecutor().execute(new CatchingRunnable() {
+					ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
 							for (String sid : dlSids)
-								control.addDownload(sid);
+								ctrl.addDownload(sid);
 						}
 					});
 				}
 			}
 		});
-		buttonsPanel.add(dloadBtn);
+		controlPnl.add(dloadBtn, "4,3");
 		playPauseBtn = new RRoundButton();
 		playPauseBtn.setIcon(playIcon);
 		playPauseBtn.setToolTipText(PLAY_TOOLTIP);
-		playPauseBtn.setPreferredSize(new Dimension(50, 50));
 		playPauseBtn.addActionListener(new PlayPauseListener());
-		buttonsPanel.add(playPauseBtn);
+		controlPnl.add(playPauseBtn, "6,3");
 		nextBtn = new RRoundButton();
 		nextBtn.setIcon(nextIcon);
 		nextBtn.setToolTipText(NEXT_TOOLTIP);
-		nextBtn.setPreferredSize(new Dimension(50, 50));
 		nextBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				next();
 			}
 		});
-		buttonsPanel.add(nextBtn);
-		buttonsPanel.add(Box.createHorizontalStrut(50));
+		controlPnl.add(nextBtn, "8,3");
 		delBtn = new RSquareDelButton();
 		delBtn.setPreferredSize(new Dimension(40, 40));
 		delBtn.addActionListener(new ActionListener() {
@@ -174,12 +172,11 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 					tl.deleteSelectedTracks();
 			}
 		});
-		buttonsPanel.add(delBtn);
-		// checkButtonsEnabled();
-		checkPlayPauseDeleteEnabled();
+		controlPnl.add(delBtn, "10,3,CENTER,CENTER");
+		checkActionBtnsEnabled();
 		updateNextPrev();
-		control.addPlaybackListener(this);
-		control.addTrackListener(this);
+		ctrl.addPlaybackListener(this);
+		ctrl.addTrackListener(this);
 		// Make sure the component is ready as this requires our dimensions to be setup
 		addComponentListener(new ComponentAdapter() {
 			public void componentShown(ComponentEvent e) {
@@ -190,7 +187,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 
 	public void trackSelectionChanged() {
 		// checkButtonsEnabled();
-		checkPlayPauseDeleteEnabled();
+		checkActionBtnsEnabled();
 		doRepaint();
 	}
 
@@ -198,7 +195,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		// Grab a copy of the sid to avoid a miniscule chance of it changing while this is called
 		String sid = nextSid;
 		if (sid != null)
-			control.play(sid);
+			ctrl.play(sid);
 	}
 
 	public void prev() {
@@ -208,15 +205,15 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 			// Grab a copy of the sid to avoid a miniscule chance of it changing while this is called
 			String sid = prevSid;
 			if (sid != null)
-				control.play(sid);
+				ctrl.play(sid);
 		} else {
 			String sid = playingStream.getStreamId();
 			TrackList t = playingTrackList;
 			String cp = playingContentPanel;
-			control.stopPlayback();
+			ctrl.stopPlayback();
 			playingTrackList = t;
 			playingContentPanel = cp;
-			control.play(sid);
+			ctrl.play(sid);
 		}
 	}
 
@@ -237,7 +234,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 			playPauseBtn.setToolTipText(PLAY_TOOLTIP);
 		}
 		// checkButtonsEnabled();
-		checkPlayPauseDeleteEnabled();
+		checkActionBtnsEnabled();
 		// This causes a repaint
 		updateNextPrev();
 	}
@@ -263,7 +260,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		playPauseBtn.setToolTipText(PAUSE_TOOLTIP);
 		playbackProgress.starting();
 		// checkButtonsEnabled();
-		checkPlayPauseDeleteEnabled();
+		checkActionBtnsEnabled();
 		doRepaint();
 	}
 
@@ -274,7 +271,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		playPauseBtn.setToolTipText(PAUSE_TOOLTIP);
 		playbackProgress.play();
 		// checkButtonsEnabled();
-		checkPlayPauseDeleteEnabled();
+		checkActionBtnsEnabled();
 		doRepaint();
 	}
 
@@ -288,7 +285,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		playbackProgress.setTrackPosition(positionMs);
 		String preFetchStreamId = null;
 		synchronized (this) {
-			if (!checkedNextTrack && positionMs > (playingStream.getDuration() - control.getConfig().getDownloadCacheTime() * 1000)) {
+			if (!checkedNextTrack && positionMs > (playingStream.getDuration() - ctrl.getConfig().getDownloadCacheTime() * 1000)) {
 				// Pre-download next track if necessary
 				preFetchStreamId = nextSid;
 				if (preFetchStreamId == null)
@@ -300,9 +297,9 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		}
 		if (preFetchStreamId != null) {
 			final String fetchSid = preFetchStreamId;
-			control.getExecutor().execute(new CatchingRunnable() {
+			ctrl.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					control.preFetch(fetchSid);
+					ctrl.preFetch(fetchSid);
 				}
 			});
 		}
@@ -314,7 +311,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		playPauseBtn.setIcon(playIcon);
 		playPauseBtn.setToolTipText(PLAY_TOOLTIP);
 		// checkButtonsEnabled();
-		checkPlayPauseDeleteEnabled();
+		checkActionBtnsEnabled();
 		doRepaint();
 		playbackProgress.pause();
 	}
@@ -324,8 +321,8 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		String sid = nextSid;
 		if (sid != null) {
 			// checkButtonsEnabled();
-			checkPlayPauseDeleteEnabled();
-			control.play(sid);
+			checkActionBtnsEnabled();
+			ctrl.play(sid);
 		} else
 			playbackStopped();
 	}
@@ -370,9 +367,9 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		if (selSids.size() > 0) {
 			playingTrackList.clearTableSelection();
 			final String sid = selSids.get(0);
-			control.getExecutor().execute(new CatchingRunnable() {
+			ctrl.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					control.play(sid);
+					ctrl.play(sid);
 				}
 			});
 		}
@@ -380,7 +377,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 
 	public void trackListPanelChanged(ContentPanel cp) {
 		// checkButtonsEnabled();
-		checkPlayPauseDeleteEnabled();
+		checkActionBtnsEnabled();
 		TrackList tl = cp.trackList;
 		if (tl == null)
 			delBtn.setToolTipText("");
@@ -413,16 +410,18 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		});
 	}
 
-	private void checkPlayPauseDeleteEnabled() {
+	private void checkActionBtnsEnabled() {
 		boolean tracksSelected = false;
 		boolean allowDownload = false;
 		boolean allowDel = false;
+		boolean allowLove = false;
 		if (frame.mainPanel != null && frame.mainPanel.currentContentPanel() != null) {
 			ContentPanel cp = frame.mainPanel.currentContentPanel();
 			TrackList tl = cp.trackList;
 			if (tl != null) {
 				List<String> selSids = tl.getSelectedStreamIds();
 				tracksSelected = (selSids.size() > 0);
+				allowLove = (tracksSelected && !frame.ctrl.lovingAll(selSids));
 				// If this is our own library, there won't be any cloud tracks, don't iterate through everything!
 				if (cp instanceof MyLibraryContentPanel) {
 					allowDownload = false;
@@ -430,7 +429,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 				} else {
 					// Only allow download if at least one of the selected tracks is a cloud track
 					for (String sid : selSids) {
-						Track t = control.getTrack(sid);
+						Track t = ctrl.getTrack(sid);
 						if (t instanceof CloudTrack) {
 							allowDownload = true;
 							break;
@@ -441,6 +440,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 			}
 		}
 		synchronized (this) {
+			loveBtn.setEnabled(allowLove);
 			dloadBtn.setEnabled(allowDownload);
 			delBtn.setEnabled(allowDel);
 			// Enable play/pause button unless we are stopped and there are no tracks selected
@@ -475,10 +475,10 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 				break;
 			case Starting: // fall through
 			case Playing:
-				control.pause();
+				ctrl.pause();
 				break;
 			case Paused:
-				control.play(null);
+				ctrl.play(null);
 				break;
 			}
 		}

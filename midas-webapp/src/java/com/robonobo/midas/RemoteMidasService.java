@@ -148,6 +148,8 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 						return null;
 					} else if (method.equals("requestTopUp")) {
 						return requestTopUp(params);
+					} else if(method.equals("getPlaylistByUserIdAndTitle")) {
+						return getPlaylistByUserIdAndTitle(params);
 					} else
 						throw new IllegalArgumentException("Invalid method");
 				} catch (Exception e) {
@@ -273,8 +275,21 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 
 	private Object getPlaylistById(RemoteCall params) {
 		Long plId = (Long) params.getArg();
-		return midas.getPlaylistById(plId).toMsg().toByteArray();
+		MidasPlaylist p = midas.getPlaylistById(plId);
+		if(p == null)
+			return null;
+		return p.toMsg().toByteArray();
 	}
+
+	protected Object getPlaylistByUserIdAndTitle(RemoteCall params) {
+		Long uid = (Long) params.getArg();
+		String title = (String) params.getExtraArgs().get(0);
+		MidasPlaylist p = midas.getPlaylistByUserIdAndTitle(uid, title);
+		if(p == null)
+			return null;
+		return p.toMsg().toByteArray();
+	}
+
 
 	private Object getUserAsVisibleBy(RemoteCall params) throws IOException {
 		UserMsg targetMsg = UserMsg.newBuilder().mergeFrom((byte[]) params.getArg()).build();

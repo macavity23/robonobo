@@ -306,6 +306,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, title, msg, "go to robonobo website", new CatchingRunnable() {
 			public void doRun() throws Exception {
 				NetUtil.browse(url);
+				ctrl.watchMyUserConfig();
 			}
 		});
 		runOnUiThread(new CatchingRunnable() {

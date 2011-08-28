@@ -22,7 +22,7 @@ public class NewPlaylistTableModel extends PlaylistTableModel {
 	}
 
 	public NewPlaylistTableModel(RobonoboFrame frame, Playlist p, EventList<Track> el) {
-		super(frame, p, true, el);
+		super(frame, p, true, el, null);
 	}
 
 	@Override

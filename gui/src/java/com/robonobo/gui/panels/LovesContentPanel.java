@@ -13,7 +13,7 @@ import com.robonobo.core.api.model.*;
 import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
-import com.robonobo.gui.model.PlaylistTableModel;
+import com.robonobo.gui.model.LovesTableModel;
 
 @SuppressWarnings("serial")
 public class LovesContentPanel extends MyPlaylistContentPanel {
@@ -24,7 +24,7 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 	RRadioButton immPostRb;
 
 	public LovesContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc) {
-		super(f, pl, pc, PlaylistTableModel.create(f, pl, false));
+		super(f, pl, pc, LovesTableModel.create(f, pl));
 		tabPane.insertTab("loves", null, new LovesSettingsPanel(), null, 0);
 		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, UNDEFINED_CONDITION);
@@ -145,7 +145,15 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 			ButtonGroup bg = new ButtonGroup();
 			bg.add(groupPostRb);
 			bg.add(immPostRb);
-			add(new PlaylistToolsPanel(), "1,7,6,7,LEFT,TOP");
+			add(new ToolsPanel(), "1,7,6,7,LEFT,TOP");
+		}
+	}
+	
+	class ToolsPanel extends PlaylistToolsPanel {
+		@Override
+		protected String urlText() {
+			long myUid = frame.ctrl.getMyUser().getUserId();
+			return frame.ctrl.getConfig().getShortUrlBase() + "sp/" + Long.toHexString(myUid) + "/loves";
 		}
 	}
 }

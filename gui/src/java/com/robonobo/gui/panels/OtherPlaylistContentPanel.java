@@ -104,6 +104,10 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 		descField.setText(desc);
 	}
 
+	protected PlaylistToolsPanel createToolsPanel() {
+		return new PlaylistToolsPanel();
+	}
+	
 	class PlaylistDetailsPanel extends JPanel {
 		public PlaylistDetailsPanel() {
 			double[][] cellSizen = { { 5, 420, 15, TableLayout.FILL, 5 },
@@ -111,7 +115,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 			setLayout(new TableLayout(cellSizen));
 			titleField = new RLabel18B();
 			add(titleField, "1,0");
-			toolsPanel = new PlaylistToolsPanel();
+			toolsPanel = createToolsPanel();
 			add(toolsPanel, "1,2");
 			descField = new RTextPane();
 			descField.setBGColor(RoboColor.MID_GRAY);

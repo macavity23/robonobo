@@ -56,6 +56,8 @@ public abstract class AbstractMetadataService extends AbstractService {
 	 *            on success, the passed playlist may be null */
 	public abstract void postPlaylistUpdateToService(String service, long playlistId, String msg, PlaylistCallback callback);
 
+	public abstract void postSpecialPlaylistToService(String service, long userId, String plName, String msg, PlaylistCallback callback);
+		
 	/** Will remove the logged-in user from the list of playlist owners, or delete the playlist if they are the only
 	 * owner
 	 * 

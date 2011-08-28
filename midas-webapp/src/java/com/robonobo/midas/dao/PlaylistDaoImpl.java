@@ -29,10 +29,22 @@ public class PlaylistDaoImpl extends MidasDao implements PlaylistDao {
 	}
 
 	@Override
-	public MidasPlaylist loadPlaylist(long playlistId) {
+	public MidasPlaylist getPlaylistById(long playlistId) {
 		return (MidasPlaylist) getSession().get(MidasPlaylist.class, playlistId);
 	}
 
+	@Override
+	public MidasPlaylist getPlaylistByUserIdAndTitle(long uid, String title) {
+		String hql = "from MidasPlaylist as mp where :title = lower(mp.title) and :uid in elements(mp.ownerIds)";
+		Query q = getSession().createQuery(hql);
+		q.setParameter("title", title.toLowerCase());
+		q.setParameter("uid", uid);
+		List result = q.list();
+		if(result.size() == 0)
+			return null;
+		return (MidasPlaylist) result.get(1);
+	}
+	
 	@Override
 	public void savePlaylist(MidasPlaylist playlist) {
 		sanitizePlaylist(playlist);

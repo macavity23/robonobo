@@ -55,9 +55,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			setLayout(new TableLayout(cellSizen));
 			RLabel urlLbl = new RLabel13("URL:");
 			add(urlLbl, "0,0");
-			String urlBase = frame.ctrl.getConfig().getPlaylistUrlBase();
-			String urlText = (p.getPlaylistId() > 0) ? urlBase + Long.toHexString(p.getPlaylistId()) : "(none)";
-			final RTextField urlField = new RTextField(urlText);
+			final RTextField urlField = new RTextField(urlText());
 			urlField.setEnabled(false);
 			add(urlField, "2,0");
 			fbBtn = new RSmallRoundButton(createImageIcon("/icon/facebook.png", null));
@@ -90,6 +88,10 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			copyBtn.setEnabled(p.getPlaylistId() > 0);
 			add(copyBtn, "8,0");
 			checkPlaylistVisibility();
+		}
+
+		protected String urlText() {
+			return (p.getPlaylistId() > 0) ? frame.ctrl.getConfig().getShortUrlBase() + "p/" + Long.toHexString(p.getPlaylistId()) : "(none)";
 		}
 
 		public void checkPlaylistVisibility() {
@@ -156,10 +158,10 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 		protected boolean canRemoveComment(Comment c) {
 			long myUid = frame.ctrl.getMyUser().getUserId();
 			// If I own this comment, I can remove it
-			if(c.getUserId() == myUid)
+			if (c.getUserId() == myUid)
 				return true;
 			// If I don't own this playlist, I can't remove comments
-			if(!p.getOwnerIds().contains(myUid))
+			if (!p.getOwnerIds().contains(myUid))
 				return false;
 			// I do own this playlist - I can remove this comment unless it's made by another owner
 			return !(p.getOwnerIds().contains(c.getUserId()));

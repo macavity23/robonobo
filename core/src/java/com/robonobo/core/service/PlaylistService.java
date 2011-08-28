@@ -1,5 +1,7 @@
 package com.robonobo.core.service;
 
+import static com.robonobo.common.util.TextUtil.*;
+
 import java.io.IOException;
 import java.util.*;
 
@@ -13,6 +15,7 @@ import com.robonobo.core.metadata.*;
 import com.robonobo.core.metadata.AbstractMetadataService.RequestFetchOrder;
 
 public class PlaylistService extends AbstractService {
+	static final String[] SPECIAL_PLAYLIST_NAMES = { "Loves", "Radio" };
 	Map<Long, Playlist> playlists = new HashMap<Long, Playlist>();
 	Map<String, Long> myPlaylistIdsByTitle = new HashMap<String, Long>();
 	Set<Long> forceUpdatePlaylists = new HashSet<Long>();
@@ -65,7 +68,7 @@ public class PlaylistService extends AbstractService {
 			myPlaylistIdsByTitle.clear();
 		}
 	}
-	
+
 	public void refreshMyPlaylists(User me) {
 		tasks.runTask(new RefreshMyPlaylistsTask(me.getPlaylistIds()));
 	}
@@ -76,6 +79,14 @@ public class PlaylistService extends AbstractService {
 			tasks.runTask(new RefreshFriendPlaylistsTask(plIds));
 	}
 
+	public boolean isSpecialPlaylist(String title) {
+		for (String specName : SPECIAL_PLAYLIST_NAMES) {
+			if(specName.equalsIgnoreCase(title))
+				return true;
+		}
+		return false;
+	}
+	
 	abstract class PlaylistFetcher implements PlaylistCallback {
 		Set<Long> waitingForPlaylists = new HashSet<Long>();
 		Set<String> waitingForStreams = new HashSet<String>();
@@ -129,7 +140,7 @@ public class PlaylistService extends AbstractService {
 					}
 				} else {
 					// No streams to fetch - check for comments
-					for(long plId : plIds) {
+					for (long plId : plIds) {
 						comments.fetchCommentsForPlaylist(plId);
 					}
 				}
@@ -137,7 +148,7 @@ public class PlaylistService extends AbstractService {
 		}
 
 		void gotStream(String sid) {
-			if(!waitingForStreams.remove(sid))
+			if (!waitingForStreams.remove(sid))
 				return;
 			int streamsLeft = waitingForStreams.size();
 			int streamsDone = streamsToFetch - streamsLeft;
@@ -179,7 +190,7 @@ public class PlaylistService extends AbstractService {
 
 		@Override
 		public void runTask() throws Exception {
-			log.debug("Running playlists refresh task with plids "+plIds);
+			log.debug("Running playlists refresh task with plids " + plIds);
 			statusText = "Fetching playlist details";
 			fireUpdated();
 			metadata.fetchPlaylists(plIds, fetcher);
@@ -196,8 +207,19 @@ public class PlaylistService extends AbstractService {
 		}
 
 		void onCompletion() {
-			// DEBUG
-			log.debug("RefreshMyPlaylistsTask.onCompletion");
+			// If we don't have our special playlists, create them
+			List<String> createPls = new ArrayList<String>();
+			synchronized (this) {
+				for (String specName : SPECIAL_PLAYLIST_NAMES) {
+					if (!myPlaylistIdsByTitle.containsKey(specName))
+						createPls.add(specName);
+				}
+			}
+			for (String plName : createPls) {
+				Playlist p = new Playlist();
+				p.setTitle(plName);
+				createPlaylist(p, null, true);
+			}
 			// Now we're done with my playlists, we can load our friends
 			rbnb.getUserService().fetchFriends();
 		}
@@ -246,7 +268,7 @@ public class PlaylistService extends AbstractService {
 			waitingForSids.remove(sid);
 			if (waitingForSids.size() == 0) {
 				long plId = p.getPlaylistId();
-				log.warn("Finished fetching streams for playlist "+plId);
+				log.warn("Finished fetching streams for playlist " + plId);
 				// We've loaded all our streams
 				events.firePlaylistChanged(p);
 				downloadTracksIfNecessary(p);
@@ -287,9 +309,24 @@ public class PlaylistService extends AbstractService {
 		});
 	}
 
-	/** The handler will be called back with the updated playlist, which will have a playlist id set, or else with an
-	 * errot */
 	public void createPlaylist(Playlist p, final PlaylistCallback handler) {
+		createPlaylist(p, handler, false);
+	}
+
+	private void createPlaylist(Playlist p, final PlaylistCallback handler, boolean allowSpecialName) {
+		// If necessary, change the playlist title so it doesn't conflict with our special playlists
+		if (!allowSpecialName) {
+			synchronized (this) {
+				for (String specName : SPECIAL_PLAYLIST_NAMES) {
+					if (specName.equalsIgnoreCase(p.getTitle())) {
+						int i = 1;
+						do {
+							p.setTitle(specName + "-" + i++);
+						} while (myPlaylistIdsByTitle.containsKey(p.getTitle()));
+					}
+				}
+			}
+		}
 		log.debug("Creating new playlist with title " + p.getTitle());
 		metadata.updatePlaylist(p, new PlaylistCallback() {
 			public void success(Playlist newP) {
@@ -314,6 +351,72 @@ public class PlaylistService extends AbstractService {
 		});
 	}
 
+	public void love(Collection<String> sids) {
+		Playlist loves;
+		synchronized (this) {
+			Long lovePlid = myPlaylistIdsByTitle.get("Loves");
+			loves = playlists.get(lovePlid);
+		}
+		if(loves == null) {
+			log.error("No loves playlist!");
+			return;
+		}
+		loves.getStreamIds().addAll(sids);
+		updatePlaylist(loves);
+		UserConfig uc = rbnb.getUserService().getMyUserConfig();
+		String fbStr = uc.getItem("postLovesToFb");
+		boolean postToFb = (fbStr == null) ? true : Boolean.valueOf(fbStr);
+		String twitStr = uc.getItem("postLovesToTwitter");
+		boolean postToTwitter = (twitStr == null) ? true : Boolean.valueOf(twitStr);
+		if(postToFb || postToTwitter) {
+			// Figure out our message to post
+			int msgSizeLimit = 140;
+			List<String> artists = new ArrayList<String>();
+			for (String sid : sids) {
+				Stream s = streams.getKnownStream(sid);
+				if(!artists.contains(s.getArtist()))
+					artists.add(s.getArtist());
+			}
+			String okMsg = "I love "+numItems(artists, "artist")+": ";
+			int urlLen = ("http://rbnb.co/sp/"+Long.toHexString(uc.getUserId())+"/loves").length();
+			for(int i=0;i<artists.size();i++) {
+				StringBuffer sb = new StringBuffer("I love ");
+				for(int j=0;j<=i;j++) {
+					if(j != 0)
+						sb.append(", ");
+					sb.append(artists.get(j));
+				}
+				if(i < (artists.size() -1)) {
+					int numOtherArtists = artists.size() - (i+1);
+					sb.append(" and ").append(numItems(numOtherArtists, "other artist"));
+				}
+				sb.append(": ");
+				String msg = sb.toString();
+				if((msg.length() + urlLen) <= msgSizeLimit)
+					okMsg = msg;
+				else
+					break;
+			}
+			if(postToFb)
+				postSpecialPlaylistToService("facebook", uc.getUserId(), "Loves", okMsg);
+			if(postToTwitter)
+				postSpecialPlaylistToService("twitter", uc.getUserId(), "Loves", okMsg);
+		}
+	}
+
+	public boolean lovingAll(Collection<String> sids) {
+		Playlist loves;
+		synchronized (this) {
+			Long lovePlid = myPlaylistIdsByTitle.get("Loves");
+			loves = playlists.get(lovePlid);
+		}
+		if(loves == null) {
+			log.error("No loves playlist!");
+			return false;
+		}
+		return loves.getStreamIds().containsAll(sids);
+	}
+
 	/** Update things that need to be updated on playlists containing this track we're now sharing */
 	public void checkPlaylistsForNewShare(SharedTrack sh) {
 		// Currently, just sync to itunes
@@ -330,7 +433,7 @@ public class PlaylistService extends AbstractService {
 				public void doRun() throws Exception {
 					for (Playlist p : affectedPs) {
 						PlaylistConfig pc = rbnb.getDbService().getPlaylistConfig(p.getPlaylistId());
-						if(shouldITunesSync(pc))
+						if (shouldITunesSync(pc))
 							syncITunesIfNecessary(p);
 					}
 				}
@@ -341,25 +444,24 @@ public class PlaylistService extends AbstractService {
 	public void playlistConfigUpdated(PlaylistConfig oldPc, PlaylistConfig newPc) {
 		long plId = newPc.getPlaylistId();
 		Playlist p;
-		synchronized(this) {
+		synchronized (this) {
 			p = playlists.get(plId);
 		}
-		if(p == null) {
-			log.error("Playlist config updated for plid "+plId+" but there is no such playlist");
+		if (p == null) {
+			log.error("Playlist config updated for plid " + plId + " but there is no such playlist");
 			return;
 		}
 		downloadTracksIfNecessary(p);
 		// Only call to iTunes if necessary as this causes the iTunes program to pop open
-		if(shouldITunesSync(newPc) && !shouldITunesSync(oldPc))
+		if (shouldITunesSync(newPc) && !shouldITunesSync(oldPc))
 			syncITunesIfNecessary(p);
 	}
-	
-		
+
 	private void syncITunesIfNecessary(Playlist p) {
 		try {
 			for (Long ownerId : p.getOwnerIds()) {
 				User owner = rbnb.getUserService().getKnownUser(ownerId);
-				if(owner != null)
+				if (owner != null)
 					rbnb.getITunesService().syncPlaylist(owner, p);
 			}
 		} catch (IOException e) {
@@ -472,6 +574,19 @@ public class PlaylistService extends AbstractService {
 
 			public void error(long playlistId, Exception ex) {
 				log.error("Error posting playlist update for playlist " + playlistId + " to service " + service, ex);
+			}
+		});
+	}
+
+	public void postSpecialPlaylistToService(final String service, long userId, final String plName, String msg) {
+		log.debug("Posting special playlist " + plName + " to service " + service);
+		metadata.postSpecialPlaylistToService(service, userId, plName, msg, new PlaylistCallback() {
+			public void success(Playlist p) {
+				log.debug("Successfully posted special playlist " + plName + " to service " + service);
+			}
+
+			public void error(long playlistId, Exception ex) {
+				log.debug("Error posting special playlist " + plName + " to service " + service, ex);
 			}
 		});
 	}

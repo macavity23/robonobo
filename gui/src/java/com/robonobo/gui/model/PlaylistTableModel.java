@@ -5,8 +5,7 @@ import java.util.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import ca.odell.glazedlists.EventList;
-import ca.odell.glazedlists.GlazedLists;
+import ca.odell.glazedlists.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.Errot;
@@ -17,8 +16,8 @@ import com.robonobo.mina.external.FoundSourceListener;
 @SuppressWarnings("serial")
 public class PlaylistTableModel extends GlazedTrackListTableModel implements FoundSourceListener {
 	private static final int[] PLAYLIST_HIDDEN_COLS = new int[] { 4, 11, 12 };
-	private Playlist p;
-	private boolean canEdit;
+	protected Playlist p;
+	protected boolean canEdit;
 	/** Are we actively looking for sources for streams on this playlist? */
 	private boolean activated = false;
 	Log log = LogFactory.getLog(getClass());
@@ -29,11 +28,11 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 			trax.add(frame.ctrl.getTrack(sid));
 		}
 		EventList<Track> el = GlazedLists.eventList(trax);
-		return new PlaylistTableModel(frame, p, canEdit, el);
+		return new PlaylistTableModel(frame, p, canEdit, el, null);
 	}
 
-	protected PlaylistTableModel(RobonoboFrame frame, Playlist p, boolean canEdit, EventList<Track> el) {
-		super(frame, el, null, null);
+	protected PlaylistTableModel(RobonoboFrame frame, Playlist p, boolean canEdit, EventList<Track> el, SortedList<Track> sl) {
+		super(frame, el, sl, null);
 		this.p = p;
 		this.canEdit = canEdit;
 		int i = 0;
