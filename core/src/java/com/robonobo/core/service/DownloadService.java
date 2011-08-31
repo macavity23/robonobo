@@ -98,7 +98,13 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 						db.deleteDownload(sid);
 						continue;
 					}
-					PageBuffer pb = storage.getPageBuf(d.getStream().getStreamId());
+					PageBuffer pb = storage.getPageBuf(sid);
+					if(pb == null) {
+						// Should never happen, but perhaps we got kill-9d at the wrong point
+						log.error("No pagebuffer for download "+sid+" - deleting");
+						db.deleteDownload(sid);
+						continue;
+					}
 					d.setPageBuf(pb);
 					// If we died or got kill-9d at the wrong point, we might be 100%
 					// finished downloading - turn it into a share here, or it'll never
