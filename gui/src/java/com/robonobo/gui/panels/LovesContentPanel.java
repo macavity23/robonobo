@@ -1,7 +1,9 @@
 package com.robonobo.gui.panels;
 
+import static com.robonobo.gui.GuiUtil.*;
 import info.clearthought.layout.TableLayout;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -17,8 +19,9 @@ import com.robonobo.gui.model.LovesTableModel;
 
 @SuppressWarnings("serial")
 public class LovesContentPanel extends MyPlaylistContentPanel {
-	RCheckBox fbCb, twitCb;
 	JPanel fbPanel, twitPanel;
+	RCheckBox fbCb, twitCb;
+	JLabel fbIcon, twitIcon;
 	RButton addFbBtn, addTwitBtn;
 	RRadioButton groupPostRb;
 	RRadioButton immPostRb;
@@ -27,7 +30,7 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 		super(f, pl, pc, LovesTableModel.create(f, pl));
 		tabPane.insertTab("loves", null, new LovesSettingsPanel(), null, 0);
 		commentsPanel = new PlaylistCommentsPanel(f);
-		tabPane.insertTab("comments", null, commentsPanel, null, UNDEFINED_CONDITION);
+		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
 		setupComments();
 		frame.ctrl.addUserListener(new UserAdapter() {
@@ -42,7 +45,7 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 	}
 
 	private void userCfgUpdated(final UserConfig uc) {
-		GuiUtil.runOnUiThread(new CatchingRunnable() {
+		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				if (uc.getItem("facebookId") == null) {
 					fbCb.setSelected(false);
@@ -56,6 +59,10 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 						});
 					}
 					fbPanel.removeAll();
+					fbPanel.add(fbCb);
+					fbPanel.add(Box.createHorizontalStrut(5));
+					fbPanel.add(fbIcon);
+					fbPanel.add(Box.createHorizontalStrut(5));
 					fbPanel.add(addFbBtn);
 					fbPanel.add(Box.createHorizontalStrut(5));
 					fbPanel.add(new RLabel13("to post loves to Facebook"));
@@ -64,13 +71,17 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 					String fbCfg = uc.getItem("postLovesToFb");
 					fbCb.setSelected(fbCfg == null || fbCfg.equalsIgnoreCase("true"));
 					fbPanel.removeAll();
-					fbPanel.add(new RLabel13("Facebook (" + uc.getItem("facebookName") + ")"));
+					fbPanel.add(fbCb);
+					fbPanel.add(Box.createHorizontalStrut(5));
+					fbPanel.add(fbIcon);
+					RLabel13 nameLbl = new RLabel13("Facebook (" + uc.getItem("facebookName") + ")");
+					fbPanel.add(nameLbl);
 				}
 				if (uc.getItem("twitId") == null) {
 					twitCb.setSelected(false);
 					twitCb.setEnabled(false);
 					if (addTwitBtn == null) {
-						addTwitBtn = new RGlassButton("Add twitter details...");
+						addTwitBtn = new RGlassButton("Add Twitter details...");
 						addTwitBtn.addActionListener(new ActionListener() {
 							public void actionPerformed(ActionEvent e) {
 								frame.showTwitterSignupSheet("Add Twitter details", "Before you can tweet from robonobo, you need to add your Twitter details.");
@@ -78,6 +89,10 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 						});
 					}
 					twitPanel.removeAll();
+					twitPanel.add(twitCb);
+					twitPanel.add(Box.createHorizontalStrut(5));
+					twitPanel.add(twitIcon);
+					twitPanel.add(Box.createHorizontalStrut(5));
 					twitPanel.add(addTwitBtn);
 					twitPanel.add(Box.createHorizontalStrut(5));
 					twitPanel.add(new RLabel13("to post loves to Twitter"));
@@ -86,7 +101,22 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 					String twitCfg = uc.getItem("postLovesToTwitter");
 					twitCb.setSelected(twitCfg == null || twitCfg.equalsIgnoreCase("true"));
 					twitPanel.removeAll();
+					twitPanel.add(twitCb);
+					twitPanel.add(Box.createHorizontalStrut(5));
+					twitPanel.add(twitIcon);
+					twitPanel.add(Box.createHorizontalStrut(5));
 					twitPanel.add(new RLabel13("Twitter (" + uc.getItem("twitterScreenName") + ")"));
+				}
+				groupPostRb.setEnabled(true);
+				immPostRb.setEnabled(true);
+				String plCfgStr = uc.getItem("postLoves");
+				if(plCfgStr == null) 
+					groupPostRb.setSelected(true);
+				else {
+					if(plCfgStr.equalsIgnoreCase("immediate"))
+						immPostRb.setSelected(true);
+					else
+						groupPostRb.setSelected(true);
 				}
 			}
 		});
@@ -94,9 +124,14 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 
 	class LovesSettingsPanel extends JPanel {
 		public LovesSettingsPanel() {
-			double[][] cells = { { 10, 20, 5, 20, 200, TableLayout.FILL, 250, 10 }, { 10, 20, 10, 30, 5, 30, 10, 30, TableLayout.FILL } };
+			double[][] cells = { { 10, TableLayout.FILL, 10, 300, 10 }, { 5, TableLayout.FILL, 5 } };
 			setLayout(new TableLayout(cells));
-			add(new RLabel16B("Post loves to:"), "1,1,5,1,LEFT,TOP");
+			JPanel servicePnl = new JPanel();
+			servicePnl.setLayout(new BoxLayout(servicePnl, BoxLayout.Y_AXIS));
+			RLabel16B serviceLbl = new RLabel16B("Post loves to:");
+			serviceLbl.setAlignmentX(LEFT_ALIGNMENT);
+			servicePnl.add(serviceLbl);
+			servicePnl.add(Box.createVerticalStrut(10));
 			fbCb = new RCheckBox();
 			fbCb.setSelected(false);
 			fbCb.setEnabled(false);
@@ -110,12 +145,18 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 					});
 				}
 			});
-			add(fbCb, "1,3");
-			add(new JLabel(GuiUtil.createImageIcon("/icon/facebook.png", null)), "3,3,CENTER,CENTER");
+			fbIcon = new JLabel(GuiUtil.createImageIcon("/icon/facebook-24x24.png", null));
 			fbPanel = new JPanel();
 			fbPanel.setLayout(new BoxLayout(fbPanel, BoxLayout.X_AXIS));
+			fbPanel.add(fbCb);
+			fbPanel.add(Box.createHorizontalStrut(5));
+			fbPanel.add(fbIcon);
+			fbPanel.add(Box.createHorizontalStrut(5));
 			fbPanel.add(new RLabel13("Loading details..."));
-			add(fbPanel, "4,3");
+			fbPanel.setAlignmentX(LEFT_ALIGNMENT);
+			fbPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+			servicePnl.add(fbPanel);
+			servicePnl.add(Box.createVerticalStrut(5));
 			twitCb = new RCheckBox();
 			twitCb.setSelected(false);
 			twitCb.setEnabled(false);
@@ -129,31 +170,49 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 					});
 				}
 			});
-			add(twitCb, "1,5");
-			add(new JLabel(GuiUtil.createImageIcon("/icon/twitter.png", null)), "3,5,CENTER,CENTER");
+			twitIcon = new JLabel(GuiUtil.createImageIcon("/icon/twitter-24x24.png", null));
 			twitPanel = new JPanel();
 			twitPanel.setLayout(new BoxLayout(twitPanel, BoxLayout.X_AXIS));
+			twitPanel.add(twitCb);
+			twitPanel.add(Box.createHorizontalStrut(5));
+			twitPanel.add(twitIcon);
+			twitPanel.add(Box.createHorizontalStrut(5));
 			twitPanel.add(new RLabel13("Loading details..."));
-			add(twitPanel, "4,5");
-			add(new RLabel16B("When I love one track after another:"), "6,1,LEFT,TOP");
-			groupPostRb = new RRadioButton("Post them together (waits 30 minutes)");
+			twitPanel.setAlignmentX(LEFT_ALIGNMENT);
+			twitPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+			servicePnl.add(twitPanel);
+			add(servicePnl, "1,1");
+			JPanel postPrefPnl = new JPanel();
+			postPrefPnl.setLayout(new BoxLayout(postPrefPnl, BoxLayout.Y_AXIS));
+			postPrefPnl.add(new RLabel16B("When I love one track after another:"));
+			postPrefPnl.add(Box.createVerticalStrut(10));
+			ActionListener postPrefAl = new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					String cfg = "together";
+					if(immPostRb.isSelected())
+						cfg = "immediate";
+					final String fCfg = cfg;
+					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+						public void doRun() throws Exception {
+							frame.ctrl.saveUserConfigItem("postLoves", fCfg);
+						}
+					});
+				}
+			};
+			int delayMins = frame.ctrl.getConfig().getPostLovesDelayMins();
+			groupPostRb = new RRadioButton("Post them together (waits "+delayMins+" minutes)");
 			groupPostRb.setEnabled(false);
-			add(groupPostRb, "6,3");
-			immPostRb = new RRadioButton("Post each immediately");
+			groupPostRb.addActionListener(postPrefAl);
+			postPrefPnl.add(groupPostRb);
+			postPrefPnl.add(Box.createVerticalStrut(5));
+			immPostRb = new RRadioButton("Post each one immediately");
 			immPostRb.setEnabled(false);
-			add(immPostRb, "6,5");
+			immPostRb.addActionListener(postPrefAl);
+			postPrefPnl.add(immPostRb);
 			ButtonGroup bg = new ButtonGroup();
 			bg.add(groupPostRb);
 			bg.add(immPostRb);
-			add(new ToolsPanel(), "1,7,6,7,LEFT,TOP");
-		}
-	}
-	
-	class ToolsPanel extends PlaylistToolsPanel {
-		@Override
-		protected String urlText() {
-			long myUid = frame.ctrl.getMyUser().getUserId();
-			return frame.ctrl.getConfig().getShortUrlBase() + "sp/" + Long.toHexString(myUid) + "/loves";
+			add(postPrefPnl, "3,1");
 		}
 	}
 }

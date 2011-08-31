@@ -280,6 +280,7 @@ public class TrackList extends JPanel {
 
 		void refresh() {
 			removeAll();
+			UserConfig uc = frame.ctrl.getMyUserConfig();
 			RMenuItem play = new RBoldMenuItem("Play");
 			play.setActionCommand("play");
 			play.addActionListener(this);
@@ -306,6 +307,13 @@ public class TrackList extends JPanel {
 				dl.addActionListener(this);
 				add(dl);
 			}
+			String radioCfg = uc.getItem("radioPlaylist");
+			if("manual".equalsIgnoreCase(radioCfg)) {
+				RMenuItem radmi = new RMenuItem("Add to Radio");
+				radmi.setActionCommand("radio");
+				radmi.addActionListener(this);
+				add(radmi);
+			}
 			JMenu plMenu = new JMenu("Add to playlist");
 			RMenuItem newPl = new RMenuItem("New Playlist");
 			newPl.setActionCommand("newpl");
@@ -313,7 +321,7 @@ public class TrackList extends JPanel {
 			plMenu.add(newPl);
 			for (long plId : frame.ctrl.getMyUser().getPlaylistIds()) {
 				Playlist p = frame.ctrl.getKnownPlaylist(plId);
-				if (p != null) {
+				if (p != null && !frame.ctrl.isSpecialPlaylist(p.getTitle())) {
 					RMenuItem pmi = new RMenuItem(p.getTitle());
 					pmi.setActionCommand("pl-" + p.getPlaylistId());
 					pmi.addActionListener(this);
@@ -386,6 +394,8 @@ public class TrackList extends JPanel {
 						frame.ctrl.love(selSids);
 					}
 				});
+			} else if(action.equals("radio")) {
+				frame.ctrl.addToRadio(getSelectedStreamIds());
 			} else
 				log.error("PopupMenu generated unknown action: " + action);
 		}

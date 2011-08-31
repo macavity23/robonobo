@@ -5,15 +5,13 @@ import com.robonobo.midas.client.Params.Operation;
 
 public class SpecialPlaylistPostRequest implements Request {
 	MidasClientConfig cfg;
-	String service;
 	String msg;
 	PlaylistCallback handler;
 	private long userId;
 	private String plName;
 
-	public SpecialPlaylistPostRequest(MidasClientConfig cfg, String service, long userId, String plName, String msg, PlaylistCallback handler) {
+	public SpecialPlaylistPostRequest(MidasClientConfig cfg, long userId, String plName, String msg, PlaylistCallback handler) {
 		this.cfg = cfg;
-		this.service = service;
 		this.userId = userId;
 		this.plName = plName;
 		this.msg = msg;
@@ -22,15 +20,15 @@ public class SpecialPlaylistPostRequest implements Request {
 
 	@Override
 	public int remaining() {
-		if (service == null)
+		if (msg == null)
 			return 0;
 		return 1;
 	}
 
 	@Override
 	public Params getNextParams() {
-		Params p = new Params(Operation.Get, null, null, cfg.getSpecialPlaylistPostUrl(service, userId, plName, msg), userId);
-		service = null;
+		Params p = new Params(Operation.Get, null, null, cfg.getSpecialPlaylistPostUrl(userId, plName, msg), userId);
+		msg = null;
 		return p;
 	}
 

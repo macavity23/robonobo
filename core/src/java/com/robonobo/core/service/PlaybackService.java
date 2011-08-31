@@ -1,5 +1,7 @@
 package com.robonobo.core.service;
 
+import static java.lang.Math.*;
+
 import java.io.IOException;
 import java.util.Date;
 
@@ -16,6 +18,7 @@ import com.robonobo.mina.external.MinaControl;
 import com.robonobo.mina.external.buffer.*;
 
 public class PlaybackService extends AbstractService implements AudioPlayerListener, PageBufferListener {
+	private static final int RADIO_THRESH_MICROSECS = 10 * 60 * 1000000;
 	private AudioPlayer.Status status = Status.Stopped;
 	/** If we're within this time (secs) after the start of a track, calling prev() goes to the previous track
 	 * (otherwise, returns to the start of the current one) */
@@ -31,6 +34,8 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 	private DownloadService download;
 	private MinaControl mina;
 	String currentStreamId;
+	long currentStreamDurationMs;
+	boolean firedRadioEvent = false;
 
 	public PlaybackService() {
 		addHardDependency("core.tracks");
@@ -119,6 +124,8 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		status = Status.Buffering;
 		event.firePlaybackStarting();
 		Stream s = streams.getKnownStream(currentStreamId);
+		firedRadioEvent = false;
+		currentStreamDurationMs = s.getDuration();
 		if (bufferedEnough(s, pb))
 			startPlaying(s, pb);
 		else {
@@ -319,6 +326,14 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		// This might be null if we are a left-over thread, just exit
 		if (currentStreamId == null)
 			return;
+		// We add the track to our radio when we play 75% of the track, or 10 mins, whichever comes first
+		if (!firedRadioEvent) {
+			long thresh = min(RADIO_THRESH_MICROSECS, (long) (currentStreamDurationMs * 1000 * 0.75));
+			if (microsecs > thresh) {
+				rbnb.getPlaylistService().addToRadio(currentStreamId);
+				firedRadioEvent = true;
+			} 
+		}
 		event.firePlaybackProgress(microsecs);
 	}
 }

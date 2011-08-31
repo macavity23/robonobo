@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.concurrent.Timeout;
 import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.RobonoboException;
@@ -26,6 +27,8 @@ public class PlaylistService extends AbstractService {
 	StreamService streams;
 	TrackService tracks;
 	CommentService comments;
+	List<String> loveArtists = new ArrayList<String>();
+	Timeout postLovesTimeout;
 
 	public PlaylistService() {
 		addHardDependency("core.db");
@@ -60,6 +63,7 @@ public class PlaylistService extends AbstractService {
 
 	@Override
 	public void shutdown() throws Exception {
+		postLovesNow();
 	}
 
 	public void clearPlaylists() {
@@ -81,12 +85,12 @@ public class PlaylistService extends AbstractService {
 
 	public boolean isSpecialPlaylist(String title) {
 		for (String specName : SPECIAL_PLAYLIST_NAMES) {
-			if(specName.equalsIgnoreCase(title))
+			if (specName.equalsIgnoreCase(title))
 				return true;
 		}
 		return false;
 	}
-	
+
 	abstract class PlaylistFetcher implements PlaylistCallback {
 		Set<Long> waitingForPlaylists = new HashSet<Long>();
 		Set<String> waitingForStreams = new HashSet<String>();
@@ -135,8 +139,12 @@ public class PlaylistService extends AbstractService {
 						synchronized (PlaylistService.this) {
 							p = playlists.get(plId);
 						}
-						if (p != null)
-							streams.fetchStreams(p.getStreamIds(), new StreamFetcher(p, this));
+						if (p != null) {
+							if (p.getStreamIds().size() == 0)
+								finishedFetchingPlaylist(p);
+							else
+								streams.fetchStreams(p.getStreamIds(), new StreamFetcher(p, this));
+						}
 					}
 				} else {
 					// No streams to fetch - check for comments
@@ -266,17 +274,20 @@ public class PlaylistService extends AbstractService {
 
 		private void update(String sid) {
 			waitingForSids.remove(sid);
-			if (waitingForSids.size() == 0) {
-				long plId = p.getPlaylistId();
-				log.warn("Finished fetching streams for playlist " + plId);
-				// We've loaded all our streams
-				events.firePlaylistChanged(p);
-				downloadTracksIfNecessary(p);
-				comments.fetchCommentsForPlaylist(plId);
-			}
+			if (waitingForSids.size() == 0)
+				finishedFetchingPlaylist(p);
 			if (pFetcher != null)
 				pFetcher.gotStream(sid);
 		}
+	}
+
+	private void finishedFetchingPlaylist(Playlist p) {
+		// We've loaded all our streams
+		long plId = p.getPlaylistId();
+		log.warn("Finished fetching playlist " + plId);
+		events.firePlaylistChanged(p);
+		downloadTracksIfNecessary(p);
+		comments.fetchCommentsForPlaylist(plId);
 	}
 
 	public void checkPlaylistUpdate(long plId) {
@@ -357,51 +368,69 @@ public class PlaylistService extends AbstractService {
 			Long lovePlid = myPlaylistIdsByTitle.get("Loves");
 			loves = playlists.get(lovePlid);
 		}
-		if(loves == null) {
+		if (loves == null) {
 			log.error("No loves playlist!");
 			return;
 		}
 		loves.getStreamIds().addAll(sids);
 		updatePlaylist(loves);
 		UserConfig uc = rbnb.getUserService().getMyUserConfig();
-		String fbStr = uc.getItem("postLovesToFb");
-		boolean postToFb = (fbStr == null) ? true : Boolean.valueOf(fbStr);
-		String twitStr = uc.getItem("postLovesToTwitter");
-		boolean postToTwitter = (twitStr == null) ? true : Boolean.valueOf(twitStr);
-		if(postToFb || postToTwitter) {
-			// Figure out our message to post
-			int msgSizeLimit = 140;
-			List<String> artists = new ArrayList<String>();
-			for (String sid : sids) {
-				Stream s = streams.getKnownStream(sid);
-				if(!artists.contains(s.getArtist()))
-					artists.add(s.getArtist());
+		for (String sid : sids) {
+			Stream s = streams.getKnownStream(sid);
+			synchronized (this) {
+				if (!loveArtists.contains(s.getArtist()))
+					loveArtists.add(s.getArtist());
 			}
-			String okMsg = "I love "+numItems(artists, "artist")+": ";
-			int urlLen = ("http://rbnb.co/sp/"+Long.toHexString(uc.getUserId())+"/loves").length();
-			for(int i=0;i<artists.size();i++) {
+		}
+		// Are we posting now or later?
+		String cfg = uc.getItem("postLoves");
+		if (cfg == null || cfg.equalsIgnoreCase("together")) {
+			// Post our loves together - set our timeout
+			if (postLovesTimeout == null) {
+				postLovesTimeout = new Timeout(rbnb.getExecutor(), new CatchingRunnable() {
+					public void doRun() throws Exception {
+						postLovesNow();
+					}
+				});
+			}
+			postLovesTimeout.set(rbnb.getConfig().getPostLovesDelayMins() * 60 * 1000);
+		} else
+			postLovesNow();
+	}
+
+	private void postLovesNow() {
+		if (postLovesTimeout != null)
+			postLovesTimeout.cancel();
+		String okMsg;
+		UserConfig uc = rbnb.getUserService().getMyUserConfig();
+		synchronized (this) {
+			if (loveArtists.size() == 0)
+				return;
+			// Figure out our message to post - use the twitter limit
+			int msgSizeLimit = 140;
+			okMsg = "I love " + numItems(loveArtists, "artist") + ": ";
+			int urlLen = ("http://rbnb.co/sp/" + Long.toHexString(uc.getUserId()) + "/loves").length();
+			for (int i = 0; i < loveArtists.size(); i++) {
 				StringBuffer sb = new StringBuffer("I love ");
-				for(int j=0;j<=i;j++) {
-					if(j != 0)
+				for (int j = 0; j <= i; j++) {
+					if (j != 0)
 						sb.append(", ");
-					sb.append(artists.get(j));
+					sb.append(loveArtists.get(j));
 				}
-				if(i < (artists.size() -1)) {
-					int numOtherArtists = artists.size() - (i+1);
+				if (i < (loveArtists.size() - 1)) {
+					int numOtherArtists = loveArtists.size() - (i + 1);
 					sb.append(" and ").append(numItems(numOtherArtists, "other artist"));
 				}
 				sb.append(": ");
 				String msg = sb.toString();
-				if((msg.length() + urlLen) <= msgSizeLimit)
+				if ((msg.length() + urlLen) <= msgSizeLimit)
 					okMsg = msg;
 				else
 					break;
 			}
-			if(postToFb)
-				postSpecialPlaylistToService("facebook", uc.getUserId(), "Loves", okMsg);
-			if(postToTwitter)
-				postSpecialPlaylistToService("twitter", uc.getUserId(), "Loves", okMsg);
+			loveArtists.clear();
 		}
+		postSpecialPlaylist(uc.getUserId(), "Loves", okMsg);
 	}
 
 	public boolean lovingAll(Collection<String> sids) {
@@ -410,11 +439,40 @@ public class PlaylistService extends AbstractService {
 			Long lovePlid = myPlaylistIdsByTitle.get("Loves");
 			loves = playlists.get(lovePlid);
 		}
-		if(loves == null) {
+		if (loves == null) {
 			log.error("No loves playlist!");
 			return false;
 		}
 		return loves.getStreamIds().containsAll(sids);
+	}
+
+	public void addToRadio(String streamId) {
+		addToRadio(Arrays.asList(streamId));
+	}
+	
+	public void addToRadio(final Collection<String> sids) {
+		String radioCfg = rbnb.getUserService().getMyUserConfig().getItem("radioPlaylist");
+		if (radioCfg == null || radioCfg.equalsIgnoreCase("auto")) {
+			rbnb.getExecutor().execute(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					Playlist radioP = null;
+					synchronized (PlaylistService.this) {
+						Long plId = myPlaylistIdsByTitle.get("Radio");
+						if (plId != null)
+							radioP = playlists.get(plId);
+					}
+					if (radioP == null) {
+						log.error("No radio playlist for added track");
+						return;
+					}
+					log.debug("Adding "+sids.size()+" to radio playlist");
+					radioP.getStreamIds().addAll(sids);
+					while(radioP.getStreamIds().size() > rbnb.getConfig().getRadioMaxTracksAuto())
+						radioP.getStreamIds().remove(0);
+					updatePlaylist(radioP);
+				}
+			});
+		}
 	}
 
 	/** Update things that need to be updated on playlists containing this track we're now sharing */
@@ -578,15 +636,15 @@ public class PlaylistService extends AbstractService {
 		});
 	}
 
-	public void postSpecialPlaylistToService(final String service, long userId, final String plName, String msg) {
-		log.debug("Posting special playlist " + plName + " to service " + service);
-		metadata.postSpecialPlaylistToService(service, userId, plName, msg, new PlaylistCallback() {
+	public void postSpecialPlaylist(long userId, final String plName, String msg) {
+		log.debug("Posting special playlist " + plName);
+		metadata.postSpecialPlaylist(userId, plName, msg, new PlaylistCallback() {
 			public void success(Playlist p) {
-				log.debug("Successfully posted special playlist " + plName + " to service " + service);
+				log.debug("Successfully posted special playlist " + plName);
 			}
 
 			public void error(long playlistId, Exception ex) {
-				log.debug("Error posting special playlist " + plName + " to service " + service, ex);
+				log.debug("Error posting special playlist " + plName);
 			}
 		});
 	}

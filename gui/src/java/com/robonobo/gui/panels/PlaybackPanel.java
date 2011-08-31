@@ -28,9 +28,9 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 	private static final String PAUSE_TOOLTIP = "Pause playback";
 	private static final String PLAY_TOOLTIP = "Play selected tracks";
 	private static final String DOWNLOAD_TOOLTIP = "Download selected tracks";
+	private static final String LOVE_TOOLTIP = "Love selected tracks";
 	private static final String NEXT_TOOLTIP = "Next track";
 	private static final String PREV_TOOLTIP = "Previous track";
-	private static final String LOVE_TOOLTIP = "Love these tracks";
 	/** If we're within this time (ms) after the start of a track, calling prev() goes to the previous track (otherwise,
 	 * returns to the start of the current one) */
 	public static final int PREV_TRACK_GRACE_PERIOD = 5000;

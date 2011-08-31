@@ -33,5 +33,5 @@ public interface EventService {
 
 	public void friendRequestAccepted(MidasUser requestor, MidasUser requestee);
 
-	public abstract void specialPlaylistPosted(MidasUser u, long uid, String plName, String postService);
+	public void specialPlaylistPosted(MidasUser u, long uid, String plName);
 }

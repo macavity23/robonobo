@@ -5,8 +5,7 @@ import info.clearthought.layout.TableLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.ButtonGroup;
-import javax.swing.JPanel;
+import javax.swing.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.UserAdapter;
@@ -27,7 +26,7 @@ public class RadioContentPanel extends MyPlaylistContentPanel {
 		super(f, pl, pc, RadioTableModel.create(f, pl, false));
 		tabPane.insertTab("my radio station", null, new RadioSettingsPanel(), null, 0);
 		commentsPanel = new PlaylistCommentsPanel(f);
-		tabPane.insertTab("comments", null, commentsPanel, null, UNDEFINED_CONDITION);
+		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
 		setupComments();
 		frame.ctrl.addUserListener(new UserAdapter() {
@@ -74,10 +73,10 @@ public class RadioContentPanel extends MyPlaylistContentPanel {
 		if (cfg == null)
 			return;
 		updateModel(cfg);
-		final String flarp = cfg;
+		final String fCfg = cfg;
 		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				frame.ctrl.saveUserConfigItem("radioPlaylist", flarp);
+				frame.ctrl.saveUserConfigItem("radioPlaylist", fCfg);
 			}
 		});
 	}
@@ -102,40 +101,41 @@ public class RadioContentPanel extends MyPlaylistContentPanel {
 
 	class RadioSettingsPanel extends JPanel {
 		public RadioSettingsPanel() {
-			double[][] cells = { { 10, TableLayout.FILL, 10 }, { 10, 20, 10, 30, 5, 30, 10, 30, 10, 30, TableLayout.FILL } };
+			double[][] cells = { { 10, TableLayout.FILL, 10}, { 5, TableLayout.FILL, 5} };
 			setLayout(new TableLayout(cells));
-			add(new RLabel16B("Radio playlist"), "1,1");
+			JPanel optsPnl = new JPanel();
+			optsPnl.setLayout(new BoxLayout(optsPnl, BoxLayout.Y_AXIS));
+			RLabel16B titleLbl = new RLabel16B("Choose radio tracks:");
+			titleLbl.setAlignmentX(LEFT_ALIGNMENT);
+			optsPnl.add(titleLbl);
+			optsPnl.add(Box.createVerticalStrut(10));
 			ActionListener al = new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					settingsUiChanged();
 				}
 			};
-			autoRb = new RRadioButton("Add the tracks I play in robonobo");
+			autoRb = new RRadioButton("Automatically add the tracks I play in robonobo");
 			autoRb.setEnabled(false);
 			autoRb.addActionListener(al);
-			add(autoRb, "1,3");
+			autoRb.setAlignmentX(LEFT_ALIGNMENT);
+			optsPnl.add(autoRb);
+			optsPnl.add(Box.createVerticalStrut(5));
 			manualRb = new RRadioButton("Manage radio playlist manually");
 			manualRb.setEnabled(false);
 			manualRb.addActionListener(al);
-			add(manualRb, "1,5");
+			manualRb.setAlignmentX(LEFT_ALIGNMENT);
+			optsPnl.add(manualRb);
+			optsPnl.add(Box.createVerticalStrut(5));
 			offRb = new RRadioButton("Turn off radio playlist");
 			offRb.setEnabled(false);
 			offRb.addActionListener(al);
-			add(offRb, "1,7");
+			offRb.setAlignmentX(LEFT_ALIGNMENT);
+			optsPnl.add(offRb);
 			ButtonGroup bg = new ButtonGroup();
 			bg.add(autoRb);
 			bg.add(manualRb);
 			bg.add(offRb);
-			add(new ToolsPanel(), "1,9");
+			add(optsPnl, "1,1");
 		}
 	}
-	
-	class ToolsPanel extends PlaylistToolsPanel {
-		@Override
-		protected String urlText() {
-			long myUid = frame.ctrl.getMyUser().getUserId();
-			return frame.ctrl.getConfig().getShortUrlBase() + "sp/" + Long.toHexString(myUid) + "/radio";
-		}
-	}
-
 }

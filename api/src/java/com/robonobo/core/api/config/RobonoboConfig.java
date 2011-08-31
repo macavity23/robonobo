@@ -47,6 +47,8 @@ public class RobonoboConfig implements Serializable {
 	String websiteUrlBase = "http://robonobo.com/";
 	String mplayerExePath = null;
 	String topUpUrl = "http://midas.robonobo.com/users/testing-topup";
+	int postLovesDelayMins = 30;
+	int radioMaxTracksAuto = 64;
 	
 	public RobonoboConfig() {
 	}
@@ -329,5 +331,21 @@ public class RobonoboConfig implements Serializable {
 
 	public void setShortUrlBase(String shortUrlBase) {
 		this.shortUrlBase = shortUrlBase;
+	}
+
+	public int getPostLovesDelayMins() {
+		return postLovesDelayMins;
+	}
+
+	public void setPostLovesDelayMins(int postLovesDelayMins) {
+		this.postLovesDelayMins = postLovesDelayMins;
+	}
+
+	public int getRadioMaxTracksAuto() {
+		return radioMaxTracksAuto;
+	}
+
+	public void setRadioMaxTracksAuto(int radioTracksAuto) {
+		this.radioMaxTracksAuto = radioTracksAuto;
 	}
 }

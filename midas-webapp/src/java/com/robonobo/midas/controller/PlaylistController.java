@@ -31,8 +31,7 @@ public class PlaylistController extends BaseController {
 	NotificationService notification;
 
 	@RequestMapping(value = "/playlists/{pIdStr}", method = RequestMethod.GET)
-	public void getPlaylist(@PathVariable("pIdStr") String pIdStr, HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
+	public void getPlaylist(@PathVariable("pIdStr") String pIdStr, HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		long playlistId = Long.parseLong(pIdStr, 16);
 		MidasPlaylist p = midas.getPlaylistById(playlistId);
 		if (p == null) {
@@ -73,8 +72,7 @@ public class PlaylistController extends BaseController {
 
 	@RequestMapping(value = "/playlists/{pIdStr}", method = RequestMethod.PUT)
 	@Transactional(rollbackFor = Exception.class)
-	public void putPlaylist(@PathVariable("pIdStr") String pIdStr, HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
+	public void putPlaylist(@PathVariable("pIdStr") String pIdStr, HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		long playlistId = Long.parseLong(pIdStr, 16);
 		MidasUser u = getAuthUser(req);
 		if (u == null) {
@@ -86,8 +84,10 @@ public class PlaylistController extends BaseController {
 		readFromInput(pBldr, req);
 		PlaylistMsg pMsg = pBldr.build();
 		MidasPlaylist mp = new MidasPlaylist(pMsg);
+		boolean tracksAdded = false;
 		if (currentP == null) {
 			// New playlist
+			tracksAdded = (mp.getStreamIds().size() > 0);
 			mp.getOwnerIds().clear();
 			mp.getOwnerIds().add(u.getUserId());
 			mp.setUpdated(now());
@@ -100,6 +100,7 @@ public class PlaylistController extends BaseController {
 			event.playlistCreated(u, mp);
 		} else {
 			// Existing playlist
+			tracksAdded = (mp.getStreamIds().size() > currentP.getStreamIds().size());
 			if (!currentP.getOwnerIds().contains(u.getUserId())) {
 				send401(req, resp);
 				return;
@@ -111,13 +112,14 @@ public class PlaylistController extends BaseController {
 			log.info(u.getEmail() + " updated playlist " + playlistId);
 			event.playlistUpdated(u, currentP);
 		}
-		notification.playlistUpdated(u, mp);
+		// Don't send notifications if tracks deleted, or for Radio
+		if (tracksAdded && !mp.getTitle().equalsIgnoreCase("radio"))
+			notification.playlistUpdated(u, mp);
 	}
 
 	@RequestMapping(value = "/playlists/{pIdStr}", method = RequestMethod.DELETE)
 	@Transactional(rollbackFor = Exception.class)
-	public void deletePlaylist(@PathVariable("pIdStr") String pIdStr, HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
+	public void deletePlaylist(@PathVariable("pIdStr") String pIdStr, HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		long playlistId = Long.parseLong(pIdStr, 16);
 		MidasUser u = getAuthUser(req);
 		MidasPlaylist p = midas.getPlaylistById(playlistId);
@@ -148,9 +150,8 @@ public class PlaylistController extends BaseController {
 	}
 
 	@RequestMapping("/playlists/{pIdStr}/post-update")
-	public void postPlaylistUpdate(@PathVariable("pIdStr") String pIdStr, @RequestParam("service") String service,
-			@RequestParam(value = "msg", required = false) String msg, HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
+	public void postPlaylistUpdate(@PathVariable("pIdStr") String pIdStr, @RequestParam("service") String service, @RequestParam(value = "msg", required = false) String msg,
+			HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		long playlistId = Long.parseLong(pIdStr, 16);
 		Playlist p = midas.getPlaylistById(playlistId);
 		service = service.toLowerCase();
@@ -160,24 +161,24 @@ public class PlaylistController extends BaseController {
 			return;
 		}
 		boolean allowed = false;
-		if(p.getOwnerIds().contains(u.getUserId()))
+		if (p.getOwnerIds().contains(u.getUserId()))
 			allowed = true;
-		else if(p.getVisibility().equalsIgnoreCase("all"))
+		else if (p.getVisibility().equalsIgnoreCase("all"))
 			allowed = true;
-		else if(p.getVisibility().equalsIgnoreCase("friends")) {
+		else if (p.getVisibility().equalsIgnoreCase("friends")) {
 			for (long ownerId : p.getOwnerIds()) {
 				User owner = midas.getUserById(ownerId);
-				if(owner.getFriendIds().contains(u.getUserId())) {
+				if (owner.getFriendIds().contains(u.getUserId())) {
 					allowed = true;
 					break;
 				}
 			}
 		}
-		if(!allowed) {
+		if (!allowed) {
 			send401(req, resp);
 			return;
 		}
-		if(msg != null)
+		if (msg != null)
 			msg = urlDecode(msg);
 		MidasUserConfig muc = midas.getUserConfig(u);
 		if ("facebook".equals(service))
@@ -188,28 +189,32 @@ public class PlaylistController extends BaseController {
 			log.error("Error: user " + u.getEmail() + " tried to update their playlist to service: " + service);
 		event.playlistPosted(u, p, service);
 	}
-	
+
 	@RequestMapping("/special-playlists/{uidStr}/{plName}/post-update")
-	public void postSpecialPlaylist(@PathVariable("uidStr") String uidStr,@PathVariable("plName") String plName, @RequestParam("service") String service, @RequestParam("msg") String msg, HttpServletRequest req, HttpServletResponse resp) throws IOException {
+	public void postSpecialPlaylist(@PathVariable("uidStr") String uidStr, @PathVariable("plName") String plName, @RequestParam("msg") String msg, HttpServletRequest req,
+			HttpServletResponse resp) throws IOException {
 		long uid = Long.parseLong(uidStr, 16);
-		service = service.toLowerCase();
 		MidasUser u = getAuthUser(req);
 		if (u == null) {
 			send401(req, resp);
 			return;
 		}
-		if(!(u.getUserId() == uid || u.getFriendIds().contains(uid))) {
+		if (!(u.getUserId() == uid || u.getFriendIds().contains(uid))) {
 			send401(req, resp);
 			return;
 		}
 		msg = urlDecode(msg);
 		MidasUserConfig muc = midas.getUserConfig(u);
-		if("facebook".equals(service))
-			facebook.postSpecialPlaylistToFacebook(muc, uid, plName, msg);
-		else if("twitter".equals(service))
-			twitter.postSpecialPlaylistToTwitter(muc, uid, plName, msg);
-		else
-			log.error("Error: user "+u.getEmail()+" tried to post their special playlist to service: "+service);
-		event.specialPlaylistPosted(u, uid, plName, service);
+		if(muc.getItem("facebookId") != null) {
+			String fbStr = muc.getItem("postLovesToFb");
+			if(fbStr == null || Boolean.valueOf(fbStr))
+				facebook.postSpecialPlaylistToFacebook(muc, uid, plName, msg);
+		}
+		if(muc.getItem("twitterScreenName") != null) {
+			String twitStr = muc.getItem("postLovesToTwitter");
+			if(twitStr == null || Boolean.valueOf(twitStr))
+				twitter.postSpecialPlaylistToTwitter(muc, uid, plName, msg);
+		}
+		event.specialPlaylistPosted(u, uid, plName);
 	}
 }
