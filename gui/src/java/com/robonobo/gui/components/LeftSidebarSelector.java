@@ -26,7 +26,7 @@ public abstract class LeftSidebarSelector extends JPanel implements LeftSidebarC
 	protected RobonoboFrame frame;
 	protected String cpName;
 	protected RLabel lbl;
-	private static final Dimension SIZE = new Dimension(188, 19);
+	private static final Dimension SIZE = new Dimension(188, 20);
 
 	public LeftSidebarSelector(LeftSidebar sideBar, RobonoboFrame frame, String label, boolean lblBold, Icon icon, String contentPanelName) {
 		this.sideBar = sideBar;

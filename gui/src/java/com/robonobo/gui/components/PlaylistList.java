@@ -255,8 +255,8 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 		public ItemLbl() {
 			setOpaque(true);
 			setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
-			setMaximumSize(new Dimension(MAX_LBL_WIDTH, 65535));
-			setPreferredSize(new Dimension(MAX_LBL_WIDTH, 65535));
+			setMaximumSize(new Dimension(MAX_LBL_WIDTH, 20));
+			setPreferredSize(new Dimension(MAX_LBL_WIDTH, 20));
 		}
 	}
 
