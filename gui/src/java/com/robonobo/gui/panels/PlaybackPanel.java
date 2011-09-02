@@ -121,6 +121,7 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 							ctrl.love(selSids);
 						}
 					});
+					tl.clearTableSelection();
 				}
 			}
 		});

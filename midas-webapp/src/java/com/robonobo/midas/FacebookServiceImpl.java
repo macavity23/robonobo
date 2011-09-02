@@ -158,7 +158,7 @@ public class FacebookServiceImpl implements InitializingBean, FacebookService {
 		String fbId = muc.getItem("facebookId");
 		if (fbId == null)
 			return;
-		String url = appConfig.getInitParam("shortUrlBase") + "sp/" + Long.toHexString(uid) + "/" + plName;
+		String url = appConfig.getInitParam("shortUrlBase") + "sp/" + Long.toHexString(uid) + "/" + plName.toLowerCase();
 		msg += url;
 		postToFacebook(muc, msg);
 	}

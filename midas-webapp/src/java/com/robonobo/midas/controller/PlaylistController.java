@@ -206,7 +206,7 @@ public class PlaylistController extends BaseController {
 		msg = urlDecode(msg);
 		MidasUserConfig muc = midas.getUserConfig(u);
 		if(muc.getItem("facebookId") != null) {
-			String fbStr = muc.getItem("postLovesToFb");
+			String fbStr = muc.getItem("postLovesToFacebook");
 			if(fbStr == null || Boolean.valueOf(fbStr))
 				facebook.postSpecialPlaylistToFacebook(muc, uid, plName, msg);
 		}

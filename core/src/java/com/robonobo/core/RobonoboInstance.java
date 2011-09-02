@@ -136,53 +136,59 @@ public class RobonoboInstance implements Robonobo {
 	}
 
 	protected void loadConfig() throws IOException {
+		// Load our core configs
+		Map<String, String> cfgClasses = new HashMap<String, String>();
+		cfgClasses.put("robo", "com.robonobo.core.api.config.RobonoboConfig");
+		cfgClasses.put("mina", "com.robonobo.mina.external.MinaConfig");
+		cfgClasses.put("wang", "com.robonobo.core.wang.RobonoboWangConfig");
+		cfgClasses.put("gui", "com.robonobo.gui.GuiConfig");
 		// Load base robonobo config, that contains class names of any other
 		// configs we have
-		File configDir = new File(homeDir, "config");
-		if (!configDir.exists())
-			configDir.mkdirs();
-		File configFile = new File(configDir, "robo.cfg");
-		ConfigBeanSerializer cbs = new ConfigBeanSerializer();
-		if (configFile.exists()) {
-			log.warn("Loading config from " + configFile.getAbsolutePath());
-			configs.put("robo", cbs.deserializeConfig(RobonoboConfig.class, configFile));
-		} else {
-			log.warn("Config file " + configFile.getAbsolutePath() + " not found - creating new config");
-			configs.put("robo", new RobonoboConfig());
+		File cfgDir = new File(homeDir, "config");
+		if (!cfgDir.exists())
+			cfgDir.mkdirs();
+		for (String cfgName : cfgClasses.keySet()) {
+			String cfgClassName = cfgClasses.get(cfgName);
+			loadConfig(cfgName, cfgClassName, cfgDir);
 		}
-		String[] extraCfgs = getConfig().getExtraConfigs().split(",");
-		Pattern cfgPat = Pattern.compile("^(.+):(.+)$");
-		for (String cfgStr : extraCfgs) {
-			Matcher m = cfgPat.matcher(cfgStr);
-			if (!m.matches())
-				throw new IOException("Invalid config string: " + cfgStr);
-			String cfgName = m.group(1);
-			String cfgClassName = m.group(2);
-			configFile = new File(configDir, cfgName + ".cfg");
-			try {
-				if (configFile.exists()) {
-					log.warn("Loading config from " + configFile.getAbsolutePath());
-					configs.put(cfgName, cbs.deserializeConfig(Class.forName(cfgClassName), configFile));
-				} else {
-					log.warn("Config file " + configFile.getAbsolutePath() + " not found - creating new config");
-					configs.put(cfgName, Class.forName(cfgClassName).newInstance());
-				}
-			} catch (ClassNotFoundException e) {
-				throw new IOException("Cannot find specified config class " + cfgClassName);
-			} catch (InstantiationException e) {
-				throw new IOException("Error loading config class " + cfgClassName);
-			} catch (IllegalAccessException e) {
-				throw new IOException("Error loading config class " + cfgClassName);
+		String extraCfgStr = getConfig().getExtraConfigs();
+		if (extraCfgStr.length() > 0) {
+			String[] extraCfgs = extraCfgStr.split(",");
+			Pattern cfgPat = Pattern.compile("^(.+):(.+)$");
+			for (String cfgStr : extraCfgs) {
+				Matcher m = cfgPat.matcher(cfgStr);
+				if (!m.matches())
+					throw new IOException("Invalid config string: " + cfgStr);
+				String cfgName = m.group(1);
+				String cfgClassName = m.group(2);
+				loadConfig(cfgName, cfgClassName, cfgDir);
+			}
+			// First time through, set the default download dir
+			if (getConfig().getFinishedDownloadsDirectory() == null) {
+				File dd = Platform.getPlatform().getDefaultDownloadDirectory();
+				dd.mkdirs();
+				String ddPath = dd.getAbsolutePath();
+				getConfig().setFinishedDownloadsDirectory(ddPath);
 			}
 		}
-		// First time through, set the default download dir
-		if (getConfig().getFinishedDownloadsDirectory() == null) {
-			File dd = Platform.getPlatform().getDefaultDownloadDirectory();
-			dd.mkdirs();
-			String ddPath = dd.getAbsolutePath();
-			getConfig().setFinishedDownloadsDirectory(ddPath);
-		}
 		saveConfig();
+	}
+
+	private void loadConfig(String cfgName, String cfgClassName, File cfgDir) {
+		ConfigBeanSerializer cbs = new ConfigBeanSerializer();
+		try {
+			Class<?> cfgClass = Class.forName(cfgClassName);
+			File cfgFile = new File(cfgDir, cfgName + ".cfg");
+			if (cfgFile.exists()) {
+				log.warn("Loading config from " + cfgFile.getAbsolutePath());
+				configs.put(cfgName, cbs.deserializeConfig(cfgClass, cfgFile));
+			} else {
+				log.warn("Config file " + cfgFile.getAbsolutePath() + " not found - creating new config");
+				configs.put(cfgName, cfgClass.newInstance());
+			}
+		} catch (Exception e) {
+			log.error("Caught exception loading cfg " + cfgName + ":" + cfgClassName, e);
+		}
 	}
 
 	private void setHomeDir() {

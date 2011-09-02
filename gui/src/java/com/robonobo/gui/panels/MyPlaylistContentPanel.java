@@ -55,6 +55,13 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		setupComments();
 	}
 
+	protected MyPlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, PlaylistTableModel model) {
+		super(frame, p, pc, model);
+		// Don't add tab panels, let the subclass do that if they like
+		if (addAsListener())
+			frame.ctrl.addPlaylistListener(this);
+	}
+
 	protected void setupComments() {
 		addComponentListener(new ComponentAdapter() {
 			public void componentShown(ComponentEvent e) {
@@ -98,13 +105,6 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				}
 			}
 		});
-	}
-
-	protected MyPlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, PlaylistTableModel model) {
-		super(frame, p, pc, model);
-		// Don't add tab panels, let the subclass do that if they like
-		if (addAsListener())
-			frame.ctrl.addPlaylistListener(this);
 	}
 
 	protected boolean addAsListener() {

@@ -52,7 +52,7 @@ public class TwitterServiceImpl implements InitializingBean, TwitterService {
 		if (accTok == null)
 			return;
 		// Truncate the msg if necessary, make sure the url gets in
-		String url = appConfig.getInitParam("shortUrlBase") + "sp/" + Long.toHexString(uid) + "/" + plName;
+		String url = appConfig.getInitParam("shortUrlBase") + "sp/" + Long.toHexString(uid) + "/" + plName.toLowerCase();
 		if((msg.length() + url.length() + 1) > TWITTER_MSG_LIMIT) {
 			int numToRemove = TWITTER_MSG_LIMIT - (msg.length() + url.length() + 1);
 			msg = msg.substring(0, msg.length() - numToRemove);

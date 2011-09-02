@@ -8,6 +8,7 @@ import java.util.*;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.concurrent.Timeout;
 import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.util.TextUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.Task;
@@ -309,6 +310,7 @@ public class PlaylistService extends AbstractService {
 			playlists.put(p.getPlaylistId(), p);
 		}
 		db.markAllAsSeen(p);
+		events.firePlaylistChanged(p);
 		metadata.updatePlaylist(p, new PlaylistCallback() {
 			public void success(Playlist newP) {
 				log.info("Updated playlist id " + newP.getPlaylistId() + " successfully");
@@ -363,6 +365,15 @@ public class PlaylistService extends AbstractService {
 	}
 
 	public void love(Collection<String> sids) {
+		if(log.isDebugEnabled()) {
+			StringBuffer sb = new StringBuffer("Loving ");
+			sb.append(TextUtil.numItems(sids, "track"));
+			sb.append(": ");
+			for (String sid : sids) {
+				sb.append(sid).append(" ");
+			}
+			log.debug(sb);
+		}
 		Playlist loves;
 		synchronized (this) {
 			Long lovePlid = myPlaylistIdsByTitle.get("Loves");
@@ -455,6 +466,15 @@ public class PlaylistService extends AbstractService {
 		if (radioCfg == null || radioCfg.equalsIgnoreCase("auto")) {
 			rbnb.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
+					if(log.isDebugEnabled()) {
+						StringBuffer sb = new StringBuffer("Adding ");
+						sb.append(TextUtil.numItems(sids, "track"));
+						sb.append(" to radio: ");
+						for (String sid : sids) {
+							sb.append(sid).append(" ");
+						}
+						log.debug(sb);
+					}
 					Playlist radioP = null;
 					synchronized (PlaylistService.this) {
 						Long plId = myPlaylistIdsByTitle.get("Radio");
@@ -465,7 +485,6 @@ public class PlaylistService extends AbstractService {
 						log.error("No radio playlist for added track");
 						return;
 					}
-					log.debug("Adding "+sids.size()+" to radio playlist");
 					radioP.getStreamIds().addAll(sids);
 					while(radioP.getStreamIds().size() > rbnb.getConfig().getRadioMaxTracksAuto())
 						radioP.getStreamIds().remove(0);

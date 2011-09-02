@@ -11,7 +11,7 @@ public class RobonoboConfig implements Serializable {
 	/** Comma-sep list of extra service classes to load */
 	String extraServices = "";
 	/** Comma-sep list of name:class pairs */
-	String extraConfigs = "mina:com.robonobo.mina.external.MinaConfig,wang:com.robonobo.core.wang.RobonoboWangConfig,gui:com.robonobo.gui.GuiConfig";
+	String extraConfigs = "";
 	String metadataServiceClass = "com.robonobo.midas.client.MidasClientService";
 	String sonarUrl = "http://sonar.robonobo.com/";
 	String midasUrl = "http://midas.robonobo.com/";
@@ -49,6 +49,8 @@ public class RobonoboConfig implements Serializable {
 	String topUpUrl = "http://midas.robonobo.com/users/testing-topup";
 	int postLovesDelayMins = 30;
 	int radioMaxTracksAuto = 64;
+	int radioAbsThreshMs = 10 * 60 * 1000;
+	int radioPcntThresh = 75;
 	
 	public RobonoboConfig() {
 	}
@@ -347,5 +349,21 @@ public class RobonoboConfig implements Serializable {
 
 	public void setRadioMaxTracksAuto(int radioTracksAuto) {
 		this.radioMaxTracksAuto = radioTracksAuto;
+	}
+
+	public int getRadioAbsThreshMs() {
+		return radioAbsThreshMs;
+	}
+
+	public void setRadioAbsThreshMs(int radioAbsThreshMs) {
+		this.radioAbsThreshMs = radioAbsThreshMs;
+	}
+
+	public int getRadioPcntThresh() {
+		return radioPcntThresh;
+	}
+
+	public void setRadioPcntThresh(int radioPcntThresh) {
+		this.radioPcntThresh = radioPcntThresh;
 	}
 }

@@ -33,13 +33,15 @@ public class GetUserConfigRequest implements Request {
 	@Override
 	public void success(Object obj) {
 		UserConfigMsg msg = (UserConfigMsg) obj;
-		handler.success(new UserConfig(msg));
+		if(handler != null)
+			handler.success(new UserConfig(msg));
 	}
 
 	@Override
 	public void error(Params p, Exception e) {
 		Long uid = (Long) p.obj;
-		handler.error(uid, e);
+		if(handler != null)
+			handler.error(uid, e);
 	}
 
 }

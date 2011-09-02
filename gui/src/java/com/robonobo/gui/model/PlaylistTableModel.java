@@ -18,6 +18,7 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	private static final int[] PLAYLIST_HIDDEN_COLS = new int[] { 4, 11, 12 };
 	protected Playlist p;
 	protected boolean canEdit;
+	protected boolean canDelete;
 	/** Are we actively looking for sources for streams on this playlist? */
 	private boolean activated = false;
 	Log log = LogFactory.getLog(getClass());
@@ -35,6 +36,7 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 		super(frame, el, sl, null);
 		this.p = p;
 		this.canEdit = canEdit;
+		this.canDelete = canEdit;
 		int i = 0;
 		for (String sid : p.getStreamIds()) {
 			trackIndices.put(sid, i++);
@@ -162,8 +164,7 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 
 	@Override
 	public boolean allowDelete() {
-		// Allow deletions only from my playlists
-		return canEdit;
+		return canDelete;
 	}
 
 	@Override
@@ -178,7 +179,7 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	
 	@Override
 	public void deleteTracks(List<String> streamIds) {
-		if (!canEdit)
+		if (!canDelete)
 			throw new Errot();
 		updateLock.lock();
 		try {

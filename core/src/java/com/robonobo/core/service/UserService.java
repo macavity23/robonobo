@@ -155,7 +155,7 @@ public class UserService extends AbstractService {
 				rbnb.setStatus(RobonoboStatus.Connected);
 				events.fireStatusChanged();
 			}
-			metadata.fetchUserConfig(me.getUserId(), new UsrCfgUpdater(null));
+			metadata.fetchUserConfig(me.getUserId(), new UserConfigUpdater(null));
 			// Tell our metadata service to load things serially so we get playlists loading one at a time rather than a
 			// big pause then all loading at once
 			metadata.setFetchOrder(RequestFetchOrder.Serial);
@@ -188,15 +188,18 @@ public class UserService extends AbstractService {
 		}
 	}
 
-	public void saveUserConfigItem(String itemName, String itemValue) {
+	public void saveUserConfigItem(final String itemName, final String itemValue) {
 		log.debug("Saving user config");
 		UserConfig cfg = new UserConfig();
 		cfg.setUserId(me.getUserId());
-		cfg.getItems().put(itemName, itemValue);
+		cfg.putItem(itemName, itemValue);
 		metadata.updateUserConfig(cfg, new UserConfigCallback() {
 			public void success(UserConfig uc) {
 				synchronized (UserService.this) {
-					myUserCfg = uc;
+					if(myUserCfg == null)
+						myUserCfg = uc;
+					else
+						myUserCfg.putItem(itemName, itemValue);
 				}
 			}
 
@@ -230,8 +233,8 @@ public class UserService extends AbstractService {
 		return myUserCfg;
 	}
 
-	public void refreshMyUserConfig(UserConfigCallback handler) {
-		metadata.fetchUserConfig(me.getUserId(), handler);
+	public void refreshMyUserConfig(UserConfigCallback callback) {
+		metadata.fetchUserConfig(me.getUserId(), new UserConfigUpdater(callback));
 	}
 
 	/** Polls the server for our user config every minute for ten mins - we're expecting an update */
@@ -239,7 +242,7 @@ public class UserService extends AbstractService {
 		int minsToWatch = 10;
 		Runnable r = new CatchingRunnable() {
 			public void doRun() throws Exception {
-				refreshMyUserConfig(null);
+				refreshMyUserConfig(new UserConfigUpdater(null));
 			}
 		};
 		for (int i = 1; i <= minsToWatch; i++) {
@@ -323,10 +326,10 @@ public class UserService extends AbstractService {
 		}
 	}
 
-	class UsrCfgUpdater implements UserConfigCallback {
+	class UserConfigUpdater implements UserConfigCallback {
 		UserConfigCallback onwardHandler;
 
-		public UsrCfgUpdater(UserConfigCallback onwardHandler) {
+		public UserConfigUpdater(UserConfigCallback onwardHandler) {
 			this.onwardHandler = onwardHandler;
 		}
 

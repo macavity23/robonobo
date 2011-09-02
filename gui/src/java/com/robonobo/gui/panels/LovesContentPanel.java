@@ -68,16 +68,19 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 					fbPanel.add(new RLabel13("to post loves to Facebook"));
 				} else {
 					fbCb.setEnabled(true);
-					String fbCfg = uc.getItem("postLovesToFb");
+					String fbCfg = uc.getItem("postLovesToFacebook");
 					fbCb.setSelected(fbCfg == null || fbCfg.equalsIgnoreCase("true"));
 					fbPanel.removeAll();
 					fbPanel.add(fbCb);
 					fbPanel.add(Box.createHorizontalStrut(5));
 					fbPanel.add(fbIcon);
-					RLabel13 nameLbl = new RLabel13("Facebook (" + uc.getItem("facebookName") + ")");
-					fbPanel.add(nameLbl);
+					fbPanel.add(Box.createHorizontalStrut(5));
+					fbPanel.add(new RLabel13B("Facebook "));
+					fbPanel.add(new RLabel13("("+uc.getItem("facebookName")+")"));
 				}
-				if (uc.getItem("twitId") == null) {
+				fbPanel.revalidate();
+				GuiUtil.markAsDirty(fbPanel);
+				if (uc.getItem("twitterId") == null) {
 					twitCb.setSelected(false);
 					twitCb.setEnabled(false);
 					if (addTwitBtn == null) {
@@ -105,8 +108,11 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 					twitPanel.add(Box.createHorizontalStrut(5));
 					twitPanel.add(twitIcon);
 					twitPanel.add(Box.createHorizontalStrut(5));
-					twitPanel.add(new RLabel13("Twitter (" + uc.getItem("twitterScreenName") + ")"));
+					twitPanel.add(new RLabel13B("Twitter "));
+					twitPanel.add(new RLabel13("("+uc.getItem("twitterScreenName")+")"));
 				}
+				twitPanel.revalidate();
+				GuiUtil.markAsDirty(twitPanel);
 				groupPostRb.setEnabled(true);
 				immPostRb.setEnabled(true);
 				String plCfgStr = uc.getItem("postLoves");
@@ -122,6 +128,12 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 		});
 	}
 
+	@Override
+	public void playlistChanged(Playlist p) {
+		if (p.equals(ptm().getPlaylist()))
+			ptm().update(p);
+	}
+	
 	class LovesSettingsPanel extends JPanel {
 		public LovesSettingsPanel() {
 			double[][] cells = { { 10, TableLayout.FILL, 10, 300, 10 }, { 5, TableLayout.FILL, 5 } };

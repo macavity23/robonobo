@@ -99,6 +99,12 @@ public class RadioContentPanel extends MyPlaylistContentPanel {
 		}
 	}
 
+	@Override
+	public void playlistChanged(Playlist p) {
+		if (p.equals(ptm().getPlaylist()))
+			ptm().update(p);
+	}
+
 	class RadioSettingsPanel extends JPanel {
 		public RadioSettingsPanel() {
 			double[][] cells = { { 10, TableLayout.FILL, 10}, { 5, TableLayout.FILL, 5} };
