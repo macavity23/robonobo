@@ -47,7 +47,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	boolean haveShown = false;
 
 	public MyPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc) {
-		super(f, pl, pc, true);
+		super(f, pl, pc, true, null);
 		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
 		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);

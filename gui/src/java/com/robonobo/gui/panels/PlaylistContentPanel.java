@@ -27,11 +27,13 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 	protected PlaylistCommentsPanel commentsPanel;
 	boolean unreadComments = false;
 	protected PlaylistToolsPanel toolsPanel;
+	protected String urlText;
 
-	public PlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, boolean myPlaylist) {
+	public PlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, boolean myPlaylist, String urlText) {
 		super(frame, PlaylistTableModel.create(frame, p, myPlaylist));
 		this.p = p;
 		this.pc = pc;
+		this.urlText = urlText;
 	}
 
 	public PlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, TrackListTableModel model) {
@@ -55,7 +57,10 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			setLayout(new TableLayout(cellSizen));
 			RLabel urlLbl = new RLabel13("URL:");
 			add(urlLbl, "0,0");
-			final RTextField urlField = new RTextField(urlText());
+			String text = urlText;
+			if(text == null)
+				text = (p.getPlaylistId() > 0) ? frame.ctrl.getConfig().getShortUrlBase() + "p/" + Long.toHexString(p.getPlaylistId()) : "(none)";
+			final RTextField urlField = new RTextField(urlText);
 			urlField.setEnabled(false);
 			add(urlField, "2,0");
 			fbBtn = new RSmallRoundButton(createImageIcon("/icon/facebook-16x16.png", null));
@@ -88,10 +93,6 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			copyBtn.setEnabled(p.getPlaylistId() > 0);
 			add(copyBtn, "8,0");
 			checkPlaylistVisibility();
-		}
-
-		protected String urlText() {
-			return (p.getPlaylistId() > 0) ? frame.ctrl.getConfig().getShortUrlBase() + "p/" + Long.toHexString(p.getPlaylistId()) : "(none)";
 		}
 
 		public void checkPlaylistVisibility() {

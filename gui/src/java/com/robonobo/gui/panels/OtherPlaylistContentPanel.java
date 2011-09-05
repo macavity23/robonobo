@@ -31,7 +31,11 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 	boolean haveShown = false;
 
 	public OtherPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc) {
-		super(f, pl, pc, false);
+		this(f, pl, pc, null);
+	}
+	
+	public OtherPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc, String urlText) {
+		super(f, pl, pc, false, urlText);
 		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
 		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
