@@ -383,7 +383,16 @@ public class PlaylistService extends AbstractService {
 			log.error("No loves playlist!");
 			return;
 		}
-		loves.getStreamIds().addAll(sids);
+		// Can only love something once
+		int oldSz = loves.getStreamIds().size();
+		for (String sid : sids) {
+			if(!loves.getStreamIds().contains(sid))
+				loves.getStreamIds().add(sid);
+		}
+		if(loves.getStreamIds().size() == oldSz) {
+			log.debug("Not adding duplicate tracks to loves");
+			return;
+		}
 		updatePlaylist(loves);
 		UserConfig uc = rbnb.getUserService().getMyUserConfig();
 		for (String sid : sids) {
@@ -485,9 +494,16 @@ public class PlaylistService extends AbstractService {
 						log.error("No radio playlist for added track");
 						return;
 					}
-					radioP.getStreamIds().addAll(sids);
-					while(radioP.getStreamIds().size() > rbnb.getConfig().getRadioMaxTracksAuto())
-						radioP.getStreamIds().remove(0);
+					List<String> playlistSids = radioP.getStreamIds();
+					for (String sid : sids) {
+						// If we already have this track in our radio list, remove it, and re-add it again at the end
+						int idx = playlistSids.indexOf(sid);
+						if(idx >= 0)
+							playlistSids.remove(idx);
+						playlistSids.add(sid);
+					}
+					while(playlistSids.size() > rbnb.getConfig().getRadioMaxTracksAuto())
+						playlistSids.remove(0);
 					updatePlaylist(radioP);
 				}
 			});

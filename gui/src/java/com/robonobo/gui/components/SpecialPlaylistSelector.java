@@ -17,7 +17,7 @@ import com.robonobo.gui.panels.LeftSidebar;
 
 @SuppressWarnings("serial")
 public class SpecialPlaylistSelector extends LeftSidebarSelector {
-	Playlist p;
+	public Playlist p;
 	private boolean hasComments = false;
 
 	public SpecialPlaylistSelector(LeftSidebar sideBar, RobonoboFrame f, Icon icon, String title, Playlist pl) {

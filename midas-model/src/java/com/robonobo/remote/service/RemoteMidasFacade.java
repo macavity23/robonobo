@@ -40,7 +40,7 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 
 	@Override
 	public MidasPlaylist getPlaylistByUserIdAndTitle(long uid, String title) {
-		byte[] arr = (byte[]) invoke("getPlaylistById", uid, Arrays.asList(title));
+		byte[] arr = (byte[]) invoke("getPlaylistByUserIdAndTitle", uid, Arrays.asList(title));
 		return playlistFromByteArr(arr);
 	}
 

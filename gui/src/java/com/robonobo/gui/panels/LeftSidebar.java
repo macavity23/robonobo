@@ -145,6 +145,12 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 
 	public void selectForPlaylist(Playlist p) {
 		long plId = p.getPlaylistId();
+		for (SpecialPlaylistSelector sel : spSels) {
+			if(sel.p.getPlaylistId() == plId) {
+				sel.setSelected(true);
+				return;
+			}
+		}
 		if (myPlList.getModel().hasPlaylist(plId))
 			myPlList.selectPlaylist(p);
 		else if (friendTree.getModel().hasPlaylist(plId))
@@ -270,9 +276,10 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 						frame.mainPanel.addContentPanel(panelName, cp);
 					} else {
 						ContentPanel cp;
-						if(frame.ctrl.isSpecialPlaylist(p.getTitle()))
-							cp = new FriendSpecialPlaylistContentPanel(frame, myUserId, p, pc);
-						else
+						if(frame.ctrl.isSpecialPlaylist(p.getTitle())) {
+							long userId = p.getOwnerIds().iterator().next();
+							cp = new FriendSpecialPlaylistContentPanel(frame, userId, p, pc);
+						} else
 							cp = new OtherPlaylistContentPanel(frame, p, pc);
 						frame.mainPanel.addContentPanel(panelName, cp);
 					}

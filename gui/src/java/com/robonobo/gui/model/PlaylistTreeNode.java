@@ -6,6 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.exceptions.Errot;
 import com.robonobo.common.swing.SortableTreeNode;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -14,23 +15,23 @@ import com.robonobo.gui.frames.RobonoboFrame;
 public class PlaylistTreeNode extends SelectableTreeNode {
 	Log log = LogFactory.getLog(getClass());
 	RobonoboFrame frame;
-	private Playlist playlist;
+	public Playlist p;
 	public int numUnseenTracks;
 	public boolean hasComments;
 
 	public PlaylistTreeNode(Playlist p, RobonoboFrame frame) {
 		super(p.getTitle());
-		this.playlist = p;
+		this.p = p;
 		this.frame = frame;
 		numUnseenTracks = frame.ctrl.numUnseenTracks(p);
 	}
 
 	public Playlist getPlaylist() {
-		return playlist;
+		return p;
 	}
 
 	public void setPlaylist(final Playlist playlist, boolean isSelected) {
-		this.playlist = playlist;
+		this.p = playlist;
 		setUserObject(playlist.getTitle());
 		if (isSelected) {
 			numUnseenTracks = 0;
@@ -54,7 +55,7 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 		frame.mainPanel.selectContentPanel(contentPanelName());
 		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				frame.ctrl.markAllAsSeen(playlist);
+				frame.ctrl.markAllAsSeen(p);
 				// Start finding sources for this guy
 				PlaylistTableModel model = (PlaylistTableModel) frame.mainPanel.getContentPanel(contentPanelName()).trackList.getModel();
 				model.activate();
@@ -64,7 +65,7 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 	}
 
 	protected String contentPanelName() {
-		return "playlist/" + playlist.getPlaylistId();
+		return "playlist/" + p.getPlaylistId();
 	}
 
 	protected int getSpecialIndex() {
@@ -78,15 +79,24 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 
 	@Override
 	public int compareTo(SortableTreeNode o) {
-		if (o instanceof LibraryTreeNode)
-			return 1;
-		PlaylistTreeNode other = (PlaylistTreeNode) o;
-		int specIdx = getSpecialIndex();
-		int oSpecIdx = other.getSpecialIndex();
-		if (specIdx < oSpecIdx)
-			return -1;
-		if (oSpecIdx > specIdx)
-			return 1;
-		return playlist.getTitle().toLowerCase().compareTo(other.getPlaylist().getTitle().toLowerCase());
+		int result;
+		if(o instanceof PlaylistTreeNode) {
+			PlaylistTreeNode optn = (PlaylistTreeNode) o;
+			String t1 = p.getTitle();
+			String t2 = optn.p.getTitle();
+			int specIdx = getSpecialIndex();
+			int oSpecIdx = optn.getSpecialIndex();
+			if (specIdx < oSpecIdx)
+				result = -1;
+			else if (oSpecIdx < specIdx)
+				result = 1;
+			else 
+				result = p.getTitle().toLowerCase().compareTo(optn.p.getTitle().toLowerCase());
+			log.debug("Comparing PTNs for playlists "+p.getTitle()+" and "+optn.p.getTitle()+" - result is "+result);
+		} else if (o instanceof LibraryTreeNode)
+			result = 1;
+		else
+			throw new Errot();
+		return result;
 	}
 }

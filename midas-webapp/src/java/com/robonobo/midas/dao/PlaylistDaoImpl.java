@@ -42,7 +42,7 @@ public class PlaylistDaoImpl extends MidasDao implements PlaylistDao {
 		List result = q.list();
 		if(result.size() == 0)
 			return null;
-		return (MidasPlaylist) result.get(1);
+		return (MidasPlaylist) result.get(0);
 	}
 	
 	@Override
