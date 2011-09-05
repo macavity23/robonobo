@@ -1,5 +1,6 @@
 package com.robonobo.gui.panels;
 
+import static com.robonobo.gui.GuiUtil.*;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.event.ActionEvent;
@@ -38,6 +39,16 @@ public class RadioContentPanel extends MyPlaylistContentPanel {
 		UserConfig uc = frame.ctrl.getMyUserConfig();
 		if (uc != null)
 			userCfgUpdated(uc);
+		if (frame.guiCfg.getShowRadioDesc()) {
+			runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					showMessage("What is my radio station?",
+							"<html>Your radio station is what you're listening to at the moment. It is added to automatically whenever you play tracks, or else you can<br> manage it manually. Only your friends can see your radio station.</html>",
+							"showRadioDesc");
+				}
+			});
+		}
+
 	}
 
 	private RadioTableModel rtm() {

@@ -2,17 +2,14 @@ package com.robonobo.gui.platform;
 
 import java.awt.Event;
 import java.io.*;
-import java.lang.reflect.Constructor;
 import java.util.List;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 
-import com.apple.eawt.Application;
-import com.apple.eawt.OpenURIHandler;
+import com.apple.eawt.*;
 import com.robonobo.common.exceptions.Errot;
 import com.robonobo.core.itunes.ITunesService;
-import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.gui.itunes.mac.MacITunesService;
 
 public class MacPlatform extends UnknownPlatform {
@@ -62,8 +59,12 @@ public class MacPlatform extends UnknownPlatform {
 		try {
 			// This next line will throw ClassNotFoundException if we cannot handle URIs
 			Class.forName("com.apple.eawt.OpenURIHandler");
-			Class<?> handlerClass = Class.forName("com.robonobo.gui.platform.URIHandler");
-			app.setOpenURIHandler((OpenURIHandler) handlerClass.newInstance());
+			Class.forName("com.apple.eawt.OpenFilesHandler");
+			Class<?> uriClass = Class.forName("com.robonobo.gui.platform.URIHandler");
+			Class<?> filesClass = Class.forName("com.robonobo.gui.platform.FileHandler");
+			app.setOpenURIHandler((OpenURIHandler) uriClass.newInstance());
+			app.setOpenFileHandler((OpenFilesHandler) filesClass.newInstance());
+			
 		} catch (ClassNotFoundException e) {
 			// Old version of apple java
 			// TODO Tell them to update

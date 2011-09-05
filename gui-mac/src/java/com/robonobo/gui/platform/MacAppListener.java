@@ -18,9 +18,7 @@ public class MacAppListener implements ApplicationListener {
 
 	}
 
-	public void handleOpenFile(ApplicationEvent arg0) {
-		// TODO Auto-generated method stub
-
+	public void handleOpenFile(ApplicationEvent e) {
 	}
 
 	public void handlePreferences(ApplicationEvent e) {

@@ -56,6 +56,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	public RobonoboFrame(RobonoboController control, String[] args) {
 		this.ctrl = control;
 		this.cmdLineArgs = args;
+		guiCfg = (GuiConfig) control.getConfig("gui");
 		setTitle("robonobo");
 		setIconImage(getRobonoboIconImage());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -73,7 +74,6 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		setPreferredSize(new Dimension(1024, 723));
 		pack();
 		leftSidebar.selectMyMusic();
-		guiCfg = (GuiConfig) control.getConfig("gui");
 		addListeners();
 		uriHandler = new UriHandler(this);
 		instance = this;
@@ -201,23 +201,23 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		// Do nothing
 	}
 
-	public void importFilesOrDirectories(final List<File> files) {
+	public void shareFilesOrDirectories(final List<File> files) {
 		List<File> allFiles = new ArrayList<File>();
 		for (File selFile : files)
 			if (selFile.isDirectory())
 				allFiles.addAll(FileUtil.getFilesWithinPath(selFile, "mp3"));
 			else
 				allFiles.add(selFile);
-		importFiles(allFiles);
+		shareFiles(allFiles);
 		return;
 	}
 
-	public void importFiles(final List<File> files) {
+	public void shareFiles(final List<File> files) {
 		ImportFilesTask t = new ImportFilesTask(ctrl, files);
 		ctrl.runTask(t);
 	}
 
-	public void importITunes() {
+	public void shareFromITunes() {
 		ImportITunesTask t = new ImportITunesTask(ctrl);
 		ctrl.runTask(t);
 	}
@@ -246,7 +246,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 					final File[] selFiles = fc.getSelectedFiles();
 					ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
-							importFilesOrDirectories(Arrays.asList(selFiles));
+							shareFilesOrDirectories(Arrays.asList(selFiles));
 						}
 					});
 				}

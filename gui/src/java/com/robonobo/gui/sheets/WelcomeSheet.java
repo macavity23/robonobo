@@ -53,7 +53,7 @@ public class WelcomeSheet extends Sheet {
 			iTunesBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					setVisible(false);
-					frame.importITunes();
+					frame.shareFromITunes();
 				}
 			});
 			addButton(iTunesBtn, "1,12");

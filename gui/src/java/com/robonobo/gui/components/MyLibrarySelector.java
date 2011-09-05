@@ -59,7 +59,7 @@ public class MyLibrarySelector extends LeftSidebarSelector implements ActionList
 		if(action.equals("addFromFiles"))
 			frame.showAddSharesDialog();
 		else if(action.equals("addFromITunes"))
-			frame.importITunes();
+			frame.shareFromITunes();
 	}
 
 	@Override

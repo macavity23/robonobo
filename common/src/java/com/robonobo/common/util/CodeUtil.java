@@ -1,5 +1,11 @@
 package com.robonobo.common.util;
 
+import static com.robonobo.common.util.TextUtil.*;
+
+import java.lang.reflect.Method;
+
+import com.robonobo.common.exceptions.Errot;
+
 public class CodeUtil {
 	public static int javaMajorVersion() {
 		String fullVersion = System.getProperty("java.version");
@@ -9,6 +15,24 @@ public class CodeUtil {
 
 	public static String shortClassName(Class<?> clazz) {
 		String fqClass = clazz.getName();
-		return fqClass.substring(fqClass.lastIndexOf('.')+1);
+		return fqClass.substring(fqClass.lastIndexOf('.') + 1);
+	}
+
+	public static void setBeanProperty(Object obj, String propName, String value) {
+		try {
+			Method m = obj.getClass().getDeclaredMethod("set" + capitalizeFirst(propName), String.class);
+			m.invoke(obj, value);
+		} catch (Exception e) {
+			throw new Errot(e);
+		}
+	}
+	
+	public static void setBeanProperty(Object obj, String propName, boolean value) {
+		try {
+			Method m = obj.getClass().getDeclaredMethod("set" + capitalizeFirst(propName), boolean.class);
+			m.invoke(obj, value);
+		} catch (Exception e) {
+			throw new Errot(e);
+		}
 	}
 }

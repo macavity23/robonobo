@@ -63,7 +63,7 @@ public class MenuBar extends JMenuBar {
 				public void actionPerformed(ActionEvent e) {
 					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 						public void doRun() throws Exception {
-							frame.importITunes();
+							frame.shareFromITunes();
 						}
 					});
 

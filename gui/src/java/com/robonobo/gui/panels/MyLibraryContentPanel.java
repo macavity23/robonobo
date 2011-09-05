@@ -91,7 +91,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 				if (isNonEmpty(updateInfo.getUpdateHtml())) {
 					runOnUiThread(new CatchingRunnable() {
 						public void doRun() throws Exception {
-							showMessage(updateInfo.getUpdateTitle(), updateInfo.getUpdateHtml());
+							showMessage(updateInfo.getUpdateTitle(), updateInfo.getUpdateHtml(), null);
 						}
 					});
 				}
@@ -121,7 +121,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 		final List<File> fl = l;
 		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
-				frame.importFilesOrDirectories(fl);
+				frame.shareFilesOrDirectories(fl);
 			}
 		});
 		return true;
@@ -260,7 +260,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 			addLbl = new RLabel16B("Add to library (0 tracks)");
 			rPanel.add(addLbl);
 			rPanel.add(Box.createVerticalStrut(10));
-			RButton shareFilesBtn = new RGlassButton("Add from files...");
+			RButton shareFilesBtn = new RGlassButton("Share from files...");
 			shareFilesBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					frame.showAddSharesDialog();
@@ -270,10 +270,10 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 			rPanel.add(shareFilesBtn);
 			rPanel.add(Box.createVerticalStrut(10));
 			if (Platform.getPlatform().iTunesAvailable()) {
-				RButton shareITunesBtn = new RGlassButton("Add from iTunes...");
+				RButton shareITunesBtn = new RGlassButton("Share from iTunes...");
 				shareITunesBtn.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						frame.importITunes();
+						frame.shareFromITunes();
 					}
 				});
 				shareITunesBtn.setMaximumSize(new Dimension(200, 30));

@@ -15,6 +15,8 @@ import javax.swing.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.util.CodeUtil;
 import com.robonobo.gui.*;
 import com.robonobo.gui.components.TrackList;
 import com.robonobo.gui.components.base.*;
@@ -76,8 +78,8 @@ public abstract class ContentPanel extends JPanel {
 	}
 
 	/** Only call this from the swing UI thread, or else you might get concurrency issues */
-	public void showMessage(String title, String htmlMsg) {
-		MessagePanel mp = new MessagePanel(title, htmlMsg);
+	public void showMessage(String title, String htmlMsg, String propName) {
+		MessagePanel mp = new MessagePanel(title, htmlMsg, propName);
 		if (msgs.size() == 0)
 			showMessage(mp);
 		msgs.add(mp);
@@ -119,7 +121,7 @@ public abstract class ContentPanel extends JPanel {
 	}
 
 	private class MessagePanel extends JPanel {
-		public MessagePanel(String title, String htmlMsg) {
+		public MessagePanel(String title, String htmlMsg, final String propName) {
 			double[][] cellSizen = { { 10, TableLayout.FILL, 70, 10 }, { 10, 25, 5, TableLayout.FILL, 10 } };
 			setName("playback.background.panel");
 			setLayout(new TableLayout(cellSizen));
@@ -129,6 +131,14 @@ public abstract class ContentPanel extends JPanel {
 			closeBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					messageClosed();
+					if (propName != null) {
+						frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+							public void doRun() throws Exception {
+								CodeUtil.setBeanProperty(frame.guiCfg, propName, false);
+								frame.ctrl.saveConfig();
+							}
+						});
+					}
 				}
 			});
 			add(closeBtn, "2,1");

@@ -34,7 +34,6 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 		tabPane.setSelectedIndex(0);
 		setupComments();
 		frame.ctrl.addUserListener(new UserAdapter() {
-			@Override
 			public void userConfigChanged(UserConfig cfg) {
 				userCfgUpdated(cfg);
 			}
@@ -42,6 +41,15 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 		UserConfig uc = frame.ctrl.getMyUserConfig();
 		if (uc != null)
 			userCfgUpdated(uc);
+		if (frame.guiCfg.getShowLovesDesc()) {
+			runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					showMessage("What are my loves?",
+							"<html>Your loves are your essential tunes, your all-time favourite tracks of all-time. Add to them by selecting any track and clicking the heart<br> button above. Only your friends can see your loves.</html>",
+							"showLovesDesc");
+				}
+			});
+		}
 	}
 
 	private void userCfgUpdated(final UserConfig uc) {

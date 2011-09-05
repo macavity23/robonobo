@@ -14,27 +14,30 @@ import com.robonobo.gui.model.NewPlaylistTableModel;
 
 @SuppressWarnings("serial")
 public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
-
 	public NewPlaylistContentPanel(RobonoboFrame frame) {
 		this(frame, new Playlist());
 	}
-	
+
 	private NewPlaylistContentPanel(RobonoboFrame frame, Playlist p) {
 		super(frame, p, new PlaylistConfig(), NewPlaylistTableModel.create(frame, p));
 		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
 		tabPane.setSelectedIndex(0);
-		runOnUiThread(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				showMessage("How do I add tracks?", "<html>Drag tracks from your library, or a friend's library, or any other playlist, and drop them on the highlighted 'New Playlist' entry on the left, or on the track list below.<br>You can also drag files directly from your computer.</html>");
-			}
-		});
+		if (frame.guiCfg.getShowNewPlaylistDesc()) {
+			runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					showMessage("How do I create a playlist?",
+							"<html>Drag tracks from your library, or a friend's library, or any other playlist, and drop them on the highlighted 'New Playlist' entry on the left, or on the track list below.<br>You can also drag files directly from your computer.</html>",
+							"showNewPlaylistDesc");
+				}
+			});
+		}
 	}
 
 	@Override
 	public JComponent defaultComponent() {
 		return titleField;
 	}
-	
+
 	@Override
 	protected void savePlaylist() {
 		final Playlist p = ptm().getPlaylist();
@@ -55,34 +58,34 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 						Playlist newP = new Playlist();
 						titleField.setText("");
 						descField.setText("");
-						if(iTunesCB != null)
+						if (iTunesCB != null)
 							iTunesCB.setSelected(false);
 						ptm().update(newP);
 					}
 				});
 			}
-			
+
 			public void error(long playlistId, Exception ex) {
 				log.error("Error saving new playlist", ex);
 			}
 		});
 	}
-	
+
 	@Override
 	protected boolean allowDel() {
 		return false;
 	}
-	
+
 	@Override
 	protected boolean allowShare() {
 		return false;
 	}
-	
+
 	@Override
 	protected boolean addAsListener() {
-		return false;		
+		return false;
 	}
-	
+
 	@Override
 	protected boolean showITunes() {
 		return false;

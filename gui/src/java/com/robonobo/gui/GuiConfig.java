@@ -4,6 +4,10 @@ public class GuiConfig {
 	private boolean showWelcomePanel = true;
 	private boolean confirmExit = true;
 	private boolean confirmTrackDelete = true;
+	private boolean showNewPlaylistDesc = true;
+	private boolean showLovesDesc = true;
+	private boolean showRadioDesc = true;
+	
 	/** After a task finishes, it will be removed from the task list after this many seconds */
 	private int zombieTaskLifetime = 300;
 	
@@ -40,5 +44,29 @@ public class GuiConfig {
 
 	public void setConfirmTrackDelete(boolean confirmTrackDelete) {
 		this.confirmTrackDelete = confirmTrackDelete;
+	}
+
+	public boolean getShowNewPlaylistDesc() {
+		return showNewPlaylistDesc;
+	}
+
+	public void setShowNewPlaylistDesc(boolean showNewPlaylistDesc) {
+		this.showNewPlaylistDesc = showNewPlaylistDesc;
+	}
+
+	public boolean getShowLovesDesc() {
+		return showLovesDesc;
+	}
+
+	public void setShowLovesDesc(boolean showLovesDesc) {
+		this.showLovesDesc = showLovesDesc;
+	}
+
+	public boolean getShowRadioDesc() {
+		return showRadioDesc;
+	}
+
+	public void setShowRadioDesc(boolean showRadioDesc) {
+		this.showRadioDesc = showRadioDesc;
 	}
 }
