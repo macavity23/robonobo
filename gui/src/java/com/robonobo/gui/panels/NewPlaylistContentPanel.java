@@ -31,6 +31,7 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 				}
 			});
 		}
+		setupComments();
 	}
 
 	@Override
@@ -78,11 +79,6 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 
 	@Override
 	protected boolean allowShare() {
-		return false;
-	}
-
-	@Override
-	protected boolean addAsListener() {
 		return false;
 	}
 

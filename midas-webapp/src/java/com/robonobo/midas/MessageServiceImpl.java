@@ -168,7 +168,7 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 
 	private void sendCommentNotification(MidasUser updateUser, MidasUser commentUser, String whereIsComment) throws IOException {
 		Map model = newModel(updateUser.getFriendlyName(), updateUser.getEmail());
-		model.put("replyUser", commentUser);
+		model.put("commentUser", commentUser);
 		model.put("whereIsComment", whereIsComment);
 		sendMail(commentUser.getEmail(), commentUser.getFriendlyName(), updateUser.getEmail(), updateUser.getFriendlyName(), commentUser.getFriendlyName() + " commented "
 				+ whereIsComment, "comment", model);

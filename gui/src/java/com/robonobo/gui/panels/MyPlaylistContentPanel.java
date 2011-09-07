@@ -52,17 +52,15 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
-		setupComments();
 	}
 
 	protected MyPlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, PlaylistTableModel model) {
 		super(frame, p, pc, model);
-		// Don't add tab panels, let the subclass do that if they like
-		if (addAsListener())
-			frame.ctrl.addPlaylistListener(this);
 	}
 
 	protected void setupComments() {
+		// Bug huntin
+		log.debug("Setting up comments in panel for playlist "+p.getPlaylistId());
 		addComponentListener(new ComponentAdapter() {
 			public void componentShown(ComponentEvent e) {
 				if (haveShown)
@@ -70,23 +68,22 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				haveShown = true;
 				if (getWidth() == 0)
 					throw new Errot();
-				if (addAsListener()) {
-					frame.ctrl.addPlaylistListener(MyPlaylistContentPanel.this);
-					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
-						public void doRun() throws Exception {
-							Map<Comment, Boolean> cs = frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId());
-							boolean hasUnseen = false;
-							for (boolean unseen : cs.values()) {
-								if (unseen) {
-									hasUnseen = true;
-									break;
-								}
+				log.debug("Adding comment listener for panel for playlist "+p.getPlaylistId());
+				frame.ctrl.addPlaylistListener(MyPlaylistContentPanel.this);
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						Map<Comment, Boolean> cs = frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId());
+						boolean hasUnseen = false;
+						for (boolean unseen : cs.values()) {
+							if (unseen) {
+								hasUnseen = true;
+								break;
 							}
-							if (cs.size() > 0)
-								gotPlaylistComments(p.getPlaylistId(), hasUnseen, cs);
 						}
-					});
-				}
+						if (cs.size() > 0)
+							gotPlaylistComments(p.getPlaylistId(), hasUnseen, cs);
+					}
+				});
 			}
 		});
 		tabPane.addChangeListener(new ChangeListener() {
@@ -105,10 +102,6 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				}
 			}
 		});
-	}
-
-	protected boolean addAsListener() {
-		return true;
 	}
 
 	protected boolean allowShare() {

@@ -44,47 +44,60 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Override
 	public void newComment(MidasComment c) throws IOException {
+		Set<Long> sentUids = new HashSet<Long>();
 		MidasUser commentUser = userDao.getById(c.getUserId());
 		// Send notification to owner of parent comment
 		if (c.getParentId() > 0) {
 			MidasComment par = commentDao.getComment(c.getParentId());
-			MidasUserConfig muc = userCfgDao.getUserConfig(par.getUserId());
-			String creStr = muc.getItem("commentReplyEmails");
-			boolean cre = (creStr == null) ? true : Boolean.valueOf(creStr);
-			if (cre) {
-				MidasUser origUser = userDao.getById(par.getUserId());
-				Matcher pm = PLAYLIST_ITEM_PAT.matcher(c.getResourceId());
-				if (pm.matches()) {
-					MidasPlaylist p = playlistDao.getPlaylistById(Long.parseLong(pm.group(1)));
-					message.sendReplyNotificationForPlaylist(origUser, commentUser, p);
-				} else {
-					Matcher lm = LIBRARY_ITEM_PAT.matcher(c.getResourceId());
-					if(lm.matches())
-						message.sendReplyNotificationForLibrary(origUser, commentUser, Long.parseLong(lm.group(1)));
+			if (par.getUserId() != c.getUserId()) {
+				MidasUserConfig muc = userCfgDao.getUserConfig(par.getUserId());
+				String creStr = muc.getItem("commentReplyEmails");
+				boolean cre = (creStr == null) ? true : Boolean.valueOf(creStr);
+				if (cre) {
+					MidasUser origUser = userDao.getById(par.getUserId());
+					Matcher pm = PLAYLIST_ITEM_PAT.matcher(c.getResourceId());
+					if (pm.matches()) {
+						MidasPlaylist p = playlistDao.getPlaylistById(Long.parseLong(pm.group(1)));
+						message.sendReplyNotificationForPlaylist(origUser, commentUser, p);
+						sentUids.add(origUser.getUserId());
+					} else {
+						Matcher lm = LIBRARY_ITEM_PAT.matcher(c.getResourceId());
+						if (lm.matches()) {
+							message.sendReplyNotificationForLibrary(origUser, commentUser, Long.parseLong(lm.group(1)));
+							sentUids.add(origUser.getUserId());
+						}
+					}
 				}
 			}
 		}
-		// Send notification to owner of resource
+		// Send notification to owners of resource
 		Matcher pm = PLAYLIST_ITEM_PAT.matcher(c.getResourceId());
 		if (pm.matches()) {
 			MidasPlaylist p = playlistDao.getPlaylistById(Long.parseLong(pm.group(1)));
-			long ownerId = Long.parseLong(pm.group(1));
-			MidasUserConfig muc = userCfgDao.getUserConfig(ownerId);
-			String pceStr = muc.getItem("playlistCommentEmails");
-			boolean pce = (pceStr == null) ? true : Boolean.valueOf(pceStr);
-			if (pce) {
-				MidasUser owner = userDao.getById(ownerId);
-				message.sendCommentNotificationForPlaylist(owner, commentUser, p);
+			for (Long ownerId : p.getOwnerIds()) {
+				if (sentUids.contains(ownerId))
+					continue;
+				MidasUserConfig muc = userCfgDao.getUserConfig(ownerId);
+				String pceStr = muc.getItem("playlistCommentEmails");
+				boolean pce = (pceStr == null) ? true : Boolean.valueOf(pceStr);
+				if (pce) {
+					MidasUser owner = userDao.getById(ownerId);
+					message.sendCommentNotificationForPlaylist(owner, commentUser, p);
+					sentUids.add(ownerId);
+				}
 			}
 		} else {
 			Matcher lm = LIBRARY_ITEM_PAT.matcher(c.getResourceId());
 			long ownerId = Long.parseLong(lm.group(1));
-			MidasUserConfig muc = userCfgDao.getUserConfig(ownerId);
-			String pceStr = muc.getItem("playlistCommentEmails");
-			boolean pce = (pceStr == null) ? true : Boolean.valueOf(pceStr);
-			if (pce) {
-				MidasUser owner = userDao.getById(ownerId);
-				message.sendCommentNotificationForLibrary(owner, commentUser);
+			if (!sentUids.contains(ownerId)) {
+				MidasUserConfig muc = userCfgDao.getUserConfig(ownerId);
+				String pceStr = muc.getItem("playlistCommentEmails");
+				boolean pce = (pceStr == null) ? true : Boolean.valueOf(pceStr);
+				if (pce) {
+					MidasUser owner = userDao.getById(ownerId);
+					message.sendCommentNotificationForLibrary(owner, commentUser);
+					sentUids.add(ownerId);
+				}
 			}
 		}
 	}
