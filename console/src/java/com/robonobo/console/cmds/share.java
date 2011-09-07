@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.console.RobonoboConsole;
 import com.robonobo.core.RobonoboController;
@@ -111,7 +111,7 @@ public class share implements ConsoleCommand {
 			else if (share.getShareStatus() == ShareStatus.Paused) {
 				statusStr = "Paused";
 			} else
-				throw new Errot();
+				throw new SeekInnerCalmException();
 			out.println(rightPad(String.valueOf(i++), iWidth)
 					+ rightPadOrTruncate(share.getStream().getTitle(), 31) + " "
 					+ rightPadOrTruncate(share.getFile().getAbsolutePath(), 25) + " "

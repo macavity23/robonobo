@@ -8,7 +8,7 @@ import java.util.Date;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.TimeUtil;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.AudioPlayer.Status;
@@ -116,7 +116,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 		}
 		PageBuffer pb = rbnb.getStorageService().getPageBuf(currentStreamId);
 		if (pb == null)
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		// If we already have some of this stream, start playing it straight
 		// away, otherwise ask it to notify us when it gets data, and start
 		// playing
@@ -201,7 +201,7 @@ public class PlaybackService extends AbstractService implements AudioPlayerListe
 			if (bytesData >= BYTES_BUFFERED_DATA)
 				return true;
 		}
-		throw new Errot();
+		throw new SeekInnerCalmException();
 	}
 
 	/** Returns the current stream that is playing/paused, or null if none */

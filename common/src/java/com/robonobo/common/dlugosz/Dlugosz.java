@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.io.PeekableInputStream;
 
 /**
@@ -65,7 +65,7 @@ public class Dlugosz {
 				return (i + 1);
 		}
 		// Can't happen
-		throw new Errot();
+		throw new SeekInnerCalmException();
 	}
 
 	private static void encode(long num, int encLen, ByteBuffer buf) {
@@ -117,7 +117,7 @@ public class Dlugosz {
 			buf.put(byteAtOffset(num, 0));
 			break;
 		default: // Can't happen
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		}
 	}
 
@@ -215,7 +215,7 @@ public class Dlugosz {
 			}
 			break;
 		default: // Can't happen
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		}
 
 		return result;
@@ -265,7 +265,7 @@ public class Dlugosz {
 			}
 			break;
 		default: // Can't happen
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		}
 
 		return result;

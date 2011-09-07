@@ -15,7 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.model.Comment;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.core.api.proto.CoreApi.CommentMsg;
@@ -46,7 +46,7 @@ public class CommentController extends BaseController {
 		if (c.getUserId() != u.getUserId()) {
 			Matcher m = Comment.RESOURCE_ID_PAT.matcher(c.getResourceId());
 			if(!m.matches())
-				throw new Errot();
+				throw new SeekInnerCalmException();
 			if(m.group(1).equals("playlist")) {
 				long plId = Long.parseLong(m.group(2));
 				MidasPlaylist p = midas.getPlaylistById(plId);
@@ -61,7 +61,7 @@ public class CommentController extends BaseController {
 					return;
 				}
 			} else 
-				throw new Errot();
+				throw new SeekInnerCalmException();
 		}
 		midas.deleteComment(c);
 	}

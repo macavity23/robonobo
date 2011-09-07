@@ -15,7 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.LoginListener;
 import com.robonobo.core.api.model.User;
@@ -119,7 +119,7 @@ public class LoginSheet extends Sheet implements LoginListener {
 	
 	public void tryLogin() {
 		if(!isEventDispatchThread())
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		emailField.setEnabled(false);
 		passwordField.setEnabled(false);
 		loginBtn.setEnabled(false);

@@ -10,7 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.PropertyConfigurator;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.serialization.ConfigBeanSerializer;
 import com.robonobo.common.util.ByteUtil;
 import com.robonobo.common.util.FileUtil;
@@ -40,7 +40,7 @@ public class Updater {
 					m = Updater.class.getDeclaredMethod("updateVersion" + v + "ToVersion" + nextV);
 					m.invoke(this);
 				} catch (Exception e) {
-					throw new Errot(e);
+					throw new SeekInnerCalmException(e);
 				}
 				v = nextV;
 			}

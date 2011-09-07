@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 
 /**
  * [De]Serializes a config bean to/from an easy-to-read text file. Note, config
@@ -133,7 +133,7 @@ public class ConfigBeanSerializer {
 				String propVal = env.get(envName);
 				PropertyDescriptor prop = propsByName.get(propName);
 				if(prop == null)
-					throw new Errot("Failed to overwrite config: unknown property "+propName+" in bean "+beanName);
+					throw new SeekInnerCalmException("Failed to overwrite config: unknown property "+propName+" in bean "+beanName);
 				if(!propTypeOk(prop.getPropertyType()))
 					throw new IOException("Invalid property type for property '"+prop.getName()+"' in bean class "+bean.getClass());
 				prop.getWriteMethod().invoke(bean, getPropValue(prop.getPropertyType(), propVal));
@@ -164,7 +164,7 @@ public class ConfigBeanSerializer {
 		else if (String.class.isAssignableFrom(propType))
 			propVal = propValStr;
 		else
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		return propVal;
 	}
 

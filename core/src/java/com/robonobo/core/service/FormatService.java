@@ -1,5 +1,7 @@
 package com.robonobo.core.service;
 
+import static com.robonobo.common.util.FileUtil.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,8 +10,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.exceptions.Errot;
-import com.robonobo.common.util.FileUtil;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.MD5StreamIdGenerator;
 import com.robonobo.core.api.StreamIdGenerator;
 import com.robonobo.core.api.model.Stream;
@@ -78,11 +79,11 @@ public class FormatService extends AbstractService {
 	}
 
 	public String getMimeTypeForFile(File f) {
-		return getFspForExtension(FileUtil.getFileExtension(f)).getMimeType();
+		return getFspForExtension(getFileExtension(f)).getMimeType();
 	}
 
 	public Stream getStreamForFile(File f) throws IOException {
-		Stream s = getFspForExtension(FileUtil.getFileExtension(f)).getStreamForFile(f);
+		Stream s = getFspForExtension(getFileExtension(f)).getStreamForFile(f);
 		s.setStreamId(idGenerator.generateStreamId(f));
 		return s;
 	}
@@ -100,7 +101,7 @@ public class FormatService extends AbstractService {
 					return fsp;
 			}
 		}
-		throw new Errot();
+		throw new SeekInnerCalmException();
 	}
 
 }

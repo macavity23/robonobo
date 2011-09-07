@@ -12,7 +12,7 @@ import javax.swing.filechooser.FileSystemView;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.Robonobo;
 import com.robonobo.core.itunes.ITunesService;
@@ -50,7 +50,7 @@ public class UnknownPlatform extends Platform {
 		try {
 			UIManager.setLookAndFeel(new RobonoboLookAndFeel());
 		} catch (UnsupportedLookAndFeelException e) {
-			throw new Errot(e);
+			throw new SeekInnerCalmException(e);
 		}
 	}
 
@@ -105,7 +105,7 @@ public class UnknownPlatform extends Platform {
 			}
 			return false;
 		} catch (ClassNotFoundException e) {
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		}
 	}
 
@@ -116,7 +116,7 @@ public class UnknownPlatform extends Platform {
 			List result = (List) t.getTransferData(flava);
 			return result;
 		} catch (ClassNotFoundException e) {
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		} catch (UnsupportedFlavorException e) {
 			log.error("Error getting DnD files", e);
 			return null;

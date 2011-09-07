@@ -167,6 +167,18 @@ public class RobonoboController {
 		});
 	}
 
+	/**
+	 * Does not lookup or store the stream in any way, just parses the file metadata
+	 */
+	public Stream getStream(File f) throws IOException {
+		return inst.getFormatService().getStreamForFile(f);
+	}
+	
+	public void addShare(String pathToFile, Stream s) throws RobonoboException {
+		inst.getStreamService().putStream(s);
+		inst.getShareService().addShare(s, new File(pathToFile));
+	}
+	
 	public Stream addShare(String pathToFile) throws RobonoboException {
 		File f = new File(pathToFile);
 		Stream s;

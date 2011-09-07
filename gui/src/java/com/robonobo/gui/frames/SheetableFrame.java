@@ -12,7 +12,7 @@ import javax.swing.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.sheets.Sheet;
 
@@ -32,7 +32,7 @@ public class SheetableFrame extends JFrame {
 
 	public void showSheet(Sheet newSheet) {
 		if (newSheet == null)
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		sheetLock.lock();
 		try {
 			// If we already have a sheet showing, hide it

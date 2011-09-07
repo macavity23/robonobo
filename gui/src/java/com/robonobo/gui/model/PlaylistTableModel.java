@@ -8,7 +8,7 @@ import org.apache.commons.logging.LogFactory;
 import ca.odell.glazedlists.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 import com.robonobo.mina.external.FoundSourceListener;
@@ -123,7 +123,7 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	 * position */
 	public void addStreams(List<String> streamIds, int position) {
 		if (!canEdit)
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		updateLock.lock();
 		try {
 			// Rather than buggering about inside our eventlist, we re-order the playlist and then just re-add the whole
@@ -180,7 +180,7 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	@Override
 	public void deleteTracks(List<String> streamIds) {
 		if (!canDelete)
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		updateLock.lock();
 		try {
 			for (String sid : streamIds) {

@@ -18,7 +18,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.Robonobo;
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.common.util.NetUtil;
 import com.robonobo.core.Platform;
@@ -320,7 +320,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	/** Call only from UI thread */
 	public void postToFacebook(final Playlist p) {
 		if (!SwingUtilities.isEventDispatchThread())
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		UserConfig uc = ctrl.getMyUserConfig();
 		if (uc == null || uc.getItem("facebookId") == null) {
 			// They don't seem to be registered for facebook - fetch a fresh copy of the usercfg from midas in
@@ -380,7 +380,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 
 	public void postToTwitter(final Playlist p) {
 		if (!SwingUtilities.isEventDispatchThread())
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		UserConfig uc = ctrl.getMyUserConfig();
 		if (uc == null || uc.getItem("twitterId") == null) {
 			// They don't seem to be registered for twitter - fetch a fresh copy of the usercfg from midas in

@@ -12,7 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
@@ -48,12 +48,12 @@ public class RoboTest {
 		while ((line = in.readLine()) != null) {
 			Matcher m = testFilePat.matcher(line.replaceAll("\\s+$", ""));
 			if (!m.matches())
-				throw new Errot("Format of file must be <streamid> <filepath>");
+				throw new SeekInnerCalmException("Format of file must be <streamid> <filepath>");
 			String sid = m.group(1);
 			String filePath = m.group(2);
 			File f = new File(filePath);
 			if (!f.exists())
-				throw new Errot("File '" + f.getAbsolutePath()
+				throw new SeekInnerCalmException("File '" + f.getAbsolutePath()
 						+ "' specified in test file does not exist");
 			streamIds.add(sid);
 			inFiles.add(f);

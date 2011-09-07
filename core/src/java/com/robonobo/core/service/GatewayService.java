@@ -14,7 +14,7 @@ import org.apache.http.util.EntityUtils;
 import org.bitlet.weupnp.*;
 import org.xml.sax.SAXException;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.CodeUtil;
 import com.robonobo.common.util.NetUtil;
 import com.robonobo.core.api.config.RobonoboConfig;
@@ -87,7 +87,7 @@ public class GatewayService extends AbstractService {
 					// TODO - Poll and restart if an interface appears
 					myAddr = InetAddress.getByName("127.0.0.1");
 				} catch (UnknownHostException e) {
-					throw new Errot();
+					throw new SeekInnerCalmException();
 				}
 			}
 		}

@@ -30,7 +30,7 @@ import ca.odell.glazedlists.matchers.MatcherEditor.Event;
 import ca.odell.glazedlists.swing.TableComparatorChooser;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.api.model.DownloadingTrack.DownloadStatus;
@@ -247,7 +247,7 @@ public class TrackList extends JPanel {
 	/** Call only on the ui thread */
 	public void deleteSelectedTracks() {
 		if (!SwingUtilities.isEventDispatchThread())
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		if (model.allowDelete()) {
 			if (frame.guiCfg.getConfirmTrackDelete())
 				frame.showSheet(new ConfirmTrackDeleteSheet(frame, model, getSelectedStreamIds()));

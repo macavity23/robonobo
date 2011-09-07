@@ -1,60 +1,51 @@
 package com.robonobo.gui.tasks;
 
-import java.io.File;
-import java.util.*;
+import static com.robonobo.gui.GuiUtil.*;
 
-import com.robonobo.core.RobonoboController;
-import com.robonobo.core.api.RobonoboException;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.Task;
 import com.robonobo.core.api.model.Stream;
+import com.robonobo.gui.frames.RobonoboFrame;
+import com.robonobo.gui.sheets.TaskProgressSheet;
 
 public class ImportFilesTask extends Task {
 	private List<File> files = new ArrayList<File>();
-	private RobonoboController control;
+	private RobonoboFrame frame;
 
-	public ImportFilesTask(RobonoboController control, List<File> files) {
-		this.control = control;
+	public ImportFilesTask(RobonoboFrame frame, List<File> files) {
+		this.frame = frame;
 		this.files = files;
 		title = "Importing " + files.size() + " files";
 	}
 
 	@Override
 	public void runTask() throws Exception {
-		log.info("Running import files task for "+files.size()+" files");
-		List<String> streamIds = new ArrayList<String>();
-		int totalSz = files.size();
-		int i = 0;
-		Iterator<File> it = files.iterator();
-		try {
-			while (it.hasNext()) {
-				if (cancelRequested) {
-					cancelConfirmed();
-					return;
-				}
-				completion = (float) i / totalSz;
-				i++;
-				statusText = "Importing file " + i + " of " + totalSz;
-				fireUpdated();
-
-				File f = it.next();
-				String filePath = f.getAbsolutePath();
-				Stream s = null;
-				try {
-					s = control.addShare(filePath);
-				} catch (RobonoboException e) {
-					log.error("Error adding share from file " + filePath+": "+e.getMessage());
-					continue;
-				} finally {
-					it.remove();
-				}
-				streamIds.add(s.getStreamId());
+		statusText = "Reading file details";
+		final TaskProgressSheet tps = new TaskProgressSheet(frame, statusText, "Reading", files.size());
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				frame.showSheet(tps);
 			}
-			statusText = "Done.";
-			completion = 1f;
-			fireUpdated();
-		} finally {
-			streamsAdded(streamIds);
+		});
+		final List<Stream> sl = new ArrayList<Stream>();
+		int i = 0;
+		for (File f : files) {
+			Stream s = frame.ctrl.getStream(f);
+			sl.add(s);
+			tps.setProgress(++i);
 		}
+		final ChooseImportsSheet cfs = new ChooseImportsSheet(frame, files, sl, this);
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				if (tps.isVisible())
+					tps.setVisible(false);
+				frame.showSheet(cfs);
+			}
+		});
 	}
 
 	protected void streamsAdded(List<String> streamIds) {

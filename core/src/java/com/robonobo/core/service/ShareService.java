@@ -14,7 +14,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.Batcher;
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.pageio.buffer.FilePageBuffer;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.api.RobonoboException;
@@ -147,7 +147,7 @@ public class ShareService extends AbstractService {
 		Stream s = d.getStream();
 		log.debug("Adding share for completed download " + s.getStreamId());
 		if (d.getDownloadStatus() != DownloadStatus.Finished) {
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		}
 		File curFile = d.getFile();
 		File shareFile = fileForFinishedDownload(s);

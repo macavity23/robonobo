@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 
 /**
  * Assorted text utils
@@ -210,7 +210,7 @@ public class TextUtil {
 		try {
 			return URLEncoder.encode(input, "utf-8");
 		} catch (UnsupportedEncodingException e) {
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		}
 	}
 
@@ -230,7 +230,7 @@ public class TextUtil {
 		try {
 			return URLDecoder.decode(input, "utf-8");
 		} catch (UnsupportedEncodingException e) {
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		}
 	}
 

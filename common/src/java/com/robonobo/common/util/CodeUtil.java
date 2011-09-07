@@ -4,7 +4,7 @@ import static com.robonobo.common.util.TextUtil.*;
 
 import java.lang.reflect.Method;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 
 public class CodeUtil {
 	public static int javaMajorVersion() {
@@ -23,7 +23,7 @@ public class CodeUtil {
 			Method m = obj.getClass().getDeclaredMethod("set" + capitalizeFirst(propName), String.class);
 			m.invoke(obj, value);
 		} catch (Exception e) {
-			throw new Errot(e);
+			throw new SeekInnerCalmException(e);
 		}
 	}
 	
@@ -32,7 +32,7 @@ public class CodeUtil {
 			Method m = obj.getClass().getDeclaredMethod("set" + capitalizeFirst(propName), boolean.class);
 			m.invoke(obj, value);
 		} catch (Exception e) {
-			throw new Errot(e);
+			throw new SeekInnerCalmException(e);
 		}
 	}
 }

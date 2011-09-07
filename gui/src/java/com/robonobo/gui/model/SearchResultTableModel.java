@@ -4,7 +4,7 @@ import java.util.List;
 
 import ca.odell.glazedlists.*;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.SearchListener;
 import com.robonobo.core.api.model.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -66,6 +66,6 @@ public class SearchResultTableModel extends GlazedTrackListTableModel implements
 	
 	@Override
 	public void deleteTracks(List<String> streamIds) {
-		throw new Errot();
+		throw new SeekInnerCalmException();
 	}
 }

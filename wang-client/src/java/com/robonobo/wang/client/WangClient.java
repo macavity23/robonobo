@@ -8,7 +8,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.http.PreemptiveHttpClient;
 import com.robonobo.common.util.TextUtil;
 import com.robonobo.wang.*;
@@ -153,7 +153,7 @@ public class WangClient {
 				// rounding
 				if (amtToWithdraw > 0) {
 					if (amtToWithdraw > getDenomValue(smallestDenom))
-						throw new Errot();
+						throw new SeekInnerCalmException();
 					int numSmallest = toWithdraw.containsKey(smallestDenom) ? toWithdraw.get(smallestDenom) : 0;
 					toWithdraw.put(smallestDenom, numSmallest + 1);
 					amtToWithdraw -= getDenomValue(smallestDenom);

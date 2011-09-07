@@ -7,7 +7,7 @@ import java.util.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.concurrent.Timeout;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.TextUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.RobonoboException;
@@ -620,7 +620,7 @@ public class PlaylistService extends AbstractService {
 		synchronized (this) {
 			p = playlists.get(plId);
 			if (p == null)
-				throw new Errot();
+				throw new SeekInnerCalmException();
 			playlists.get(plId).getOwnerIds().remove(me.getUserId());
 			if (p.getOwnerIds().size() > 0)
 				firePlaylistUpdate = true;

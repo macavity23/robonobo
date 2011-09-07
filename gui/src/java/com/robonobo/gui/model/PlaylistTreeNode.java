@@ -6,7 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.swing.SortableTreeNode;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -96,7 +96,7 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 		} else if (o instanceof LibraryTreeNode)
 			result = 1;
 		else
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		return result;
 	}
 }

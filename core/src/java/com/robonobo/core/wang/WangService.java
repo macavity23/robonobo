@@ -10,7 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.model.User;
 import com.robonobo.core.api.proto.CoreApi.Node;
@@ -128,7 +128,7 @@ public class WangService extends AbstractService implements CurrencyClient {
 		case MaxRate:
 			return Math.pow(2, config.getMaxRateMaxBid());
 		default:
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		}
 	}
 

@@ -11,7 +11,7 @@ import org.apache.commons.logging.Log;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.robonobo.common.async.PushDataReceiver;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.CodeUtil;
 import com.robonobo.common.util.NetUtil;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
@@ -134,7 +134,7 @@ public class EonEndPointMgr implements EndPointMgr {
 		EonEndPoint eonEp = EonEndPoint.parse(ep.getUrl());
 		try {
 			if (!(eonEp instanceof SeonEndPoint))
-				throw new Errot("EonEndPointMgr cannot connect to endpoint class " + CodeUtil.shortClassName(eonEp.getClass()));
+				throw new SeekInnerCalmException("EonEndPointMgr cannot connect to endpoint class " + CodeUtil.shortClassName(eonEp.getClass()));
 			if (eonEp instanceof SeonNatTraversalEndPoint) {
 				if ((!natTraversalDecided) || natTraversalEp == null)
 					return null;

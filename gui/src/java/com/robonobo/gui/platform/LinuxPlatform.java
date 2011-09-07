@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.UIManager;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.TextUtil;
 
 
@@ -22,7 +22,7 @@ public class LinuxPlatform extends UnknownPlatform {
 		try {
 			importFlavor = new DataFlavor("text/uri-list; class=java.lang.String");
 		} catch (ClassNotFoundException e) {
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		}
 	}
 	
@@ -55,7 +55,7 @@ public class LinuxPlatform extends UnknownPlatform {
 			}
 			return results;
 		} catch (UnsupportedFlavorException e) {
-			throw new Errot(e);
+			throw new SeekInnerCalmException(e);
 		}
 	}
 }

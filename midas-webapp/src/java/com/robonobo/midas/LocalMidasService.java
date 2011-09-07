@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.model.Library;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.midas.dao.*;
@@ -178,13 +178,13 @@ public class LocalMidasService implements MidasService {
 	@Override
 	public MidasPlaylist newPlaylist(MidasPlaylist playlist) {
 		if (playlist.getPlaylistId() > 0)
-			throw new Errot("newPlaylist called with non-new playlist!");
+			throw new SeekInnerCalmException("newPlaylist called with non-new playlist!");
 		long newPlaylistId;
 		synchronized (this) {
 			if (lastPlaylistId <= 0)
 				lastPlaylistId = playlistDao.getHighestPlaylistId();
 			if (lastPlaylistId == Long.MAX_VALUE)
-				throw new Errot("playlist ids wrapped!"); // Unlikely
+				throw new SeekInnerCalmException("playlist ids wrapped!"); // Unlikely
 			else
 				lastPlaylistId++;
 			newPlaylistId = lastPlaylistId;
@@ -227,13 +227,13 @@ public class LocalMidasService implements MidasService {
 	@Transactional(rollbackFor = Exception.class)
 	private MidasComment newComment(MidasComment comment, String resourceId) {
 		if (comment.getCommentId() > 0)
-			throw new Errot("newComment called with non-new comment");
+			throw new SeekInnerCalmException("newComment called with non-new comment");
 		long newCommentId;
 		synchronized (this) {
 			if (lastCommentId <= 0)
 				lastCommentId = commentDao.getHighestCommentId();
 			if (lastCommentId == Long.MAX_VALUE)
-				throw new Errot("comment ids wrapped");
+				throw new SeekInnerCalmException("comment ids wrapped");
 			else
 				lastCommentId++;
 			newCommentId = lastCommentId;
@@ -248,7 +248,7 @@ public class LocalMidasService implements MidasService {
 	@Transactional(rollbackFor = Exception.class)
 	public void saveComment(MidasComment c) {
 		if (c.getCommentId() <= 0)
-			throw new Errot("comment id is not set");
+			throw new SeekInnerCalmException("comment id is not set");
 		preventCommentXSS(c);
 		commentDao.saveComment(c);
 	}
@@ -268,7 +268,7 @@ public class LocalMidasService implements MidasService {
 	@Transactional(rollbackFor = Exception.class)
 	public void savePlaylist(MidasPlaylist p) {
 		if (p.getPlaylistId() <= 0)
-			throw new Errot("playlist id is not set");
+			throw new SeekInnerCalmException("playlist id is not set");
 		preventPlaylistXSS(p);
 		playlistDao.savePlaylist(p);
 	}

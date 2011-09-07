@@ -5,7 +5,7 @@ import static com.robonobo.common.util.TextUtil.*;
 import java.io.PrintWriter;
 import java.sql.*;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.console.RobonoboConsole;
 
 public class dbupdate implements ConsoleCommand {
@@ -42,7 +42,7 @@ public class dbupdate implements ConsoleCommand {
 			else if(args[0].equalsIgnoreCase("page"))
 				console.getController().returnPageDbConnection(conn);
 			else
-				throw new Errot();
+				throw new SeekInnerCalmException();
 		}
 	}
 

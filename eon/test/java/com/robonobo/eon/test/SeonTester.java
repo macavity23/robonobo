@@ -17,7 +17,7 @@ import com.robonobo.common.async.PullDataProvider;
 import com.robonobo.common.async.PushDataReceiver;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.concurrent.SafetyNet;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.ByteUtil;
 import com.robonobo.common.util.ExceptionEvent;
 import com.robonobo.common.util.ExceptionListener;
@@ -137,7 +137,7 @@ public class SeonTester {
 					if(lastByte < 0)
 						lastByte = b;
 					if(b != lastByte)
-						throw new Errot();
+						throw new SeekInnerCalmException();
 					numReceived++;
 					if(numReceived == 16384) {
 						lastByte = -1;

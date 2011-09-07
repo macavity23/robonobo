@@ -17,7 +17,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.model.Comment;
 import com.robonobo.core.api.model.User;
 import com.robonobo.core.metadata.CommentCallback;
@@ -200,7 +200,7 @@ public abstract class CommentsTabPanel extends JPanel {
 					return;
 			}
 			if(getWidth() == 0)
-				throw new Errot();
+				throw new SeekInnerCalmException();
 			
 			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {

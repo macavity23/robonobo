@@ -10,7 +10,7 @@ import java.net.URL;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 
 public class GuiUtil {
 	public static final int DEFAULT_NUM_SHAKES = 10;
@@ -27,7 +27,7 @@ public class GuiUtil {
 		try {
 			return new ImageIcon(new URL(url));
 		} catch (MalformedURLException e) {
-			throw new Errot(e);
+			throw new SeekInnerCalmException(e);
 		}
 	}
 	
@@ -35,7 +35,7 @@ public class GuiUtil {
 		try {
 			return ImageIO.read(GuiUtil.class.getResource(path));
 		} catch (IOException e) {
-			throw new Errot(e);
+			throw new SeekInnerCalmException(e);
 		}
 	}
 

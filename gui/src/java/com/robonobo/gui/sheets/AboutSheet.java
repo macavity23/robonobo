@@ -11,7 +11,7 @@ import java.io.InputStream;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 
@@ -67,7 +67,7 @@ public class AboutSheet extends Sheet {
 			}
 			is.close();
 		} catch (IOException e) {
-			throw new Errot(e);
+			throw new SeekInnerCalmException(e);
 		}
 		return sb.toString().replace("!VERSION!", frame.ctrl.getVersion());
 	}

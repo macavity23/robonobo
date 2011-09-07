@@ -4,7 +4,7 @@ import info.clearthought.layout.TableLayout;
 
 import java.awt.Dimension;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 
@@ -39,7 +39,7 @@ public class ChoicePrefPanel extends PrefPanel {
 			}
 		}
 		if(selIndex < 0)
-			throw new Errot("Invalid prop value for property "+propName);
+			throw new SeekInnerCalmException("Invalid prop value for property "+propName);
 		combo.setSelectedIndex(selIndex);
 	}
 	

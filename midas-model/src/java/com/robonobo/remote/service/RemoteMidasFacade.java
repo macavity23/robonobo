@@ -3,7 +3,7 @@ package com.robonobo.remote.service;
 import java.util.*;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.model.Library;
 import com.robonobo.core.api.proto.CoreApi.FriendRequestMsg;
 import com.robonobo.core.api.proto.CoreApi.InviteMsg;
@@ -47,7 +47,7 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 	@Override
 	public MidasPlaylist newPlaylist(MidasPlaylist playlist) {
 		// Don't do newPlaylist remotely
-		throw new Errot();
+		throw new SeekInnerCalmException();
 	}
 
 	public MidasStream getStreamById(String streamId) {
@@ -166,13 +166,13 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 	@Override
 	public Library getLibrary(MidasUser u, Date since) {
 		// We don't do library remoting yet
-		throw new Errot();
+		throw new SeekInnerCalmException();
 	}
 
 	@Override
 	public void putLibrary(Library lib) {
 		// We don't do library remoting yet
-		throw new Errot();
+		throw new SeekInnerCalmException();
 	}
 
 	@Override

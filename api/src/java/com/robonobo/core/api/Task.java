@@ -18,7 +18,7 @@ public abstract class Task extends CatchingRunnable {
 	protected String statusText;
 	/** 0 - 1 */
 	protected float completion = 0;
-	protected boolean cancelRequested;
+	public boolean cancelRequested;
 	protected Log log = LogFactory.getLog(getClass());
 	
 	@Override
@@ -73,7 +73,7 @@ public abstract class Task extends CatchingRunnable {
 		listeners.remove(l);
 	}
 	
-	protected void fireUpdated() {
+	public void fireUpdated() {
 		for (TaskListener l : listeners) {
 			l.taskUpdated(this);
 		}
@@ -95,7 +95,7 @@ public abstract class Task extends CatchingRunnable {
 		this.statusText = statusText;
 	}
 
-	protected void cancelConfirmed() {
+	public void cancelConfirmed() {
 		statusText = "Cancelled";
 		completion = 1f;
 		fireUpdated();

@@ -21,7 +21,7 @@ import org.jdesktop.swingx.decorator.HighlighterFactory;
 import org.jdesktop.swingx.table.TableColumnModelExt;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.LoginListener;
 import com.robonobo.core.api.model.User;
 import com.robonobo.core.wang.WangListener;
@@ -193,7 +193,7 @@ public class WangContentPanel extends ContentPanel implements WangListener, Logi
 			case 3:
 				return entry.narration;
 			}
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		}
 		
 		public void add(double creditValue, String narration) {

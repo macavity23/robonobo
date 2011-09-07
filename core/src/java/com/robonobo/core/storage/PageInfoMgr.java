@@ -9,7 +9,7 @@ import java.util.concurrent.locks.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.pageio.buffer.FilePageBuffer;
 import com.robonobo.common.pageio.buffer.PageInfoStore;
 import com.robonobo.core.api.model.Stream;

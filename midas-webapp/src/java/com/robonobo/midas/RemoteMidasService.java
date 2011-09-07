@@ -19,7 +19,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.remote.RemoteCall;
 import com.robonobo.core.api.proto.CoreApi.FriendRequestMsg;
 import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
@@ -206,7 +206,7 @@ public class RemoteMidasService implements ServerInvocationHandler, Initializing
 	private void addFriends(RemoteCall params) {
 		Long userId = (Long) params.getArg();
 		if (params.getExtraArgs().size() < 2)
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		// Java won't cast Object[] into Long[] automatically, rubbish
 		Object[] fidArr = (Object[]) params.getExtraArgs().get(0);
 		List<Long> fidList = new ArrayList<Long>();

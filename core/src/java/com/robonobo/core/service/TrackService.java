@@ -5,7 +5,7 @@ import java.util.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.TransferSpeed;
 import com.robonobo.core.api.TransferSpeedListener;
 import com.robonobo.core.api.model.*;
@@ -89,7 +89,7 @@ public class TrackService extends AbstractService implements TransferSpeedListen
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				throw new Errot(e);
+				throw new SeekInnerCalmException(e);
 			}
 		}
 		Track t;

@@ -18,7 +18,7 @@ import java.io.PrintWriter;
 import javax.swing.SwingUtilities;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.TextUtil;
 import com.robonobo.console.RobonoboConsole;
 import com.robonobo.core.*;
@@ -52,7 +52,7 @@ public class Robonobo {
 			handedOver = rt.handoverIfRunning(argForRunningInstance(args));
 		} catch(EONException e) {
 			// TODO: there is a running instance, but it's wedged - ask the user to kill it...
-			throw new Errot("Wedged rbnb instance");
+			throw new SeekInnerCalmException("Wedged rbnb instance");
 		}
 		if(handedOver) {
 			System.exit(0);

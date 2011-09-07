@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.TimeUtil;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.mina.external.buffer.PageInfo;
@@ -95,7 +95,7 @@ public class BCPair extends ConnectionPair {
 		}
 		// Bug huntin
 		if (bc == null)
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		List<Long> failedPages = null;
 		// Use a fair reentrant lock to make sure we don't handle reqpage requests out of order
 		reqPageLock.lock();

@@ -10,7 +10,7 @@ import org.apache.commons.logging.Log;
 
 import com.google.protobuf.ByteString;
 import com.robonobo.common.concurrent.*;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.CurrencyClient;
 import com.robonobo.core.api.CurrencyException;
 import com.robonobo.core.api.proto.CoreApi.Node;
@@ -447,7 +447,7 @@ public class SellMgr {
 			bidFrozen.add(bidderNodeId);
 		} else {
 			if (!waitingForBids.isEmpty())
-				throw new Errot();
+				throw new SeekInnerCalmException();
 			currentBids.put(bidderNodeId, newBid);
 			// updateAuctionStatus will start a new auction
 		}

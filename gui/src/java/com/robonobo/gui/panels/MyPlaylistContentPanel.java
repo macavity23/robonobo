@@ -16,7 +16,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.PlaylistListener;
@@ -67,7 +67,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 					return;
 				haveShown = true;
 				if (getWidth() == 0)
-					throw new Errot();
+					throw new SeekInnerCalmException();
 				log.debug("Adding comment listener for panel for playlist "+p.getPlaylistId());
 				frame.ctrl.addPlaylistListener(MyPlaylistContentPanel.this);
 				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
@@ -145,7 +145,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			else if (vis.equals(Playlist.VIS_ME))
 				visMeBtn.setSelected(true);
 			else
-				throw new Errot("invalid visibility " + vis);
+				throw new SeekInnerCalmException("invalid visibility " + vis);
 			ptm().update(p);
 			toolsPanel.checkPlaylistVisibility();
 		}
@@ -182,7 +182,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			try {
 				streamIds = (List<String>) t.getTransferData(StreamTransfer.DATA_FLAVOR);
 			} catch (Exception e) {
-				throw new Errot();
+				throw new SeekInnerCalmException();
 			}
 			tm.addStreams(streamIds, insertRow);
 			return true;

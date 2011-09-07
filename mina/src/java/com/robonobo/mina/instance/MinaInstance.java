@@ -9,7 +9,7 @@ import org.doomdark.uuid.UUID;
 import org.doomdark.uuid.UUIDGenerator;
 
 import com.robonobo.common.concurrent.SafetyNet;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.*;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.core.api.proto.CoreApi.Node;
@@ -77,7 +77,7 @@ public class MinaInstance implements MinaControl {
 			bidStrategy = (BidStrategy) Class.forName(config.getBidStrategyClass()).newInstance();
 			bidStrategy.setMinaInstance(this);
 		} catch (Exception e) {
-			throw new Errot(e);
+			throw new SeekInnerCalmException(e);
 		}
 		scm = new StreamConnsMgr(this);
 		streamMgr = new StreamMgr(this);

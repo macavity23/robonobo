@@ -23,7 +23,7 @@ import org.apache.http.util.EntityUtils;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.GeneratedMessage;
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.http.PreemptiveHttpClient;
 import com.robonobo.common.serialization.*;
 import com.robonobo.core.api.model.*;
@@ -57,7 +57,7 @@ public class MidasClientService extends AbstractMetadataService {
 		String baseUrl = rbnb.getConfig().getMidasUrl();
 		Matcher m = URL_PATTERN.matcher(baseUrl);
 		if (!m.matches())
-			throw new Errot("midas url " + baseUrl + "does not match expected pattern");
+			throw new SeekInnerCalmException("midas url " + baseUrl + "does not match expected pattern");
 		cfg = new MidasClientConfig(baseUrl);
 		String midasHost = m.group(1);
 		String portStr = m.group(2);

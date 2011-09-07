@@ -12,7 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.StreamVelocity;
 import com.robonobo.core.api.model.*;
@@ -259,7 +259,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	public void startDownload(String streamId) throws RobonoboException {
 		DownloadingTrack d = db.getDownload(streamId);
 		if (d == null)
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		if (d.getDownloadStatus() == DownloadStatus.Finished) {
 			log.debug("Not starting finished download " + streamId);
 			return;

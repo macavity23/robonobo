@@ -22,7 +22,7 @@ import org.apache.http.util.EntityUtils;
 
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.GeneratedMessage;
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.http.PreemptiveHttpClient;
 import com.robonobo.wang.WangServerException;
 import com.robonobo.wang.proto.WangProtocol.BalanceMsg;
@@ -47,7 +47,7 @@ public class BankFacade {
 			baseUrl += "/";
 		Matcher m = URL_PATTERN.matcher(baseUrl);
 		if (!m.matches())
-			throw new Errot("bank url " + baseUrl + "does not match expected pattern");
+			throw new SeekInnerCalmException("bank url " + baseUrl + "does not match expected pattern");
 		bankHost = m.group(1);
 		String portStr = m.group(2);
 		// Note that the httpclient preemptive auth breaks if we set this to 80, instead we have to use -1 :-P :-P :-P

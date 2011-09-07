@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.regex.Matcher;
 
-import com.robonobo.common.exceptions.Errot;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.TextUtil;
 import com.robonobo.core.api.model.Comment;
 
@@ -122,7 +122,7 @@ public class MidasClientConfig implements Serializable {
 	public String getCommentByTypeUrl(String resourceId) {
 		Matcher m = Comment.RESOURCE_ID_PAT.matcher(resourceId);
 		if (!m.matches())
-			throw new Errot();
+			throw new SeekInnerCalmException();
 		String type = m.group(1);
 		long id = Long.parseLong(m.group(2));
 		return baseUrl + "comment/" + type + "/" + Long.toHexString(id);
