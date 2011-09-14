@@ -82,8 +82,6 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 		int result;
 		if(o instanceof PlaylistTreeNode) {
 			PlaylistTreeNode optn = (PlaylistTreeNode) o;
-			String t1 = p.getTitle();
-			String t2 = optn.p.getTitle();
 			int specIdx = getSpecialIndex();
 			int oSpecIdx = optn.getSpecialIndex();
 			if (specIdx < oSpecIdx)
@@ -92,7 +90,6 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 				result = 1;
 			else 
 				result = p.getTitle().toLowerCase().compareTo(optn.p.getTitle().toLowerCase());
-			log.debug("Comparing PTNs for playlists "+p.getTitle()+" and "+optn.p.getTitle()+" - result is "+result);
 		} else if (o instanceof LibraryTreeNode)
 			result = 1;
 		else

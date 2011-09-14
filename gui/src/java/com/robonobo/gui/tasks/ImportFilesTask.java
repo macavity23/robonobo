@@ -25,7 +25,8 @@ public class ImportFilesTask extends Task {
 	@Override
 	public void runTask() throws Exception {
 		statusText = "Reading file details";
-		final TaskProgressSheet tps = new TaskProgressSheet(frame, statusText, "Reading", files.size());
+		fireUpdated();
+		final TaskProgressSheet tps = new TaskProgressSheet(frame, statusText, "Reading", files.size(), true);
 		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				frame.showSheet(tps);

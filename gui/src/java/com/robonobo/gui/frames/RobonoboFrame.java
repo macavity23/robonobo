@@ -213,7 +213,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	public void shareFiles(final List<File> files) {
-		ImportFilesTask t = new ImportFilesTask(ctrl, files);
+		ImportFilesTask t = new ImportFilesTask(this, files);
 		ctrl.runTask(t);
 	}
 

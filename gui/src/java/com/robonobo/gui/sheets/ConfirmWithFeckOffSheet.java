@@ -21,12 +21,13 @@ public abstract class ConfirmWithFeckOffSheet extends Sheet {
 		super(frame);
 		confirmBtn = new RGlassButton(confirmBtnLbl.toUpperCase());
 		int btnWidth = getFontMetrics(confirmBtn.getFont()).stringWidth(confirmBtnLbl.toUpperCase()) + 50;
-		double[][] cellSizen = { { 10, 200, btnWidth, 10, 100, 10 }, { 10, 20, 5, 50, 5, 25, 5, 30, 5 } };
+		JPanel msgLbl = new LineBreakTextPanel(message, RoboFont.getFont(13, false), 310 + btnWidth);
+		int msgHeight = msgLbl.getPreferredSize().height;
+		double[][] cellSizen = { { 10, 200, btnWidth, 10, 100, 10 }, { 10, 20, 5, msgHeight, 5, 25, 5, 30, 5 } };
 		setLayout(new TableLayout(cellSizen));
 		setName("playback.background.panel");
 		RLabel titleLbl = new RLabel14B(title);
 		add(titleLbl, "1,1,4,1,CENTER,CENTER");
-		JPanel msgLbl = new LineBreakTextPanel(message, RoboFont.getFont(13, false), 310 + btnWidth);
 		add(msgLbl, "1,3,4,3");
 		feckOffCB = new RCheckBox(feckOffLbl);
 		feckOffCB.setSelected(feckOffSelected);

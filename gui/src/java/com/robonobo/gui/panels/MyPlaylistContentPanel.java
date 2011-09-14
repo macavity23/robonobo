@@ -215,7 +215,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		int insertRow;
 
 		public PlaylistImportTask(List<File> files, int insertRow) {
-			super(frame.ctrl, files);
+			super(frame, files);
 			this.insertRow = insertRow;
 		}
 
