@@ -201,7 +201,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 					allFiles.addAll(FileUtil.getFilesWithinPath(selFile, "mp3"));
 				else
 					allFiles.add(selFile);
-			frame.ctrl.runTask(new PlaylistImportTask(allFiles, insertRow));
+			frame.ctrl.runTask(new PlaylistImportTask(frame, allFiles, insertRow));
 			return true;
 		}
 	}
@@ -214,7 +214,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	class PlaylistImportTask extends ImportFilesTask {
 		int insertRow;
 
-		public PlaylistImportTask(List<File> files, int insertRow) {
+		public PlaylistImportTask(RobonoboFrame frame, List<File> files, int insertRow) {
 			super(frame, files);
 			this.insertRow = insertRow;
 		}

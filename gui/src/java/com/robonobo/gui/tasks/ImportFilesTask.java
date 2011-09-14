@@ -3,23 +3,25 @@ package com.robonobo.gui.tasks;
 import static com.robonobo.gui.GuiUtil.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.Task;
 import com.robonobo.core.api.model.Stream;
+import com.robonobo.core.api.model.StreamWithFile;
 import com.robonobo.gui.frames.RobonoboFrame;
+import com.robonobo.gui.model.StreamComparator;
 import com.robonobo.gui.sheets.TaskProgressSheet;
 
 public class ImportFilesTask extends Task {
-	private List<File> files = new ArrayList<File>();
-	private RobonoboFrame frame;
+	protected List<File> files = new ArrayList<File>();
+	protected RobonoboFrame frame;
 
 	public ImportFilesTask(RobonoboFrame frame, List<File> files) {
 		this.frame = frame;
 		this.files = files;
-		title = "Importing " + files.size() + " files";
+		if(files != null)
+			title = "Importing " + files.size() + " files";
 	}
 
 	@Override
@@ -32,14 +34,24 @@ public class ImportFilesTask extends Task {
 				frame.showSheet(tps);
 			}
 		});
-		final List<Stream> sl = new ArrayList<Stream>();
+		final List<StreamWithFile> sl = new ArrayList<StreamWithFile>();
 		int i = 0;
 		for (File f : files) {
+			if(cancelRequested) {
+				cancelConfirmed();
+				return;
+			}
 			Stream s = frame.ctrl.getStream(f);
-			sl.add(s);
+			StreamWithFile swf = new StreamWithFile();
+			swf.copyFrom(s);
+			swf.file = f;
+			sl.add(swf);
 			tps.setProgress(++i);
+			statusText = "Reading file "+i+" of "+files.size();
+			fireUpdated();
 		}
-		final ChooseImportsSheet cfs = new ChooseImportsSheet(frame, files, sl, this);
+		Collections.sort(sl, new StreamComparator());
+		final ChooseImportsSheet cfs = new ChooseImportsSheet(frame, sl, null, this);
 		runOnUiThread(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				if (tps.isVisible())

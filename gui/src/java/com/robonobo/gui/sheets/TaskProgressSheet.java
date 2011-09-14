@@ -18,8 +18,8 @@ import com.robonobo.gui.frames.RobonoboFrame;
 @SuppressWarnings("serial")
 public class TaskProgressSheet extends Sheet {
 	private String verb;
-	private int total;
-	private JProgressBar progressBar;
+	public int total;
+	public JProgressBar progressBar;
 	private RGlassButton feckOffBtn;
 
 	public TaskProgressSheet(RobonoboFrame frame, String title, String verb, int total, boolean canBackground) {
