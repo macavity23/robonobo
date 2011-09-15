@@ -15,7 +15,8 @@ import javax.swing.event.ChangeListener;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.PlaylistListener;
-import com.robonobo.core.api.model.*;
+import com.robonobo.core.api.model.Playlist;
+import com.robonobo.core.api.model.PlaylistConfig;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -64,21 +65,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 				haveShown = true;
 				log.debug("Adding listener for playlist cp "+p.getPlaylistId());
 				frame.ctrl.addPlaylistListener(OtherPlaylistContentPanel.this);
-				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
-					public void doRun() throws Exception {
-						log.debug("Getting existing comments for playlist cp "+p.getPlaylistId());
-						Map<Comment, Boolean> cs = frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId());
-						boolean hasUnseen = false;
-						for (boolean unseen : cs.values()) {
-							if(unseen) {
-								hasUnseen = true;
-								break;
-							}
-						}
-						if(cs.size() > 0)
-							gotPlaylistComments(p.getPlaylistId(), hasUnseen, cs);
-					}
-				});
+				frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId(), OtherPlaylistContentPanel.this);
 			}
 		});
 	}

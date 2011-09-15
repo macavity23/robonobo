@@ -64,24 +64,11 @@ public class FriendLibraryContentPanel extends ContentPanel implements LibraryLi
 		// Make sure the panel is all setup properly before doing this, otherwise getWidth() can return 0
 		addComponentListener(new ComponentAdapter() {
 			public void componentShown(ComponentEvent e) {
-				if(haveShown)
+				if (haveShown)
 					return;
 				haveShown = true;
 				frame.ctrl.addLibraryListener(FriendLibraryContentPanel.this);
-				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
-					public void doRun() throws Exception {
-						boolean anyUnread = false;
-						Map<Comment, Boolean> cs = frame.ctrl.getExistingCommentsForLibrary(userId);
-						for (Boolean unread : cs.values()) {
-							if (unread) {
-								anyUnread = true;
-								break;
-							}
-						}
-						if (cs.size() > 0)
-							gotLibraryComments(userId, anyUnread, cs);
-					}
-				});
+				frame.ctrl.getExistingCommentsForLibrary(userId, FriendLibraryContentPanel.this);
 			}
 		});
 	}

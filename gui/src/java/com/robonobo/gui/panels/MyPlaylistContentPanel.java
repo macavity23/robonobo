@@ -20,7 +20,8 @@ import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.FileUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.api.PlaylistListener;
-import com.robonobo.core.api.model.*;
+import com.robonobo.core.api.model.Playlist;
+import com.robonobo.core.api.model.PlaylistConfig;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.base.*;
@@ -70,20 +71,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 					throw new SeekInnerCalmException();
 				log.debug("Adding comment listener for panel for playlist "+p.getPlaylistId());
 				frame.ctrl.addPlaylistListener(MyPlaylistContentPanel.this);
-				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
-					public void doRun() throws Exception {
-						Map<Comment, Boolean> cs = frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId());
-						boolean hasUnseen = false;
-						for (boolean unseen : cs.values()) {
-							if (unseen) {
-								hasUnseen = true;
-								break;
-							}
-						}
-						if (cs.size() > 0)
-							gotPlaylistComments(p.getPlaylistId(), hasUnseen, cs);
-					}
-				});
+				frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId(), MyPlaylistContentPanel.this);
 			}
 		});
 		tabPane.addChangeListener(new ChangeListener() {

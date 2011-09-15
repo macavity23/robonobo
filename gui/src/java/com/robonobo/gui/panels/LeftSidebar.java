@@ -225,6 +225,9 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 			myPlList.markPlaylistCommentsAsRead(plId);
 			if(me.getPlaylistIds().size() > 1)
 				friendTree.getModel().markPlaylistCommentsAsRead(plId);
+			for (SpecialPlaylistSelector spSel : spSels) {
+				spSel.markCommentsAsRead(plId);
+			}
 		} else
 			friendTree.getModel().markPlaylistCommentsAsRead(plId);
 	}

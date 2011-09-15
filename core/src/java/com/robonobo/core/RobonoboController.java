@@ -167,18 +167,16 @@ public class RobonoboController {
 		});
 	}
 
-	/**
-	 * Does not lookup or store the stream in any way, just parses the file metadata
-	 */
+	/** Does not lookup or store the stream in any way, just parses the file metadata */
 	public Stream getStream(File f) throws IOException {
 		return inst.getFormatService().getStreamForFile(f);
 	}
-	
+
 	public void addShare(String pathToFile, Stream s) throws RobonoboException {
 		inst.getStreamService().putStream(s);
 		inst.getShareService().addShare(s, new File(pathToFile));
 	}
-	
+
 	public Stream addShare(String pathToFile) throws RobonoboException {
 		File f = new File(pathToFile);
 		Stream s;
@@ -460,12 +458,38 @@ public class RobonoboController {
 		inst.getCommentService().newCommentForLibrary(userId, parentId, text, cb);
 	}
 
-	public Map<Comment, Boolean> getExistingCommentsForLibrary(long uid) {
-		return inst.getCommentService().getExistingComments("library:" + uid);
+	public void getExistingCommentsForLibrary(final long uid, final LibraryListener ll) {
+		inst.executor.execute(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				Map<Comment, Boolean> cm = inst.getCommentService().getExistingComments("library:" + uid);
+				boolean anyUnread = false;
+				for (Boolean unread : cm.values()) {
+					if (unread) {
+						anyUnread = true;
+						break;
+					}
+				}
+				if (cm.size() > 0)
+					ll.gotLibraryComments(uid, anyUnread, cm);
+			}
+		});
 	}
 
-	public Map<Comment, Boolean> getExistingCommentsForPlaylist(long plId) {
-		return inst.getCommentService().getExistingComments("playlist:" + plId);
+	public void getExistingCommentsForPlaylist(final long plId, final PlaylistListener pl) {
+		inst.executor.execute(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				Map<Comment, Boolean> cm = inst.getCommentService().getExistingComments("playlist:" + plId);
+				boolean anyUnread = false;
+				for (Boolean unread : cm.values()) {
+					if (unread) {
+						anyUnread = true;
+						break;
+					}
+				}
+				if (cm.size() > 0)
+					pl.gotPlaylistComments(plId, anyUnread, cm);
+			}
+		});
 	}
 
 	public void deleteComment(Comment c, CommentCallback cb) {

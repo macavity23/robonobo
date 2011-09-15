@@ -144,20 +144,7 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 								playlistIds.add(p.getPlaylistId());
 								firePathToRootChanged(ptn);
 								// There might be some comments already for this playlist, check
-								frame.ctrl.getExecutor().execute(new CatchingRunnable() {
-									public void doRun() throws Exception {
-										Map<Comment, Boolean> cm = frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId());
-										if (cm.size() > 0) {
-											// Only fire if there are any new cmts
-											for (Boolean b : cm.values()) {
-												if (b) {
-													gotPlaylistComments(p.getPlaylistId(), true, cm);
-													return;
-												}
-											}
-										}
-									}
-								});
+								frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId(), FriendTreeModel.this);
 							} else {
 								ptn.setPlaylist(p, tree.isSelectedNode(ptn));
 								replaceNodeSorted(ftn, ptn);

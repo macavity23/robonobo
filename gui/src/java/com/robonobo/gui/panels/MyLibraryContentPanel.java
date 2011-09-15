@@ -187,21 +187,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 	private void fetchComments() {
 		final long myUid = frame.ctrl.getMyUser().getUserId();
 		frame.ctrl.addLibraryListener(this);
-		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				log.debug("Fetching existing comments for my library; my uid = " + myUid);
-				Map<Comment, Boolean> cs = frame.ctrl.getExistingCommentsForLibrary(myUid);
-				boolean anyUnread = false;
-				for (Boolean unread : cs.values()) {
-					if (unread) {
-						anyUnread = true;
-						break;
-					}
-				}
-				if (cs.size() > 0)
-					gotLibraryComments(myUid, anyUnread, cs);
-			}
-		});
+		frame.ctrl.getExistingCommentsForLibrary(myUid, this);
 	}
 
 	class CommentsPanel extends CommentsTabPanel {
