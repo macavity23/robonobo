@@ -30,8 +30,8 @@ public class  PublicPlaylistTree extends LeftSidebarTree {
 		setAlignmentX(0.0f);
 		setRootVisible(true);
 		font = RoboFont.getFont(12, false);
-		rootIcon = createImageIcon("/icon/world.png", null);
-		playlistIcon = createImageIcon("/icon/playlist.png", null);
+		rootIcon = createImageIcon("/icon/world.png");
+		playlistIcon = createImageIcon("/icon/playlist.png");
 		setCellRenderer(new CellRenderer());
 		setSelectionModel(new SelectionModel());
 		getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

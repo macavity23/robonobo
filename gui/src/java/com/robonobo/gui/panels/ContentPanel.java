@@ -33,7 +33,7 @@ public abstract class ContentPanel extends JPanel {
 	protected RobonoboFrame frame;
 	protected Log log = LogFactory.getLog(getClass());
 	private List<MessagePanel> msgs = new ArrayList<MessagePanel>();
-	protected Icon bangIcon = GuiUtil.createImageIcon("/icon/exclamation-green.png", null);
+	protected Icon bangIcon = GuiUtil.createImageIcon("/icon/exclamation-green.png");
 
 	public ContentPanel() {
 	}

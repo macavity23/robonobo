@@ -27,7 +27,7 @@ public class BalanceLabel extends JPanel implements LeftSidebarComponent, WangLi
 		this.frame = frame;
 		double[][] cellSizen = { { TableLayout.FILL }, { TableLayout.FILL } };
 		setLayout(new TableLayout(cellSizen));
-		lbl = new RLabel22(createImageIcon("/wang-orange-on-trans.png", null));
+		lbl = new RLabel22(createImageIcon("/wang-orange-on-trans.png"));
 		lbl.setForeground(RoboColor.ORANGE);
 		add(lbl, "0,0,CENTER,CENTER");
 		balanceFormat = NumberFormat.getInstance();

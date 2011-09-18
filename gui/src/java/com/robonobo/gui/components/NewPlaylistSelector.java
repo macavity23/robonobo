@@ -17,7 +17,7 @@ import com.robonobo.gui.panels.LeftSidebar;
 @SuppressWarnings("serial")
 public class NewPlaylistSelector extends LeftSidebarSelector {
 	public NewPlaylistSelector(LeftSidebar sideBar, RobonoboFrame frame) {
-		super(sideBar, frame, "New Playlist", false, createImageIcon("/icon/new_playlist.png", null), "newplaylist");
+		super(sideBar, frame, "New Playlist", false, createImageIcon("/icon/new_playlist.png"), "newplaylist");
 		setTransferHandler(new DnDHandler());
 	}
 	

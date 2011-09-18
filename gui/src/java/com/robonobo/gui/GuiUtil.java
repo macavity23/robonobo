@@ -16,13 +16,26 @@ public class GuiUtil {
 	public static final int DEFAULT_NUM_SHAKES = 10;
 	public static final int DEFAULT_SHAKE_FORCE = 5;
 
-	public static ImageIcon createImageIcon(String path, String description) {
+	public static ImageIcon createImageIcon(String path) {
+		return createImageIcon(path, null);
+	}
+	
+	public static ImageIcon createImageIcon(String path, String desc) {
 		URL imgUrl = GuiUtil.class.getResource(path);
 		if (imgUrl == null)
 			return null;
-		return new ImageIcon(imgUrl, description);
+		return new ImageIcon(imgUrl, desc);
 	}
 
+	/**
+	 * If width or height is <0, that dimension will be scaled in proportion 
+	 */
+	public static ImageIcon createImageIcon(String path, int width, int height) {
+		Image origImg = getImage(path);
+		Image scaledImg = origImg.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+		return new ImageIcon(scaledImg, null);
+	}
+	
 	public static ImageIcon imgIconFromUrl(String url) {
 		try {
 			return new ImageIcon(new URL(url));

@@ -3,6 +3,7 @@ package com.robonobo.gui.sheets;
 import static com.robonobo.gui.GuiUtil.*;
 import info.clearthought.layout.TableLayout;
 
+import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,79 +11,106 @@ import java.io.File;
 
 import javax.swing.*;
 
+import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.Platform;
-import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.RoboFont;
+import com.robonobo.gui.components.FileChoosePanel;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 @SuppressWarnings("serial")
 public class WelcomeSheet extends Sheet {
-	private RCheckBox shutUpCB;
 	private RButton feckOffBtn;
+	private FileChoosePanel filePanel;
 
 	public WelcomeSheet(RobonoboFrame rFrame) {
 		super(rFrame);
-		boolean haveITunes = Platform.getPlatform().iTunesAvailable();
-		Dimension size = new Dimension(600, (haveITunes ? 500 : 400));
-		setPreferredSize(size);
-		setSize(size);
-		double[][] cellSizen = {
-				{ 20, TableLayout.FILL, 20 },
-				{ 20 /* sp */, 55 /* logo */, 25 /* title */, 10 /* sp */, 15 /* blurb */, 8 /* sp */, 25 /* filechoose */, 10 /* sp */, 50 /* blurb */, 0 /* sp */,
-						(haveITunes ? 30 : 0) /* title */, (haveITunes ? 10 : 0) /* sp */, (haveITunes ? 30 : 0) /* btn */, (haveITunes ? 30 : 0) /* sp */, 30 /* title */,
-						10 /* sp */, 30 /* btn */, 20 /* sp */, 1 /* sep */, 10 /* sp */, 30 /* btn */, 5 /* sp */, 30 /* cb */, 10 /* sp */} };
-		setLayout(new TableLayout(cellSizen));
+		Dimension sz = new Dimension(540, 330);
+		setPreferredSize(sz);
+		setSize(sz);
+		double[][] cells = { { 20, 270, 20, 220, 20 }, { 20, 40/* title */, 5, 20/*intro*/, 5, 20/* dir blurb */, 5, 25/* filechoose */, 20, TableLayout.FILL/* addstuff */, 10, 30/* feckoff */, 20 } };
+		setLayout(new TableLayout(cells));
 		setName("playback.background.panel");
-		RLabel imgLbl = new RIconLabel(createImageIcon("/rbnb-logo_mid-grey-bg.png", null));
-		add(imgLbl, "1,1,l,t");
-		RLabel titleLbl = new RLabel24B("Welcome");
-		add(titleLbl, "1,2");
-		JPanel dloadBlurb = new LineBreakTextPanel("robonobo will store your downloaded music in this folder:", RoboFont.getFont(13, false), 540);
-		add(dloadBlurb, "1,4,l,t");
-		FileChoosePanel filePanel = new FileChoosePanel();
-		add(filePanel, "1,6");
-		String shareText = "Before you can share your music and playlists with your friends, you must add tracks to your robonobo music library. "
-				+ (haveITunes ? "You can add tracks from iTunes, or else you can add them from MP3 files on your computer." : "You can add tracks from MP3 files on your computer.");
-		JPanel shareBlurb = new LineBreakTextPanel(shareText, RoboFont.getFont(13, false), 540);
-		add(shareBlurb, "1,8,l,t");
-		if (haveITunes) {
-			RLabel iTunesTitle = new RLabel18B("Share Tracks/Playlists from iTunes");
-			add(iTunesTitle, "1,10");
-			RButton iTunesBtn = new RGlassButton("Share from iTunes...");
-			iTunesBtn.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					setVisible(false);
-					frame.shareFromITunes();
-				}
-			});
-			addButton(iTunesBtn, "1,12");
-		}
-		RLabel fileTitle = new RLabel18B("Share Tracks from Files");
-		add(fileTitle, "1,14");
-		RButton fileBtn = new RGlassButton("Share from files...");
-		fileBtn.addActionListener(new ActionListener() {
+		JPanel titlePnl = new JPanel();
+		titlePnl.setLayout(new BoxLayout(titlePnl, BoxLayout.X_AXIS));
+		titlePnl.add(Box.createHorizontalStrut(115));
+		titlePnl.add(new RLabel24B("Welcome to"));
+		titlePnl.add(Box.createHorizontalStrut(5));
+		JLabel logo = new JLabel(createImageIcon("/rbnb-logo_mid-grey-bg.png", -1, 30));
+		logo.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
+		titlePnl.add(logo);
+		add(titlePnl, "1,1,3,1,LEFT,TOP");
+		LineBreakTextPanel intro = new LineBreakTextPanel("Now you and your friends can hear each others' music effortlessly.", RoboFont.getFont(13, false), 560);
+		add(intro, "1,3,3,3,LEFT,TOP");
+		LineBreakTextPanel dirBlurb = new LineBreakTextPanel("All the music you play or download will be saved on your computer, in this folder:", RoboFont.getFont(13, false),
+				560);
+		add(dirBlurb, "1,5,3,5,LEFT,TOP");
+		filePanel = new FileChoosePanel(frame, frame.ctrl.getConfig().getFinishedDownloadsDirectory(), true, new CatchingRunnable() {
+			public void doRun() throws Exception {
+				File f = filePanel.chosenFile;
+				frame.ctrl.getConfig().setFinishedDownloadsDirectory(f.getAbsolutePath());
+				frame.ctrl.saveConfig();
+			}
+		});
+		add(filePanel, "1,7,3,7,LEFT,TOP");
+		JPanel addFriendsPnl = new JPanel();
+		double[][] afCells = { {120, TableLayout.FILL}, {20, 10, 30, 10, 30} };
+		addFriendsPnl.setLayout(new TableLayout(afCells));
+		RLabel18B afTitle = new RLabel18B("Add friends");
+		addFriendsPnl.add(afTitle, "0,0,1,0");
+		LineBreakTextPanel afExpln = new LineBreakTextPanel("You can add friends from Facebook, or using their email addresses.", RoboFont.getFont(13, false), 270);
+		addFriendsPnl.add(afExpln,"0,2,1,2");
+		RButton addFriendsBtn = new RGlassButton("Add friends...");
+		addFriendsBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				setVisible(false);
+				frame.showSheet(new AddFriendsSheet(frame));
+			}
+		});
+		addFriendsPnl.add(addFriendsBtn,"0,4");
+		add(addFriendsPnl, "1,9");
+		JPanel shareTracksPnl = new JPanel();
+		shareTracksPnl.setLayout(new BoxLayout(shareTracksPnl, BoxLayout.Y_AXIS));
+		shareTracksPnl.add(new RLabel18B("Share tracks"));
+		shareTracksPnl.add(Box.createVerticalStrut(10));
+		RButton shareFilesBtn = new RGlassButton("Share MP3 files...");
+		shareFilesBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setVisible(false);
 				frame.showAddSharesDialog();
 			}
 		});
-		addButton(fileBtn, "1,16");
-		add(new Sep(), "1,18");
-		feckOffBtn = new RGlassButton("Don't share anything");
+		shareTracksPnl.add(shareFilesBtn);
+		if (Platform.getPlatform().iTunesAvailable()) {
+			shareTracksPnl.add(Box.createVerticalStrut(10));
+			RButton shareITunesBtn = new RGlassButton("Share from iTunes...");
+			shareITunesBtn.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					setVisible(false);
+					frame.shareFromITunes();
+				}
+			});
+			shareTracksPnl.add(shareITunesBtn);
+		}
+		add(shareTracksPnl, "3,9");
+		JPanel feckOffPnl = new JPanel();
+		feckOffPnl.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+		feckOffPnl.setLayout(new BoxLayout(feckOffPnl, BoxLayout.PAGE_AXIS));
+		feckOffPnl.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 20));
+		feckOffBtn = new RRedGlassButton("Don't show this screen");
 		feckOffBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (shutUpCB.isSelected()) {
-					frame.guiCfg.setShowWelcomePanel(false);
-					frame.ctrl.saveConfig();
-				}
 				setVisible(false);
+				frame.guiCfg.setShowWelcomePanel(false);
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						frame.ctrl.saveConfig();
+					}
+				});
 			}
 		});
-		addButton(feckOffBtn, "1,20");
-		shutUpCB = new RCheckBox("Don't show this screen on startup");
-		shutUpCB.setSelected(!frame.guiCfg.getShowWelcomePanel());
-		add(shutUpCB, "1,22");
+		feckOffPnl.add(feckOffBtn);
+		add(feckOffPnl, "1,11,3,11,LEFT,TOP");
 	}
 
 	@Override
@@ -92,48 +120,5 @@ public class WelcomeSheet extends Sheet {
 	@Override
 	public JButton defaultButton() {
 		return feckOffBtn;
-	}
-
-	private void addButton(RButton btn, String layoutPos) {
-		JPanel pnl = new JPanel();
-		pnl.setLayout(new BoxLayout(pnl, BoxLayout.X_AXIS));
-		pnl.add(btn);
-		add(pnl, layoutPos);
-	}
-
-	class Sep extends JSeparator {
-		public Sep() {
-			super(SwingConstants.HORIZONTAL);
-			setBackground(RoboColor.DARK_GRAY);
-		}
-	}
-
-	class FileChoosePanel extends JPanel {
-		private RTextField tf;
-
-		public FileChoosePanel() {
-			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-			tf = new RTextField();
-			tf.setMaximumSize(new Dimension(300, 30));
-			tf.setText(frame.ctrl.getConfig().getFinishedDownloadsDirectory());
-			tf.setEnabled(false);
-			add(tf);
-			add(Box.createHorizontalStrut(10));
-			RButton btn = new RGlassButton("...");
-			btn.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					JFileChooser fc = new JFileChooser(new File(tf.getText()));
-					fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-					int retVal = fc.showOpenDialog(WelcomeSheet.this);
-					if (retVal == JFileChooser.APPROVE_OPTION) {
-						File f = fc.getSelectedFile();
-						tf.setText(f.getAbsolutePath());
-						frame.ctrl.getConfig().setFinishedDownloadsDirectory(f.getAbsolutePath());
-						frame.ctrl.saveConfig();
-					}
-				}
-			});
-			add(btn);
-		}
 	}
 }

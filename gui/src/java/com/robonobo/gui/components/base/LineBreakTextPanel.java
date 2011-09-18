@@ -37,6 +37,7 @@ public class LineBreakTextPanel extends JPanel {
 		Dimension sz = new Dimension(width, height);
 		setPreferredSize(sz);
 		setMaximumSize(sz);
+		setMinimumSize(sz);
 	}
 
 	public void paintComponent(Graphics gr) {

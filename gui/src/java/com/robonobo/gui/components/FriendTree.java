@@ -39,14 +39,14 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 		setAlignmentX(0.0f);
 		setRootVisible(true);
 		collapseRow(0);
-		rootIcon = createImageIcon("/icon/friends.png", null);
-		addFriendsIcon = createImageIcon("/icon/add_friends.png", null);
-		friendIcon = createImageIcon("/icon/friend.png", null);
-		playlistIcon = createImageIcon("/icon/playlist.png", null);
-		libraryIcon = createImageIcon("/icon/home.png", null);
+		rootIcon = createImageIcon("/icon/friends.png");
+		addFriendsIcon = createImageIcon("/icon/add_friends.png");
+		friendIcon = createImageIcon("/icon/friend.png");
+		playlistIcon = createImageIcon("/icon/playlist.png");
+		libraryIcon = createImageIcon("/icon/home.png");
 		// Special playlist icons
-		specIcons.put("loves", createImageIcon("/icon/heart-small.png", null));
-		specIcons.put("radio", createImageIcon("/icon/radio-small.png", null));
+		specIcons.put("loves", createImageIcon("/icon/heart-small.png"));
+		specIcons.put("radio", createImageIcon("/icon/radio-small.png"));
 		setCellRenderer(new CellRenderer());
 		setSelectionModel(new SelectionModel());
 		getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

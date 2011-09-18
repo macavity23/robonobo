@@ -163,13 +163,13 @@ public class RobonoboInstance implements Robonobo {
 				String cfgClassName = m.group(2);
 				loadConfig(cfgName, cfgClassName, cfgDir);
 			}
-			// First time through, set the default download dir
-			if (getConfig().getFinishedDownloadsDirectory() == null) {
-				File dd = Platform.getPlatform().getDefaultDownloadDirectory();
-				dd.mkdirs();
-				String ddPath = dd.getAbsolutePath();
-				getConfig().setFinishedDownloadsDirectory(ddPath);
-			}
+		}
+		// First time through, set the default download dir
+		if (getConfig().getFinishedDownloadsDirectory() == null) {
+			File dd = Platform.getPlatform().getDefaultDownloadDirectory();
+			dd.mkdirs();
+			String ddPath = dd.getAbsolutePath();
+			getConfig().setFinishedDownloadsDirectory(ddPath);
 		}
 		saveConfig();
 	}

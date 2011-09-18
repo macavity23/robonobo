@@ -1,5 +1,6 @@
 package com.robonobo.gui.frames;
 
+import furbelow.AbstractComponentDecorator;
 import info.clearthought.layout.TableLayout;
 
 import java.awt.*;
@@ -15,8 +16,6 @@ import org.apache.commons.logging.LogFactory;
 import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.gui.RoboColor;
 import com.robonobo.gui.sheets.Sheet;
-
-import furbelow.AbstractComponentDecorator;
 
 @SuppressWarnings("serial")
 public class SheetableFrame extends JFrame {
@@ -61,7 +60,7 @@ public class SheetableFrame extends JFrame {
 		
 	}
 	
-	public synchronized void discardTopSheet() {
+	public void discardTopSheet() {
 		Sheet oldSheet = null;
 		sheetLock.lock();
 		try {

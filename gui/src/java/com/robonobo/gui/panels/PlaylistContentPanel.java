@@ -63,7 +63,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			final RTextField urlField = new RTextField(urlText);
 			urlField.setEnabled(false);
 			add(urlField, "2,0");
-			fbBtn = new RSmallRoundButton(createImageIcon("/icon/facebook-16x16.png", null));
+			fbBtn = new RSmallRoundButton(createImageIcon("/icon/facebook-16x16.png"));
 			fbBtn.setToolTipText("Post playlist update to facebook");
 			fbBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -72,7 +72,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			});
 			fbBtn.setEnabled(p.getPlaylistId() > 0);
 			add(fbBtn, "4,0");
-			twitBtn = new RSmallRoundButton(createImageIcon("/icon/twitter-16x16.png", null));
+			twitBtn = new RSmallRoundButton(createImageIcon("/icon/twitter-16x16.png"));
 			twitBtn.setToolTipText("Post playlist update to twitter");
 			twitBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {

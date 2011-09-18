@@ -8,7 +8,8 @@ import java.awt.Dimension;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JPanel;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -18,8 +19,6 @@ import com.robonobo.common.util.FileUtil;
 import com.robonobo.common.util.TextUtil;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.*;
-import com.robonobo.gui.GuiUtil;
-import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.BalanceLabel;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -46,8 +45,8 @@ public class StatusPanel extends JPanel implements RobonoboStatusListener, Trans
 		setOpaque(true);
 		balanceLbl = new BalanceLabel(frame);
 		add(balanceLbl, "1,1,6,1,CENTER,CENTER");
-		connOkImg = createImageIcon("/icon/connection_ok.png", null);
-		connFailImg = createImageIcon("/icon/connection_fail.png", null);
+		connOkImg = createImageIcon("/icon/connection_ok.png");
+		connFailImg = createImageIcon("/icon/connection_fail.png");
 		networkStatusIcon = new RIconLabel(connFailImg);
 		add(networkStatusIcon, "2,3,2,5");
 		numConnsLbl = new RLabel11("Starting...");

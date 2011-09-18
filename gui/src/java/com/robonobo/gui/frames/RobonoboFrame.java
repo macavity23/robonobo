@@ -180,9 +180,19 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	public void showWelcome(boolean forceShow) {
-		// If we have no shares (or we're forcing it), show the welcome dialog
-		final boolean gotShares = (ctrl.getNumShares() > 0);
-		if (forceShow || (!gotShares && guiCfg.getShowWelcomePanel())) {
+		// If we have no shares or no friends (or we're forcing it), show the welcome dialog
+	    boolean gotShares = (ctrl.getNumShares() > 0);
+		boolean gotFriends = (ctrl.getMyUser().getFriendIds().size() > 0);
+		boolean show = false;
+		if(forceShow)
+			show = true;
+		else {
+			if(!guiCfg.getShowWelcomePanel())
+				show = false;
+			else
+				show = (!gotShares) || (!gotFriends);
+		}
+		if (show) {
 			SwingUtilities.invokeLater(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					showSheet(new WelcomeSheet(RobonoboFrame.this));

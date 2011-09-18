@@ -262,14 +262,14 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 						String title = p.getTitle().toLowerCase();
 						if(title.equals("loves")) {
 							cp = new LovesContentPanel(frame, p, pc);
-							Icon i = GuiUtil.createImageIcon("/icon/heart-small.png", null);
+							Icon i = GuiUtil.createImageIcon("/icon/heart-small.png");
 							SpecialPlaylistSelector sel = new SpecialPlaylistSelector(LeftSidebar.this, frame, i, "Loves", p);
 							sideBarComps.add(sel);
 							spSels.add(0, sel);
 							relayoutSidebar();
 						} else if(title.equals("radio")) {
 							cp = new RadioContentPanel(frame, p, pc);
-							Icon i = GuiUtil.createImageIcon("/icon/radio-small.png", null);
+							Icon i = GuiUtil.createImageIcon("/icon/radio-small.png");
 							SpecialPlaylistSelector sel = new SpecialPlaylistSelector(LeftSidebar.this, frame, i, "My Radio Station", p);
 							sideBarComps.add(sel);
 							spSels.add(sel);

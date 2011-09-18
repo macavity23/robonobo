@@ -54,9 +54,9 @@ public class TrackList extends JPanel {
 	JXTable table;
 	TrackListTableModel model;
 	Icon startingIcon = new SpinnerIcon(16, RoboColor.DARKISH_GRAY);
-	Icon playingIcon = GuiUtil.createImageIcon("/table/play.png", null);
-	Icon pausedIcon = GuiUtil.createImageIcon("/table/pause.png", null);
-	Icon downloadingIcon = GuiUtil.createImageIcon("/table/download.png", null);
+	Icon playingIcon = GuiUtil.createImageIcon("/table/play.png");
+	Icon pausedIcon = GuiUtil.createImageIcon("/table/pause.png");
+	Icon downloadingIcon = GuiUtil.createImageIcon("/table/download.png");
 	Log log;
 	RobonoboFrame frame;
 	PopupMenu popupMenu = new PopupMenu();

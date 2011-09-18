@@ -22,7 +22,7 @@ public class MyLibrarySelector extends LeftSidebarSelector implements ActionList
 	private boolean hasComments = false;
 	Log log = LogFactory.getLog(getClass());
 	public MyLibrarySelector(LeftSidebar sideBar, RobonoboFrame frame) {
-		super(sideBar, frame, "My Music Library", true, createImageIcon("/icon/home.png", null), "mymusiclibrary");
+		super(sideBar, frame, "My Music Library", true, createImageIcon("/icon/home.png"), "mymusiclibrary");
 	}
 	
 	@Override

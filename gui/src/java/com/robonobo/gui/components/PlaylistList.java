@@ -41,7 +41,7 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 
 	public PlaylistList(LeftSidebar sideBar, RobonoboFrame frame) {
 		super(sideBar, frame, new PlaylistListModel(frame.ctrl));
-		playlistIcon = createImageIcon("/icon/playlist.png", null);
+		playlistIcon = createImageIcon("/icon/playlist.png");
 		setCellRenderer(new CellRenderer());
 		setName("robonobo.playlist.list");
 		setAlignmentX(0.0f);

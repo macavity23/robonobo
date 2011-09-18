@@ -165,7 +165,7 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 					});
 				}
 			});
-			fbIcon = new JLabel(GuiUtil.createImageIcon("/icon/facebook-24x24.png", null));
+			fbIcon = new JLabel(GuiUtil.createImageIcon("/icon/facebook-24x24.png"));
 			fbPanel = new JPanel();
 			fbPanel.setLayout(new BoxLayout(fbPanel, BoxLayout.X_AXIS));
 			fbPanel.add(fbCb);
@@ -190,7 +190,7 @@ public class LovesContentPanel extends MyPlaylistContentPanel {
 					});
 				}
 			});
-			twitIcon = new JLabel(GuiUtil.createImageIcon("/icon/twitter-24x24.png", null));
+			twitIcon = new JLabel(GuiUtil.createImageIcon("/icon/twitter-24x24.png"));
 			twitPanel = new JPanel();
 			twitPanel.setLayout(new BoxLayout(twitPanel, BoxLayout.X_AXIS));
 			twitPanel.add(twitCb);
