@@ -32,7 +32,6 @@ import com.robonobo.gui.model.MyLibraryTableModel;
 @SuppressWarnings("serial")
 public class MyLibraryContentPanel extends ContentPanel implements UserListener, LibraryListener {
 	private RCheckBox shareLibCheckBox;
-	private RLabel addLbl;
 	private Document searchDoc;
 	private TrackListSearchPanel searchPanel;
 	CommentsPanel commentsPanel;
@@ -148,12 +147,7 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 
 	@Override
 	public void myLibraryUpdated() {
-		final int libSz = frame.ctrl.getNumSharesAndDownloads();
-		runOnUiThread(new CatchingRunnable() {
-			public void doRun() throws Exception {
-				addLbl.setText("Add to library (" + libSz + " tracks)");
-			}
-		});
+		// Do nothing
 	}
 
 	@Override
@@ -243,10 +237,9 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 			JPanel rPanel = new JPanel();
 			rPanel.setLayout(new BoxLayout(rPanel, BoxLayout.Y_AXIS));
 			rPanel.add(Box.createVerticalStrut(10));
-			addLbl = new RLabel16B("Add to library (0 tracks)");
-			rPanel.add(addLbl);
+			rPanel.add(new RLabel16B("Share more tracks"));
 			rPanel.add(Box.createVerticalStrut(10));
-			RButton shareFilesBtn = new RGlassButton("Share from files...");
+			RButton shareFilesBtn = new RGlassButton("Share MP3 files...");
 			shareFilesBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					frame.showAddSharesDialog();

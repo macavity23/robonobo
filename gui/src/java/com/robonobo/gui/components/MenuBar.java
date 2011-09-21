@@ -3,6 +3,7 @@ package com.robonobo.gui.components;
 import static com.robonobo.core.Platform.*;
 
 import java.awt.event.*;
+import java.io.File;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -29,7 +30,6 @@ public class MenuBar extends JMenuBar {
 		log = LogFactory.getLog(getClass());
 		JMenu fileMenu = new JMenu("File");
 		add(fileMenu);
-
 		RMenuItem login = new RMenuItem("Login...", KeyEvent.VK_L);
 		login.setAccelerator(getPlatform().getAccelKeystroke(KeyEvent.VK_L));
 		login.addActionListener(new ActionListener() {
@@ -38,7 +38,16 @@ public class MenuBar extends JMenuBar {
 			}
 		});
 		fileMenu.add(login);
-
+		if (getPlatform().fileManagerName() != null) {
+			RMenuItem showDownloads = new RMenuItem("Show downloads folder");
+			showDownloads.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					File fldr = new File(frame.ctrl.getConfig().getFinishedDownloadsDirectory());
+					getPlatform().showFileInFileManager(fldr);
+				}
+			});
+			fileMenu.add(showDownloads);
+		}
 		RMenuItem showWelcome = new RMenuItem("Show welcome page...");
 		showWelcome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -46,7 +55,6 @@ public class MenuBar extends JMenuBar {
 			}
 		});
 		fileMenu.add(showWelcome);
-		
 		RMenuItem shareFiles = new RMenuItem("Share MP3 files...", KeyEvent.VK_O);
 		shareFiles.setAccelerator(getPlatform().getAccelKeystroke(KeyEvent.VK_O));
 		shareFiles.addActionListener(new ActionListener() {
@@ -55,7 +63,6 @@ public class MenuBar extends JMenuBar {
 			}
 		});
 		fileMenu.add(shareFiles);
-
 		if (getPlatform().iTunesAvailable()) {
 			RMenuItem iTunesImport = new RMenuItem("Share tracks & playlists from iTunes...", KeyEvent.VK_I);
 			iTunesImport.setAccelerator(getPlatform().getAccelKeystroke(KeyEvent.VK_I));
@@ -66,12 +73,10 @@ public class MenuBar extends JMenuBar {
 							frame.shareFromITunes();
 						}
 					});
-
 				}
 			});
 			fileMenu.add(iTunesImport);
 		}
-
 		RMenuItem openUrl = new RMenuItem("Open 'rbnb:' URI...");
 		openUrl.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -79,7 +84,6 @@ public class MenuBar extends JMenuBar {
 			}
 		});
 		fileMenu.add(openUrl);
-		
 		if (getPlatform().shouldShowQuitInFileMenu()) {
 			RMenuItem quit = new RMenuItem("Quit", KeyEvent.VK_Q);
 			quit.setAccelerator(getPlatform().getAccelKeystroke(KeyEvent.VK_Q));
@@ -90,17 +94,22 @@ public class MenuBar extends JMenuBar {
 			});
 			fileMenu.add(quit);
 		}
-
-		JMenu networkMenu = new JMenu("Network");
-		add(networkMenu);
+		JMenu friendsMenu = new JMenu("Friends");
+		add(friendsMenu);
+		RMenuItem addFriends = new RMenuItem("Add friends");
+		addFriends.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				frame.showAddFriendsSheet();
+			}
+		});
+		friendsMenu.add(addFriends);
 		RMenuItem updateUsers = new RMenuItem("Update friends & playlists");
 		updateUsers.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				frame.ctrl.checkUsersUpdate();
 			}
 		});
-		networkMenu.add(updateUsers);
-
+		friendsMenu.add(updateUsers);
 		if (getPlatform().shouldShowOptionsMenu()) {
 			JMenu optionsMenu = new JMenu("Options");
 			add(optionsMenu);
@@ -112,7 +121,6 @@ public class MenuBar extends JMenuBar {
 			});
 			optionsMenu.add(showPrefs);
 		}
-
 		JMenu debugMenu = new JMenu("Debug");
 		add(debugMenu);
 		RMenuItem openConsole = new RMenuItem("Open Console");
@@ -129,7 +137,6 @@ public class MenuBar extends JMenuBar {
 			}
 		});
 		debugMenu.add(showLog);
-
 		JMenu helpMenu = new JMenu("Help");
 		add(helpMenu);
 		if (getPlatform().shouldShowAboutInHelpMenu()) {

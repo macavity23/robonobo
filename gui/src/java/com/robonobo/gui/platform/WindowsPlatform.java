@@ -36,7 +36,10 @@ public class WindowsPlatform extends UnknownPlatform {
 	@Override
 	public void showFileInFileManager(File file) {
 		try {
-			Runtime.getRuntime().exec("Explorer /select,"+file.getAbsolutePath());
+			if(file.isDirectory())
+				Runtime.getRuntime().exec("Explorer "+file.getAbsolutePath());
+			else
+				Runtime.getRuntime().exec("Explorer /select,"+file.getAbsolutePath());
 		} catch (IOException e) {
 			log.error("Error showing "+file.getAbsolutePath()+" in explorer", e);
 		}

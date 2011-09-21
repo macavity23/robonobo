@@ -14,7 +14,7 @@ import com.robonobo.gui.itunes.mac.MacITunesService;
 
 public class MacPlatform extends UnknownPlatform {
 	MacAppListener appListener;
-	
+
 	@Override
 	public void init() {
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
@@ -40,7 +40,7 @@ public class MacPlatform extends UnknownPlatform {
 	public void initMainWindow(JFrame jFrame) throws Exception {
 		Application app = Application.getApplication();
 		// Don't do anything if we're already registered (this means we're restarting)
-		if(appListener != null)
+		if (appListener != null)
 			return;
 		appListener = new MacAppListener();
 		// Use all this stuff even though it's deprecated as we want to keep working with old versions of the apple java
@@ -64,7 +64,6 @@ public class MacPlatform extends UnknownPlatform {
 			Class<?> filesClass = Class.forName("com.robonobo.gui.platform.FileHandler");
 			app.setOpenURIHandler((OpenURIHandler) uriClass.newInstance());
 			app.setOpenFileHandler((OpenFilesHandler) filesClass.newInstance());
-			
 		} catch (ClassNotFoundException e) {
 			// Old version of apple java
 			// TODO Tell them to update
@@ -137,12 +136,12 @@ public class MacPlatform extends UnknownPlatform {
 		File appSupDir = new File(libDir, "Application Support");
 		return new File(appSupDir, "robonobo");
 	}
-	
+
 	@Override
 	public String fileManagerName() {
 		return "Finder";
 	}
-	
+
 	@Override
 	public void showFileInFileManager(File file) {
 		// We create a temporary file then execute it in applescript - not very elegant, but it works
@@ -152,11 +151,15 @@ public class MacPlatform extends UnknownPlatform {
 			PrintWriter writer = new PrintWriter(new FileOutputStream(tmpFile));
 			writer.println("tell application \"Finder\"");
 			writer.println("\tactivate");
-			writer.println("\topen folder POSIX file \""+file.getParentFile().getAbsolutePath()+"\"");
-			writer.println("\tselect item \""+file.getName()+"\" of window 1");
+			if (file.isDirectory())
+				writer.println("\topen folder POSIX file \"" + file.getAbsolutePath() + "\"");
+			else {
+				writer.println("\topen folder POSIX file \"" + file.getParentFile().getAbsolutePath() + "\"");
+				writer.println("\tselect item \"" + file.getName() + "\" of window 1");
+			}
 			writer.println("end tell");
 			writer.close();
-			Runtime.getRuntime().exec("osascript "+tmpFile.getAbsolutePath());
+			Runtime.getRuntime().exec("osascript " + tmpFile.getAbsolutePath());
 			tmpFile.deleteOnExit();
 		} catch (IOException e) {
 			log.error("Caught exception showing file in finder", e);
