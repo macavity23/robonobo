@@ -181,13 +181,13 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 
 	public void showWelcome(boolean forceShow) {
 		// If we have no shares or no friends (or we're forcing it), show the welcome dialog
-	    boolean gotShares = (ctrl.getNumShares() > 0);
+		boolean gotShares = (ctrl.getNumShares() > 0);
 		boolean gotFriends = (ctrl.getMyUser().getFriendIds().size() > 0);
 		boolean show = false;
-		if(forceShow)
+		if (forceShow)
 			show = true;
 		else {
-			if(!guiCfg.getShowWelcomePanel())
+			if (!guiCfg.getShowWelcomePanel())
 				show = false;
 			else
 				show = (!gotShares) || (!gotFriends);
@@ -324,6 +324,37 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				showSheet(sheet);
 			}
 		});
+	}
+
+	/** Call only from UI thread */
+	public void showAddFriendsSheet() {
+		if (!SwingUtilities.isEventDispatchThread())
+			throw new SeekInnerCalmException();
+		UserConfig uc = ctrl.getMyUserConfig();
+		if (uc == null || uc.getItem("facebookId") == null) {
+			// They don't seem to be registered for facebook - fetch a fresh copy of the usercfg from midas in
+			// case they've recently added themselves to fb
+			final Sheet waitSheet = new PleaseWaitSheet(this, "checking Facebook details");
+			showSheet(waitSheet);
+			ctrl.fetchMyUserConfig(new UserConfigCallback() {
+				public void success(UserConfig freshUc) {
+					waitSheet.setVisible(false);
+					final boolean haveFb = (freshUc.getItem("facebookId") != null);
+					runOnUiThread(new CatchingRunnable() {
+						public void doRun() throws Exception {
+							showSheet(new AddFriendsSheet(RobonoboFrame.this, haveFb));
+						}
+					});
+				}
+
+				public void error(long userId, Exception e) {
+					waitSheet.setVisible(false);
+				}
+			});
+		} else {
+			// They are registered for fb already, reflect this in the sheet
+			showSheet(new AddFriendsSheet(this, true));
+		}
 	}
 
 	// TODO Generalise fb/twitter into SocialNetwork or something

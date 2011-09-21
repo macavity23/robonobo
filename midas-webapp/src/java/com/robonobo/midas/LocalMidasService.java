@@ -84,6 +84,8 @@ public class LocalMidasService implements MidasService {
 	}
 
 	private MidasUser populateDefault(MidasUser u) {
+		if(u == null)
+			return u;
 		if(isEmpty(u.getImgUrl()))
 			u.setImgUrl(appConfig.getInitParam("defaultUserImgUrl"));
 		return u;

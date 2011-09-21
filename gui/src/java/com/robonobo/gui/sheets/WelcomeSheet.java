@@ -28,7 +28,7 @@ public class WelcomeSheet extends Sheet {
 		Dimension sz = new Dimension(540, 330);
 		setPreferredSize(sz);
 		setSize(sz);
-		double[][] cells = { { 20, 270, 20, 220, 20 }, { 20, 40/* title */, 5, 20/*intro*/, 5, 20/* dir blurb */, 5, 25/* filechoose */, 20, TableLayout.FILL/* addstuff */, 10, 30/* feckoff */, 20 } };
+		double[][] cells = { { 20, 270, 20, 220, 20 }, { 20, 40/* title */, 5, 20/*intro*/, 5, 20/* dir blurb */, 5, 25/* filechoose */, 20, TableLayout.FILL/* addstuff */, 20, 30/* feckoff */, 10 } };
 		setLayout(new TableLayout(cells));
 		setName("playback.background.panel");
 		JPanel titlePnl = new JPanel();
@@ -64,7 +64,7 @@ public class WelcomeSheet extends Sheet {
 		addFriendsBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setVisible(false);
-				frame.showSheet(new AddFriendsSheet(frame));
+				frame.showAddFriendsSheet();
 			}
 		});
 		addFriendsPnl.add(addFriendsBtn,"0,4");
@@ -110,7 +110,7 @@ public class WelcomeSheet extends Sheet {
 			}
 		});
 		feckOffPnl.add(feckOffBtn);
-		add(feckOffPnl, "1,11,3,11,LEFT,TOP");
+		add(feckOffPnl, "1,11,3,11,RIGHT,TOP");
 	}
 
 	@Override

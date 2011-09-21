@@ -1,7 +1,6 @@
 package com.robonobo.gui.model;
 
 import com.robonobo.gui.frames.RobonoboFrame;
-import com.robonobo.gui.sheets.AddFriendsSheet;
 
 @SuppressWarnings("serial")
 public class AddFriendsTreeNode extends ButtonTreeNode {
@@ -13,6 +12,6 @@ public class AddFriendsTreeNode extends ButtonTreeNode {
 	
 	@Override
 	public void onClick() {
-		frame.showSheet(new AddFriendsSheet(frame));
+		frame.showAddFriendsSheet();
 	}
 }

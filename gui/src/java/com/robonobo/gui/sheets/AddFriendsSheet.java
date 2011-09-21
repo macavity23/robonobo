@@ -5,15 +5,18 @@ import info.clearthought.layout.TableLayout;
 
 import java.awt.Dimension;
 import java.awt.event.*;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.common.util.NetUtil;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -21,28 +24,53 @@ import com.robonobo.gui.frames.RobonoboFrame;
 @SuppressWarnings("serial")
 public class AddFriendsSheet extends Sheet {
 	private static final String DEFAULT_EMAILS = "Email1, email2...";
-	private Dimension size = new Dimension(365, 160);
 	private RTextField emailField;
-	private RButton shareBtn;
+	private RButton sendFrBtn;
 	private RButton cancelBtn;
 	private Log log = LogFactory.getLog(getClass());
 
-	public AddFriendsSheet(RobonoboFrame frame) {
-		super(frame);
-		setPreferredSize(size);
-		double[][] cellSizen = { { 10, 90, 5, 250, 10 }, { 10, 25, 10, 30, 10, 25, 10, 30, 10 } };
-		setLayout(new TableLayout(cellSizen));
+	public AddFriendsSheet(RobonoboFrame f, boolean haveFacebook) {
+		super(f);
+		Dimension sz = new Dimension(420, haveFacebook ? 365 : 440);
+		setPreferredSize(sz);
+		double[][] cellSizen = { { 20, TableLayout.FILL, 20 }, { 20, 30/*title*/, 10, 25/*fb subt*/, 10, 50/*fb blurb*/, 5, 30/*fb promise*/, 10, 30/*fb btn*/, 20, 25/*man subt*/, 10, 30/*man blurb*/, 5, 30/*email*/, 5, 30/*add btn*/, 20, 30/*cancel*/, 10 } };
+		TableLayout tl = new TableLayout(cellSizen);
+		setLayout(tl);
 		setName("playback.background.panel");
-		RLabel titleLbl = new RLabel16B("Add friends");
-		add(titleLbl, "1,1,3,1");
-		JPanel blurb = new LineBreakTextPanel("Enter your friends' email addresses below to invite them to robonobo:", RoboFont.getFont(13, false), 345);
-		add(blurb, "1,3,3,3");
-		RLabel newFriendLbl = new RLabel12("New friends:");
-		add(newFriendLbl, "1,5");
+		add(new RLabel24B("Add friends"), "1,1");
+		if(haveFacebook) {
+			add(new RLabel16B("Facebook details registered"), "1,3");
+			add(makeText("Your Facebook account has been registered with robonobo. Any of your Facebook friends who sign up for robonobo will appear in your friends list automatically.", false), "1,5");
+			tl.setRow(6, 0);
+			tl.setRow(7, 0);
+			tl.setRow(8, 0);
+			tl.setRow(9, 0);
+		} else {
+			add(new RLabel16B("Add friends from Facebook"), "1,3");
+			add(makeText("Add your Facebook details to your robonobo account: this adds all your Facebook friends who use robonobo, and will automatically add any who sign up for robonobo later.", false), "1,5");
+			add(makeText("We will never spam you or your friends, or post to your Facebook without your permission.", true), "1,7");
+			RButton addFbBtn = new RGlassButton("Add Facebook details (opens web page)");
+			addFbBtn.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent evt) {
+					try {
+						NetUtil.browse(frame.ctrl.getConfig().getWebsiteUrlBase() + "before-facebook-attach");
+						frame.ctrl.watchMyUserConfig();
+						setVisible(false);
+					} catch (IOException e) {
+						log.error("Caught ioexception browsing to facebook attach", e);
+					}
+				}
+			});
+			add(placeBtn(addFbBtn), "1,9");		
+		}
+		
+		
+		add(new RLabel16B("Add friends by email"),"1,11");
+		add(makeText("Enter your friends' email addresses below to send them a friend request:", false), "1,13");
 		emailField = new RTextField(DEFAULT_EMAILS);
 		emailField.addKeyListener(new KeyAdapter() {
 			public void keyReleased(KeyEvent e) {
-				shareBtn.setEnabled(targetSelected());
+				sendFrBtn.setEnabled(targetSelected());
 			}
 		});
 		emailField.addMouseListener(new MouseAdapter() {
@@ -51,10 +79,49 @@ public class AddFriendsSheet extends Sheet {
 					emailField.setText("");
 			}
 		});
-		add(emailField, "3,5");
-		add(new ButtonPanel(), "3,7,r,t");
+		add(emailField, "1,15");
+		sendFrBtn = new RGlassButton("Send friend requests");
+		sendFrBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						Set<String> emails = new HashSet<String>();
+						String emailFieldTxt = emailField.getText();
+						if (isNonEmpty(emailFieldTxt) && !DEFAULT_EMAILS.equals(emailFieldTxt)) {
+							for (String emailStr : emailFieldTxt.split(",")) {
+								if (emailStr.trim().length() > 0)
+									emails.add(emailStr.trim());
+							}
+						}
+						frame.ctrl.addFriends(emails);
+						log.info("Add friend request sent for " + emails.size() + " emails");
+					}
+				});
+				AddFriendsSheet.this.setVisible(false);
+			}
+		});
+		add(placeBtn(sendFrBtn), "1,17");
+		cancelBtn = new RRedGlassButton("Cancel");
+		cancelBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				AddFriendsSheet.this.setVisible(false);
+			}
+		});
+		add(placeBtn(cancelBtn), "1,19");
 	}
 
+	private LineBreakTextPanel makeText(String text, boolean bold) {
+		return new LineBreakTextPanel(text, RoboFont.getFont(13, bold), 380);
+	}
+	
+	private JPanel placeBtn(RButton btn) {
+		JPanel p = new JPanel();
+		double[][] cells = { { TableLayout.FILL, btn.getPreferredSize().width}, {TableLayout.FILL} };
+		p.setLayout(new TableLayout(cells));
+		p.add(btn, "1,0");
+		return p;
+	}
+	
 	@Override
 	public void onShow() {
 		emailField.requestFocusInWindow();
@@ -63,48 +130,11 @@ public class AddFriendsSheet extends Sheet {
 
 	@Override
 	public JButton defaultButton() {
-		return shareBtn;
+		return cancelBtn;
 	}
 
 	private boolean targetSelected() {
-		// Could bugger about with regexes here, but I don't think it's worth it
 		return (emailField.getText().length() > 0 && !emailField.getText().equals(DEFAULT_EMAILS));
 	}
 
-	private class ButtonPanel extends JPanel {
-		public ButtonPanel() {
-			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-			shareBtn = new RGlassButton("SHARE");
-			shareBtn.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
-						public void doRun() throws Exception {
-							Set<String> emails = new HashSet<String>();
-							String emailFieldTxt = emailField.getText();
-							if (isNonEmpty(emailFieldTxt) && !DEFAULT_EMAILS.equals(emailFieldTxt)) {
-								for (String emailStr : emailFieldTxt.split(",")) {
-									if (emailStr.trim().length() > 0)
-										emails.add(emailStr.trim());
-								}
-							}
-							frame.ctrl.addFriends(emails);
-							log.info("Add friend request sent for " + emails.size() + " emails");
-						}
-					});
-					AddFriendsSheet.this.setVisible(false);
-				}
-			});
-			add(shareBtn);
-			shareBtn.setEnabled(targetSelected());
-			Dimension fillerD = new Dimension(20, 1);
-			add(new Box.Filler(fillerD, fillerD, fillerD));
-			cancelBtn = new RRedGlassButton("CANCEL");
-			cancelBtn.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent ae) {
-					AddFriendsSheet.this.setVisible(false);
-				}
-			});
-			add(cancelBtn);
-		}
-	}
 }

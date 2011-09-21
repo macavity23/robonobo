@@ -47,7 +47,7 @@ public class MenuBar extends JMenuBar {
 		});
 		fileMenu.add(showWelcome);
 		
-		RMenuItem shareFiles = new RMenuItem("Share files...", KeyEvent.VK_O);
+		RMenuItem shareFiles = new RMenuItem("Share MP3 files...", KeyEvent.VK_O);
 		shareFiles.setAccelerator(getPlatform().getAccelKeystroke(KeyEvent.VK_O));
 		shareFiles.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -57,7 +57,7 @@ public class MenuBar extends JMenuBar {
 		fileMenu.add(shareFiles);
 
 		if (getPlatform().iTunesAvailable()) {
-			RMenuItem iTunesImport = new RMenuItem("Share tracks/playlists from iTunes...", KeyEvent.VK_I);
+			RMenuItem iTunesImport = new RMenuItem("Share tracks & playlists from iTunes...", KeyEvent.VK_I);
 			iTunesImport.setAccelerator(getPlatform().getAccelKeystroke(KeyEvent.VK_I));
 			iTunesImport.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
