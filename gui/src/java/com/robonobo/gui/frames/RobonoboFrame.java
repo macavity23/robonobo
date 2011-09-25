@@ -218,6 +218,14 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				allFiles.addAll(FileUtil.getFilesWithinPath(selFile, "mp3"));
 			else
 				allFiles.add(selFile);
+		if(allFiles.size() == 0) {
+			runOnUiThread(new CatchingRunnable() {
+				public void doRun() throws Exception {
+					showSheet(new InfoSheet(RobonoboFrame.this, "No files added", "No importable files were found. At this time, robonobo can share only MP3 files."));
+				}
+			});
+			return;
+		}
 		shareFiles(allFiles);
 		return;
 	}
