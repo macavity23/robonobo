@@ -1,13 +1,10 @@
 package com.robonobo.console.cmds;
 
-import static com.robonobo.common.util.TextUtil.*;
-
 import java.io.PrintWriter;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Connection;
 
 import com.robonobo.common.exceptions.SeekInnerCalmException;
+import com.robonobo.common.util.DbUtil;
 import com.robonobo.console.RobonoboConsole;
 
 public class dbquery implements ConsoleCommand {
@@ -31,50 +28,7 @@ public class dbquery implements ConsoleCommand {
 		}
 		String query = args[1];
 		try {
-			Statement st = conn.createStatement();
-			ResultSet rs = st.executeQuery(query);
-			ResultSetMetaData md = rs.getMetaData();
-			// Retrieve the whole set as strings so we can work out display
-			// widths
-			// Sql uses 1-based indexing, v annoying
-			int[] maxWidths = new int[md.getColumnCount() + 1];
-			List<String[]> vals = new ArrayList<String[]>();
-			while (rs.next()) {
-				String[] rowVals = new String[md.getColumnCount() + 1];
-				for (int i = 1; i < rowVals.length; i++) {
-					Object val = rs.getObject(i);
-					String valStr = String.valueOf(val);
-					if (valStr.length() > maxWidths[i])
-						maxWidths[i] = valStr.length();
-					rowVals[i] = valStr;
-				}
-				vals.add(rowVals);
-			}
-
-			int totalWidth = 0;
-			for (int i = 1; i <= md.getColumnCount(); i++) {
-				String colName = md.getColumnName(i);
-				if(maxWidths[i] < colName.length())
-					maxWidths[i] = colName.length();
-				int colWidth = maxWidths[i] + 1;
-				out.print(rightPad(colName, colWidth));
-				totalWidth += colWidth;
-			}
-			out.println();
-			out.println(repeat("=", totalWidth));
-			int numRows = 0;
-
-			for(String[] rowVals : vals) {
-				for (int i = 1; i < rowVals.length; i++) {
-					out.print(rightPad(rowVals[i], maxWidths[i] + 1));
-				}
-				out.println();
-				numRows++;
-			}
-			out.println(numItems(numRows, "row"));
-			st.close();
-		} catch(SQLException e) {
-			out.println("SQL error: "+e.getMessage());
+			DbUtil.runQuery(conn, query, out);
 		} finally {
 			if(args[0].equalsIgnoreCase("meta"))
 				console.getController().returnMetadataDbConnection(conn);

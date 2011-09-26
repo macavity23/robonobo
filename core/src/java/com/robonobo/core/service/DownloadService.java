@@ -110,6 +110,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 					// finished downloading - turn it into a share here, or it'll never
 					// get added
 					if (pb.isComplete()) {
+						d.setDownloadStatus(DownloadStatus.Finished);
 						share.addShareFromCompletedDownload(d);
 						db.deleteDownload(sid);
 						continue;
