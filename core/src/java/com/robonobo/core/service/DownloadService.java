@@ -221,7 +221,7 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 	}
 
 	/** Delete in a batch to avoid starting downloads you're about to delete */
-	public void deleteDownloads(List<String> sids) throws RobonoboException {
+	public void deleteDownloads(Collection<String> sids) throws RobonoboException {
 		for (String sid : sids) {
 			log.info("Deleting download for stream " + sid);
 			playback.stopForDeletedStream(sid);

@@ -210,7 +210,7 @@ public class RobonoboController {
 		inst.getDownloadService().deleteDownload(streamId);
 	}
 
-	public void deleteDownloads(List<String> sids) throws RobonoboException {
+	public void deleteDownloads(Collection<String> sids) throws RobonoboException {
 		inst.getDownloadService().deleteDownloads(sids);
 	}
 

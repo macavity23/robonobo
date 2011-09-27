@@ -434,7 +434,8 @@ public class PlaylistService extends AbstractService {
 				Long lovePlid = myPlaylistIdsByTitle.get("Loves");
 				loves = playlists.get(lovePlid);
 			}
-			love(loves.getStreamIds(), false);
+			if(loves.getStreamIds().size() > 0)
+				love(loves.getStreamIds(), false);
 		}
 	}
 

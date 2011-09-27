@@ -8,7 +8,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 
@@ -287,33 +287,42 @@ public class TrackList extends JPanel {
 			add(play);
 			boolean needDownload = false;
 			boolean needShow = false;
+			boolean needPause = false;
+			boolean needResume = false;
+			boolean needCancel = false;
 			for (Track track : getSelectedTracks()) {
 				if (track instanceof CloudTrack)
 					needDownload = true;
 				if (track instanceof SharedTrack)
 					needShow = true;
+				if(track instanceof DownloadingTrack) {
+					needCancel = true;
+					DownloadingTrack dt = (DownloadingTrack) track;
+					switch(dt.getDownloadStatus()) {
+					case Downloading:
+						needPause = true;
+						break;
+					case Paused:
+						needResume = true;
+						break;
+					}
+				}
 			}
 			List<String> selSids = getSelectedStreamIds();
 			boolean needLove = !(frame.ctrl.lovingAll(selSids));
-			if (needLove) {
-				RMenuItem lmi = new RMenuItem("Love");
-				lmi.setActionCommand("love");
-				lmi.addActionListener(this);
-				add(lmi);
-			}
-			if (needDownload) {
-				RMenuItem dl = new RMenuItem("Download");
-				dl.setActionCommand("download");
-				dl.addActionListener(this);
-				add(dl);
-			}
+			if (needLove)
+				addMi("Love", "love");
+			if (needDownload)
+				addMi("Download", "download");
+			if(needPause)
+				addMi("Pause download", "pause");
+			if(needResume)
+				addMi("Resume download", "resume");
+			if(needCancel)
+				addMi("Cancel download", "cancel");
 			String radioCfg = uc.getItem("radioPlaylist");
-			if("manual".equalsIgnoreCase(radioCfg)) {
-				RMenuItem radmi = new RMenuItem("Add to Radio");
-				radmi.setActionCommand("radio");
-				radmi.addActionListener(this);
-				add(radmi);
-			}
+			if("manual".equalsIgnoreCase(radioCfg))
+				addMi("Add to Radio", "radio");
 			JMenu plMenu = new JMenu("Add to playlist");
 			RMenuItem newPl = new RMenuItem("New Playlist");
 			newPl.setActionCommand("newpl");
@@ -329,19 +338,19 @@ public class TrackList extends JPanel {
 				}
 			}
 			add(plMenu);
-			if (model.allowDelete()) {
-				RMenuItem del = new RMenuItem(model.deleteTracksTooltipDesc());
-				del.setActionCommand("delete");
-				del.addActionListener(this);
-				add(del);
-			}
+			if (model.allowDelete())
+				addMi(model.deleteTracksTooltipDesc(), "delete");
+			
 			String fileManagerName = Platform.getPlatform().fileManagerName();
-			if (needShow && fileManagerName != null) {
-				RMenuItem show = new RMenuItem("Show in " + fileManagerName);
-				show.setActionCommand("show");
-				show.addActionListener(this);
-				add(show);
-			}
+			if (needShow && fileManagerName != null)
+				addMi("Show in " + fileManagerName, "show");
+		}
+
+		protected void addMi(String title, String cmd) {
+			RMenuItem rmi = new RMenuItem(title);
+			rmi.setActionCommand(cmd);
+			rmi.addActionListener(this);
+			add(rmi);
 		}
 
 		@Override
@@ -396,6 +405,50 @@ public class TrackList extends JPanel {
 				});
 			} else if(action.equals("radio")) {
 				frame.ctrl.addToRadio(getSelectedStreamIds());
+			} else if(action.equals("pause")) {
+				final Set<String> pauseSids = new HashSet<String>();
+				for (Track t : getSelectedTracks()) {
+					if(t instanceof DownloadingTrack) {
+						DownloadingTrack dt = (DownloadingTrack) t;
+						if(dt.getDownloadStatus() == DownloadStatus.Downloading)
+							pauseSids.add(t.getStream().getStreamId());
+					}
+				}
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						for (String sid : pauseSids) {
+							frame.ctrl.pauseDownload(sid);
+						}
+					}
+				});
+			} else if(action.equals("resume")) {
+				final Set<String> resSids = new HashSet<String>();
+				for (Track t : getSelectedTracks()) {
+					if(t instanceof DownloadingTrack) {
+						DownloadingTrack dt = (DownloadingTrack) t;
+						if(dt.getDownloadStatus() == DownloadStatus.Paused)
+							resSids.add(t.getStream().getStreamId());
+					}
+				}
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						for (String sid : resSids) {
+							frame.ctrl.startDownload(sid);
+						}
+					}
+				});
+			} else if(action.equals("cancel")) {
+				final Set<String> dlSids = new HashSet<String>();
+				for (Track t : getSelectedTracks()) {
+					if(t instanceof DownloadingTrack) {
+						dlSids.add(t.getStream().getStreamId());
+					}
+				}
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						frame.ctrl.deleteDownloads(dlSids);
+					}
+				});
 			} else
 				log.error("PopupMenu generated unknown action: " + action);
 		}
@@ -498,12 +551,11 @@ public class TrackList extends JPanel {
 				float complete = (float) d.getBytesDownloaded() / streamSz;
 				int pcnt = (int) (100 * complete);
 				int numSources = d.getNumSources();
+				pBar.setValue(pcnt);
 				if (d.getDownloadStatus() == DownloadStatus.Paused) {
-					pBar.setValue(0);
 					pBar.setEnabled(false);
 					pBar.setString("Queued (" + numSources + ")");
 				} else {
-					pBar.setValue(pcnt);
 					pBar.setEnabled(true);
 					pBar.setString("Downloading (" + numSources + "): " + pcnt + "%");
 				}
