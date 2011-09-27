@@ -338,7 +338,9 @@ public class UserService extends AbstractService {
 		@Override
 		public void success(UserConfig uc) {
 			log.debug("Got new user config");
+			UserConfig oldUc = myUserCfg;
 			myUserCfg = uc;
+			playlists.userConfigUpdated(oldUc, uc);
 			events.fireUserConfigChanged(uc);
 			if (onwardHandler != null)
 				onwardHandler.success(uc);

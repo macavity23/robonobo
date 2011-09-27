@@ -365,7 +365,11 @@ public class PlaylistService extends AbstractService {
 	}
 
 	public void love(Collection<String> sids) {
-		if(log.isDebugEnabled()) {
+		love(sids, true);
+	}
+
+	private void love(Collection<String> sids, boolean addToPlaylist) {
+		if (log.isDebugEnabled()) {
 			StringBuffer sb = new StringBuffer("Loving ");
 			sb.append(TextUtil.numItems(sids, "track"));
 			sb.append(": ");
@@ -383,18 +387,19 @@ public class PlaylistService extends AbstractService {
 			log.error("No loves playlist!");
 			return;
 		}
-		// Can only love something once
-		int oldSz = loves.getStreamIds().size();
-		for (String sid : sids) {
-			if(!loves.getStreamIds().contains(sid))
-				loves.getStreamIds().add(sid);
+		if (addToPlaylist) {
+			// Can only love something once
+			int oldSz = loves.getStreamIds().size();
+			for (String sid : sids) {
+				if (!loves.getStreamIds().contains(sid))
+					loves.getStreamIds().add(sid);
+			}
+			if (loves.getStreamIds().size() == oldSz) {
+				log.debug("Not adding duplicate tracks to loves");
+				return;
+			}
+			updatePlaylist(loves);
 		}
-		if(loves.getStreamIds().size() == oldSz) {
-			log.debug("Not adding duplicate tracks to loves");
-			return;
-		}
-		updatePlaylist(loves);
-		UserConfig uc = rbnb.getUserService().getMyUserConfig();
 		for (String sid : sids) {
 			Stream s = streams.getKnownStream(sid);
 			synchronized (this) {
@@ -402,6 +407,7 @@ public class PlaylistService extends AbstractService {
 					loveArtists.add(s.getArtist());
 			}
 		}
+		UserConfig uc = rbnb.getUserService().getMyUserConfig();
 		// Are we posting now or later?
 		String cfg = uc.getItem("postLoves");
 		if (cfg == null || cfg.equalsIgnoreCase("together")) {
@@ -416,6 +422,20 @@ public class PlaylistService extends AbstractService {
 			postLovesTimeout.set(rbnb.getConfig().getPostLovesDelayMins() * 60 * 1000);
 		} else
 			postLovesNow();
+	}
+
+	public void userConfigUpdated(UserConfig oldUc, UserConfig newUc) {
+		// If we've added facebook or twitter details, post our loves now
+		boolean newFb = oldUc.getItem("facebookId") == null && newUc.getItem("facebookId") != null;
+		boolean newTwit = oldUc.getItem("twitterScreenName") == null && newUc.getItem("twitterScreenName") != null;
+		if (newFb || newTwit) {
+			Playlist loves;
+			synchronized (this) {
+				Long lovePlid = myPlaylistIdsByTitle.get("Loves");
+				loves = playlists.get(lovePlid);
+			}
+			love(loves.getStreamIds(), false);
+		}
 	}
 
 	private void postLovesNow() {
@@ -469,13 +489,13 @@ public class PlaylistService extends AbstractService {
 	public void addToRadio(String streamId) {
 		addToRadio(Arrays.asList(streamId));
 	}
-	
+
 	public void addToRadio(final Collection<String> sids) {
 		String radioCfg = rbnb.getUserService().getMyUserConfig().getItem("radioPlaylist");
 		if (radioCfg == null || radioCfg.equalsIgnoreCase("auto")) {
 			rbnb.getExecutor().execute(new CatchingRunnable() {
 				public void doRun() throws Exception {
-					if(log.isDebugEnabled()) {
+					if (log.isDebugEnabled()) {
 						StringBuffer sb = new StringBuffer("Adding ");
 						sb.append(TextUtil.numItems(sids, "track"));
 						sb.append(" to radio: ");
@@ -498,11 +518,11 @@ public class PlaylistService extends AbstractService {
 					for (String sid : sids) {
 						// If we already have this track in our radio list, remove it, and re-add it again at the end
 						int idx = playlistSids.indexOf(sid);
-						if(idx >= 0)
+						if (idx >= 0)
 							playlistSids.remove(idx);
 						playlistSids.add(sid);
 					}
-					while(playlistSids.size() > rbnb.getConfig().getRadioMaxTracksAuto())
+					while (playlistSids.size() > rbnb.getConfig().getRadioMaxTracksAuto())
 						playlistSids.remove(0);
 					updatePlaylist(radioP);
 				}

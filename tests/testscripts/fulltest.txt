@@ -288,7 +288,7 @@ E playlist updates and starts downloading
 E (mac/win) iTunes playlist updates with new track
 
 TODO Notifications - include loves
-TODO Loves/Radio
+TODO Loves/Radio - include adding facebook or twitter deets after loving trax, gets posted
 
 Wang
 ====
