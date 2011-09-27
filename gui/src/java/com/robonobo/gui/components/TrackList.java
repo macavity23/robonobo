@@ -27,7 +27,6 @@ import org.jdesktop.swingx.table.TableColumnModelExt;
 
 import ca.odell.glazedlists.matchers.MatcherEditor;
 import ca.odell.glazedlists.matchers.MatcherEditor.Event;
-import ca.odell.glazedlists.swing.TableComparatorChooser;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.SeekInnerCalmException;
@@ -114,11 +113,12 @@ public class TrackList extends JPanel {
 			viewportListener = new ViewportListener();
 		if (model instanceof GlazedTrackListTableModel) {
 			GlazedTrackListTableModel gtltm = (GlazedTrackListTableModel) model;
-			if (gtltm.canSort()) {
-				TableComparatorChooser<Track> tcc = TableComparatorChooser.install(table, gtltm.getSortedList(), TableComparatorChooser.SINGLE_COLUMN);
-				if (viewportListener != null)
-					tcc.addSortActionListener(viewportListener);
-			}
+			// TODO Disabling sorting for now until glazedlists bug is fixed
+//			if (gtltm.canSort()) {
+//				TableComparatorChooser<Track> tcc = TableComparatorChooser.install(table, gtltm.getSortedList(), TableComparatorChooser.SINGLE_COLUMN);
+//				if (viewportListener != null)
+//					tcc.addSortActionListener(viewportListener);
+//			}
 			MatcherEditor<Track> matchEdit = gtltm.getMatcherEditor();
 			if (matchEdit != null && viewportListener != null)
 				matchEdit.addMatcherEditorListener(viewportListener);
