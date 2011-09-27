@@ -140,6 +140,8 @@ public class UserService extends AbstractService {
 			wangCfg.setAccountEmail(email);
 			wangCfg.setAccountPwd(password);
 			rbnb.saveConfig();
+			// Clear our last-fetch comments
+			rbnb.getCommentService().lastFetched.clear();
 			// Reload all our users
 			synchronized (UserService.this) {
 				usersByEmail.clear();
