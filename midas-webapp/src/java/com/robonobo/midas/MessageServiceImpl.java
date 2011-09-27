@@ -219,9 +219,14 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 			for (Playlist p : pObjList) {
 				havePlaylists = true;
 				Map<String, String> pm = new HashMap<String, String>();
-				pm.put("title", p.getTitle());
+				String title = p.getTitle();
+				pm.put("title", title);
 				pm.put("url", playlistUrl(p));
-				pl.add(pm);
+				// Loves always go first
+				if(title.equalsIgnoreCase("loves"))
+					pl.add(0, pm);
+				else
+					pl.add(pm);
 			}
 			userMap.put("playlists", pl);
 			updateUsers.add(userMap);

@@ -207,7 +207,7 @@ public class NotificationServiceImpl implements NotificationService {
 			for (Long updateUid : notsByUpdateUid.keySet()) {
 				MidasUser updateUser = userDao.getById(updateUid);
 				int added = 0;
-				List<Playlist> pl = new ArrayList<Playlist>();
+				Map<Long, Playlist> pm = new HashMap<Long, Playlist>();
 				for (MidasNotification n : notsByUpdateUid.get(updateUid)) {
 					Matcher m = LIBRARY_ITEM_PAT.matcher(n.getItem());
 					if (m.matches())
@@ -215,18 +215,25 @@ public class NotificationServiceImpl implements NotificationService {
 					else {
 						m = PLAYLIST_ITEM_PAT.matcher(n.getItem());
 						if (m.matches()) {
-							Playlist p = playlistDao.getPlaylistById(Long.parseLong(m.group(1)));
-							if (p != null)
-								pl.add(p);
+							Long plId = Long.parseLong(m.group(1));
+							if(pm.containsKey(plId))
+								continue;
+							Playlist p = playlistDao.getPlaylistById(plId);
+							if (p != null) {
+								// Don't send notifications for radio playlists
+								if(p.getTitle().equalsIgnoreCase("radio"))
+									continue;
+								pm.put(plId, p);
+							}
 						}
 					}
 				}
-				if (added > 0 || pl.size() > 0) {
+				if (added > 0 || pm.size() > 0) {
 					libTraxAdded.put(updateUser, added);
-					playlists.put(updateUid, pl);
+					playlists.put(updateUid, new ArrayList<Playlist>(pm.values()));
 				}
 			}
-			if (libTraxAdded.size() > 0) {
+			if (libTraxAdded.size() > 0 || playlists.size() > 0) {
 				try {
 					message.sendCombinedNotification(notUser, libTraxAdded, playlists);
 				} catch (IOException e) {

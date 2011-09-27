@@ -287,6 +287,8 @@ D wait 5 mins
 E playlist updates and starts downloading
 E (mac/win) iTunes playlist updates with new track
 
+TODO Notifications - include loves
+TODO Loves/Radio
 
 Wang
 ====
