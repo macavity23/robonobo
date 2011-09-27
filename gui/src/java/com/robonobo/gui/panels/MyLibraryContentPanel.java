@@ -83,6 +83,13 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 				}
 			});
 		}
+		// Clear our comments if we relogin
+		frame.ctrl.addLoginListener(new LoginAdapter() {
+			@Override
+			public void loginSucceeded(User me) {
+				commentsPanel.clear();
+			}
+		});
 		// Fetch our update msg (if any)
 		frame.ctrl.getExecutor().schedule(new CatchingRunnable() {
 			public void doRun() throws Exception {

@@ -41,7 +41,6 @@ public abstract class CommentsTabPanel extends JPanel {
 	JPanel newCmtBtnPnl;
 	Log log = LogFactory.getLog(getClass());
 	RobonoboFrame frame;
-	boolean hasBeenShown = false;
 
 	public CommentsTabPanel(RobonoboFrame frame) {
 		this.frame = frame;
@@ -171,6 +170,14 @@ public abstract class CommentsTabPanel extends JPanel {
 		return result;
 	}
 
+	public void clear() {
+		// Clears out list of comments (doesn't actually delete the comments themselves, just clears the display
+		gotComments.clear();
+		pnlsById.clear();
+		topLvlCps.clear();
+		layoutComments();
+	}
+	
 	abstract class CommentRemover extends CatchingRunnable {
 		protected CommentPanel cp;
 

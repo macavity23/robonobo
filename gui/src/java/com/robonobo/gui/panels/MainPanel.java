@@ -6,6 +6,8 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
+import com.robonobo.core.api.LoginAdapter;
+import com.robonobo.core.api.model.User;
 import com.robonobo.gui.GuiUtil;
 import com.robonobo.gui.frames.RobonoboFrame;
 
@@ -25,6 +27,16 @@ public class MainPanel extends JPanel {
 		add(cpHolder, "0,2");
 		addDefaultContentPanels();
 		selectContentPanel("mymusiclibrary");
+		frame.ctrl.addLoginListener(new LoginAdapter() {
+			@Override
+			public void loginSucceeded(User me) {
+				// Remove all playlist panels so that they're recreated for the new user
+				String curPnlName = cpHolder.currentPanelName();
+				if(curPnlName.startsWith("playlist"))
+					selectContentPanel("mymusiclibrary");
+				cpHolder.removeContentPanels("playlist");
+			}
+		});
 	}
 
 	private void addDefaultContentPanels() {

@@ -1,8 +1,8 @@
 package com.robonobo.gui.panels;
 
 import java.awt.CardLayout;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.Map.Entry;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -48,6 +48,14 @@ public class ContentPanelHolder extends JPanel {
 		if(panel != null)
 			remove(panel);
 		return panel;
+	}
+	
+	void removeContentPanels(String prefix) {
+		Iterator<Entry<String, ContentPanel>> it = panels.entrySet().iterator();
+		while(it.hasNext()) {
+			if(it.next().getKey().startsWith(prefix))
+				it.remove();
+		}
 	}
 	
 	void selectContentPanel(final String panelName) {
