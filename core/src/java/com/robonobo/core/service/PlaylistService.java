@@ -434,7 +434,7 @@ public class PlaylistService extends AbstractService {
 				Long lovePlid = myPlaylistIdsByTitle.get("Loves");
 				loves = playlists.get(lovePlid);
 			}
-			if(loves.getStreamIds().size() > 0)
+			if (loves.getStreamIds().size() > 0)
 				love(loves.getStreamIds(), false);
 		}
 	}
@@ -571,15 +571,46 @@ public class PlaylistService extends AbstractService {
 			syncITunesIfNecessary(p);
 	}
 
-	private void syncITunesIfNecessary(Playlist p) {
+	private void syncITunesIfNecessary(final Playlist p) {
 		try {
+			// If this is one of my playlists, put it under my details
+			User me = rbnb.getUserService().getMyUser();
+			if (p.getOwnerIds().contains(me.getUserId())) {
+				rbnb.getITunesService().syncPlaylist(me, p);
+				return;
+			} 
+			// Otherwise, use the first owner who's a friend of mine
 			for (Long ownerId : p.getOwnerIds()) {
-				User owner = rbnb.getUserService().getKnownUser(ownerId);
-				if (owner != null)
-					rbnb.getITunesService().syncPlaylist(owner, p);
+				if (me.getFriendIds().contains(ownerId)) {
+					User syncUser = rbnb.getUserService().getKnownUser(ownerId);
+					rbnb.getITunesService().syncPlaylist(syncUser, p);
+					return;
+				}
 			}
+			// Otherwise, use the first user we have details for
+			for (Long ownerId : p.getOwnerIds()) {
+				User syncUser = rbnb.getUserService().getKnownUser(ownerId);
+				if (syncUser != null) {
+					rbnb.getITunesService().syncPlaylist(syncUser, p);
+				}
+			}
+			// Look up the first owner and use them
+			long ownerId = p.getOwnerIds().iterator().next();
+			rbnb.getMetadataService().fetchUser(ownerId, new UserCallback() {
+				public void success(User u) {
+					try {
+						rbnb.getITunesService().syncPlaylist(u, p);
+					} catch (IOException e) {
+						log.error("Error syncing playlist id " + p.getPlaylistId() + " to itunes", e);
+					}
+				}
+
+				public void error(long userId, Exception e) {
+					log.error("Error syncing playlist id " + p.getPlaylistId() + " to itunes", e);
+				}
+			});
 		} catch (IOException e) {
-			log.error("Error syncing playlist id " + p.getPlaylistId() + " to itunes");
+			log.error("Error syncing playlist id " + p.getPlaylistId() + " to itunes", e);
 		}
 	}
 
