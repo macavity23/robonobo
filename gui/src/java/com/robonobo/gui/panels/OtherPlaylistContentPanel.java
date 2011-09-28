@@ -28,6 +28,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 	RButton saveBtn;
 	RCheckBox autoDownloadCB;
 	RCheckBox iTunesCB;
+	ActionListener saveAl;
 	protected Map<String, JCheckBox> options = new HashMap<String, JCheckBox>();
 	boolean haveShown = false;
 
@@ -35,8 +36,26 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 		this(f, pl, pc, null);
 	}
 	
-	public OtherPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc, String urlText) {
-		super(f, pl, pc, false, urlText);
+	public OtherPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pcfg, String urlText) {
+		super(f, pl, pcfg, false, urlText);
+		saveAl = new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				pc.getItems().clear();
+				for (String opt : options.keySet()) {
+					JCheckBox cb = options.get(opt);
+					if (cb.isSelected())
+						pc.setItem(opt, "true");
+				}
+//				saveBtn.setEnabled(false);
+				pc.setPlaylistId(p.getPlaylistId());
+				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						// This will kick of auto-downloads & itunes integration if necessary
+						frame.ctrl.putPlaylistConfig(pc);
+					}
+				});
+			}
+		};
 		tabPane.insertTab("playlist", null, new PlaylistDetailsPanel(), null, 0);
 		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
@@ -137,51 +156,29 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 			autoDownloadCB = new RCheckBox("Download tracks automatically");
 			autoDownloadCB.setSelected("true".equals(pc.getItem("autoDownload")));
 			options.put("autoDownload", autoDownloadCB);
-			autoDownloadCB.addActionListener(al);
+			autoDownloadCB.addActionListener(saveAl);
 			add(autoDownloadCB);
 
 			if (Platform.getPlatform().iTunesAvailable()) {
 				iTunesCB = new RCheckBox("Export playlist to iTunes");
 				iTunesCB.setSelected("true".equalsIgnoreCase(pc.getItem("iTunesExport")));
 				options.put("iTunesExport", iTunesCB);
-				iTunesCB.addActionListener(al);
+				iTunesCB.addActionListener(saveAl);
 				add(iTunesCB);
 			}
 		}
 	}
 
 	class ButtonsPanel extends JPanel {
+
 		public ButtonsPanel() {
 			setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 			setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
-			saveBtn = new RGlassButton("Save");
-			saveBtn.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					pc.getItems().clear();
-					for (String opt : options.keySet()) {
-						JCheckBox cb = options.get(opt);
-						if (cb.isSelected())
-							pc.setItem(opt, "true");
-					}
-					saveBtn.setEnabled(false);
-					pc.setPlaylistId(p.getPlaylistId());
-					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
-						public void doRun() throws Exception {
-							// This will kick of auto-downloads & itunes integration if necessary
-							frame.ctrl.putPlaylistConfig(pc);
-//							try {
-								// Checking playlist update will kick off autodownloads, if necessary
-//								frame.getController().checkPlaylistUpdate(p.getPlaylistId());
-//							} catch (RobonoboException e) {
-//								log.info("Error checking playlist update", e);
-//							}
-						}
-					});
-				}
-			});
-			saveBtn.setEnabled(false);
-			add(saveBtn);
+//			saveBtn = new RGlassButton("Save");
+//			saveBtn.addActionListener(saveAl);
+//			saveBtn.setEnabled(false);
+//			add(saveBtn);
 		}
 	}
 

@@ -247,6 +247,12 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 					saveBtn.setEnabled(false);
 				}
 			};
+			FocusListener fl = new FocusAdapter() {
+				@Override
+				public void focusLost(FocusEvent e) {
+					saveActionListener.actionPerformed(null);
+				}
+			};
 			final Playlist p = ptm().getPlaylist();
 			JLabel titleLbl = new JLabel("Title:");
 			titleLbl.setFont(RoboFont.getFont(13, false));
@@ -254,6 +260,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			titleField = new RTextField(p.getTitle());
 			titleField.addKeyListener(kl);
 			titleField.addActionListener(saveActionListener);
+			titleField.addFocusListener(fl);
 			add(titleField, "3,1");
 			toolsPanel = new PlaylistToolsPanel();
 			add(toolsPanel, "1,3,3,3");
@@ -262,6 +269,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			descField = new RTextArea(p.getDescription());
 			descField.setBGColor(RoboColor.MID_GRAY);
 			descField.addKeyListener(kl);
+			descField.addFocusListener(fl);
 			add(new JScrollPane(descField), "1,6,3,8");
 			add(new VisPanel(), "5,1,5,6");
 			add(new OptsPanel(), "7,1,7,6");
@@ -272,11 +280,6 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 	class VisPanel extends JPanel {
 		public VisPanel() {
 			setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-			ActionListener al = new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					saveBtn.setEnabled(detailsChanged());
-				}
-			};
 			RLabel visLbl = new RLabel13B("Show playlist to:");
 			add(visLbl);
 			add(Box.createVerticalStrut(5));
@@ -285,19 +288,19 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			Playlist p = ptm().getPlaylist();
 			String vis = p.getVisibility();
 			visMeBtn = new RRadioButton("Just me");
-			visMeBtn.addActionListener(al);
+			visMeBtn.addActionListener(saveActionListener);
 			if (vis.equals(Playlist.VIS_ME))
 				visMeBtn.setSelected(true);
 			bg.add(visMeBtn);
 			add(visMeBtn);
 			visFriendsBtn = new RRadioButton("Friends");
-			visFriendsBtn.addActionListener(al);
+			visFriendsBtn.addActionListener(saveActionListener);
 			if (vis.equals(Playlist.VIS_FRIENDS))
 				visFriendsBtn.setSelected(true);
 			bg.add(visFriendsBtn);
 			add(visFriendsBtn);
 			visAllBtn = new RRadioButton("Everyone");
-			visAllBtn.addActionListener(al);
+			visAllBtn.addActionListener(saveActionListener);
 			if (vis.equals(Playlist.VIS_ALL))
 				visAllBtn.setSelected(true);
 			bg.add(visAllBtn);
@@ -309,16 +312,11 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		public OptsPanel() {
 			setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 			add(Box.createVerticalStrut(20));
-			ActionListener al = new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					saveBtn.setEnabled(detailsChanged());
-				}
-			};
 			if (showITunes() && Platform.getPlatform().iTunesAvailable()) {
 				iTunesCB = new RCheckBox("Export playlist to iTunes");
 				iTunesCB.setSelected("true".equalsIgnoreCase(pc.getItem("iTunesExport")));
 				options.put("iTunesExport", iTunesCB);
-				iTunesCB.addActionListener(al);
+				iTunesCB.addActionListener(saveActionListener);
 				add(iTunesCB);
 			}
 		}
@@ -352,7 +350,8 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				add(Box.createHorizontalStrut(5));
 			}
 			saveBtn = new RGlassButton("Save");
-			saveBtn.addActionListener(saveActionListener);
+			// Save button doesn't actually do anything, it's just a nonce to grab the focus from the text components - when they lose focus, playlist gets saved
+//			saveBtn.addActionListener(saveActionListener);
 			saveBtn.setEnabled(false);
 			add(saveBtn);
 		}

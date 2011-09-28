@@ -340,7 +340,8 @@ public class UserService extends AbstractService {
 			log.debug("Got new user config");
 			UserConfig oldUc = myUserCfg;
 			myUserCfg = uc;
-			playlists.userConfigUpdated(oldUc, uc);
+			if(oldUc != null)
+				playlists.userConfigUpdated(oldUc, uc);
 			events.fireUserConfigChanged(uc);
 			if (onwardHandler != null)
 				onwardHandler.success(uc);
