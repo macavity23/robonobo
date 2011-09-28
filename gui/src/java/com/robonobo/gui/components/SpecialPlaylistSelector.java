@@ -60,6 +60,7 @@ public class SpecialPlaylistSelector extends LeftSidebarSelector {
 		this.hasComments = hasComments;
 		setBold(hasComments);
 		updateColors();
+		setToolTipText(hasComments ? "Unread comments" : null);
 	}
 
 	class Listener extends PlaylistAdapter {

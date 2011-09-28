@@ -1,5 +1,6 @@
 package com.robonobo.gui.components;
 
+import static com.robonobo.common.util.TextUtil.*;
 import static com.robonobo.gui.GuiUtil.*;
 import static com.robonobo.gui.RoboColor.*;
 import static javax.swing.SwingUtilities.*;
@@ -98,6 +99,26 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 		// Do nothing
 	}
 
+	@Override
+	public String getToolTipText(MouseEvent event) {
+		int idx = locationToIndex(event.getPoint());
+		PlaylistListModel m = getModel();
+		int unseen = m.numUnseen(idx);
+		Playlist p = m.getPlaylistAt(idx);
+		boolean hasCmts = m.hasComments(p.getPlaylistId());
+		if(unseen > 0) {
+			String nt = numItems(unseen, "new track");
+			if(hasCmts) {
+				// html allows us to have linebreaks
+				return "<html>"+nt+"<br>Unread comments</html>";
+			} else
+				return nt;
+		}
+		if(hasCmts)
+			return "Unread comments";
+		return null;
+	}
+	
 	@Override
 	public void userChanged(final User u) {
 		if (u.getUserId() != frame.ctrl.getMyUser().getUserId())

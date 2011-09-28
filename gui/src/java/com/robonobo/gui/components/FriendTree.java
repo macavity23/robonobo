@@ -1,9 +1,11 @@
 package com.robonobo.gui.components;
 
+import static com.robonobo.common.util.TextUtil.*;
 import static com.robonobo.gui.GuiUtil.*;
 import static com.robonobo.gui.RoboColor.*;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,6 +53,8 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 		setSelectionModel(new SelectionModel());
 		getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		addTreeSelectionListener(new SelectionListener());
+		// This is required for tooltips to work
+		ToolTipManager.sharedInstance().registerComponent(this);
 	}
 
 	@Override
@@ -66,6 +70,41 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 		setSelectionPath(getModel().getLibraryTreePath(userId));
 	}
 
+	@Override
+	public String getToolTipText(MouseEvent evt) {
+		Point p = evt.getPoint();
+		TreePath tp = getClosestPathForLocation(p.x, p.y);
+		Object node = tp.getLastPathComponent();
+		if(node instanceof PlaylistTreeNode) {
+			PlaylistTreeNode ptn = (PlaylistTreeNode) node;
+			int unseen = ptn.numUnseenTracks;
+			if(unseen > 0) {
+				String nt = numItems(unseen, "new track");
+				if(ptn.hasComments) {
+					// html allows us to have linebreaks
+					return "<html>"+nt+"<br>Unread comments</html>";
+				} else
+					return nt;
+			}
+			if(ptn.hasComments)
+				return "Unread comments";
+		} else if(node instanceof LibraryTreeNode) {
+			LibraryTreeNode ltn = (LibraryTreeNode) node;
+			int unseen = ltn.numUnseenTracks;
+			if(unseen > 0) {
+				String nt = numItems(unseen, "new track");
+				if(ltn.hasComments) {
+					// html allows us to have linebreaks
+					return "<html>"+nt+"<br>Unread comments</html>";
+				} else
+					return nt;
+			}
+			if(ltn.hasComments)
+				return "Unread comments";
+		}
+		return null;
+	}
+	
 	private class SelectionListener implements TreeSelectionListener {
 		public void valueChanged(TreeSelectionEvent e) {
 			TreePath tp = e.getNewLeadSelectionPath();

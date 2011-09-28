@@ -51,8 +51,7 @@ public class MyLibrarySelector extends LeftSidebarSelector implements ActionList
 		}
 		super.setSelected(isSelected);
 	}
-	
-	
+		
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String action = e.getActionCommand();
@@ -72,5 +71,6 @@ public class MyLibrarySelector extends LeftSidebarSelector implements ActionList
 	public void setHasComments(boolean hasComments) {
 		this.hasComments = hasComments;
 		updateColors();
+		setToolTipText(hasComments ? "Unread comments" : null);
 	}
 }
