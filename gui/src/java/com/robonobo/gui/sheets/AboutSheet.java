@@ -37,7 +37,7 @@ public class AboutSheet extends Sheet {
 		JScrollPane scrollPane = new JScrollPane(textPane);
 		add(scrollPane, "1,3,2,3");
 
-		closeBtn = new RRedGlassButton("CLOSE");
+		closeBtn = new RRedGlassButton("Close");
 		closeBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setVisible(false);

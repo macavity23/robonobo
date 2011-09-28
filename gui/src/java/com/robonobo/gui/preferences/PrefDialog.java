@@ -6,13 +6,11 @@ import info.clearthought.layout.TableLayout;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.InetAddress;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.*;
 
-import com.robonobo.common.util.NetUtil;
 import com.robonobo.gui.RoboFont;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -47,7 +45,7 @@ public class PrefDialog extends JDialog {
 		JPanel p = new JPanel();
 		p.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 		p.setLayout(new BoxLayout(p, BoxLayout.LINE_AXIS));
-		cancelBtn = new RRedGlassButton("CANCEL");
+		cancelBtn = new RRedGlassButton("Cancel");
 		cancelBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				doCancel();
@@ -55,7 +53,7 @@ public class PrefDialog extends JDialog {
 		});
 		p.add(cancelBtn);
 		p.add(Box.createHorizontalStrut(10));
-		saveBtn = new RGlassButton("SAVE");
+		saveBtn = new RGlassButton("Save");
 		saveBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				doSave();

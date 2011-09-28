@@ -19,8 +19,8 @@ public abstract class ConfirmWithFeckOffSheet extends Sheet {
 
 	public ConfirmWithFeckOffSheet(RobonoboFrame frame, String title, String message, String feckOffLbl, boolean feckOffSelected, String confirmBtnLbl) {
 		super(frame);
-		confirmBtn = new RGlassButton(confirmBtnLbl.toUpperCase());
-		int btnWidth = getFontMetrics(confirmBtn.getFont()).stringWidth(confirmBtnLbl.toUpperCase()) + 50;
+		confirmBtn = new RGlassButton(confirmBtnLbl);
+		int btnWidth = getFontMetrics(confirmBtn.getFont()).stringWidth(confirmBtnLbl) + 50;
 		JPanel msgLbl = new LineBreakTextPanel(message, RoboFont.getFont(13, false), 310 + btnWidth);
 		int msgHeight = msgLbl.getPreferredSize().height;
 		double[][] cellSizen = { { 10, 200, btnWidth, 10, 100, 10 }, { 10, 20, 5, msgHeight, 5, 25, 5, 30, 5 } };
@@ -38,7 +38,7 @@ public abstract class ConfirmWithFeckOffSheet extends Sheet {
 			}
 		});
 		add(confirmBtn, "2,7");
-		RButton cancelBtn = new RRedGlassButton("CANCEL");
+		RButton cancelBtn = new RRedGlassButton("Cancel");
 		cancelBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setVisible(false);

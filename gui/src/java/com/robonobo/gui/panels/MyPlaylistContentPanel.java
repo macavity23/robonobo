@@ -328,7 +328,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 			// Laying out right-to-left
 			if (allowDel()) {
-				delBtn = new RRedGlassButton("DELETE");
+				delBtn = new RRedGlassButton("Delete");
 				delBtn.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						DeletePlaylistSheet dPanel = new DeletePlaylistSheet(frame, ptm().getPlaylist());
@@ -339,7 +339,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				add(Box.createHorizontalStrut(5));
 			}
 			if (allowShare()) {
-				shareBtn = new RGlassButton("SHARE");
+				shareBtn = new RGlassButton("Share");
 				shareBtn.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						SharePlaylistSheet shPanel = new SharePlaylistSheet(frame, ptm().getPlaylist());
@@ -349,7 +349,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				add(shareBtn);
 				add(Box.createHorizontalStrut(5));
 			}
-			saveBtn = new RGlassButton("SAVE");
+			saveBtn = new RGlassButton("Save");
 			saveBtn.addActionListener(saveActionListener);
 			saveBtn.setEnabled(false);
 			add(saveBtn);

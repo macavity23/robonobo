@@ -127,7 +127,7 @@ public abstract class ContentPanel extends JPanel {
 			setLayout(new TableLayout(cellSizen));
 			RLabel titleLbl = new RLabel18B(title);
 			add(titleLbl, "1,1");
-			RButton closeBtn = new RRedGlassButton("close");
+			RButton closeBtn = new RRedGlassButton("Close");
 			closeBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					messageClosed();

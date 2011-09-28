@@ -119,7 +119,7 @@ public class SharePlaylistSheet extends Sheet {
 	private class ButtonPanel extends JPanel {
 		public ButtonPanel() {
 			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-			shareBtn = new RGlassButton("SHARE");
+			shareBtn = new RGlassButton("Share");
 			shareBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
@@ -154,7 +154,7 @@ public class SharePlaylistSheet extends Sheet {
 			shareBtn.setEnabled(targetSelected());
 			Dimension fillerD = new Dimension(20, 1);
 			add(new Box.Filler(fillerD, fillerD, fillerD));
-			cancelBtn = new RRedGlassButton("CANCEL");
+			cancelBtn = new RRedGlassButton("Cancel");
 			cancelBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent ae) {
 					SharePlaylistSheet.this.setVisible(false);

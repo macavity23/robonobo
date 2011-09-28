@@ -20,7 +20,7 @@ public class ConfirmSheet extends Sheet {
 	public ConfirmSheet(RobonoboFrame f, String title, String message, String confirmBtnLbl, final Runnable runOnUiThread) {
 		super(f);
 		setName("playback.background.panel");
-		confirmBtn = new RGlassButton(confirmBtnLbl.toUpperCase());
+		confirmBtn = new RGlassButton(confirmBtnLbl);
 		int btnWidth = getFontMetrics(confirmBtn.getFont()).stringWidth(confirmBtnLbl.toUpperCase()) + 50;
 		JPanel msgLbl = new LineBreakTextPanel(message, RoboFont.getFont(13, false), 400 + btnWidth);
 		int msgHeight = msgLbl.getPreferredSize().height;
@@ -36,7 +36,7 @@ public class ConfirmSheet extends Sheet {
 			}
 		});
 		add(confirmBtn, "2,5");
-		cancelBtn = new RRedGlassButton("CANCEL");
+		cancelBtn = new RRedGlassButton("Cancel");
 		cancelBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setVisible(false);

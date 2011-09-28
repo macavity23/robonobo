@@ -58,7 +58,7 @@ public class PreferencesSheet extends Sheet {
 		JPanel p = new JPanel();
 		p.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 		p.setLayout(new BoxLayout(p, BoxLayout.LINE_AXIS));
-		cancelBtn = new RRedGlassButton("CANCEL");
+		cancelBtn = new RRedGlassButton("Cancel");
 		cancelBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				doCancel();
@@ -66,7 +66,7 @@ public class PreferencesSheet extends Sheet {
 		});
 		p.add(cancelBtn);
 		p.add(Box.createHorizontalStrut(10));
-		saveBtn = new RGlassButton("SAVE");
+		saveBtn = new RGlassButton("Save");
 		saveBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				doSave();

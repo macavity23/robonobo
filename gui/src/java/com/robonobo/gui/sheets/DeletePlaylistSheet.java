@@ -11,7 +11,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.model.Playlist;
 import com.robonobo.gui.components.base.*;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -34,7 +33,7 @@ public class DeletePlaylistSheet extends Sheet {
 		RLabel blurb = new RLabel12("<html><center>Are you sure you want to delete this playlist?</center></html>");
 		add(blurb, "1,3,4,3");
 		
-		delBtn = new RGlassButton("DELETE");
+		delBtn = new RGlassButton("Delete");
 		delBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				frame.leftSidebar.selectMyMusic();
@@ -47,7 +46,7 @@ public class DeletePlaylistSheet extends Sheet {
 			}
 		});
 		add(delBtn, "2,5");
-		RButton cancelBtn = new RRedGlassButton("CANCEL");
+		RButton cancelBtn = new RRedGlassButton("Cancel");
 		cancelBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				DeletePlaylistSheet.this.setVisible(false);

@@ -1,6 +1,5 @@
 package com.robonobo.gui.sheets;
 
-import java.util.Collection;
 import java.util.List;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
@@ -12,7 +11,7 @@ public class ConfirmTrackDeleteSheet extends ConfirmWithFeckOffSheet {
 	private List<String> sids;
 
 	public ConfirmTrackDeleteSheet(RobonoboFrame frame, TrackListTableModel model, final List<String> sids) {
-		super(frame, "Please confirm delete", "Are you sure you want to " + model.longDeleteTracksDesc()+"?", "Warn when deleting tracks", true, "delete");
+		super(frame, "Please confirm delete", "Are you sure you want to " + model.longDeleteTracksDesc()+"?", "Warn when deleting tracks", true, "Delete");
 		this.model = model;
 		this.sids = sids;
 	}

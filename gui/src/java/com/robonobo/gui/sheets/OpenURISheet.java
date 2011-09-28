@@ -23,7 +23,7 @@ public class OpenURISheet extends Sheet {
 		add(new RLabel14B("Open URI"), "1,1,3,1");
 		uriField = new RTextField();
 		add(uriField, "1,3,3,3");
-		openBtn = new RGlassButton("OPEN");
+		openBtn = new RGlassButton("Open");
 		add(openBtn, "3,5");
 		openBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {

@@ -321,7 +321,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	public void showWebsitePageSheet(String title, String msg, final String url) {
-		final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, title, msg, "go to robonobo website", new CatchingRunnable() {
+		final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, title, msg, "Go to robonobo website", new CatchingRunnable() {
 			public void doRun() throws Exception {
 				NetUtil.browse(url);
 				ctrl.watchMyUserConfig();
@@ -414,7 +414,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 			// Playlist must be public or friends-visible to post to fb
 			if (p.getVisibility().equals(Playlist.VIS_ME)) {
 				String msg = "This playlist is currently set to be visible to you only; it must be visible to your friends for you to post it to Facebook.";
-				final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Facebook", msg, "make playlist visible", new CatchingRunnable() {
+				final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Facebook", msg, "Make playlist visible", new CatchingRunnable() {
 					public void doRun() throws Exception {
 						p.setVisibility(Playlist.VIS_FRIENDS);
 						showSheet(new PostToFacebookSheet(RobonoboFrame.this, p));
@@ -477,7 +477,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				showSheet(new PostToTwitterSheet(this, p));
 			else {
 				String msg = "This playlist must be publically-visible to your friends for you to post it to Twitter.";
-				final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Twitter", msg, "make playlist public", new CatchingRunnable() {
+				final Sheet sheet = new ConfirmSheet(RobonoboFrame.this, "Post to Twitter", msg, "Make playlist public", new CatchingRunnable() {
 					public void doRun() throws Exception {
 						p.setVisibility(Playlist.VIS_ALL);
 						showSheet(new PostToTwitterSheet(RobonoboFrame.this, p));

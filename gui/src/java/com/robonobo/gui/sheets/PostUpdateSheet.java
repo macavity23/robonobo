@@ -104,7 +104,7 @@ public abstract class PostUpdateSheet extends Sheet {
 	class ButtonPanel extends JPanel {
 		public ButtonPanel() {
 			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-			postBtn = new RGlassButton("POST UPDATE");
+			postBtn = new RGlassButton("Post Update");
 			postBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					frame.ctrl.getExecutor().execute(new CatchingRunnable() {
@@ -117,7 +117,7 @@ public abstract class PostUpdateSheet extends Sheet {
 			});
 			add(postBtn);
 			add(Box.createHorizontalStrut(10));
-			cancelBtn = new RRedGlassButton("CANCEL");
+			cancelBtn = new RRedGlassButton("Cancel");
 			cancelBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					PostUpdateSheet.this.setVisible(false);

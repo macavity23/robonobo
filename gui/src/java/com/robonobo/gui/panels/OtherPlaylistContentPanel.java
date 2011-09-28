@@ -155,7 +155,7 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 			setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 			setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
-			saveBtn = new RGlassButton("SAVE");
+			saveBtn = new RGlassButton("Save");
 			saveBtn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					pc.getItems().clear();
