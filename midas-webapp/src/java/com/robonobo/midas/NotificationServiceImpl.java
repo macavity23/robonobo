@@ -88,6 +88,10 @@ public class NotificationServiceImpl implements NotificationService {
 			}
 		} else {
 			Matcher lm = LIBRARY_ITEM_PAT.matcher(c.getResourceId());
+			if(!lm.matches()) {
+				log.error("No match for resource id "+c.getResourceId());
+				return;
+			}
 			long ownerId = Long.parseLong(lm.group(1));
 			if (!sentUids.contains(ownerId)) {
 				MidasUserConfig muc = userCfgDao.getUserConfig(ownerId);
