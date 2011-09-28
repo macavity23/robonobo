@@ -31,9 +31,9 @@ public class AddFriendsSheet extends Sheet {
 
 	public AddFriendsSheet(RobonoboFrame f, boolean haveFacebook) {
 		super(f);
-		Dimension sz = new Dimension(420, haveFacebook ? 365 : 440);
+		Dimension sz = new Dimension(420, haveFacebook ? 385 : 460);
 		setPreferredSize(sz);
-		double[][] cellSizen = { { 20, TableLayout.FILL, 20 }, { 20, 30/*title*/, 10, 25/*fb subt*/, 10, 50/*fb blurb*/, 5, 30/*fb promise*/, 10, 30/*fb btn*/, 20, 25/*man subt*/, 10, 30/*man blurb*/, 5, 30/*email*/, 5, 30/*add btn*/, 20, 30/*cancel*/, 10 } };
+		double[][] cellSizen = { { 20, TableLayout.FILL, 20 }, { 20, 30/*title*/, 10, 25/*fb subt*/, 10, 50/*fb blurb*/, 5, 30/*fb promise*/, 10, 30/*fb btn*/, 20, 25/*man subt*/, 10, 50/*man blurb*/, 5, 30/*email*/, 5, 30/*add btn*/, 20, 30/*cancel*/, 10 } };
 		TableLayout tl = new TableLayout(cellSizen);
 		setLayout(tl);
 		setName("playback.background.panel");
@@ -66,7 +66,7 @@ public class AddFriendsSheet extends Sheet {
 		
 		
 		add(new RLabel16B("Add friends by email"),"1,11");
-		add(makeText("Enter your friends' email addresses below to send them a friend request:", false), "1,13");
+		add(makeText("Enter your friends' email addresses below to send them a friend request. This will invite them to robonobo if they have not joined already.", false), "1,13");
 		emailField = new RTextField(DEFAULT_EMAILS);
 		emailField.addKeyListener(new KeyAdapter() {
 			public void keyReleased(KeyEvent e) {
