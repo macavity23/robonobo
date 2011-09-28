@@ -53,10 +53,12 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		commentsPanel = new PlaylistCommentsPanel(f);
 		tabPane.insertTab("comments", null, commentsPanel, null, 1);
 		tabPane.setSelectedIndex(0);
+		setupComments();
 	}
 
 	protected MyPlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, PlaylistTableModel model) {
 		super(frame, p, pc, model);
+		// Subclasses must call setupComments() themselves if they want comments
 	}
 
 	protected void setupComments() {

@@ -134,6 +134,7 @@ public class FriendTree extends LeftSidebarTree implements LeftSidebarComponent 
 				} else if (stn instanceof PlaylistTreeNode) {
 					PlaylistTreeNode ptn = (PlaylistTreeNode) stn;
 					long plId = ptn.getPlaylist().getPlaylistId();
+					m.markPlaylistTracksAsSeen(plId);
 					ContentPanel cp = frame.mainPanel.getContentPanel("playlist/" + plId);
 					if (cp.tabPane.getSelectedIndex() == 1)
 						m.markPlaylistCommentsAsRead(plId);

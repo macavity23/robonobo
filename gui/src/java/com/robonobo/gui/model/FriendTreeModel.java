@@ -251,6 +251,26 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 		});
 	}
 
+	public void markPlaylistTracksAsSeen(final long plId) {
+		runOnUiThread(new CatchingRunnable() {
+			public void doRun() throws Exception {
+				synchronized (FriendTreeModel.this) {
+					for (FriendTreeNode ftn : friendNodes.values()) {
+						if (ftn.getFriend().getPlaylistIds().contains(plId)) {
+							// This user has this playlist - do we have a node for this yet?
+							long friendId = ftn.getFriend().getUserId();
+							PlaylistTreeNode ptn = playlistNodes.get(friendId).get(plId);
+							if (ptn == null)
+								return;
+							ptn.numUnseenTracks = 0;
+							firePathToRootChanged(ptn);
+						}
+					}
+				}
+			}
+		});		
+	}
+	
 	@Override
 	public void friendLibraryReady(final long uid, final int numUnseen) {
 		runOnUiThread(new CatchingRunnable() {

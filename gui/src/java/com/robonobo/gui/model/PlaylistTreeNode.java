@@ -51,7 +51,6 @@ public class PlaylistTreeNode extends SelectableTreeNode {
 
 	@Override
 	public boolean handleSelect() {
-		numUnseenTracks = 0;
 		frame.mainPanel.selectContentPanel(contentPanelName());
 		frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
