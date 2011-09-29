@@ -19,12 +19,14 @@ public class FileChoosePanel extends JPanel {
 	public FileChoosePanel(RobonoboFrame f, String initialPath, final boolean dirsOnly, final Runnable onChoose) {
 		this.frame = f;
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-		tf.setMaximumSize(new Dimension(300, 30));
+		Dimension sz = new Dimension(300, 30);
 		tf.setText(initialPath);
+		tf.setPreferredSize(sz);
 		tf.setEnabled(false);
+		add(Box.createHorizontalStrut(50));
 		add(tf);
 		add(Box.createHorizontalStrut(10));
-		RButton btn = new RGlassButton("...");
+		RButton btn = new RGlassButton("Change");
 		btn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc = new JFileChooser(new File(tf.getText()));

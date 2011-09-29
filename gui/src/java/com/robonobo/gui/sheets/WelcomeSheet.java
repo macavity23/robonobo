@@ -25,24 +25,24 @@ public class WelcomeSheet extends Sheet {
 
 	public WelcomeSheet(RobonoboFrame rFrame) {
 		super(rFrame);
-		Dimension sz = new Dimension(540, 330);
+		Dimension sz = new Dimension(540, 370);
 		setPreferredSize(sz);
 		setSize(sz);
-		double[][] cells = { { 20, 270, 20, 220, 20 }, { 20, 40/* title */, 5, 20/*intro*/, 5, 20/* dir blurb */, 5, 25/* filechoose */, 20, TableLayout.FILL/* addstuff */, 20, 30/* feckoff */, 10 } };
+		double[][] cells = { { 20, 270, 20, 220, 20 }, { 20, 40/* title */, 20, 20/*intro*/, 10, 40/* dir blurb */, 5, 25/* filechoose */, 20, TableLayout.FILL/* addstuff */, 20, 32/* feckoff */, 10 } };
 		setLayout(new TableLayout(cells));
 		setName("playback.background.panel");
 		JPanel titlePnl = new JPanel();
 		titlePnl.setLayout(new BoxLayout(titlePnl, BoxLayout.X_AXIS));
-		titlePnl.add(Box.createHorizontalStrut(115));
-		titlePnl.add(new RLabel24B("Welcome to"));
-		titlePnl.add(Box.createHorizontalStrut(5));
-		JLabel logo = new JLabel(createImageIcon("/rbnb-logo_mid-grey-bg.png", -1, 30));
+		titlePnl.add(Box.createHorizontalStrut(72));
+		titlePnl.add(new RLabel36B("Welcome to"));
+		titlePnl.add(Box.createHorizontalStrut(10));
+		JLabel logo = new JLabel(createImageIcon("/rbnb-logo_mid-grey-bg.png", -1, 37));
 		logo.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
 		titlePnl.add(logo);
 		add(titlePnl, "1,1,3,1,LEFT,TOP");
-		LineBreakTextPanel intro = new LineBreakTextPanel("Now you and your friends can hear each others' music effortlessly.", RoboFont.getFont(13, false), 560);
+		LineBreakTextPanel intro = new LineBreakTextPanel("Now you and your friends can hear each others' music effortlessly.", RoboFont.getFont(16, false), 560);
 		add(intro, "1,3,3,3,LEFT,TOP");
-		LineBreakTextPanel dirBlurb = new LineBreakTextPanel("All the music you play or download will be saved on your computer, in this folder:", RoboFont.getFont(13, false),
+		LineBreakTextPanel dirBlurb = new LineBreakTextPanel("All the music you play or download will be saved on your computer, in this folder:", RoboFont.getFont(16, false),
 				560);
 		add(dirBlurb, "1,5,3,5,LEFT,TOP");
 		filePanel = new FileChoosePanel(frame, frame.ctrl.getConfig().getFinishedDownloadsDirectory(), true, new CatchingRunnable() {
@@ -54,11 +54,11 @@ public class WelcomeSheet extends Sheet {
 		});
 		add(filePanel, "1,7,3,7,LEFT,TOP");
 		JPanel addFriendsPnl = new JPanel();
-		double[][] afCells = { {120, TableLayout.FILL}, {20, 10, 30, 10, 30} };
+		double[][] afCells = { {120, TableLayout.FILL}, {20, 10, 35, 10, 32} };
 		addFriendsPnl.setLayout(new TableLayout(afCells));
 		RLabel18B afTitle = new RLabel18B("Add friends");
 		addFriendsPnl.add(afTitle, "0,0,1,0");
-		LineBreakTextPanel afExpln = new LineBreakTextPanel("You can add friends from Facebook, or using their email addresses.", RoboFont.getFont(13, false), 270);
+		LineBreakTextPanel afExpln = new LineBreakTextPanel("You can add friends from Facebook, or using their email addresses.", RoboFont.getFont(16, false), 270);
 		addFriendsPnl.add(afExpln,"0,2,1,2");
 		RButton addFriendsBtn = new RGlassButton("Add friends...");
 		addFriendsBtn.addActionListener(new ActionListener() {
@@ -96,8 +96,8 @@ public class WelcomeSheet extends Sheet {
 		JPanel feckOffPnl = new JPanel();
 		feckOffPnl.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 		feckOffPnl.setLayout(new BoxLayout(feckOffPnl, BoxLayout.PAGE_AXIS));
-		feckOffPnl.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 20));
-		feckOffBtn = new RRedGlassButton("Don't show this screen");
+		feckOffPnl.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+		feckOffBtn = new RRedGlassButton("Close");
 		feckOffBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setVisible(false);
