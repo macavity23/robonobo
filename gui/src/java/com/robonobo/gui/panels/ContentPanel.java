@@ -95,6 +95,11 @@ public abstract class ContentPanel extends JPanel {
 
 	private void messageClosed() {
 		TableLayout tl = (TableLayout) topPane.getLayout();
+		// Bug huntin - sometimes this is called when the layout has only 1 row
+		if(tl.getNumRow() < 3) {
+			log.error("ERROR: in ContentPanel.messageClosed, but numrows is "+tl.getNumRow());
+			return;
+		}
 		tl.deleteRow(0);
 		tl.deleteRow(0);
 		msgs.remove(0);
