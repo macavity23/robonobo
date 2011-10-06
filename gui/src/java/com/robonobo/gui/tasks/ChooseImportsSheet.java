@@ -198,10 +198,12 @@ public class ChooseImportsSheet extends Sheet {
 					}
 				}
 				Map<String, List<File>> ipm = new HashMap<String, List<File>>();
-				for (int i = 0; i < pll.size(); i++) {
-					if (plTm.bl.get(i)) {
-						String plName = pll.get(i);
-						ipm.put(plName, plm.get(plName));
+				if (pll != null) {
+					for (int i = 0; i < pll.size(); i++) {
+						if (plTm.bl.get(i)) {
+							String plName = pll.get(i);
+							ipm.put(plName, plm.get(plName));
+						}
 					}
 				}
 				int total = isl.size() + ipm.size();
@@ -220,41 +222,40 @@ public class ChooseImportsSheet extends Sheet {
 					task.fireUpdated();
 				}
 				task.streamsAdded(sidsAdded);
-				int i=0;
+				int i = 0;
 				for (String plName : ipm.keySet()) {
 					if (task.cancelRequested) {
 						task.cancelConfirmed();
 						return;
 					}
-
 					List<File> plFiles = ipm.get(plName);
 					Playlist p = frame.ctrl.getMyPlaylistByTitle(plName);
-					if(p == null) {
+					if (p == null) {
 						p = new Playlist();
 						p.setTitle(plName);
 						p.getOwnerIds().add(frame.ctrl.getMyUser().getUserId());
 						for (File f : plFiles) {
 							SharedTrack sh = frame.ctrl.getShareByFilePath(f);
-							if(sh != null)
+							if (sh != null)
 								p.getStreamIds().add(sh.getStream().getStreamId());
 						}
-						if(p.getStreamIds().size() > 0) {
-							task.setStatusText("Creating playlist '"+plName+"'");
+						if (p.getStreamIds().size() > 0) {
+							task.setStatusText("Creating playlist '" + plName + "'");
 							frame.ctrl.createPlaylist(p, null);
 						} else
-							task.setStatusText("Not importing playlist '"+plName+"' - no tracks selected for import");
+							task.setStatusText("Not importing playlist '" + plName + "' - no tracks selected for import");
 					} else {
 						// Update existing playlist - add each track if it's not already there
 						for (File f : plFiles) {
 							SharedTrack sh = frame.ctrl.getShareByFilePath(f);
-							if(sh != null && !p.getStreamIds().contains(sh.getStream().getStreamId()))
+							if (sh != null && !p.getStreamIds().contains(sh.getStream().getStreamId()))
 								p.getStreamIds().add(sh.getStream().getStreamId());
 						}
-						task.setStatusText("Updating existing playlist '"+plName+"'");
+						task.setStatusText("Updating existing playlist '" + plName + "'");
 						frame.ctrl.updatePlaylist(p);
 					}
 					i++;
-					task.setCompletion(((float)(i+isl.size())) / total);
+					task.setCompletion(((float) (i + isl.size())) / total);
 					task.fireUpdated();
 				}
 				task.setStatusText("Done.");

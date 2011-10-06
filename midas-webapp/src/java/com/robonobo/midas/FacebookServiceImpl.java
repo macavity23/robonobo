@@ -68,22 +68,14 @@ public class FacebookServiceImpl implements InitializingBean, FacebookService {
 	/**
 	 * Updates who knows whom based on facebook friends
 	 * 
-	 * @param oldUserCfg
-	 *            If this is not null and the facebook id has not changed in the newUserCfg, then nothing will be
-	 *            updated
 	 * @throws FacebookException
 	 */
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public void updateFriends(MidasUser user, MidasUserConfig oldUserCfg, MidasUserConfig newUserCfg) {
-		if (!newUserCfg.getItems().containsKey("facebookId"))
-			return;
-		if (oldUserCfg != null && oldUserCfg.getItem("facebookId") != null
-				&& oldUserCfg.getItem("facebookId").equals(newUserCfg.getItem("facebookId")))
-			return;
+	public void updateFriends(MidasUser user, MidasUserConfig userCfg) {
 		// TODO removing friends?
 		// Get this user's list of friends from facebook
-		FacebookClient fbCli = new RateLimitFBClient(newUserCfg.getItem("facebookAccessToken"));
+		FacebookClient fbCli = new RateLimitFBClient(userCfg.getItem("facebookAccessToken"));
 		Connection<User> friends;
 		try {
 			friends = fbCli.fetchConnection("me/friends", User.class);
@@ -238,7 +230,7 @@ public class FacebookServiceImpl implements InitializingBean, FacebookService {
 							String name = fbUser.getName();
 							updateFacebookName(userCfg.getItem("facebookId"), name);
 							MidasUser user = midas.getUserById(userCfg.getUserId());
-							updateFriends(user, null, userCfg);
+							updateFriends(user, userCfg);
 						}
 					});
 				}

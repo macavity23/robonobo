@@ -10,8 +10,8 @@ public interface StreamDao {
 
 	public abstract List<MidasStream> findLatest(int limit);
 
-	public abstract MidasStream loadStream(String streamId);
+	public abstract MidasStream getStream(String streamId);
 
-	public abstract void saveStream(MidasStream stream);
+	public abstract void putStream(MidasStream stream);
 
 }

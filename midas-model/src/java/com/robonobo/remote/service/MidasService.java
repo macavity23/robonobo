@@ -1,9 +1,11 @@
 package com.robonobo.remote.service;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
 import com.robonobo.core.api.model.Library;
+import com.robonobo.core.api.model.Playlist;
 import com.robonobo.midas.model.*;
 
 public interface MidasService {
@@ -103,4 +105,6 @@ public interface MidasService {
 	public abstract List<MidasComment> getCommentsForPlaylist(long plId, Date since);
 
 	public abstract MidasComment getComment(long commentId);
+
+	public abstract void lovesChanged(MidasUser u, Playlist oldP, Playlist newP) throws IOException;
 }

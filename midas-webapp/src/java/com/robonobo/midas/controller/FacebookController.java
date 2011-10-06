@@ -75,7 +75,7 @@ public class FacebookController extends BaseController {
 					facebook.updateFacebookName(fbId, fbUser.getName());
 				} else if ("friends".equals(field)) {
 					MidasUser user = midas.getUserById(muc.getUserId());
-					facebook.updateFriends(user, null, muc);
+					facebook.updateFriends(user, muc);
 				}
 			}
 		}

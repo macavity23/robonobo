@@ -24,7 +24,7 @@ public interface MessageService {
 
 	public abstract void sendLibraryNotification(MidasUser updateUser, MidasUser notifyUser, int numTrax) throws IOException;
 
-	public abstract void sendCombinedNotification(MidasUser notifyUser, Map<MidasUser, Integer> libTraxAdded, Map<Long, List<Playlist>> playlists) throws IOException;
+	public abstract void sendCombinedNotification(MidasUser notifyUser, Map<MidasUser, Integer> libTraxAdded, Map<Long, List<Playlist>> playlists, Map<Long, List<String>> loveArtists) throws IOException;
 
 	public abstract void sendReplyNotificationForLibrary(MidasUser origUser, MidasUser replyUser, long libUserId) throws IOException;
 
@@ -33,4 +33,6 @@ public interface MessageService {
 	public abstract void sendCommentNotificationForLibrary(MidasUser libUser, MidasUser commentUser) throws IOException;
 
 	public abstract void sendCommentNotificationForPlaylist(MidasUser owner, MidasUser commentUser, MidasPlaylist p) throws IOException;
+
+	public abstract void sendLovesNotification(MidasUser updateUser, MidasUser notifyUser, List<String> artists) throws IOException;
 }

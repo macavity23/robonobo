@@ -229,7 +229,10 @@ public class Stream implements Comparable<Stream> {
 	public void setAttributes(Set<StreamAttribute> attributes) {
 		this.attributes = attributes;
 		for (StreamAttribute a : attributes) {
-			attrMap.put(a.getName(), a);
+			String key = a.getName();
+			String value = a.getValue();
+			attrMap.put(key, a);
+			updateTransAttr(key, value);
 		}
 	}
 
@@ -242,6 +245,10 @@ public class Stream implements Comparable<Stream> {
 			attributes.add(a);
 			attrMap.put(key, a);
 		}
+		updateTransAttr(key, value);
+	}
+
+	protected void updateTransAttr(String key, String value) {
 		if (key.equals(ARTIST))
 			artist = value;
 		else if (key.equals(ALBUM))

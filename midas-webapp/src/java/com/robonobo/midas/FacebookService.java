@@ -11,7 +11,7 @@ public interface FacebookService {
 	/**
 	 * Updates who knows who based on facebook friends
 	 */
-	public abstract void updateFriends(MidasUser user, MidasUserConfig oldUserCfg, MidasUserConfig newUserCfg);
+	public abstract void updateFriends(MidasUser user, MidasUserConfig newUserCfg);
 
 	public abstract String getFacebookVerifyTok();
 

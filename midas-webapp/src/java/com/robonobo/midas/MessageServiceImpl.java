@@ -1,7 +1,6 @@
 package com.robonobo.midas;
 
-import java.io.IOException;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,11 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.ServletContextAware;
 
+import com.robonobo.common.util.TextUtil;
 import com.robonobo.core.api.model.Playlist;
+import com.robonobo.midas.dao.PlaylistDao;
 import com.robonobo.midas.dao.UserDao;
 import com.robonobo.midas.model.*;
 import com.robonobo.remote.service.MidasService;
 
+import freemarker.cache.FileTemplateLoader;
 import freemarker.template.*;
 
 @Service("message")
@@ -42,6 +44,8 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 	MidasService midas;
 	@Autowired
 	UserDao userDao;
+	@Autowired
+	PlaylistDao playlistDao;
 
 	public MessageServiceImpl() {
 	}
@@ -135,14 +139,29 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 		model.put("updateUser", updateUser);
 		model.put("playlist", p);
 		model.put("playlistUrl", playlistUrl(p));
-		sendMail(updateUser.getEmail(), updateUser.getFriendlyName(), notifyUser.getEmail(), notifyUser.getFriendlyName(), updateUser.getFriendlyName()
-				+ " updated their playlist '" + p.getTitle() + "'", "playlist-notif", model);
+		String subject = updateUser.getFriendlyName()
+				+ " updated their playlist '" + p.getTitle() + "'";
+		sendMail(updateUser.getEmail(), updateUser.getFriendlyName(), notifyUser.getEmail(), notifyUser.getFriendlyName(), subject, "playlist-notif", model);
 	}
 
+	@Override
+	public void sendLovesNotification(MidasUser updateUser, MidasUser notifyUser, List<String> artists) throws IOException {
+		Map model = newModel(notifyUser.getFriendlyName(), notifyUser.getEmail());
+		model.put("updateUser", updateUser);
+		model.put("artists", artists);
+		model.put("lovesUrl", lovesUrl(updateUser.getUserId()));
+		String subject = updateUser.getFriendlyName()  + " loves " + TextUtil.numItems(artists, "new artist");
+		sendMail(updateUser.getEmail(), updateUser.getFriendlyName(), notifyUser.getEmail(), notifyUser.getFriendlyName(), subject, "loves-notif", model);
+	}
+	
 	private String playlistUrl(Playlist p) {
 		return appConfig.getInitParam("shortUrlBase") + "p/" + Long.toHexString(p.getPlaylistId());
 	}
 
+	private String lovesUrl(long uid) {
+		return appConfig.getInitParam("shortUrlBase") + "sp/"+uid+"/loves";
+	}
+	
 	@Override
 	public void sendLibraryNotification(MidasUser updateUser, MidasUser notifyUser, int numTrax) throws IOException {
 		Map model = newModel(notifyUser.getFriendlyName(), notifyUser.getEmail());
@@ -206,9 +225,9 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 	}
 
 	@Override
-	public void sendCombinedNotification(MidasUser notifyUser, Map<MidasUser, Integer> libTraxAdded, Map<Long, List<Playlist>> playlists) throws IOException {
+	public void sendCombinedNotification(MidasUser notifyUser, Map<MidasUser, Integer> libTraxAdded, Map<Long, List<Playlist>> playlists, Map<Long, List<String>> loveArtists) throws IOException {
 		List<Map<String, Object>> updateUsers = new ArrayList<Map<String, Object>>();
-		boolean havePlaylists = false;
+		boolean havePlaylistsOrLoves = false;
 		for (MidasUser updateUser : libTraxAdded.keySet()) {
 			Map<String, Object> userMap = new HashMap<String, Object>();
 			userMap.put("friendlyName", updateUser.getFriendlyName());
@@ -217,23 +236,25 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 			List<Playlist> pObjList = playlists.get(updateUser.getUserId());
 			List<Map<String, String>> pl = new ArrayList<Map<String, String>>();
 			for (Playlist p : pObjList) {
-				havePlaylists = true;
+				havePlaylistsOrLoves = true;
 				Map<String, String> pm = new HashMap<String, String>();
 				String title = p.getTitle();
 				pm.put("title", title);
 				pm.put("url", playlistUrl(p));
-				// Loves always go first
-				if(title.equalsIgnoreCase("loves"))
-					pl.add(0, pm);
-				else
-					pl.add(pm);
+				pl.add(pm);
 			}
 			userMap.put("playlists", pl);
+			List<String> ll = loveArtists.get(updateUser.getUserId());
+			userMap.put("loves", ll);
+			if(ll.size() > 0) {
+				havePlaylistsOrLoves = true;
+				userMap.put("lovesUrl", lovesUrl(updateUser.getUserId()));
+			}
 			updateUsers.add(userMap);
 		}
 		Map model = newModel(notifyUser.getFriendlyName(), notifyUser.getEmail());
 		model.put("users", updateUsers);
-		model.put("havePlaylists", havePlaylists);
+		model.put("havePlaylistsOrLoves", havePlaylistsOrLoves);
 		sendMail(null, null, notifyUser.getEmail(), notifyUser.getFriendlyName(), "Your friends have added music to robonobo", "combined-notif", model);
 	}
 
@@ -277,6 +298,53 @@ public class MessageServiceImpl implements MessageService, InitializingBean, Dis
 		}
 	}
 
+	public static void main(String[] args) throws Exception {
+		Random rand = new Random();
+		boolean havePlaylistsOrLoves = false;
+		List<Map<String, Object>> userList = new ArrayList<Map<String,Object>>();
+		for (String userName : Arrays.asList("Foo", "Bar")) {
+			Map<String, Object> userMap = new HashMap<String, Object>();
+			userMap.put("friendlyName", userName);
+			userMap.put("email", userName.toLowerCase()+"@robonobo.com");
+//			userMap.put("numLibTrax", 0);
+			userMap.put("numLibTrax", (1+rand.nextInt(10)));
+			List<Map<String, String>> pl = new ArrayList<Map<String, String>>();
+			for (String pTitle : Arrays.asList("Testy1", "Testy2", "Testy3")) {
+				havePlaylistsOrLoves = true;
+				Map<String, String> pm = new HashMap<String, String>();
+				pm.put("title", pTitle);
+				pm.put("url", "http://rbnb.co/foo/"+pTitle);
+				pl.add(pm);
+			}
+			userMap.put("playlists", pl);
+			List<String> ll = Arrays.asList("Thingie", "Thang", "Thong", "Flarble");
+//			List<String> ll = Arrays.asList();
+			userMap.put("loves", ll);
+			if(ll.size() > 0) {
+				havePlaylistsOrLoves = true;
+				userMap.put("lovesUrl", "http://rbnb.co/some/loves");
+			}
+			userList.add(userMap);
+		}
+		Map model = new HashMap();
+		model.put("toName", "Notify User");
+		model.put("toEmail", "heydude@robonobo.com");
+		model.put("rbnbUrl", "http://robonobo.com/");
+		model.put("users", userList);
+		model.put("havePlaylistsOrLoves", havePlaylistsOrLoves);
+		testTemplate(model, "combined-notif-text.ftl");
+	}
+	
+	private static void testTemplate(Map model, String templateName) throws TemplateException, IOException {
+		Configuration cfg = new Configuration();
+		cfg.setTemplateLoader(new FileTemplateLoader(new File("/Users/macavity/src/git/robonobo/midas-webapp/WebContent/WEB-INF/freemarker")));
+		cfg.setObjectWrapper(new DefaultObjectWrapper());
+		Template t = cfg.getTemplate(templateName);
+		PrintWriter wri = new PrintWriter(System.out);
+		t.process(model, wri);
+		wri.close();
+	}
+	
 	class MailRunner implements Runnable {
 		String replyToAddr;
 		String replyToName;

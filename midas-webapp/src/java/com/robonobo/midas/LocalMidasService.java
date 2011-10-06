@@ -10,12 +10,14 @@ import java.util.Map.Entry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.SeekInnerCalmException;
-import com.robonobo.core.api.model.Library;
-import com.robonobo.core.api.model.Playlist;
+import com.robonobo.common.util.TimeUtil;
+import com.robonobo.core.api.model.*;
 import com.robonobo.midas.dao.*;
 import com.robonobo.midas.model.*;
 import com.robonobo.remote.service.MidasService;
@@ -34,6 +36,8 @@ public class LocalMidasService implements MidasService {
 	@Autowired
 	private EventService event;
 	@Autowired
+	private NotificationService notification;
+	@Autowired
 	private FriendRequestDao friendRequestDao;
 	@Autowired
 	private InviteDao inviteDao;
@@ -49,6 +53,8 @@ public class LocalMidasService implements MidasService {
 	private UserDao userDao;
 	@Autowired
 	private CommentDao commentDao;
+	@Autowired
+	ThreadPoolTaskScheduler scheduler;
 	Log log = LogFactory.getLog(getClass());
 	private long lastPlaylistId = -1;
 	private long lastCommentId = -1;
@@ -84,13 +90,13 @@ public class LocalMidasService implements MidasService {
 	}
 
 	private MidasUser populateDefault(MidasUser u) {
-		if(u == null)
+		if (u == null)
 			return u;
-		if(isEmpty(u.getImgUrl()))
+		if (isEmpty(u.getImgUrl()))
 			u.setImgUrl(appConfig.getInitParam("defaultUserImgUrl"));
 		return u;
 	}
-	
+
 	public MidasUser getUserAsVisibleBy(MidasUser targetU, MidasUser requestor) {
 		// If this the user asking for themselves, give them everything. If
 		// they're a friend, they get public and friend-visible playlists, but no friends.
@@ -169,7 +175,7 @@ public class LocalMidasService implements MidasService {
 	public MidasPlaylist getPlaylistByUserIdAndTitle(long uid, String title) {
 		return playlistDao.getPlaylistByUserIdAndTitle(uid, title);
 	}
-	
+
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public List<MidasPlaylist> getRecentPlaylists(long maxAgeMs) {
@@ -209,23 +215,23 @@ public class LocalMidasService implements MidasService {
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public List<MidasComment> getCommentsForLibrary(long uid, Date since) {
-		String resourceId = "library:"+uid;
+		String resourceId = "library:" + uid;
 		if (since == null)
 			return commentDao.getAllComments(resourceId);
 		else
 			return commentDao.getCommentsSince(resourceId, since);
 	}
-	
+
 	@Override
 	public MidasComment newCommentForPlaylist(MidasComment comment, long playlistId) {
-		return newComment(comment, "playlist:"+playlistId);
+		return newComment(comment, "playlist:" + playlistId);
 	}
-	
+
 	@Override
 	public MidasComment newCommentForLibrary(MidasComment comment, long userId) {
-		return newComment(comment, "library:"+userId);
+		return newComment(comment, "library:" + userId);
 	}
-	
+
 	@Transactional(rollbackFor = Exception.class)
 	private MidasComment newComment(MidasComment comment, String resourceId) {
 		if (comment.getCommentId() > 0)
@@ -254,19 +260,19 @@ public class LocalMidasService implements MidasService {
 		preventCommentXSS(c);
 		commentDao.saveComment(c);
 	}
-	
+
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public MidasComment getComment(long commentId) {
 		return commentDao.getComment(commentId);
 	}
-	
+
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void deleteComment(MidasComment c) {
 		commentDao.deleteComment(c);
 	}
-	
+
 	@Transactional(rollbackFor = Exception.class)
 	public void savePlaylist(MidasPlaylist p) {
 		if (p.getPlaylistId() <= 0)
@@ -287,17 +293,17 @@ public class LocalMidasService implements MidasService {
 	@Transactional(rollbackFor = Exception.class)
 	public void deletePlaylist(MidasPlaylist playlist) {
 		playlistDao.deletePlaylist(playlist);
-		commentDao.deleteAllComments("playlist:"+playlist.getPlaylistId());
+		commentDao.deleteAllComments("playlist:" + playlist.getPlaylistId());
 	}
 
 	@Transactional(rollbackFor = Exception.class)
 	public MidasStream getStreamById(String streamId) {
-		return streamDao.loadStream(streamId);
+		return streamDao.getStream(streamId);
 	}
 
 	@Transactional(rollbackFor = Exception.class)
 	public void saveStream(MidasStream stream) {
-		streamDao.saveStream(stream);
+		streamDao.putStream(stream);
 	}
 
 	@Transactional(rollbackFor = Exception.class)
@@ -452,11 +458,92 @@ public class LocalMidasService implements MidasService {
 	@Transactional(rollbackFor = Exception.class)
 	public void putUserConfig(MidasUserConfig newCfg) {
 		// Update friends based on facebook & twitter deets
-		MidasUser mu = userDao.getById(newCfg.getUserId());
-		MidasUserConfig oldCfg = userConfigDao.getUserConfig(newCfg.getUserId());
-		facebook.updateFriends(mu, oldCfg, newCfg);
-		// TODO twitter
+		long uid = newCfg.getUserId();
+		final MidasUser mu = userDao.getById(uid);
+		MidasUserConfig oldCfg = userConfigDao.getUserConfig(uid);
+		// Check to see if they have added facebook/twitter details
+		boolean newFb = oldCfg.getItem("facebookId") == null && newCfg.getItem("facebookId") != null;
+		boolean newTwit = oldCfg.getItem("twitterScreenName") == null && newCfg.getItem("twitterScreenName") != null;
+		if (newFb || newTwit) {
+			// Post their loves - but wait 30 mins to give them a chance to disable it
+			final Playlist lovesPl = playlistDao.getPlaylistByUserIdAndTitle(uid, "loves");
+			if (lovesPl != null && lovesPl.getStreamIds().size() > 0) {
+				scheduler.schedule(new CatchingRunnable() {
+					public void doRun() throws Exception {
+						// Check if posting loves is enabled/disabled
+						// TODO
+						Playlist newLovesPl = playlistDao.getPlaylistByUserIdAndTitle(mu.getUserId(), "loves");
+						// We want to exclude any new loves that have been posted, so we pass the new playlist as the old one and vice versa
+						lovesChanged(mu, newLovesPl, lovesPl);
+					}
+				}, TimeUtil.timeInFuture(30 * 60 * 1000));
+			}
+		}
+		if (newFb)
+			facebook.updateFriends(mu, newCfg);
 		userConfigDao.saveUserConfig(newCfg);
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void lovesChanged(MidasUser u, Playlist oldP, Playlist newP) throws IOException {
+		long uid = u.getUserId();
+		// Which artists have just been added?
+		Set<String> curArtists = new HashSet<String>();
+		for(String sid : oldP.getStreamIds()) {
+			Stream s = streamDao.getStream(sid);
+			curArtists.add(s.getArtist());
+		}
+		List<String> newArtists = new ArrayList<String>();
+		for(String sid : newP.getStreamIds()) {
+			if(!oldP.getStreamIds().contains(sid)) {
+				Stream s = streamDao.getStream(sid);
+				String artist = s.getArtist();
+				if(!curArtists.contains(artist))
+					newArtists.add(artist);
+			}
+		}
+		if(newArtists.size() > 0) {
+			List<String> al = new ArrayList<String>(newArtists);
+			Collections.sort(al);
+			// Figure out our message to post - use the twitter limit
+			int msgSizeLimit = 140;
+			String okMsg = "I love " + numItems(newArtists, "artist") + ": ";
+			String url = appConfig.getInitParam("shortUrlBase") + "sp/" + Long.toHexString(uid) + "/loves";
+			for (int i = 0; i < newArtists.size(); i++) {
+				StringBuffer sb = new StringBuffer("I love ");
+				for (int j = 0; j <= i; j++) {
+					if (j != 0)
+						sb.append(", ");
+					sb.append(newArtists.get(j));
+				}
+				if (i < (newArtists.size() - 1)) {
+					int numOtherArtists = newArtists.size() - (i + 1);
+					sb.append(" and ").append(numItems(numOtherArtists, "other artist"));
+				}
+				sb.append(": ");
+				String msg = sb.toString();
+				if ((msg.length() + url.length()) <= msgSizeLimit)
+					okMsg = msg;
+				else
+					break;
+			}
+			// Post our loves to fb/twitter
+			MidasUserConfig muc = userConfigDao.getUserConfig(u.getUserId());
+			if(muc.getItem("facebookId") != null) {
+				String fbStr = muc.getItem("postLovesToFacebook");
+				if(fbStr == null || Boolean.valueOf(fbStr))
+					facebook.postSpecialPlaylistToFacebook(muc, uid, "loves", okMsg);
+			}
+			if(muc.getItem("twitterScreenName") != null) {
+				String twitStr = muc.getItem("postLovesToTwitter");
+				if(twitStr == null || Boolean.valueOf(twitStr))
+					twitter.postSpecialPlaylistToTwitter(muc, uid, "loves", okMsg);
+			}
+			event.specialPlaylistPosted(u, uid, "loves");
+			// Send notifications to friends
+			notification.lovesAdded(u, al);
+		}
 	}
 
 	@Override

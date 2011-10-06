@@ -100,7 +100,15 @@ public class PlaylistController extends BaseController {
 			event.playlistCreated(u, mp);
 		} else {
 			// Existing playlist
-			tracksAdded = (mp.getStreamIds().size() > currentP.getStreamIds().size());
+			if(mp.getTitle().equalsIgnoreCase("loves")) {
+				// If this is loves, handle notifications separately
+				tracksAdded = false;
+				midas.lovesChanged(u, currentP, mp);
+			} else if(mp.getTitle().equalsIgnoreCase("radio")) {
+				// Never notify radio
+				tracksAdded = false;
+			} else
+				tracksAdded = (mp.getStreamIds().size() > currentP.getStreamIds().size());
 			if (!currentP.getOwnerIds().contains(u.getUserId())) {
 				send401(req, resp);
 				return;
@@ -117,6 +125,7 @@ public class PlaylistController extends BaseController {
 			notification.playlistUpdated(u, mp);
 	}
 
+	
 	@RequestMapping(value = "/playlists/{pIdStr}", method = RequestMethod.DELETE)
 	@Transactional(rollbackFor = Exception.class)
 	public void deletePlaylist(@PathVariable("pIdStr") String pIdStr, HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -190,31 +199,4 @@ public class PlaylistController extends BaseController {
 		event.playlistPosted(u, p, service);
 	}
 
-	@RequestMapping("/special-playlists/{uidStr}/{plName}/post-update")
-	public void postSpecialPlaylist(@PathVariable("uidStr") String uidStr, @PathVariable("plName") String plName, @RequestParam("msg") String msg, HttpServletRequest req,
-			HttpServletResponse resp) throws IOException {
-		long uid = Long.parseLong(uidStr, 16);
-		MidasUser u = getAuthUser(req);
-		if (u == null) {
-			send401(req, resp);
-			return;
-		}
-		if (!(u.getUserId() == uid || u.getFriendIds().contains(uid))) {
-			send401(req, resp);
-			return;
-		}
-		msg = urlDecode(msg);
-		MidasUserConfig muc = midas.getUserConfig(u);
-		if(muc.getItem("facebookId") != null) {
-			String fbStr = muc.getItem("postLovesToFacebook");
-			if(fbStr == null || Boolean.valueOf(fbStr))
-				facebook.postSpecialPlaylistToFacebook(muc, uid, plName, msg);
-		}
-		if(muc.getItem("twitterScreenName") != null) {
-			String twitStr = muc.getItem("postLovesToTwitter");
-			if(twitStr == null || Boolean.valueOf(twitStr))
-				twitter.postSpecialPlaylistToTwitter(muc, uid, plName, msg);
-		}
-		event.specialPlaylistPosted(u, uid, plName);
-	}
 }

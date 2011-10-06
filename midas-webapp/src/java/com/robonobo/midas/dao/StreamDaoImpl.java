@@ -33,7 +33,7 @@ public class StreamDaoImpl extends MidasDao implements StreamDao {
 	 * @see com.robonobo.midas.dao.MidasStreamDao#loadStream(java.lang.String)
 	 */
 	@Override
-	public MidasStream loadStream(String streamId) {
+	public MidasStream getStream(String streamId) {
 		MidasStream stream = (MidasStream) getSession().get(MidasStream.class, streamId);
 		return stream;
 	}
@@ -42,7 +42,7 @@ public class StreamDaoImpl extends MidasDao implements StreamDao {
 	 * @see com.robonobo.midas.dao.MidasStreamDao#saveStream(com.robonobo.midas.model.MidasStream)
 	 */
 	@Override
-	public void saveStream(MidasStream stream) {
+	public void putStream(MidasStream stream) {
 		getSession().saveOrUpdate(stream);
 	}
 }

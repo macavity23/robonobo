@@ -73,10 +73,6 @@ public class MidasClientConfig implements Serializable {
 		return baseUrl + "playlists/" + Long.toHexString(playlistId) + "/post-update?service=" + service + "&msg=" + urlEncode(msg);
 	}
 
-	public String getSpecialPlaylistPostUrl(long userId, String plName, String msg) {
-		return baseUrl + "special-playlists/" + Long.toHexString(userId) + "/" + plName + "/post-update?msg=" + urlEncode(msg);
-	}
-
 	public String getStreamUrl(String streamId) {
 		return baseUrl + "streams/" + streamId;
 	}

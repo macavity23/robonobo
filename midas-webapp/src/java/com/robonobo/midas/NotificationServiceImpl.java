@@ -28,6 +28,7 @@ public class NotificationServiceImpl implements NotificationService {
 	static final String NONE = "none";
 	static final Pattern LIBRARY_ITEM_PAT = Pattern.compile("^library:(\\d+)$");
 	static final Pattern PLAYLIST_ITEM_PAT = Pattern.compile("^playlist:(\\d+)$");
+	static final Pattern LOVE_ITEM_PAT = Pattern.compile("^love:(\\S+)$");	
 	@Autowired
 	MessageService message;
 	@Autowired
@@ -125,6 +126,21 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	@Override
+	public void lovesAdded(MidasUser user, List<String> artists) throws IOException {
+		for(long friendId : user.getFriendIds()) {
+			String pref = getUpdateFreq(friendId);
+			if(pref.equals(IMMEDIATE)) {
+				MidasUser friend = userDao.getById(friendId);
+				message.sendLovesNotification(user, friend, artists);
+			} else if (!pref.equals(NONE)) {
+				for (String artist : artists) {
+					notifDao.saveNotification(new MidasNotification(user.getUserId(), friendId, "love:"+artist));
+				}
+			}
+		}
+	}
+	
+	@Override
 	public void addedToLibrary(MidasUser user, int numTrax) {
 		// We don't actually send library notifications immediately as there might well be more coming in down the pipe
 		// - instead we send them every hour
@@ -172,7 +188,8 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	/** Send daily notifications at 0900 GMT */
-	@Scheduled(cron = "0 0 9 * * *")
+//	@Scheduled(cron = "0 0 9 * * *")
+	@Scheduled(cron = "0 * * * * *")
 	@Transactional
 	public void sendDailyNotifications() {
 		Map<Long, List<MidasNotification>> nMap = getAllNotificationsByNotifUser();
@@ -208,10 +225,12 @@ public class NotificationServiceImpl implements NotificationService {
 			Map<Long, List<MidasNotification>> notsByUpdateUid = mapNotsByUpdateUser(nots.get(notUid));
 			Map<MidasUser, Integer> libTraxAdded = new HashMap<MidasUser, Integer>();
 			Map<Long, List<Playlist>> playlists = new HashMap<Long, List<Playlist>>();
+			Map<Long, List<String>> loveArtists = new HashMap<Long, List<String>>();
 			for (Long updateUid : notsByUpdateUid.keySet()) {
 				MidasUser updateUser = userDao.getById(updateUid);
 				int added = 0;
 				Map<Long, Playlist> pm = new HashMap<Long, Playlist>();
+				Set<String> as = new HashSet<String>();
 				for (MidasNotification n : notsByUpdateUid.get(updateUid)) {
 					Matcher m = LIBRARY_ITEM_PAT.matcher(n.getItem());
 					if (m.matches())
@@ -229,19 +248,28 @@ public class NotificationServiceImpl implements NotificationService {
 									continue;
 								pm.put(plId, p);
 							}
+						} else {
+							m = LOVE_ITEM_PAT.matcher(n.getItem());
+							if(m.matches())
+								as.add(m.group(1));
 						}
 					}
 				}
-				if (added > 0 || pm.size() > 0) {
+				if (added > 0 || pm.size() > 0 || as.size() > 0) {
 					libTraxAdded.put(updateUser, added);
-					playlists.put(updateUid, new ArrayList<Playlist>(pm.values()));
+					List<Playlist> pll = new ArrayList<Playlist>(pm.values());
+					Collections.sort(pll);
+					List<String> al = new ArrayList<String>(as);
+					playlists.put(updateUid, pll);
+					Collections.sort(al);
+					loveArtists.put(updateUid, al);
 				}
 			}
-			if (libTraxAdded.size() > 0 || playlists.size() > 0) {
+			if (libTraxAdded.size() > 0 || playlists.size() > 0 || loveArtists.size() > 0) {
 				try {
-					message.sendCombinedNotification(notUser, libTraxAdded, playlists);
+					message.sendCombinedNotification(notUser, libTraxAdded, playlists, loveArtists);
 				} catch (IOException e) {
-					log.error("Caught exception sending combined notification to " + notUser.getEmail());
+					log.error("Caught exception sending combined notification to " + notUser.getEmail(), e);
 					continue;
 				}
 			}

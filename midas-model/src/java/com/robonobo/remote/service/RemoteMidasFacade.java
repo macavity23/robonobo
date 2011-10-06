@@ -1,10 +1,12 @@
 package com.robonobo.remote.service;
 
+import java.io.IOException;
 import java.util.*;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.model.Library;
+import com.robonobo.core.api.model.Playlist;
 import com.robonobo.core.api.proto.CoreApi.FriendRequestMsg;
 import com.robonobo.core.api.proto.CoreApi.InviteMsg;
 import com.robonobo.core.api.proto.CoreApi.PlaylistMsg;
@@ -299,5 +301,9 @@ public class RemoteMidasFacade extends JbossRemotingFacade implements MidasServi
 
 	public MidasComment getComment(long commentId) {
 		return null;
+	}
+
+	public void lovesChanged(MidasUser u, Playlist oldP, Playlist newP) throws IOException {
+		// No loves via remote
 	}
 }

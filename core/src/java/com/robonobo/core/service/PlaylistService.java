@@ -1,7 +1,5 @@
 package com.robonobo.core.service;
 
-import static com.robonobo.common.util.TextUtil.*;
-
 import java.io.IOException;
 import java.util.*;
 
@@ -28,8 +26,8 @@ public class PlaylistService extends AbstractService {
 	StreamService streams;
 	TrackService tracks;
 	CommentService comments;
-	List<String> loveArtists = new ArrayList<String>();
 	Timeout postLovesTimeout;
+	boolean lovesToPost = false;
 
 	public PlaylistService() {
 		addHardDependency("core.db");
@@ -365,10 +363,6 @@ public class PlaylistService extends AbstractService {
 	}
 
 	public void love(Collection<String> sids) {
-		love(sids, true);
-	}
-
-	private void love(Collection<String> sids, boolean addToPlaylist) {
 		if (log.isDebugEnabled()) {
 			StringBuffer sb = new StringBuffer("Loving ");
 			sb.append(TextUtil.numItems(sids, "track"));
@@ -387,26 +381,19 @@ public class PlaylistService extends AbstractService {
 			log.error("No loves playlist!");
 			return;
 		}
-		if (addToPlaylist) {
-			// Can only love something once
-			int oldSz = loves.getStreamIds().size();
-			for (String sid : sids) {
-				if (!loves.getStreamIds().contains(sid))
-					loves.getStreamIds().add(sid);
-			}
-			if (loves.getStreamIds().size() == oldSz) {
-				log.debug("Not adding duplicate tracks to loves");
-				return;
-			}
-			updatePlaylist(loves);
-		}
+		// Can only love something once
+		boolean haveNew = false;
 		for (String sid : sids) {
-			Stream s = streams.getKnownStream(sid);
-			synchronized (this) {
-				if (!loveArtists.contains(s.getArtist()))
-					loveArtists.add(s.getArtist());
+			if (!loves.getStreamIds().contains(sid)) {
+				loves.getStreamIds().add(sid);
+				haveNew = true;
 			}
 		}
+		if (!haveNew) {
+			log.debug("Not adding duplicate tracks to loves");
+			return;
+		}
+		lovesToPost = true;
 		UserConfig uc = rbnb.getUserService().getMyUserConfig();
 		// Are we posting now or later?
 		String cfg = uc.getItem("postLoves");
@@ -424,54 +411,18 @@ public class PlaylistService extends AbstractService {
 			postLovesNow();
 	}
 
-	public void userConfigUpdated(UserConfig oldUc, UserConfig newUc) {
-		// If we've added facebook or twitter details, post our loves now
-		boolean newFb = oldUc.getItem("facebookId") == null && newUc.getItem("facebookId") != null;
-		boolean newTwit = oldUc.getItem("twitterScreenName") == null && newUc.getItem("twitterScreenName") != null;
-		if (newFb || newTwit) {
-			Playlist loves;
-			synchronized (this) {
-				Long lovePlid = myPlaylistIdsByTitle.get("Loves");
-				loves = playlists.get(lovePlid);
-			}
-			if (loves.getStreamIds().size() > 0)
-				love(loves.getStreamIds(), false);
-		}
-	}
-
 	private void postLovesNow() {
 		if (postLovesTimeout != null)
 			postLovesTimeout.cancel();
-		String okMsg;
-		UserConfig uc = rbnb.getUserService().getMyUserConfig();
+		if(!lovesToPost)
+			return;
+		lovesToPost = false;
+		Playlist lovesPl;
 		synchronized (this) {
-			if (loveArtists.size() == 0)
-				return;
-			// Figure out our message to post - use the twitter limit
-			int msgSizeLimit = 140;
-			okMsg = "I love " + numItems(loveArtists, "artist") + ": ";
-			int urlLen = ("http://rbnb.co/sp/" + Long.toHexString(uc.getUserId()) + "/loves").length();
-			for (int i = 0; i < loveArtists.size(); i++) {
-				StringBuffer sb = new StringBuffer("I love ");
-				for (int j = 0; j <= i; j++) {
-					if (j != 0)
-						sb.append(", ");
-					sb.append(loveArtists.get(j));
-				}
-				if (i < (loveArtists.size() - 1)) {
-					int numOtherArtists = loveArtists.size() - (i + 1);
-					sb.append(" and ").append(numItems(numOtherArtists, "other artist"));
-				}
-				sb.append(": ");
-				String msg = sb.toString();
-				if ((msg.length() + urlLen) <= msgSizeLimit)
-					okMsg = msg;
-				else
-					break;
-			}
-			loveArtists.clear();
+			Long lovePlid = myPlaylistIdsByTitle.get("Loves");
+			lovesPl = playlists.get(lovePlid);
 		}
-		postSpecialPlaylist(uc.getUserId(), "Loves", okMsg);
+		updatePlaylist(lovesPl);
 	}
 
 	public boolean lovingAll(Collection<String> sids) {
@@ -719,19 +670,6 @@ public class PlaylistService extends AbstractService {
 
 			public void error(long playlistId, Exception ex) {
 				log.error("Error posting playlist update for playlist " + playlistId + " to service " + service, ex);
-			}
-		});
-	}
-
-	public void postSpecialPlaylist(long userId, final String plName, String msg) {
-		log.debug("Posting special playlist " + plName);
-		metadata.postSpecialPlaylist(userId, plName, msg, new PlaylistCallback() {
-			public void success(Playlist p) {
-				log.debug("Successfully posted special playlist " + plName);
-			}
-
-			public void error(long playlistId, Exception ex) {
-				log.debug("Error posting special playlist " + plName);
 			}
 		});
 	}
