@@ -1,18 +1,15 @@
 package com.robonobo.core.service;
 
-import java.io.IOException;
 import java.net.*;
 import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.*;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.bitlet.weupnp.*;
-import org.xml.sax.SAXException;
 
 import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.common.util.CodeUtil;
@@ -173,6 +170,16 @@ public class GatewayService extends AbstractService {
 			} catch (Exception e) {
 				// Oops - this probably means our port mapping will fail, but carry on in case of screwy router
 				break;
+			}
+			// Is this a rbnb mapping from a previous crashed/kill9d run?
+			if (entry.getInternalClient().equals(localAddr.getHostAddress()) && entry.getInternalPort() == minaCfg.getListenUdpPort()
+					&& entry.getProtocol().equalsIgnoreCase("udp")) {
+				publicDetails = new InetSocketAddress(gatewayIp, entry.getExternalPort());
+				minaCfg.setGatewayAddress(publicDetails.getAddress().getHostAddress());
+				minaCfg.setGatewayUdpPort(entry.getExternalPort());
+				log.info("Using existing UPnP port mapping with details " + publicDetails);
+				roboCfg.setGatewayCfgResult("OK :)");
+				return;
 			}
 			int externalPort = entry.getExternalPort();
 			usedPorts.add(externalPort);
