@@ -188,8 +188,7 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	/** Send daily notifications at 0900 GMT */
-//	@Scheduled(cron = "0 0 9 * * *")
-	@Scheduled(cron = "0 * * * * *")
+	@Scheduled(cron = "0 0 9 * * *")
 	@Transactional
 	public void sendDailyNotifications() {
 		Map<Long, List<MidasNotification>> nMap = getAllNotificationsByNotifUser();
