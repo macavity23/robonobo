@@ -198,6 +198,13 @@ public class PlaylistService extends AbstractService {
 		@Override
 		public void runTask() throws Exception {
 			log.debug("Running playlists refresh task with plids " + plIds);
+			if(plIds.size() == 0) {
+				statusText = "Done";
+				completion = 1f;
+				fireUpdated();
+				onCompletion();
+				return;
+			}
 			statusText = "Fetching playlist details";
 			fireUpdated();
 			metadata.fetchPlaylists(plIds, fetcher);

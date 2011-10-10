@@ -165,10 +165,7 @@ public class UserService extends AbstractService {
 				rbnb.getWangService().loggedIn();
 			// If we have any playlists, fetch them now (fetchFriends() will be called when they're done)
 			playlists.clearPlaylists();
-			if (me.getPlaylistIds().size() > 0)
-				playlists.refreshMyPlaylists(me);
-			else
-				fetchFriends();
+			playlists.refreshMyPlaylists(me);
 			rbnb.getShareService().startFetchingComments();
 		}
 
