@@ -22,7 +22,12 @@ public class UserConfigDaoImpl extends MidasDao implements UserConfigDao {
 		Query q = s.createQuery(hql);
 		q.setString("pKey", key);
 		q.setString("pVal", value);
-		return (MidasUserConfig) q.uniqueResult();
+		List list = q.list();
+		if(list.size() == 0)
+			return null;
+		if(list.size() > 1)
+			log.error("Error: Duplicate result for user config key = "+key+", val = "+value);
+		return (MidasUserConfig) list.get(0);
 	}
 	
 	@Override
@@ -41,7 +46,9 @@ public class UserConfigDaoImpl extends MidasDao implements UserConfigDao {
 	
 	@Override
 	public void deleteUserConfig(long userId) {
-		String hql = "delete MidasUserConfig where userId = :uid";
-		getSession().createQuery(hql).setLong("uid", userId).executeUpdate();
+//		String hql = "delete MidasUserConfig where userId = :uid";
+//		getSession().createQuery(hql).setLong("uid", userId).executeUpdate();
+		MidasUserConfig muc = getUserConfig(userId);
+		getSession().delete(muc);
 	}
 }

@@ -462,16 +462,14 @@ public class LocalMidasService implements MidasService {
 		final MidasUser mu = userDao.getById(uid);
 		MidasUserConfig oldCfg = userConfigDao.getUserConfig(uid);
 		// Check to see if they have added facebook/twitter details
-		boolean newFb = oldCfg.getItem("facebookId") == null && newCfg.getItem("facebookId") != null;
-		boolean newTwit = oldCfg.getItem("twitterScreenName") == null && newCfg.getItem("twitterScreenName") != null;
+		boolean newFb = (oldCfg == null || oldCfg.getItem("facebookId") == null) && newCfg.getItem("facebookId") != null;
+		boolean newTwit = (oldCfg == null || oldCfg.getItem("twitterScreenName") == null) && newCfg.getItem("twitterScreenName") != null;
 		if (newFb || newTwit) {
 			// Post their loves - but wait 30 mins to give them a chance to disable it
 			final Playlist lovesPl = playlistDao.getPlaylistByUserIdAndTitle(uid, "loves");
 			if (lovesPl != null && lovesPl.getStreamIds().size() > 0) {
 				scheduler.schedule(new CatchingRunnable() {
 					public void doRun() throws Exception {
-						// Check if posting loves is enabled/disabled
-						// TODO
 						Playlist newLovesPl = playlistDao.getPlaylistByUserIdAndTitle(mu.getUserId(), "loves");
 						// We want to exclude any new loves that have been posted, so we pass the new playlist as the old one and vice versa
 						lovesChanged(mu, newLovesPl, lovesPl);

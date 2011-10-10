@@ -9,7 +9,7 @@
         	<generator class="assigned"/>
         </id>
         
-        <map name="items" cascade="all" table="userconfig_items">
+        <map name="items" table="userconfig_items" lazy="false">
         	<key column="id" />
         	<index column="itemName" type="string"/>
         	<element column="itemValue" type="string"/>
