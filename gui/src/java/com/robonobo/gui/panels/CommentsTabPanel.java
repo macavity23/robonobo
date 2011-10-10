@@ -325,7 +325,7 @@ public abstract class CommentsTabPanel extends JPanel {
 			});
 			btnsPnl.add(replyBtn, "0,1");
 			if (remover != null) {
-				RButton removeBtn = new RRedGlassButton("Remove");
+				RButton deleteBtn = new RRedGlassButton("Delete");
 				final CatchingRunnable doRemove = new CatchingRunnable() {
 					public void doRun() throws Exception {
 						remover.doRemove(CommentPanel.this);
@@ -340,12 +340,12 @@ public abstract class CommentsTabPanel extends JPanel {
 						});
 					}
 				};
-				removeBtn.addActionListener(new ActionListener() {
+				deleteBtn.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						frame.showSheet(new ConfirmSheet(frame, "Delete comment?", "Are you sure you want to delete this comment and all replies?", "Remove", doRemove));
+						frame.showSheet(new ConfirmSheet(frame, "Delete comment?", "Are you sure you want to delete this comment and all replies?", "Delete", doRemove));
 					}
 				});
-				btnsPnl.add(removeBtn, "2,1");
+				btnsPnl.add(deleteBtn, "2,1");
 			}
 			relayoutPanel();
 		}

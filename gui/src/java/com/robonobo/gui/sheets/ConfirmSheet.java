@@ -22,7 +22,7 @@ public class ConfirmSheet extends Sheet {
 		setName("playback.background.panel");
 		confirmBtn = new RGlassButton(confirmBtnLbl);
 		int btnWidth = getFontMetrics(confirmBtn.getFont()).stringWidth(confirmBtnLbl.toUpperCase()) + 50;
-		JPanel msgLbl = new LineBreakTextPanel(message, RoboFont.getFont(13, false), 400 + btnWidth);
+		JPanel msgLbl = new LineBreakTextPanel(message, RoboFont.getFont(13, false), 140 + btnWidth);
 		int msgHeight = msgLbl.getPreferredSize().height;
 		double[][] cellSizen = { { 10, 30, btnWidth, 10, 100, 10 }, { 10, 20, 5, msgHeight, 10, 30, 10 } };
 		setLayout(new TableLayout(cellSizen));
