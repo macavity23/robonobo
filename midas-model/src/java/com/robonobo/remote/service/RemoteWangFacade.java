@@ -36,6 +36,11 @@ public class RemoteWangFacade extends JbossRemotingFacade implements WangService
 		invoke("createUser", email, extraArgs);
 	}
 	
+	@Override
+	public void deleteUser(String email) {
+		invoke("deleteUser", email, null);
+	}
+	
 	public void topUpBalance(String email, double amount) {
 		List<String> extraArgs = new ArrayList<String>(1);
 		extraArgs.add(Double.toString(amount));

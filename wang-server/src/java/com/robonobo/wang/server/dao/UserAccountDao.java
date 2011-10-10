@@ -14,4 +14,6 @@ public interface UserAccountDao {
 
 	public abstract Long countUsers() throws DAOException;
 
+	public abstract void deleteUserAccount(String email) throws DAOException;
+
 }

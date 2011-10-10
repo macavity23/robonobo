@@ -22,8 +22,8 @@ public class UserAccountDaoImpl implements UserAccountDao {
 	private static final String CHECK_UA_SQL = "SELECT count(*) FROM user_account WHERE email = ?";
 	private static final String LOCK_UA_SQL = GET_UA_SQL + " FOR UPDATE";
 	private static final String PUT_UA_SQL = "UPDATE user_account SET friendly_name = ?, password = ?, balance = ? WHERE email = ?";
+	private static final String DEL_UA_SQL = "DELETE FROM user_account WHERE email = ?";
 	private static final String COUNT_SQL = "SELECT count(*) FROM user_account";
-
 	private JdbcTemplate db;
 	private Log log = LogFactory.getLog(getClass());
 	private UserAccountMapper uaMapper = new UserAccountMapper();
@@ -32,26 +32,31 @@ public class UserAccountDaoImpl implements UserAccountDao {
 	public void setDataSource(DataSource dataSource) {
 		db = new JdbcTemplate(dataSource);
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.robonobo.wang.server.dao.UserAccountDao#createUserAccount(java.lang.String, java.lang.String, java.lang.String)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.robonobo.wang.server.dao.UserAccountDao#createUserAccount(java.lang.String, java.lang.String,
+	 * java.lang.String)
 	 */
 	@Override
 	public void createUserAccount(String friendlyName, String email, String password) throws DAOException {
-		if(accountExists(email))
-			throw new DAOException("Account for "+email+" already exists");
+		if (accountExists(email))
+			throw new DAOException("Account for " + email + " already exists");
 		try {
 			db.update(CREATE_UA_SQL, friendlyName, email, password);
 		} catch (DataAccessException e) {
 			throw new DAOException(e);
 		}
 	}
-	
+
 	public boolean accountExists(String email) throws DAOException {
 		return (db.queryForInt(CHECK_UA_SQL, email) > 0);
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.robonobo.wang.server.dao.UserAccountDao#getUserAccount(java.lang.String)
 	 */
 	@Override
@@ -59,14 +64,17 @@ public class UserAccountDaoImpl implements UserAccountDao {
 		try {
 			return db.queryForObject(GET_UA_SQL, uaMapper, email);
 		} catch (DataAccessException e) {
-			// jdbctemplate.queryforobject throws an exception if the row isn't there, which is a bit annoying, returning null would seem a better choice
-			if(!accountExists(email))
+			// jdbctemplate.queryforobject throws an exception if the row isn't there, which is a bit annoying,
+			// returning null would seem a better choice
+			if (!accountExists(email))
 				return null;
 			throw new DAOException(e);
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.robonobo.wang.server.dao.UserAccountDao#getAndLockUserAccount(java.lang.String)
 	 */
 	@Override
@@ -78,7 +86,9 @@ public class UserAccountDaoImpl implements UserAccountDao {
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.robonobo.wang.server.dao.UserAccountDao#putUserAccount(com.robonobo.wang.server.UserAccount)
 	 */
 	@Override
@@ -90,7 +100,18 @@ public class UserAccountDaoImpl implements UserAccountDao {
 		}
 	}
 
-	/* (non-Javadoc)
+	@Override
+	public void deleteUserAccount(String email) throws DAOException {
+		try {
+			db.update(DEL_UA_SQL, email);
+		} catch (DataAccessException e) {
+			throw new DAOException(e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.robonobo.wang.server.dao.UserAccountDao#countUsers()
 	 */
 	@Override

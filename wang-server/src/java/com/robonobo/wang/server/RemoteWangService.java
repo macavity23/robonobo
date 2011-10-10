@@ -96,6 +96,10 @@ public class RemoteWangService implements ServerInvocationHandler, InitializingB
 						double amount = Double.parseDouble((String) params.getExtraArgs().get(0));
 						topUpBalance(email, amount);
 						return null;
+					} else if(method.equals("deleteUser")) {
+						String email = (String) params.getArg();
+						deleteUser(email);
+						return null;
 					} else
 						throw new IllegalArgumentException("Invalid method");
 				} catch (Exception e) {
@@ -120,6 +124,10 @@ public class RemoteWangService implements ServerInvocationHandler, InitializingB
 	private void createUser(String email, String friendlyName, String password) throws Exception {
 		log.info("Creating user account for "+email);
 		uaDao.createUserAccount(friendlyName, email, password);
+	}
+	
+	private void deleteUser(String email) throws Exception {
+		uaDao.deleteUserAccount(email);
 	}
 	
 	private Double getBalance(String email, String passwd) throws Exception {

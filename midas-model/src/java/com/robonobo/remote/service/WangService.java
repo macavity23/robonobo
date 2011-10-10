@@ -13,4 +13,6 @@ public interface WangService {
 	public Long countUsers();
 
 	public void createUser(String email, String friendlyName, String passwd);
+
+	public abstract void deleteUser(String email);
 }

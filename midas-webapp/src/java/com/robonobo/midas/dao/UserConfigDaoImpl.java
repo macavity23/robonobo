@@ -47,6 +47,7 @@ public class UserConfigDaoImpl extends MidasDao implements UserConfigDao {
 	@Override
 	public void deleteUserConfig(long userId) {
 		MidasUserConfig muc = getUserConfig(userId);
-		getSession().delete(muc);
+		if(muc != null)
+			getSession().delete(muc);
 	}
 }
