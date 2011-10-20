@@ -27,13 +27,11 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 	protected PlaylistCommentsPanel commentsPanel;
 	boolean unreadComments = false;
 	protected PlaylistToolsPanel toolsPanel;
-	protected String urlText;
 
-	public PlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, boolean myPlaylist, String urlText) {
+	public PlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, boolean myPlaylist) {
 		super(frame, PlaylistTableModel.create(frame, p, myPlaylist));
 		this.p = p;
 		this.pc = pc;
-		this.urlText = urlText;
 	}
 
 	public PlaylistContentPanel(RobonoboFrame frame, Playlist p, PlaylistConfig pc, TrackListTableModel model) {
@@ -41,6 +39,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 		this.p = p;
 		this.pc = pc;
 		this.frame = frame;
+		// NOTE - this does not set urlText - subclass must set this manually
 	}
 
 	protected PlaylistTableModel ptm() {
@@ -57,10 +56,7 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			setLayout(new TableLayout(cellSizen));
 			RLabel urlLbl = new RLabel13("URL:");
 			add(urlLbl, "0,0");
-			String text = urlText;
-			if(text == null)
-				text = (p.getPlaylistId() > 0) ? frame.ctrl.getConfig().getShortUrlBase() + "p/" + Long.toHexString(p.getPlaylistId()) : "(none)";
-			final RTextField urlField = new RTextField(urlText);
+			final RTextField urlField = new RTextField(urlText());
 			urlField.setEnabled(false);
 			add(urlField, "2,0");
 			fbBtn = new RSmallRoundButton(createImageIcon("/icon/facebook-16x16.png"));
@@ -95,6 +91,12 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 			checkPlaylistVisibility();
 		}
 
+		protected String urlText() {
+			if(p.getPlaylistId() > 0)
+				return frame.ctrl.getConfig().getShortUrlBase() + "p/" + Long.toHexString(p.getPlaylistId());
+			return "(none)";
+		}
+		
 		public void checkPlaylistVisibility() {
 			// If this is a new playlist, disable buttons
 			if (p.getPlaylistId() <= 0) {

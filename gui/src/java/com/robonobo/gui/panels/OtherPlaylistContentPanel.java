@@ -32,12 +32,8 @@ public class OtherPlaylistContentPanel extends PlaylistContentPanel implements P
 	protected Map<String, JCheckBox> options = new HashMap<String, JCheckBox>();
 	boolean haveShown = false;
 
-	public OtherPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pc) {
-		this(f, pl, pc, null);
-	}
-	
-	public OtherPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pcfg, String urlText) {
-		super(f, pl, pcfg, false, urlText);
+	public OtherPlaylistContentPanel(RobonoboFrame f, Playlist pl, PlaylistConfig pcfg) {
+		super(f, pl, pcfg, false);
 		saveAl = new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pc.getItems().clear();

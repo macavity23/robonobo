@@ -9,7 +9,7 @@ public class FriendSpecialPlaylistContentPanel extends OtherPlaylistContentPanel
 	private long userId;
 
 	public FriendSpecialPlaylistContentPanel(RobonoboFrame f, long userId, Playlist pl, PlaylistConfig pc) {
-		super(f, pl, pc, f.ctrl.getConfig().getShortUrlBase() + "sp/" + Long.toHexString(userId) + "/" + pl.getTitle().toLowerCase());
+		super(f, pl, pc);
 		this.userId = userId;
 	}
 
@@ -19,6 +19,7 @@ public class FriendSpecialPlaylistContentPanel extends OtherPlaylistContentPanel
 	}
 
 	class ToolsPanel extends PlaylistToolsPanel {
+		@Override
 		protected String urlText() {
 			return frame.ctrl.getConfig().getShortUrlBase() + "sp/" + Long.toHexString(userId) + "/" + p.getTitle().toLowerCase();
 		}
