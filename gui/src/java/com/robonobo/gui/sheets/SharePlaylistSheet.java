@@ -29,7 +29,7 @@ import com.robonobo.gui.frames.RobonoboFrame;
 public class SharePlaylistSheet extends Sheet {
 	private static final String DEFAULT_EMAILS = "Email1, email2...";
 	private Playlist p;
-	private Dimension size = new Dimension(445, 305);
+	private Dimension size = new Dimension(500, 310);
 	private JList friendList;
 	private RTextField emailField;
 	private RButton shareBtn;
@@ -43,7 +43,7 @@ public class SharePlaylistSheet extends Sheet {
 		this.p = p;
 		control = frame.ctrl;
 		setPreferredSize(size);
-		double[][] cellSizen = { { 10, 170, 5, 250, 10 }, { 10, 25, 5, 50, 5, 20, 5, 100, 10, 25, 10, 30, 10 } };
+		double[][] cellSizen = { { 10, 185, 5, 290, 10 }, { 10, 25/*title*/, 5, 40/*blurb*/, 5, 100/*existingfriends*/, 10, 40/*blurb*/, 5, 25/*new friends*/, 10, 30/*buttons*/, 10 } };
 		setLayout(new TableLayout(cellSizen));
 		setName("playback.background.panel");
 		RLabel titleLbl = new RLabel16B("Share playlist '"+p.getTitle()+"':");
@@ -51,9 +51,8 @@ public class SharePlaylistSheet extends Sheet {
 		String blurbText = "When you share a playlist with friends, they will be notified by email. They will be able to update the playlist, and you will see any changes they make.";
 		LineBreakTextPanel blurbPnl = new LineBreakTextPanel(blurbText, RoboFont.getFont(13, false), 425);
 		add(blurbPnl, "1,3,3,3");
-		add(new RLabel14B("Share with:"), "1,5,3,5");
-		RLabel exFriendLbl = new RLabel12("Existing friends:");
-		add(exFriendLbl, "1,7,l,t");
+		RLabel exFriendLbl = new RLabel13B("Share with existing friends:");
+		add(exFriendLbl, "1,5,l,t");
 		friends = new Vector<UserWrapper>();
 		for (Long friendId : control.getMyUser().getFriendIds()) {
 			User user = control.getKnownUser(friendId);
@@ -71,9 +70,10 @@ public class SharePlaylistSheet extends Sheet {
 		});
 		friendList.setBorder(BorderFactory.createLineBorder(RoboColor.DARK_GRAY));
 		JScrollPane flScrollPane = new JScrollPane(friendList);
-		add(flScrollPane, "3,7");
-
-		RLabel newFriendLbl = new RLabel12("New friends:");
+		add(flScrollPane, "3,5");
+		LineBreakTextPanel newBlurbPnl = new LineBreakTextPanel("Enter email addresses below to add them as friends and share this playlist with them. This will invite them to robonobo if they have not joined already.", RoboFont.getFont(13, false), 425);
+		add(newBlurbPnl, "1,7,3,7");
+		RLabel newFriendLbl = new RLabel13B("Share with new friends:");
 		add(newFriendLbl, "1,9");
 		emailField = new RTextField(DEFAULT_EMAILS);
 		emailField.addKeyListener(new KeyAdapter() {
