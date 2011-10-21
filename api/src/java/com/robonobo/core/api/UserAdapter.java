@@ -11,4 +11,8 @@ public class UserAdapter implements UserListener {
 	@Override
 	public void userConfigChanged(UserConfig cfg) {
 	}
+	
+	@Override
+	public void allUsersAndPlaylistsLoaded() {
+	}
 }

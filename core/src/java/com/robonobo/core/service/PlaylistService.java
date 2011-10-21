@@ -76,10 +76,8 @@ public class PlaylistService extends AbstractService {
 		tasks.runTask(new RefreshMyPlaylistsTask(me.getPlaylistIds()));
 	}
 
-	/** We've loaded friends - now get their playlists */
 	public void refreshFriendPlaylists(Set<Long> plIds) {
-		if (plIds.size() > 0)
-			tasks.runTask(new RefreshFriendPlaylistsTask(plIds));
+		tasks.runTask(new RefreshFriendPlaylistsTask(plIds));
 	}
 
 	public boolean isSpecialPlaylist(String title) {
@@ -253,6 +251,8 @@ public class PlaylistService extends AbstractService {
 			// requests getting stuck behind all our friends' libraries loading
 			metadata.setFetchOrder(RequestFetchOrder.Parallel);
 			rbnb.getLibraryService().updateFriendLibraries();
+			rbnb.getUserService().usersAndPlaylistsLoaded = true;
+			rbnb.getEventService().fireAllUsersAndPlaylistsLoaded();
 		}
 	}
 

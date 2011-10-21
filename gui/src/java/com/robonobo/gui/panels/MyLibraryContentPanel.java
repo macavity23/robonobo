@@ -279,4 +279,8 @@ public class MyLibraryContentPanel extends ContentPanel implements UserListener,
 			});
 		}
 	}
+
+	@Override
+	public void allUsersAndPlaylistsLoaded() {
+	}
 }

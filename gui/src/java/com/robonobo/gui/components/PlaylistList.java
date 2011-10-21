@@ -344,4 +344,8 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 			return cp.importData(comp, t);
 		}
 	}
+
+	@Override
+	public void allUsersAndPlaylistsLoaded() {
+	}
 }

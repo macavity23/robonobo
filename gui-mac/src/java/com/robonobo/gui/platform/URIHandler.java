@@ -9,6 +9,6 @@ public class URIHandler implements OpenURIHandler {
 	}
 	public void openURI(OpenURIEvent e) {
 		String uriStr = e.getURI().toString();
-		RobonoboFrame.getInstance().openRbnbUri(uriStr);
+		RobonoboFrame.getInstance().addRuntimeArg(uriStr);
 	}
 }

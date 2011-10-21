@@ -369,4 +369,8 @@ public class FriendTreeModel extends SortedTreeModel implements UserListener, Pl
 	public void setTree(FriendTree tree) {
 		this.tree = tree;
 	}
+
+	@Override
+	public void allUsersAndPlaylistsLoaded() {
+	}
 }

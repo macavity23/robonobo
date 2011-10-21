@@ -328,6 +328,10 @@ public class RobonoboController {
 		return inst.getTrackService().haveAllSharesStarted();
 	}
 
+	public boolean haveAllUsersAndPlaylistsLoaded() {
+		return inst.getUserService().usersAndPlaylistsLoaded;
+	}
+	
 	public ScheduledThreadPoolExecutor getExecutor() {
 		return inst.getExecutor();
 	}

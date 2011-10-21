@@ -39,6 +39,7 @@ public class UserService extends AbstractService {
 	private ReentrantLock startupLock = new ReentrantLock();
 	private Condition startupCondition = startupLock.newCondition();
 	private boolean started = false;
+	public boolean usersAndPlaylistsLoaded = false;
 
 	public UserService() {
 		addHardDependency("core.db");
@@ -285,7 +286,10 @@ public class UserService extends AbstractService {
 	void fetchFriends() {
 		if (me.getFriendIds().size() > 0)
 			tasks.runTask(new FriendFetchTask(me));
-		// else awwwwww...
+		else {
+			usersAndPlaylistsLoaded = true;
+			rbnb.getEventService().fireAllUsersAndPlaylistsLoaded();
+		}
 	}
 
 	void playlistCreated(Playlist newP) {
@@ -419,8 +423,11 @@ public class UserService extends AbstractService {
 				}
 				if (playlistIds.size() > 0)
 					playlists.refreshFriendPlaylists(playlistIds);
-				else
+				else {
+					usersAndPlaylistsLoaded = true;
+					rbnb.getEventService().fireAllUsersAndPlaylistsLoaded();
 					rbnb.getLibraryService().updateFriendLibraries();
+				}
 			} else {
 				statusText = "Fetching friend " + (usersDone + 1) + " of " + myUser.getFriendIds().size();
 				completion = ((float) usersDone) / myUser.getFriendIds().size();

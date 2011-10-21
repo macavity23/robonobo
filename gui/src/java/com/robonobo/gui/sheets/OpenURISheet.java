@@ -29,7 +29,7 @@ public class OpenURISheet extends Sheet {
 			public void actionPerformed(ActionEvent e) {
 				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
-						frame.openRbnbUri(uriField.getText());
+						frame.addRuntimeArg(uriField.getText());
 					}
 				});
 				OpenURISheet.this.setVisible(false);

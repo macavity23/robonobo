@@ -24,6 +24,7 @@ import com.robonobo.common.util.NetUtil;
 import com.robonobo.core.Platform;
 import com.robonobo.core.RobonoboController;
 import com.robonobo.core.api.TrackListener;
+import com.robonobo.core.api.UserAdapter;
 import com.robonobo.core.api.model.*;
 import com.robonobo.core.metadata.UserConfigCallback;
 import com.robonobo.gui.*;
@@ -38,7 +39,8 @@ import com.robonobo.mina.external.HandoverHandler;
 @SuppressWarnings("serial")
 public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	public RobonoboController ctrl;
-	String[] cmdLineArgs;
+	List<String> cmdLineArgs = new ArrayList<String>();
+	boolean argsHandled = false;
 	public JMenuBar menuBar;
 	public MainPanel mainPanel;
 	public LeftSidebar leftSidebar;
@@ -55,7 +57,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 
 	public RobonoboFrame(RobonoboController control, String[] args) {
 		this.ctrl = control;
-		this.cmdLineArgs = args;
+		cmdLineArgs.addAll(Arrays.asList(args));
 		guiCfg = (GuiConfig) control.getConfig("gui");
 		setTitle("robonobo");
 		setIconImage(getRobonoboIconImage());
@@ -81,11 +83,18 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 
 	private void addListeners() {
 		ctrl.addTrackListener(this);
-		// There's a chance the control might have loaded all its tracks before we add ourselves as a tracklistener, so
+		ctrl.addUserListener(new UserAdapter() {
+			@Override
+			public void allUsersAndPlaylistsLoaded() {
+				handleArgs();
+			}
+		});
+		// There's a chance the control might have loaded everything before we add ourselves as a listener, so
 		// spawn a thread to check if this is so
 		ctrl.getExecutor().execute(new CatchingRunnable() {
 			public void doRun() throws Exception {
 				checkTracksLoaded();
+				checkUsersLoaded();
 			}
 		});
 		// Grab our events...
@@ -122,7 +131,6 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	public void allTracksLoaded() {
 		tracksLoaded = true;
 		setupHandoverHandler();
-		handleArgs();
 		// If we haven't shown the login sheet yet, show the welcome later
 		if (shownLogin)
 			showWelcome(false);
@@ -135,7 +143,22 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 			allTracksLoaded();
 	}
 
+	private void checkUsersLoaded() {
+		if (ctrl.haveAllUsersAndPlaylistsLoaded())
+			handleArgs();
+	}
+
 	private void handleArgs() {
+		if (argsHandled)
+			return;
+		argsHandled = true;
+		StringBuffer sb = new StringBuffer("Handling cmd line arguments: '");
+		for (String s : cmdLineArgs) {
+			sb.append(s);
+			sb.append(" ");
+		}
+		sb.append("'");
+		log.info(sb);
 		// Handle everything that isn't the -console
 		for (String arg : cmdLineArgs) {
 			if (!"-console".equalsIgnoreCase(arg))
@@ -167,6 +190,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 	}
 
 	private void handleArg(String arg) {
+		log.info("Handling cmdline arg: " + arg);
 		if (isNonEmpty(arg)) {
 			if (arg.startsWith("rbnb"))
 				openRbnbUri(arg);
@@ -175,7 +199,19 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 		}
 	}
 
-	public void openRbnbUri(String uri) {
+	public void addRuntimeArg(String arg) {
+		log.info("Adding additional runtime arg: " + arg);
+		try {
+			if (argsHandled)
+				handleArg(arg);
+			else
+				cmdLineArgs.add(arg);
+		} catch (Exception e) {
+			log.error("Error adding additional arg", e);
+		}
+	}
+
+	private void openRbnbUri(String uri) {
 		uriHandler.handle(uri);
 	}
 
@@ -218,7 +254,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 				allFiles.addAll(FileUtil.getFilesWithinPath(selFile, "mp3"));
 			else
 				allFiles.add(selFile);
-		if(allFiles.size() == 0) {
+		if (allFiles.size() == 0) {
 			runOnUiThread(new CatchingRunnable() {
 				public void doRun() throws Exception {
 					showSheet(new InfoSheet(RobonoboFrame.this, "No files added", "No importable files were found. At this time, robonobo can share only MP3 files."));
@@ -538,7 +574,7 @@ public class RobonoboFrame extends SheetableFrame implements TrackListener {
 					}
 				});
 				// Startup a new frame and controller
-				Robonobo.startup(null, cmdLineArgs, false);
+				Robonobo.startup(null, (String[]) cmdLineArgs.toArray(), false);
 				// Dispose of the old frame
 				RobonoboFrame.this.dispose();
 			}

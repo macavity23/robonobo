@@ -7,4 +7,6 @@ public interface UserListener {
 	public void userChanged(User u);
 
 	public void userConfigChanged(UserConfig cfg);
+	
+	public void allUsersAndPlaylistsLoaded();
 }
