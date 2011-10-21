@@ -246,6 +246,7 @@ public class TrackList extends JPanel {
 
 	/** Call only on the ui thread */
 	public void deleteSelectedTracks() {
+		log.warn("DEBUG: TrackList (model "+shortClassName(model.getClass())+") deleting tracks");
 		if (!SwingUtilities.isEventDispatchThread())
 			throw new SeekInnerCalmException();
 		if (model.allowDelete()) {
@@ -261,6 +262,8 @@ public class TrackList extends JPanel {
 					});
 				}
 			}
+		} else {
+			log.warn("DEBUG: Not deleting tracks - model does not allow");
 		}
 	}
 

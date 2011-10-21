@@ -63,7 +63,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 
 	protected void setupComments() {
 		// Bug huntin
-		log.debug("Setting up comments in panel for playlist "+p.getPlaylistId());
+		log.debug("Setting up comments in panel for playlist " + p.getPlaylistId());
 		addComponentListener(new ComponentAdapter() {
 			public void componentShown(ComponentEvent e) {
 				if (haveShown)
@@ -71,7 +71,7 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				haveShown = true;
 				if (getWidth() == 0)
 					throw new SeekInnerCalmException();
-				log.debug("Adding comment listener for panel for playlist "+p.getPlaylistId());
+				log.debug("Adding comment listener for panel for playlist " + p.getPlaylistId());
 				frame.ctrl.addPlaylistListener(MyPlaylistContentPanel.this);
 				frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId(), MyPlaylistContentPanel.this);
 			}
@@ -201,6 +201,11 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 		tm.addStreams(streamIds, tm.getRowCount());
 	}
 
+	/** Return true to save playlist whenever user changes anything, false to only change when save button is pressed */
+	protected boolean saveOnFocusChange() {
+		return true;
+	}
+
 	class PlaylistImportTask extends ImportFilesTask {
 		int insertRow;
 
@@ -260,7 +265,8 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			titleField = new RTextField(p.getTitle());
 			titleField.addKeyListener(kl);
 			titleField.addActionListener(saveActionListener);
-			titleField.addFocusListener(fl);
+			if (saveOnFocusChange())
+				titleField.addFocusListener(fl);
 			add(titleField, "3,1");
 			toolsPanel = new PlaylistToolsPanel();
 			add(toolsPanel, "1,3,3,3");
@@ -269,7 +275,8 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			descField = new RTextArea(p.getDescription());
 			descField.setBGColor(RoboColor.MID_GRAY);
 			descField.addKeyListener(kl);
-			descField.addFocusListener(fl);
+			if (saveOnFocusChange())
+				descField.addFocusListener(fl);
 			add(new JScrollPane(descField), "1,6,3,8");
 			add(new VisPanel(), "5,1,5,6");
 			add(new OptsPanel(), "7,1,7,6");
@@ -288,19 +295,21 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 			Playlist p = ptm().getPlaylist();
 			String vis = p.getVisibility();
 			visMeBtn = new RRadioButton("Just me");
-			visMeBtn.addActionListener(saveActionListener);
 			if (vis.equals(Playlist.VIS_ME))
 				visMeBtn.setSelected(true);
 			bg.add(visMeBtn);
 			add(visMeBtn);
 			visFriendsBtn = new RRadioButton("Friends");
-			visFriendsBtn.addActionListener(saveActionListener);
 			if (vis.equals(Playlist.VIS_FRIENDS))
 				visFriendsBtn.setSelected(true);
 			bg.add(visFriendsBtn);
 			add(visFriendsBtn);
 			visAllBtn = new RRadioButton("Everyone");
-			visAllBtn.addActionListener(saveActionListener);
+			if (saveOnFocusChange()) {
+				visMeBtn.addActionListener(saveActionListener);
+				visFriendsBtn.addActionListener(saveActionListener);
+				visAllBtn.addActionListener(saveActionListener);
+			}
 			if (vis.equals(Playlist.VIS_ALL))
 				visAllBtn.setSelected(true);
 			bg.add(visAllBtn);
@@ -316,7 +325,8 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				iTunesCB = new RCheckBox("Export playlist to iTunes");
 				iTunesCB.setSelected("true".equalsIgnoreCase(pc.getItem("iTunesExport")));
 				options.put("iTunesExport", iTunesCB);
-				iTunesCB.addActionListener(saveActionListener);
+				if (saveOnFocusChange())
+					iTunesCB.addActionListener(saveActionListener);
 				add(iTunesCB);
 			}
 		}
@@ -350,8 +360,10 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				add(Box.createHorizontalStrut(5));
 			}
 			saveBtn = new RGlassButton("Save");
-			// Save button doesn't actually do anything, it's just a nonce to grab the focus from the text components - when they lose focus, playlist gets saved
-//			saveBtn.addActionListener(saveActionListener);
+			if (!saveOnFocusChange())
+				saveBtn.addActionListener(saveActionListener);
+			// Otherwise, Save button doesn't actually do anything, it's just a nonce to grab the focus from the text
+			// components - when they lose focus, playlist gets saved
 			saveBtn.setEnabled(false);
 			add(saveBtn);
 		}

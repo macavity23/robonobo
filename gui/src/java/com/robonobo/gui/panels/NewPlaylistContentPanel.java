@@ -86,4 +86,9 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 	protected boolean showITunes() {
 		return false;
 	}
+	
+	@Override
+	protected boolean saveOnFocusChange() {
+		return false;
+	}
 }

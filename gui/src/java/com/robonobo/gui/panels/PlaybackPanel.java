@@ -168,9 +168,14 @@ public class PlaybackPanel extends JPanel implements PlaybackListener, TrackList
 		delBtn.setPreferredSize(new Dimension(40, 40));
 		delBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				TrackList tl = frame.mainPanel.currentContentPanel().trackList;
-				if (tl != null)
-					tl.deleteSelectedTracks();
+				log.warn("DEBUG: Del btn pressed");
+				try {
+					TrackList tl = frame.mainPanel.currentContentPanel().trackList;
+					if (tl != null)
+						tl.deleteSelectedTracks();
+				} catch (Exception ex) {
+					log.error("Caught exception deleting tracks", ex);
+				}
 			}
 		});
 		controlPnl.add(delBtn, "10,3,CENTER,CENTER");
