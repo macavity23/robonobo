@@ -14,7 +14,7 @@
 	<jre>
 		<minVersion>1.6.0</minVersion>
 		<maxHeapSize>128</maxHeapSize>
-		<opt>-XX:MaxPermSize=48m -XX:+UseConcMarkSweepGC -XX:+UseParNewGC</opt>
+		<opt>-XX:MaxPermSize=48m -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode</opt>
 	</jre>
 	<messages>
 		<startupErr>robonobo encountered an error on startup. We are sorry :-( Please file a bug report at http://getsatisfaction.com/robonobo and we will fix it ASAP.</startupErr>

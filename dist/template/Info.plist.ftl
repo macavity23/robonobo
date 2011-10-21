@@ -76,7 +76,7 @@
 		<array>
         <string>-splash:../rbnb-splash.png</string>
         <string>-client</string>
-        <string>-Xmx128m -XX:MaxPermSize=48m -XX:+UseConcMarkSweepGC</string>
+        <string>-Xmx128m -XX:MaxPermSize=48m -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode</string>
 		</array>
 		<key>WorkingDirectory</key>
 		<string>$APP_PACKAGE/Contents/Resources/Java</string>
