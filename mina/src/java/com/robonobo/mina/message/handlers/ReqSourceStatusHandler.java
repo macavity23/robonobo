@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.robonobo.core.api.proto.CoreApi.Node;
-import com.robonobo.mina.instance.StreamMgr;
 import com.robonobo.mina.message.MessageHolder;
 import com.robonobo.mina.message.proto.MinaProtocol.ReqSourceStatus;
 import com.robonobo.mina.message.proto.MinaProtocol.SourceStatus;
@@ -31,7 +30,9 @@ public class ReqSourceStatusHandler extends AbstractMessageHandler {
 					log.error(reqNode.getId() + " sent me ReqStreamStatus for " + sid + ", but I am not broadcasting that stream");
 					continue;
 				}
-				streamStatList.add(mina.getStreamMgr().buildStreamStatus(sid, null));
+				StreamStatus streamStat = mina.getStreamMgr().buildStreamStatus(sid, null);
+				if(streamStat != null)
+					streamStatList.add(streamStat);
 			}
 			if(streamStatList.size() == 0)
 				return;

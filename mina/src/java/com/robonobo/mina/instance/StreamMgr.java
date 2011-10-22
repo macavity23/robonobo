@@ -195,6 +195,10 @@ public class StreamMgr {
 			else
 				pageBuf = mina.getPageBufProvider().getPageBuf(sid);
 		}
+		if(pageBuf == null) {
+			log.error("Asked to provide StreamStatus for stream "+sid+", but no pagebuffer is available for that stream");
+			return null;
+		}
 		if (pageBuf.getTotalPages() > 0)
 			bldr.setTotalPages(pageBuf.getTotalPages());
 		StreamPosition sp = pageBuf.getStreamPosition();
