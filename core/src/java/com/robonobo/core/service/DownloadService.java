@@ -246,7 +246,11 @@ public class DownloadService extends AbstractService implements MinaListener, Pa
 
 	public void pauseDownload(String streamId) {
 		log.debug("Pausing download for " + streamId);
-		DownloadingTrack d = db.getDownload(streamId);
+		DownloadingTrack d = getDownload(streamId);
+		if(d == null) {
+			log.error("Asked to pause download for "+streamId+", but there is no such download");
+			return;
+		}
 		try {
 			stopDownload(d);
 		} catch (Exception e) {
