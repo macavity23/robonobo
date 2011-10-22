@@ -449,6 +449,11 @@ public class TrackList extends JPanel {
 				}
 				frame.ctrl.getExecutor().execute(new CatchingRunnable() {
 					public void doRun() throws Exception {
+						StringBuffer sb = new StringBuffer("DEBUG: TrackList popup deleting downloads:");
+						for (String sid : dlSids) {
+							sb.append(" ").append(sid);
+						}
+						log.debug(sb);
 						frame.ctrl.deleteDownloads(dlSids);
 					}
 				});

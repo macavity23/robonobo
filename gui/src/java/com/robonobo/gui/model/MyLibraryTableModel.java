@@ -1,7 +1,5 @@
 package com.robonobo.gui.model;
 
-import static com.robonobo.common.util.CodeUtil.*;
-
 import java.util.*;
 
 import javax.swing.text.Document;
@@ -9,11 +7,8 @@ import javax.swing.text.Document;
 import ca.odell.glazedlists.*;
 import ca.odell.glazedlists.swing.TextComponentMatcherEditor;
 
-import com.robonobo.common.concurrent.CatchingRunnable;
-import com.robonobo.common.util.CodeUtil;
 import com.robonobo.core.api.RobonoboException;
 import com.robonobo.core.api.model.*;
-import com.robonobo.gui.components.TrackList;
 import com.robonobo.gui.frames.RobonoboFrame;
 
 @SuppressWarnings("serial")
@@ -111,6 +106,11 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 				else if (t instanceof SharedTrack)
 					control.deleteShare(sid);
 			}
+			StringBuffer sb = new StringBuffer("DEBUG: MLTM deleting downloads:");
+			for (String sid : dlSids) {
+				sb.append(" ").append(sid);
+			}
+			log.debug(sb);
 			control.deleteDownloads(dlSids);
 		} catch (RobonoboException ex) {
 			log.error("Error deleting share/download", ex);
