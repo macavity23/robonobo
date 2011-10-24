@@ -202,8 +202,8 @@ public class CCMgr {
 			if (curAt != null) {
 				log.debug("Not attempting connection to in-progress node " + newNodeId);
 				if (onCompletionAttempt != null) {
-					log.debug("Adding contingent attempt to in-progress connection with " + newNodeId);
-					curAt.addContingentAttempt(curAt);
+					log.debug("Adding contingent attempt to in-progress connection with " + newNodeId + " (attempt id "+System.identityHashCode(curAt)+")");
+					curAt.addContingentAttempt(onCompletionAttempt);
 				}
 				return;
 			}
@@ -428,8 +428,9 @@ public class CCMgr {
 			if (wantingSources.size() > 0)
 				cc.sendMessage("WantSource", WantSource.newBuilder().addAllStreamId(wantingSources).build());
 		}
-		if (ca != null)
+		if (ca != null) {
 			ca.succeeded();
+		}
 		if (mina.getEscrowMgr() != null)
 			mina.getEscrowMgr().notifySuccessfulConnection(cc);
 		mina.getEventMgr().fireNodeConnected(buildConnectedNode(cc));

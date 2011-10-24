@@ -6,17 +6,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 
-import com.google.protobuf.GeneratedMessage;
 import com.robonobo.common.concurrent.Attempt;
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.core.api.proto.CoreApi.EndPoint;
 import com.robonobo.core.api.proto.CoreApi.Node;
-import com.robonobo.mina.external.StreamingDetails;
-import com.robonobo.mina.external.StreamingNode;
-import com.robonobo.mina.external.buffer.PageBuffer;
 import com.robonobo.mina.message.proto.MinaProtocol.SourceStatus;
 import com.robonobo.mina.network.*;
-import com.robonobo.mina.util.MinaConnectionException;
 
 /**
  * @syncpriority 180
@@ -451,6 +446,11 @@ public class StreamConnsMgr {
 		protected void onTimeout() {
 			log.error("SCM.GetCCAttempt to "+nid+" for "+sid+" timed out!");
 			onFail();
+		}
+		
+		@Override
+		public String toString() {
+			return "GetCCAttempt ("+sid+"/"+nid+")";
 		}
 	}
 }
