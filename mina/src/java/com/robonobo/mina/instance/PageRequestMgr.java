@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.apache.commons.logging.Log;
 
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.mina.external.buffer.PageBuffer;
 import com.robonobo.mina.external.buffer.StreamPosition;
 import com.robonobo.mina.message.proto.MinaProtocol.StreamStatus;
@@ -207,6 +208,8 @@ public class PageRequestMgr {
 	 * Must be called only from inside sync block
 	 */
 	private void updateWindow(String sid, PageBuffer pb) {
+		if(pb == null)
+			throw new SeekInnerCalmException();
 		// Always grab page 0 & 1 first - hopefully enough to start playback
 		if (!winStartMap.containsKey(sid)) {
 			winStartMap.put(sid, 0L);

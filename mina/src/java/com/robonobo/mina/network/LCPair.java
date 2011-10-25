@@ -39,7 +39,7 @@ public class LCPair extends ConnectionPair {
 	int rto;
 	Future<?> usefulDataTimeout = null;
 
-	/** @throws IOException 
+	/** @throws IOException
 	 * @syncpriority 170 */
 	public LCPair(MinaInstance m, String streamId, ControlConnection ccon, SourceStatus ss) throws IOException {
 		super(m, streamId, ccon);
@@ -52,6 +52,8 @@ public class LCPair extends ConnectionPair {
 		}
 		lc.setLCPair(this);
 		setLastSourceStat(ss);
+		if (lastStreamStat == null)
+			throw new SeekInnerCalmException();
 		ccon.addLCPair(this);
 		// If we have an account and an agreed bid with these guys already, we can start listening now
 		final String nodeId = ccon.getNodeId();
@@ -132,6 +134,8 @@ public class LCPair extends ConnectionPair {
 
 	/** @syncpriority 200 */
 	public void notifyStreamStatus(StreamStatus streamStat) {
+		if (streamStat == null)
+			throw new SeekInnerCalmException();
 		this.lastStreamStat = streamStat;
 		mina.getPRM().notifyStreamStatus(sid, cc.getNodeId(), streamStat);
 		sendReqPageIfNecessary();
@@ -146,10 +150,23 @@ public class LCPair extends ConnectionPair {
 	}
 
 	private void setLastSourceStat(SourceStatus sourceStat) {
-		this.lastSourceStat = sourceStat;
+		// If we are receiving multiple streams from this source, this SourceStat might not have a StreamStat for this
+		// stream - if it doesn't, we still want to store the updated SourceStat as it has the latest AuctionState -
+		// just insert our most recent StreamStat in
+		StreamStatus myStreamStat = null;
 		for (StreamStatus streamStat : sourceStat.getSsList()) {
-			if (streamStat.getStreamId().equals(sid))
-				this.lastStreamStat = streamStat;
+			if (streamStat.getStreamId().equals(sid)) {
+				myStreamStat = streamStat;
+				break;
+			}
+		}
+		if (myStreamStat == null) {
+			if (lastStreamStat == null)
+				throw new SeekInnerCalmException();
+			this.lastSourceStat = SourceStatus.newBuilder(sourceStat).addSs(lastStreamStat).build();
+		} else {
+			this.lastSourceStat = sourceStat;
+			this.lastStreamStat = myStreamStat;
 		}
 	}
 
@@ -209,7 +226,7 @@ public class LCPair extends ConnectionPair {
 
 	/** @syncpriority 200 */
 	public void receivePage(Page p) {
-		if(closing)
+		if (closing)
 			return;
 		Long pn = new Long(p.getPageNumber());
 		PageAttempt rpa;

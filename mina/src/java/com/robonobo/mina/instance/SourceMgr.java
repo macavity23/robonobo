@@ -7,6 +7,7 @@ import java.util.*;
 import org.apache.commons.logging.Log;
 
 import com.robonobo.common.concurrent.*;
+import com.robonobo.common.exceptions.SeekInnerCalmException;
 import com.robonobo.core.api.proto.CoreApi.Node;
 import com.robonobo.mina.message.proto.MinaProtocol.DontWantSource;
 import com.robonobo.mina.message.proto.MinaProtocol.ReqSourceStatus;
@@ -288,8 +289,19 @@ public class SourceMgr {
 		}
 	}
 
+	private void DEBUG_checkSourceStatContains(SourceStatus ss, String sid) {
+		for (StreamStatus strStat : ss.getSsList()) {
+			if(strStat.getStreamId().equals(sid))
+				return;
+		}
+		throw new SeekInnerCalmException();
+	}
+	
 	/** Called when this source is good to service us, but we are not ready or able to handle it */
 	public synchronized void cacheSourceUntilReady(SourceStatus sourceStat, StreamStatus streamStat) {
+		if(streamStat == null)
+			throw new SeekInnerCalmException();
+		DEBUG_checkSourceStatContains(sourceStat, streamStat.getStreamId());
 		if (!readySources.containsKey(streamStat.getStreamId()))
 			readySources.put(streamStat.getStreamId(), new HashMap<String,SourceStatus>());
 		readySources.get(streamStat.getStreamId()).put(sourceStat.getFromNode().getId(), sourceStat);
@@ -300,6 +312,9 @@ public class SourceMgr {
 		Set<SourceStatus> result = new HashSet<SourceStatus>();
 		if (readySources.containsKey(streamId))
 			result.addAll(readySources.remove(streamId).values());
+		for (SourceStatus ss : result) {
+			DEBUG_checkSourceStatContains(ss, streamId);
+		}
 		return result;
 	}
 
