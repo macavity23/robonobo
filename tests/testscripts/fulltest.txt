@@ -5,9 +5,10 @@ Run this script on windows (ie), mac (safari) & ubuntu (ff)
 
 Prereqs:
 * 3 test facebook accts (users A, B and C) with friendships A<->B but no others, user A has profile pic
-* 2 test twitter accts (users C & D) with profile pic
-* 3 standalone accts (user E, F & G)
+* 2 test twitter accts (users C & D), D has profile pic
+* 3 standalone accts (user F, G & H)
 * delete test rbnb accts
+* remove app permissions from fb/twitter accts
 * 4 small (56kb) test mp3 files, not being shared by mirror
 
 Website
@@ -16,9 +17,10 @@ D go to http://robonobo.com
 E home page
 D select registration from nav
 E reg page
-D fill out standard registration as user E
+D fill out standard registration as user F
 E download page
-E receive registration email
+E receive registration email with correct links
+E new user notification email sent to admin
 
 D logout from nav
 E home page
@@ -30,6 +32,8 @@ D log in as user A, click allow
 E get bounced back to robonobo.com facebook reg page
 D fill out facebook reg, continue
 E download page
+E new user notification email sent to admin
+D go to rbnb account page
 E rbnb acct has picture from fb
 
 D logout from nav
@@ -123,26 +127,29 @@ D login to website, go to account page
 D enter current pwd, enter new pwd twice, save
 E account page, details saved
 D relaunch app
-E get login dialog
+E get login dialog, 'Login failed' message
 D log into application with new details
 E login successful
 E welcome page
-
+E Loves/Radio playlists created
 
 Sharing
 =====================
-D if mirror is running, delete test files
-D from welcome page, select 'share from files'
+D from welcome page, select 'share mp3 files'
 E add files dialog
 D select 2 test files
-E files get added
+E file confirmation sheet
+D select one file, not other
+E file gets added
+D repeat, add other file
+E file get added
 D remove tracks using button
 E tracks removed
 D add tracks via dnd
 E tracks added
 D remove tracks using right-click
 E tracks removed
-A add 2 tracks using File->Share tracks
+A add 2 tracks using File->Share MP3 Files
 E tracks added
 
 D create new playlist, save
@@ -159,6 +166,20 @@ D (mac/win) delete robonobo folders from itunes
 D (mac/win) select 'import from itunes' from button in my library
 E tracks and playlists imported
 
+D quit app
+D manually edit cfg file, change postLovesDelayMins to 2
+D start app
+D using playback panel button, love 4 tracks by 4 different artists, one after the other
+E tracks get added to loves
+D wait 2 mins
+E loves get posted to facebook
+D log into app as user D, restart
+D change loves pref to 'post immediately'
+D using rt click->Love, love 4 tracks by 4 different artists, one after the other
+E tracks get added to loves
+E loves get post to twitter separately
+D log into app as user A, restart
+
 
 Search
 ======
@@ -172,16 +193,28 @@ E track plays
 
 Friends/Facebook/Twitter
 =====================
-
-D share playlist with user B
-E user B receives invite email
+D Select File->Show Welcome Page
+E Welcome sheet shows
+D Click 'Add Friends' button in friends tree
+E Add friends sheet appears
+D Close sheet, click 'Add friends' from friend tree
+E Add friends sheet reappears, has explanation of facebook details already having been registered
+D Enter user B's address, click 'Send friend request'
+E user B receives invite
 D as user B, accept invite, register via facebook
-E user B created, receives welcome email
+E user B created, receives welcome email, user A receives confirmation
 D login to app as user B
+E friend A is there
+D log in to app as user A
+G share playlist with user G
+E user G receives invite email including playlist details
+G as user G, accept invite, register directly
+E user G created, receives welcome email
+G login to app as user G
 E friend A is there, playlist is there
-D add track to playlist as user B
-D login to app as user A, restart app
-E playlist is updated, friend/playlist is there
+G add track to playlist as user G
+G login to app as user A, restart app
+E playlist is updated, user G is there
 
 D make new playlist, add same tracks
 D share playlist with user B
@@ -191,6 +224,11 @@ E playlist is there
 
 D register as user C through rbnb site
 D log into app as user C, restart app
+D click 'Add friends' from friend tree
+E Add Friends sheet appears, including 'add facebook account' option
+D Click 'add facebook account' button
+E Browser opens facebook-attach page
+D Close web page
 D create playlist, share with user A
 E user A receives friendship request
 D as user A, accept friendship request
@@ -198,12 +236,16 @@ E friendship created
 D wait for robonobo to fetch updated friends
 E new friend & playlists appear in sidebar
 
+D love 4 different tracks by 4 different artists
+
 D (still as user C) create playlist, visible to self only
 D click 'post to facebook' button
 E confirmation of need to add facebook details
 D confirm
 E browser opens, asks for login then starts facebook attach process
-D go through facebook attach
+D go through facebook attach, wait 2 mins
+E loves are posted to fb
+D love 4 more tracks by different artists
 D go back to app, click 'post to facebook' button again
 E visibility warning
 D confirm visibility change
@@ -215,13 +257,18 @@ E playlist opens
 D click 'post to twitter' button
 E browser opens, starts twitter attach process
 D go through twitter attach
-D go back to app, click 'post to twitter' button again
+D go back to app
+D uncheck 'post loves to twitter'
+E loves don't get posted to twitter
+D click 'post to twitter' button again on playlist
+E visibility warning
+D confirm vis change
 E post to twitter sheet appears
 D fill out sheet with test message, submit
 E tweet is tweeted
 D click link in tweet
 E playlist opens
-
+D change playlist vis to friends-only
 D log into rbnb app as user A
 D log out of rbnb site
 D go to twitter page containing rbnb tweet, click on link
@@ -238,8 +285,6 @@ D change playlist to publically visible
 D log into rbnb app as user B, restart app
 D log out of rbnb site
 D go to twitter page containing rbnb tweet, click on link
-E rbnb site login
-D login as user B
 E playlist opens in rbnb under public playlists
 
 D user C makes friends with user B on facebook
@@ -247,11 +292,12 @@ E facebook api receives friendship update
 D log in to app as user C, user B
 E friendship created on both sides
 
-D user B clicks 'Add friends' in app sidebar, adds user F's email
-E user F receives email
-D user C adds user F as friend through website account page
-E user F receives another email
-D register as user F
+D user B clicks 'Add friends' in app sidebar, adds user H's email
+E user H receives email
+D user C adds user H as friend through website account page
+D logout of rbnb website
+E user H receives another email
+D register as user H
 E registration ok, friendships created with B & C
 
 Downloading and Playing
@@ -267,7 +313,7 @@ D quit app
 D launch app
 D search for previously-shared track
 E finds track, has sources
-D download track
+D download track using download button
 E track downloads
 D as track is downloading, hit play
 E track plays
@@ -276,22 +322,59 @@ E track seeks
 D wait for track to download
 D right-click track, select 'show in finder/explorer'
 E finder/explorer opens
-
-TODO Check pause/resume/cancel download right-click
+D let track finish playing
+E track added to radio
+D download another track using rt-click download
+D as track is downloading, rt-click, pause download
+E download pauses
+D rt-click, resume download
+E download resumes
+D rt-click, cancel download
+E download cancels
+D play track from cloud, let play through
+E track added to radio
+D play first track on radio again, let play through
+E track shifts to end of radio playlist, not added again
 
 D go to friend's playlist (>4 items), hit download automatically
+D (mac/win) Check 'sync with iTunes' after one track has downloaded
 E all items in playlist download successfully
-D (mac/win) Check 'sync with iTunes'
-E iTunes opens, playlist appears with correct tracks
+E iTunes opens, playlist appears with correct tracks, gets updated as new tracks come down
 
-D login to another node as friend user, restart app, add track to playlist
+D login to another instance as friend user, restart app, add track to playlist
 D wait 5 mins
 E playlist updates and starts downloading
 E (mac/win) iTunes playlist updates with new track
+D quit second instance
 
-TODO Notifications - include loves
+Comments
+========
+
+D ensure logged into app as user B
+D add comment to user A's library, loves, radio and a playlist
+D log into app as user A
+E library, loves, radio and playlist all greenified in sidebar and in playlist comment tab
+D view comments
+E green goes away in sidebar & comment tab
+D reply to comments in library, loves
+D create new comment in radio, other playlist
+D log into app as user B
+E library, loves greenified
+E ui allows deletion of own comments only
+D delete own comments
+E comments deleted, including replies
+D log into app as user A
+E deleted comments not there
+E ui allows any comments in own playlist to be deleted
+D delete all comments
+E comments deleted
+
 TODO Loves/Radio - include adding facebook or twitter deets after loving trax, gets posted
-TODO Comments
+TODO Notifications - include loves
+     playlist updated
+     added to lib
+     new comment
+     loves added
 
 Wang
 ====
@@ -309,3 +392,7 @@ D help->developer page
 E browser opens with github page
 D help->file bug report
 E bug report page opens
+
+D quit app
+D manually edit cfg file, change postLovesDelayMins to 30
+D start app
