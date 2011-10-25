@@ -2,6 +2,7 @@ package com.robonobo.core.service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.locks.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.concurrent.Timeout;
@@ -28,6 +29,8 @@ public class PlaylistService extends AbstractService {
 	CommentService comments;
 	Timeout postLovesTimeout;
 	boolean lovesToPost = false;
+	Lock postLovesLock;
+	Condition finalLovesPosted;
 
 	public PlaylistService() {
 		addHardDependency("core.db");
@@ -62,7 +65,20 @@ public class PlaylistService extends AbstractService {
 
 	@Override
 	public void shutdown() throws Exception {
-		postLovesNow();
+		if(lovesToPost) {
+			// Set up our monitor so we can wait for the loves to be posted (otherwise the metadata service gets shut down before they can be)
+			postLovesLock = new ReentrantLock();
+			finalLovesPosted = postLovesLock.newCondition();
+			postLovesNow();
+			postLovesLock.lock();
+			try {
+				log.info("Waiting for loves to be posted before shutting down");
+				finalLovesPosted.await();
+				log.info("Loves posted, continuing shutdown");
+			} finally {
+				postLovesLock.unlock();
+			}
+		}
 	}
 
 	public void clearPlaylists() {
@@ -414,6 +430,8 @@ public class PlaylistService extends AbstractService {
 				});
 			}
 			postLovesTimeout.set(rbnb.getConfig().getPostLovesDelayMins() * 60 * 1000);
+			// Fire playlist as updated so that UI shows new loves
+			events.firePlaylistChanged(loves);
 		} else
 			postLovesNow();
 	}
@@ -429,7 +447,32 @@ public class PlaylistService extends AbstractService {
 			Long lovePlid = myPlaylistIdsByTitle.get("Loves");
 			lovesPl = playlists.get(lovePlid);
 		}
-		updatePlaylist(lovesPl);
+		
+		log.debug("Posting loves now (playlist id "+lovesPl.getPlaylistId()+")");
+		db.markAllAsSeen(lovesPl);
+		events.firePlaylistChanged(lovesPl);
+		metadata.updatePlaylist(lovesPl, new PlaylistCallback() {
+			public void success(Playlist newP) {
+				log.info("Updated loves (playlist id " + newP.getPlaylistId() + ") successfully");
+				signalLovesPosted();
+			}
+			
+			public void error(long playlistId, Exception ex) {
+				log.error("Error updating loves (playlist id " + playlistId+")", ex);
+				signalLovesPosted();
+			}
+
+			private void signalLovesPosted() {
+				if(postLovesLock != null) {
+					postLovesLock.lock();
+					try {
+						finalLovesPosted.signal();
+					} finally {
+						postLovesLock.unlock();
+					}
+				}
+			}
+		});
 	}
 
 	public boolean lovingAll(Collection<String> sids) {
