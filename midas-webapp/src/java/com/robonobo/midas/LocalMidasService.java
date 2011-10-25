@@ -82,8 +82,9 @@ public class LocalMidasService implements MidasService {
 		MidasUser createdUser = userDao.create(user);
 		try {
 			message.sendWelcome(createdUser);
+			message.sendNewUserNotification(createdUser);
 		} catch (IOException e) {
-			log.error("Error sending welcome mail to " + createdUser.getEmail(), e);
+			log.error("Error sending mails when creating user " + createdUser.getEmail(), e);
 		}
 		event.newUser(createdUser);
 		return populateDefault(createdUser);

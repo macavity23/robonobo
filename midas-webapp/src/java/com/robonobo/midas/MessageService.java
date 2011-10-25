@@ -35,4 +35,6 @@ public interface MessageService {
 	public abstract void sendCommentNotificationForPlaylist(MidasUser owner, MidasUser commentUser, MidasPlaylist p) throws IOException;
 
 	public abstract void sendLovesNotification(MidasUser updateUser, MidasUser notifyUser, List<String> artists) throws IOException;
+
+	public abstract void sendNewUserNotification(MidasUser user) throws IOException;
 }
