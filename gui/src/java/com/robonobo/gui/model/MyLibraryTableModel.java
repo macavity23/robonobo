@@ -35,14 +35,13 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 		// Override the super method - add this track to our library if we're now sharing/downloading it
 		updateLock.lock();
 		try {
-			Integer idx = trackIndices.get(streamId);
-			if (idx != null) {
+			if(containsTrack(streamId)) {
 				if(trackBelongsInMyLib(t))
-					eventList.set(idx, t);
+					super.trackUpdated(streamId, t);
 				else
-					eventList.remove(idx);
+					deleteTrack(streamId);
 			} else {
-				if (trackBelongsInMyLib(t))
+				if(trackBelongsInMyLib(t))
 					add(t);
 			}
 		} finally {
@@ -52,23 +51,30 @@ public class MyLibraryTableModel extends GlazedTrackListTableModel {
 
 	@Override
 	public void tracksUpdated(Collection<Track> trax) {
-		// Override the super method - add to our library if we're now sharing/downloading 
+		// Override the super method - add/remove to our library as appropriate 
 		updateLock.lock();
 		try {
+			List<Track> traxToUpdate = new ArrayList<Track>();
 			List<Track> traxToAdd = new ArrayList<Track>();
+			List<String> sidsToDel = new ArrayList<String>();
 			for(Track t : trax) {
 				Integer idx = trackIndices.get(t.getStream().getStreamId());
 				if (idx != null) {
 					if(trackBelongsInMyLib(t))
-						eventList.set(idx, t);
+						traxToUpdate.add(t);
 					else
-						eventList.remove(idx);
+						sidsToDel.add(t.stream.streamId);
 				} else {
 					if ((t instanceof SharedTrack) || (t instanceof DownloadingTrack))
 						traxToAdd.add(t);
 				}
 			}
-			add(traxToAdd);
+			if(traxToAdd.size() > 0)
+				add(traxToAdd);
+			if(sidsToDel.size() > 0)
+				deleteTracks(sidsToDel);
+			if(traxToUpdate.size() > 0)
+				super.tracksUpdated(traxToUpdate);
 		} finally {
 			updateLock.unlock();
 		}

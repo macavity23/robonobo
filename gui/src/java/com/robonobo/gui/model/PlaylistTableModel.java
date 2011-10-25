@@ -78,9 +78,9 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 		if (!activated) {
 			activated = true;
 			// Make sure we've got fresh info for all our tracks
-			for(String sid : p.getStreamIds()) {
+			for (String sid : p.getStreamIds()) {
 				Track t = control.getTrack(sid);
-				if(t instanceof CloudTrack)
+				if (t instanceof CloudTrack)
 					control.findSources(sid, this);
 				trackUpdated(sid, t);
 			}
@@ -97,15 +97,8 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	@Override
 	public void trackUpdated(String streamId, Track t) {
 		super.trackUpdated(streamId, t);
-		if (activated || canEdit) {
-			updateLock.lock();
-			try {
-				if (trackIndices.containsKey(streamId))
-					control.findSources(streamId, this);
-			} finally {
-				updateLock.unlock();
-			}
-		}
+		if ((activated || canEdit) && containsTrack(streamId))
+			control.findSources(streamId, this);
 	}
 
 	// Hide 'Added to Library' as well as streamid and track num
@@ -171,12 +164,12 @@ public class PlaylistTableModel extends GlazedTrackListTableModel implements Fou
 	public String deleteTracksTooltipDesc() {
 		return "Remove tracks from playlist";
 	}
-	
+
 	@Override
 	public String longDeleteTracksDesc() {
 		return "remove these tracks from this playlist";
 	}
-	
+
 	@Override
 	public void deleteTracks(List<String> streamIds) {
 		if (!canDelete)

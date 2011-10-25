@@ -36,6 +36,7 @@ public class ContiguousBlockList {
 		return new int[] { blockStart, lasti };
 	}
 
+	/* returns List<int[2]>, start of block and end of block inclusive */
 	public synchronized List<int[]> getAllBlocks() {
 		List<int[]> result = new ArrayList<int[]>();
 		int[] block;

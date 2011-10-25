@@ -1,18 +1,8 @@
 package com.robonobo.mina.instance;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.mina.external.buffer.PageBuffer;
 import com.robonobo.mina.external.buffer.StreamPosition;
@@ -264,6 +254,10 @@ public class PageRequestMgr {
 	 * @syncpriority 90
 	 */
 	public synchronized void notifyOverduePage(String sid, Long pageNum) {
+		if(!pendingPages.containsKey(sid)) {
+			// Not receiving this any more, we don't care
+			return;
+		}
 		pendingPages.get(sid).remove(pageNum);
 		if(!overduePages.containsKey(sid))
 			overduePages.put(sid, new TreeSet<Long>());

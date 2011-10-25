@@ -63,7 +63,7 @@ public abstract class GlazedTrackListTableModel extends EventTableModel<Track> i
 		// Return your filtering editor here to get notified of scroll events when the tracklist is filtered
 		return null;
 	}
-	
+
 	public SortedList<Track> getSortedList() {
 		return sortedList;
 	}
@@ -283,6 +283,9 @@ public abstract class GlazedTrackListTableModel extends EventTableModel<Track> i
 		// This will only be called if allowDelete() returns true
 		updateLock.lock();
 		try {
+			// Figure out the blocks of tracks that are being deleted, then update the track indices for the tracks
+			// after them
+			// TODO blockList is pointless here, we can just use TreeSet directly
 			ContiguousBlockList blockList = new ContiguousBlockList();
 			// Figure out our indices to delete before we do it, so they stay valid
 			for (String sid : streamIds) {
@@ -300,13 +303,30 @@ public abstract class GlazedTrackListTableModel extends EventTableModel<Track> i
 					eventList.remove(j);
 				}
 			}
-			// Bump down the trackIndices for every track above the lowest contiguous block of deleted tracks
+			// Bump down the trackIndices for the rest of the tracks
 			if (blox.size() > 0) {
-				int bumpAbove = blox.get(0)[1];
-				for (int i = eventList.size() - 1; i > bumpAbove; i--) {
+				int bumpFrom = blox.get(0)[0];
+				for (int i = eventList.size() - 1; i >= bumpFrom; i--) {
 					String bumpSid = eventList.get(i).stream.streamId;
 					trackIndices.put(bumpSid, i);
 				}
+			}
+		} finally {
+			updateLock.unlock();
+		}
+	}
+
+	protected void deleteTrack(String sid) {
+		updateLock.lock();
+		try {
+			Integer delIdx = trackIndices.remove(sid);
+			if (delIdx == null)
+				return;
+			int idx = delIdx;
+			eventList.remove(idx);
+			for (int i = eventList.size() - 1; i >= idx; i--) {
+				String bumpSid = eventList.get(i).stream.streamId;
+				trackIndices.put(bumpSid, i);
 			}
 		} finally {
 			updateLock.unlock();
