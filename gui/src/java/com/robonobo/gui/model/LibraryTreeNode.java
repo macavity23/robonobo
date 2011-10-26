@@ -2,6 +2,9 @@ package com.robonobo.gui.model;
 
 import java.awt.datatransfer.Transferable;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.swing.SortableTreeNode;
 import com.robonobo.core.api.model.Library;
@@ -57,6 +60,13 @@ public class LibraryTreeNode extends SelectableTreeNode {
 			CatchingRunnable task = new CatchingRunnable() {
 				public void doRun() throws Exception {
 					Library lib = frame.ctrl.getFriendLibrary(userId);
+					// DEBUG
+					StringBuffer sb = new StringBuffer("Got library for uid "+userId+":");
+					for (String sid : lib.getTracks().keySet()) {
+						sb.append("\n").append(sid);
+					}
+					Log log = LogFactory.getLog(getClass());
+					log.debug(sb);
 					frame.mainPanel.addContentPanel(contentPanelName(), new FriendLibraryContentPanel(frame, lib));
 					frame.mainPanel.selectContentPanel(contentPanelName());
 					activatePanel();

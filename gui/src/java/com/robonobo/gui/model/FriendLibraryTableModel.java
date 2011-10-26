@@ -24,6 +24,7 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	private TrackScrollBatcher scrollBatcher = new TrackScrollBatcher();
 	boolean activated = false;
 	MatcherEditor<Track> matchEdit;
+	Set<String> initialSids;
 
 	public static FriendLibraryTableModel create(RobonoboFrame frame, Library lib, Document searchTextDoc) {
 		List<Track> trax = new ArrayList<Track>();
@@ -46,6 +47,12 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 		super(frame, el, sl, fl);
 		this.lib = lib;
 		this.matchEdit = matchEdit;
+		// Because of the synching between the initial call to ctrl.getLibrary() (the results of which are passed
+		// here in 'lib') and the periodic friendLibraryUpdated events, this initial set of tracks may be partly
+		// duplicated in the first friendLibraryUpdated - so we keep track of them here to avoid adding them twice
+		// to the tracklist
+		initialSids = new HashSet<String>();
+		initialSids.addAll(lib.getTracks().keySet());
 		frame.ctrl.addLibraryListener(this);
 	}
 
@@ -53,7 +60,7 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	public MatcherEditor<Track> getMatcherEditor() {
 		return matchEdit;
 	}
-	
+
 	@Override
 	public void trackUpdated(String sid, Track t) {
 		if (containsTrack(sid)) {
@@ -68,20 +75,26 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	public void friendLibraryReady(long userId, int numUnseen) {
 		// Do nothing
 	}
-	
+
 	@Override
 	public void friendLibraryUpdated(long userId, int numUnseen, Map<String, Date> newTracks) {
-		if(userId != lib.getUserId())
+		if (userId != lib.getUserId())
 			return;
 		List<Track> addTrax = new ArrayList<Track>();
 		for (String sid : newTracks.keySet()) {
+			// Check for duplicate
+			if(initialSids != null && initialSids.contains(sid))
+				continue;
 			Track t = control.getTrack(sid);
 			t.setDateAdded(newTracks.get(sid));
 			addTrax.add(t);
 		}
+		// Duplicates can only happen on the first update event, so nuke our set here to return the memory (libraries can be large)
+		initialSids = null;
+		lib.getTracks().putAll(newTracks);
 		add(addTrax);
 	}
-	
+
 	@Override
 	public void myLibraryUpdated() {
 		// Do nothing
@@ -91,8 +104,10 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	public void gotLibraryComments(long userId, boolean anyUnread, Map<Comment, Boolean> comments) {
 		// Do nothing
 	}
-	
+
 	public void foundBroadcaster(String sid, String nodeId) {
+		if(!containsTrack(sid))
+			return;
 		// Get a fresh track to include this new broadcaster
 		Track t = control.getTrack(sid);
 		trackUpdated(sid, t);
@@ -107,12 +122,12 @@ public class FriendLibraryTableModel extends GlazedTrackListTableModel implement
 	public String deleteTracksTooltipDesc() {
 		return null;
 	}
-	
+
 	@Override
 	public String longDeleteTracksDesc() {
 		return null;
 	}
-	
+
 	@Override
 	public boolean wantScrollEventsEver() {
 		return true;

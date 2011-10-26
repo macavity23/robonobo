@@ -124,6 +124,7 @@ public class LibraryService extends AbstractService {
 			}
 		};
 
+		
 		public LibraryUpdateTask(User friend, Date lastUpdate) {
 			title = "Fetching library for " + friend.getEmail();
 			this.lastUpdate = lastUpdate;
@@ -182,17 +183,6 @@ public class LibraryService extends AbstractService {
 			streamsToFetch = waitingForStreams.size();
 			statusText = "Fetching track 1 of " + streamsToFetch;
 			fireUpdated();
-			// As stream metadata comes in, fire them up to the ui in batches
-			final Batcher<String> trackBatcher = new Batcher<String>(FIRE_UI_EVENT_DELAY * 1000, rbnb.getExecutor()) {
-				protected void runBatch(Collection<String> sids) throws Exception {
-					Map<String, Date> newTracks = new HashMap<String, Date>(sids.size());
-					for (String sid : sids) {
-						newTracks.put(sid, unknownTracks.get(sid));
-					}
-					LibraryInfo libInfo = db.getLibInfo(friendId);
-					events.fireFriendLibraryUpdated(friendId, libInfo.getNumUnseen(), newTracks);
-				}
-			};
 			streams.fetchStreams(unknownTracks.keySet(), new StreamCallback() {
 				public void success(Stream s) {
 					String sid = s.getStreamId();
