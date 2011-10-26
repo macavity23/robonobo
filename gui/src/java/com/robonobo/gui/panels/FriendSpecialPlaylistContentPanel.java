@@ -11,6 +11,8 @@ public class FriendSpecialPlaylistContentPanel extends OtherPlaylistContentPanel
 	public FriendSpecialPlaylistContentPanel(RobonoboFrame f, long userId, Playlist pl, PlaylistConfig pc) {
 		super(f, pl, pc);
 		this.userId = userId;
+		// hackitty-hack: urlText() depends on userId, so set it again here
+		toolsPanel.urlField.setText(toolsPanel.urlText());
 	}
 
 	@Override
@@ -21,7 +23,8 @@ public class FriendSpecialPlaylistContentPanel extends OtherPlaylistContentPanel
 	class ToolsPanel extends PlaylistToolsPanel {
 		@Override
 		protected String urlText() {
-			return frame.ctrl.getConfig().getShortUrlBase() + "sp/" + Long.toHexString(userId) + "/" + p.getTitle().toLowerCase();
+			String result = frame.ctrl.getConfig().getShortUrlBase() + "sp/" + Long.toHexString(userId) + "/" + p.getTitle().toLowerCase();
+			return result;
 		}
 	}
 }

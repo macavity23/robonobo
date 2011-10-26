@@ -47,16 +47,17 @@ public abstract class PlaylistContentPanel extends ContentPanel implements Clipb
 	}
 
 	public class PlaylistToolsPanel extends JPanel {
-		private RButton fbBtn;
-		private RButton twitBtn;
-		private RButton copyBtn;
+		protected RButton fbBtn;
+		protected RButton twitBtn;
+		protected RButton copyBtn;
+		protected RTextField urlField;
 
 		public PlaylistToolsPanel() {
 			double[][] cellSizen = { { 35, 5, 215, 5, 30, 5, 30, 5, 90 }, { 25 } };
 			setLayout(new TableLayout(cellSizen));
 			RLabel urlLbl = new RLabel13("URL:");
 			add(urlLbl, "0,0");
-			final RTextField urlField = new RTextField(urlText());
+			urlField = new RTextField(urlText());
 			urlField.setEnabled(false);
 			add(urlField, "2,0");
 			fbBtn = new RSmallRoundButton(createImageIcon("/icon/facebook-16x16.png"));

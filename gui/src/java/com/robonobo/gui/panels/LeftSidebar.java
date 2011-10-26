@@ -146,7 +146,7 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 	public void selectForPlaylist(Playlist p) {
 		long plId = p.getPlaylistId();
 		for (SpecialPlaylistSelector sel : spSels) {
-			if(sel.p.getPlaylistId() == plId) {
+			if (sel.p.getPlaylistId() == plId) {
 				sel.setSelected(true);
 				return;
 			}
@@ -208,11 +208,11 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 
 	@Override
 	public void gotLibraryComments(long userId, boolean anyUnread, Map<Comment, Boolean> comments) {
-		if(anyUnread && userId == frame.ctrl.getMyUser().getUserId()) {
+		if (anyUnread && userId == frame.ctrl.getMyUser().getUserId()) {
 			// If mylib is selected and comments tab is showing, don't mark comments as unread
-			if(myLib.selected) {
+			if (myLib.selected) {
 				ContentPanel cp = frame.mainPanel.getContentPanel("mymusiclibrary");
-				if(cp.tabPane.getSelectedIndex() == 1)
+				if (cp.tabPane.getSelectedIndex() == 1)
 					return;
 			}
 			myLib.setHasComments(true);
@@ -221,9 +221,9 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 
 	public void markPlaylistCommentsAsRead(long plId) {
 		User me = frame.ctrl.getMyUser();
-		if(me.getPlaylistIds().contains(plId)) {
+		if (me.getPlaylistIds().contains(plId)) {
 			myPlList.markPlaylistCommentsAsRead(plId);
-			if(me.getPlaylistIds().size() > 1)
+			if (me.getPlaylistIds().size() > 1)
 				friendTree.getModel().markPlaylistCommentsAsRead(plId);
 			for (SpecialPlaylistSelector spSel : spSels) {
 				spSel.markCommentsAsRead(plId);
@@ -234,9 +234,9 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 
 	public void markLibraryCommentsAsRead(long userId) {
 		User me = frame.ctrl.getMyUser();
-		if(me.getUserId() == userId)
+		if (me.getUserId() == userId)
 			myLib.setHasComments(false);
-		else 
+		else
 			friendTree.getModel().markLibraryCommentsAsRead(userId);
 	}
 
@@ -260,14 +260,14 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 					if (p.getOwnerIds().contains(myUserId)) {
 						ContentPanel cp;
 						String title = p.getTitle().toLowerCase();
-						if(title.equals("loves")) {
+						if (title.equals("loves")) {
 							cp = new LovesContentPanel(frame, p, pc);
 							Icon i = GuiUtil.createImageIcon("/icon/heart-small.png");
 							SpecialPlaylistSelector sel = new SpecialPlaylistSelector(LeftSidebar.this, frame, i, "Loves", p);
 							sideBarComps.add(sel);
 							spSels.add(0, sel);
 							relayoutSidebar();
-						} else if(title.equals("radio")) {
+						} else if (title.equals("radio")) {
 							cp = new RadioContentPanel(frame, p, pc);
 							Icon i = GuiUtil.createImageIcon("/icon/radio-small.png");
 							SpecialPlaylistSelector sel = new SpecialPlaylistSelector(LeftSidebar.this, frame, i, "My Radio Station", p);
@@ -278,13 +278,16 @@ public class LeftSidebar extends JPanel implements PlaylistListener, LibraryList
 							cp = new MyPlaylistContentPanel(frame, p, pc);
 						frame.mainPanel.addContentPanel(panelName, cp);
 					} else {
-						ContentPanel cp;
-						if(frame.ctrl.isSpecialPlaylist(p.getTitle())) {
-							long userId = p.getOwnerIds().iterator().next();
-							cp = new FriendSpecialPlaylistContentPanel(frame, userId, p, pc);
-						} else
-							cp = new OtherPlaylistContentPanel(frame, p, pc);
-						frame.mainPanel.addContentPanel(panelName, cp);
+						// Only show playlists with at least one track
+						if (p.getStreamIds().size() > 0) {
+							ContentPanel cp;
+							if (frame.ctrl.isSpecialPlaylist(p.getTitle())) {
+								long userId = p.getOwnerIds().iterator().next();
+								cp = new FriendSpecialPlaylistContentPanel(frame, userId, p, pc);
+							} else
+								cp = new OtherPlaylistContentPanel(frame, p, pc);
+							frame.mainPanel.addContentPanel(panelName, cp);
+						}
 					}
 				} else {
 					// Playlist panel already exists - check to see if I'm now an owner and wasn't (or vice versa)
