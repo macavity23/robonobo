@@ -3,26 +3,14 @@ package com.robonobo;
 import static com.robonobo.common.util.TextUtil.*;
 
 import java.awt.GraphicsEnvironment;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
+import java.io.*;
 
 import javax.swing.SwingUtilities;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.exceptions.SeekInnerCalmException;
-import com.robonobo.common.util.TextUtil;
 import com.robonobo.console.RobonoboConsole;
 import com.robonobo.core.*;
-import com.robonobo.core.api.RobonoboStatus;
 import com.robonobo.eon.EONException;
 import com.robonobo.gui.frames.EULAFrame;
 import com.robonobo.gui.frames.RobonoboFrame;
@@ -64,8 +52,8 @@ public class Robonobo {
 	}
 
 	public static File homeDir() {
-		if (System.getenv().containsKey("ROBOHOME"))
-			return new File(System.getenv("ROBOHOME"));
+		if (System.getenv().containsKey("RBNB_HOME"))
+			return new File(System.getenv("RBNB_HOME"));
 		else
 			return Platform.getPlatform().getDefaultHomeDirectory();
 	}
