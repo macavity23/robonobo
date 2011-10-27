@@ -1,5 +1,9 @@
 0.6.0
 * Comments
+* Loves
+* Radio
+* Assorted networking fixes
+* Assorted download/ui fixes
 * Table selection cleared when typing into filter textfield
 
 0.5.8
