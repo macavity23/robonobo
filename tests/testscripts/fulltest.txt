@@ -169,6 +169,7 @@ E tracks and playlists imported
 D quit app
 D manually edit cfg file, change postLovesDelayMins to 2
 D start app
+D ensure still logged in as user A
 D using playback panel button, love 4 tracks by 4 different artists, one after the other
 E tracks get added to loves
 D wait 2 mins
@@ -350,31 +351,55 @@ D quit second instance
 Comments
 ========
 
-D ensure logged into app as user B
-D add comment to user A's library, loves, radio and a playlist
-D log into app as user A
-E library, loves, radio and playlist all greenified in sidebar and in playlist comment tab
-D view comments
-E green goes away in sidebar & comment tab
-D reply to comments in library, loves
-D create new comment in radio, other playlist
-D log into app as user B
-E library, loves greenified
-E ui allows deletion of own comments only
-D delete own comments
-E comments deleted, including replies
-D log into app as user A
-E deleted comments not there
-E ui allows any comments in own playlist to be deleted
+D ensure logged into app as user B ('main instance')
+D start a second rbnb instance with different homedir/listenUdpPort, log into this instance as user A ('2nd instance')
+D on main instance, comment to user A's library, loves, radio and a playlist
+D on 2nd instance, wait for friends & playlists to update
+E on 2nd instance, library, loves, radio and playlist all greenified in sidebar and in playlist comment tab
+D on 2nd instance, view comments
+E on 2i, green goes away in sidebar & comment tab
+D on 2i, reply to comments in library, loves
+D on 2i, create new comment in radio, other playlist
+D on main i, hit 'update friends & playlists'
+E on main i, library, loves, radio & playlist greenified in friendtree
+E on main i, ui allows deletion of own comments only
+D on main i, delete own comments
+E on main i, comments deleted, including replies
+D on main i, create new comment in library, loves & playlist
+D on 2i, update friends & playlists
+E on 2i, ui allows any comments in own playlist to be deleted
 D delete all comments
-E comments deleted
+D shutdown 2nd instance
 
-TODO Loves/Radio - include adding facebook or twitter deets after loving trax, gets posted
-TODO Notifications - include loves
-     playlist updated
-     added to lib
-     new comment
-     loves added
+Notifications
+=============
+Test daily/weekly notifications on dev instance only with daily/weekly nots being sent every 2/5 mins (otherwise we're waiting a week)
+D log into rbnb website as user A
+D add user D, F as friends
+D approve friend requests
+E friendship created
+E user A now has friendships with users B, C, D, F & G
+D log into site as these users and set up notification settings as follows:
+  B immediate
+  C daily
+  D weekly
+  F default (weekly)
+  G none
+D ensure logged into app as user A
+D in app, add some tracks to library, update 3 playlists and love 4 new artists
+D quit app to ensure loves are sent
+E notifications received as expected
+D log into website as user B, change 'comment replies' and 'comment on my playlists' to no
+D log into website as user C, change these same to no, save, then change them to yes, save
+D in app (as user A), post comment on a playlist of user B's and another on a playlist of user C's
+E user C receives comment notification, user B doesn't
+D log into app as user B
+D reply to user A's comment on user C's playlist, and also post a comment on user A's library
+E user A receives two notifications
+D log into app as user C
+D reply to user B's comment in user A's library
+E user B doesn't receive notification
+
 
 Wang
 ====
