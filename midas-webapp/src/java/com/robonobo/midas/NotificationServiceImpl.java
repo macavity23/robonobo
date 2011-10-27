@@ -1,5 +1,6 @@
 package com.robonobo.midas;
 
+import static com.robonobo.common.util.TextUtil.*;
 import static com.robonobo.common.util.TimeUtil.*;
 
 import java.io.IOException;
@@ -22,13 +23,16 @@ import com.robonobo.midas.model.*;
 @Service("notification")
 public class NotificationServiceImpl implements NotificationService {
 	private static final int ONE_HOUR_IN_MS = 60 * 60 * 1000;
+	private static final int ONE_MIN_IN_MS = 60 * 1000;
+	private static final int TWO_MINS_IN_MS = 2 * 60 * 1000;
+	private static final int FIVE_MINS_IN_MS = 5 * 60 * 1000;
 	static final String WEEKLY = "weekly";
 	static final String DAILY = "daily";
 	static final String IMMEDIATE = "immediate";
 	static final String NONE = "none";
 	static final Pattern LIBRARY_ITEM_PAT = Pattern.compile("^library:(\\d+)$");
 	static final Pattern PLAYLIST_ITEM_PAT = Pattern.compile("^playlist:(\\d+)$");
-	static final Pattern LOVE_ITEM_PAT = Pattern.compile("^love:(\\S+)$");	
+	static final Pattern LOVE_ITEM_PAT = Pattern.compile("^love:(\\S+)$");
 	@Autowired
 	MessageService message;
 	@Autowired
@@ -52,7 +56,7 @@ public class NotificationServiceImpl implements NotificationService {
 			MidasComment par = commentDao.getComment(c.getParentId());
 			if (par.getUserId() != c.getUserId()) {
 				MidasUserConfig muc = userCfgDao.getUserConfig(par.getUserId());
-				String creStr = muc.getItem("commentReplyEmails");
+				String creStr = (muc == null) ? null : muc.getItem("commentReplyEmails");
 				boolean cre = (creStr == null) ? true : Boolean.valueOf(creStr);
 				if (cre) {
 					MidasUser origUser = userDao.getById(par.getUserId());
@@ -89,8 +93,8 @@ public class NotificationServiceImpl implements NotificationService {
 			}
 		} else {
 			Matcher lm = LIBRARY_ITEM_PAT.matcher(c.getResourceId());
-			if(!lm.matches()) {
-				log.error("No match for resource id "+c.getResourceId());
+			if (!lm.matches()) {
+				log.error("No match for resource id " + c.getResourceId());
 				return;
 			}
 			long ownerId = Long.parseLong(lm.group(1));
@@ -127,19 +131,19 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Override
 	public void lovesAdded(MidasUser user, List<String> artists) throws IOException {
-		for(long friendId : user.getFriendIds()) {
+		for (long friendId : user.getFriendIds()) {
 			String pref = getUpdateFreq(friendId);
-			if(pref.equals(IMMEDIATE)) {
+			if (pref.equals(IMMEDIATE)) {
 				MidasUser friend = userDao.getById(friendId);
 				message.sendLovesNotification(user, friend, artists);
 			} else if (!pref.equals(NONE)) {
 				for (String artist : artists) {
-					notifDao.saveNotification(new MidasNotification(user.getUserId(), friendId, "love:"+artist));
+					notifDao.saveNotification(new MidasNotification(user.getUserId(), friendId, "love:" + urlEncode(artist)));
 				}
 			}
 		}
 	}
-	
+
 	@Override
 	public void addedToLibrary(MidasUser user, int numTrax) {
 		// We don't actually send library notifications immediately as there might well be more coming in down the pipe
@@ -172,19 +176,23 @@ public class NotificationServiceImpl implements NotificationService {
 					numTrax += Integer.parseInt(m.group(1));
 				}
 				MidasUser updateUser = userDao.getById(updateUid);
-				MidasUser notifyUser = userDao.getById(notifUid);
-				try {
-					message.sendLibraryNotification(updateUser, notifyUser, numTrax);
-				} catch (IOException e) {
-					log.error("Caught exception when sending library notification", e);
-					continue;
+				if (updateUser != null) {
+					MidasUser notifyUser = userDao.getById(notifUid);
+					if (notifyUser != null) {
+						try {
+							message.sendLibraryNotification(updateUser, notifyUser, numTrax);
+						} catch (IOException e) {
+							log.error("Caught exception when sending library notification", e);
+							continue;
+						}
+						numSent++;
+					}
 				}
-				numSent++;
 				notifDao.deleteNotifications(notsBySource.get(updateUid));
 			}
 		}
 		if (numSent > 0)
-			log.debug("Sending " + numSent + " 'immediate' notifications");
+			log.debug("Sent " + numSent + " 'immediate' notifications");
 	}
 
 	/** Send daily notifications at 0900 GMT */
@@ -220,6 +228,11 @@ public class NotificationServiceImpl implements NotificationService {
 	private void sendCombinedNotifications(Map<Long, List<MidasNotification>> nots) {
 		for (Long notUid : nots.keySet()) {
 			MidasUser notUser = userDao.getById(notUid);
+			if (notUser == null) {
+				log.info("Deleting notifications to deleted user id " + notUid);
+				notifDao.deleteAllNotificationsTo(notUid);
+				continue;
+			}
 			// For each user we're notifying, group the nots together by the updating user
 			Map<Long, List<MidasNotification>> notsByUpdateUid = mapNotsByUpdateUser(nots.get(notUid));
 			Map<MidasUser, Integer> libTraxAdded = new HashMap<MidasUser, Integer>();
@@ -238,19 +251,19 @@ public class NotificationServiceImpl implements NotificationService {
 						m = PLAYLIST_ITEM_PAT.matcher(n.getItem());
 						if (m.matches()) {
 							Long plId = Long.parseLong(m.group(1));
-							if(pm.containsKey(plId))
+							if (pm.containsKey(plId))
 								continue;
 							Playlist p = playlistDao.getPlaylistById(plId);
 							if (p != null) {
 								// Don't send notifications for radio playlists
-								if(p.getTitle().equalsIgnoreCase("radio"))
+								if (p.getTitle().equalsIgnoreCase("radio"))
 									continue;
 								pm.put(plId, p);
 							}
 						} else {
 							m = LOVE_ITEM_PAT.matcher(n.getItem());
-							if(m.matches())
-								as.add(m.group(1));
+							if (m.matches())
+								as.add(urlDecode(m.group(1)));
 						}
 					}
 				}

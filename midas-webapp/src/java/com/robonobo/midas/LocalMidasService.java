@@ -472,7 +472,8 @@ public class LocalMidasService implements MidasService {
 				scheduler.schedule(new CatchingRunnable() {
 					public void doRun() throws Exception {
 						Playlist newLovesPl = playlistDao.getPlaylistByUserIdAndTitle(mu.getUserId(), "loves");
-						// We want to exclude any new loves that have been posted, so we pass the new playlist as the old one and vice versa
+						// We want to exclude any new loves that have been posted, so we pass the new playlist as the
+						// old one and vice versa
 						lovesChanged(mu, newLovesPl, lovesPl);
 					}
 				}, TimeUtil.timeInFuture(30 * 60 * 1000));
@@ -489,20 +490,20 @@ public class LocalMidasService implements MidasService {
 		long uid = u.getUserId();
 		// Which artists have just been added?
 		Set<String> curArtists = new HashSet<String>();
-		for(String sid : oldP.getStreamIds()) {
+		for (String sid : oldP.getStreamIds()) {
 			Stream s = streamDao.getStream(sid);
 			curArtists.add(s.getArtist());
 		}
 		List<String> newArtists = new ArrayList<String>();
-		for(String sid : newP.getStreamIds()) {
-			if(!oldP.getStreamIds().contains(sid)) {
+		for (String sid : newP.getStreamIds()) {
+			if (!oldP.getStreamIds().contains(sid)) {
 				Stream s = streamDao.getStream(sid);
 				String artist = s.getArtist();
-				if(!curArtists.contains(artist))
+				if (!curArtists.contains(artist))
 					newArtists.add(artist);
 			}
 		}
-		if(newArtists.size() > 0) {
+		if (newArtists.size() > 0) {
 			List<String> al = new ArrayList<String>(newArtists);
 			Collections.sort(al);
 			// Figure out our message to post - use the twitter limit
@@ -529,15 +530,17 @@ public class LocalMidasService implements MidasService {
 			}
 			// Post our loves to fb/twitter
 			MidasUserConfig muc = userConfigDao.getUserConfig(u.getUserId());
-			if(muc.getItem("facebookId") != null) {
-				String fbStr = muc.getItem("postLovesToFacebook");
-				if(fbStr == null || Boolean.valueOf(fbStr))
-					facebook.postSpecialPlaylistToFacebook(muc, uid, "loves", okMsg);
-			}
-			if(muc.getItem("twitterScreenName") != null) {
-				String twitStr = muc.getItem("postLovesToTwitter");
-				if(twitStr == null || Boolean.valueOf(twitStr))
-					twitter.postSpecialPlaylistToTwitter(muc, uid, "loves", okMsg);
+			if (muc != null) {
+				if (muc.getItem("facebookId") != null) {
+					String fbStr = muc.getItem("postLovesToFacebook");
+					if (fbStr == null || Boolean.valueOf(fbStr))
+						facebook.postSpecialPlaylistToFacebook(muc, uid, "loves", okMsg);
+				}
+				if (muc.getItem("twitterScreenName") != null) {
+					String twitStr = muc.getItem("postLovesToTwitter");
+					if (twitStr == null || Boolean.valueOf(twitStr))
+						twitter.postSpecialPlaylistToTwitter(muc, uid, "loves", okMsg);
+				}
 			}
 			event.specialPlaylistPosted(u, uid, "loves");
 			// Send notifications to friends
