@@ -32,6 +32,7 @@ D log in as user A, click allow
 E get bounced back to robonobo.com facebook reg page
 D fill out facebook reg, continue
 E download page
+E receive reg email
 E new user notification email sent to admin
 D go to rbnb account page
 E rbnb acct has picture from fb
