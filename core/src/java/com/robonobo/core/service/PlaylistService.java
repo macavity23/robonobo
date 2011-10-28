@@ -160,9 +160,13 @@ public class PlaylistService extends AbstractService {
 						}
 					}
 				} else {
-					// No streams to fetch - check for comments
+					// No streams to fetch
 					for (long plId : plIds) {
-						comments.fetchCommentsForPlaylist(plId);
+						Playlist p;
+						synchronized (PlaylistService.this) {
+							p = playlists.get(plId);
+						}
+						finishedFetchingPlaylist(p);
 					}
 				}
 			}
