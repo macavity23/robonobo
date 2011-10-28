@@ -25,7 +25,7 @@ public class WelcomeSheet extends Sheet {
 
 	public WelcomeSheet(RobonoboFrame rFrame) {
 		super(rFrame);
-		Dimension sz = new Dimension(540, 370);
+		Dimension sz = new Dimension(540, 375);
 		setPreferredSize(sz);
 		setSize(sz);
 		double[][] cells = { { 20, 270, 20, 220, 20 }, { 20, 40/* title */, 20, 20/*intro*/, 10, 40/* dir blurb */, 5, 25/* filechoose */, 20, TableLayout.FILL/* addstuff */, 20, 32/* feckoff */, 10 } };
@@ -54,7 +54,7 @@ public class WelcomeSheet extends Sheet {
 		});
 		add(filePanel, "1,7,3,7,LEFT,TOP");
 		JPanel addFriendsPnl = new JPanel();
-		double[][] afCells = { {120, TableLayout.FILL}, {20, 10, 35, 10, 32} };
+		double[][] afCells = { {120, TableLayout.FILL}, {20, 10, 40, 10, 32} };
 		addFriendsPnl.setLayout(new TableLayout(afCells));
 		RLabel18B afTitle = new RLabel18B("Add friends");
 		addFriendsPnl.add(afTitle, "0,0,1,0");
