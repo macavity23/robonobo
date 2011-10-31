@@ -71,8 +71,10 @@ public class MyPlaylistContentPanel extends PlaylistContentPanel implements Play
 				haveShown = true;
 				if (getWidth() == 0)
 					throw new SeekInnerCalmException();
-				log.debug("Adding comment listener for panel for playlist " + p.getPlaylistId());
+				log.debug("Adding playlist listener for panel for playlist " + p.getPlaylistId());
 				frame.ctrl.addPlaylistListener(MyPlaylistContentPanel.this);
+				Playlist newP = frame.ctrl.getKnownPlaylist(p.getPlaylistId());
+				playlistChanged(newP);
 				frame.ctrl.getExistingCommentsForPlaylist(p.getPlaylistId(), MyPlaylistContentPanel.this);
 			}
 		});
