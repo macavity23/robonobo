@@ -73,6 +73,11 @@ public class NewPlaylistContentPanel extends MyPlaylistContentPanel {
 	}
 
 	@Override
+	protected void setupComments() {
+		// Do nothing - we don't have a comments tab
+	}
+	
+	@Override
 	protected boolean allowDel() {
 		return false;
 	}
