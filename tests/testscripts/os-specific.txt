@@ -1,0 +1,66 @@
+OS-Specific Bits
+================
+
+D Visit robonobo.com homepage, facebook registration and account page
+E Everything works, doesn't look too rubbish
+
+Sharing
+=======
+D from welcome page, select 'share mp3 files'
+E add files dialog
+D select 2 test files
+E file confirmation sheet
+D select one file, not other
+E file gets added
+D repeat using 'Share mp3 files' button in music library panel; add other file
+E file get added
+D remove tracks using button
+E tracks removed
+D add tracks via dnd
+E tracks added
+D remove tracks using right-click
+E tracks removed
+A add 2 tracks using File->Share MP3 Files
+E tracks added
+
+D create new playlist, save
+E playlist created
+D add 2 test tracks via dnd from my music, wait 60s
+E tracks start to upload to mirror, reflected in gui
+D wait for tracks to upload
+D drag 2 more tracks directly in from os, wait 60s
+E tracks start to upload
+D add tracks to playlist via right-click from library
+E tracks added
+
+D (mac/win) delete robonobo folders from itunes
+D (mac/win) select 'import from itunes' from button in my library
+E select tracks/playlists sheet
+D leave tracks/playlists selected, click share
+E tracks and playlists imported
+
+Playing
+=======
+
+D launch app
+D search for tracks
+E finds track, has sources
+D download track using download button
+E track downloads
+D as track is downloading, hit play
+E track plays
+D seek about a bit
+E track seeks
+D wait for track to download
+D right-click track, select 'show in finder/explorer'
+E finder/explorer opens
+D let track finish playing
+E track added to radio
+
+D go to a playlist, hit download automatically
+D (mac/win) Check 'sync with iTunes' after one track has downloaded
+E all items in playlist download successfully
+E iTunes opens, playlist appears with correct tracks, gets updated as new tracks come down
+
+D help->online help
+E browser opens with online help page
