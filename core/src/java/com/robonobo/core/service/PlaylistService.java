@@ -312,7 +312,10 @@ public class PlaylistService extends AbstractService {
 		long plId = p.getPlaylistId();
 		log.warn("Finished fetching playlist " + plId);
 		events.firePlaylistChanged(p);
-		downloadTracksIfNecessary(p);
+		PlaylistConfig pc = db.getPlaylistConfig(p.getPlaylistId());
+		downloadTracksIfNecessary(p, pc);
+		if(shouldITunesSync(pc))
+			syncITunes(p);
 		comments.fetchCommentsForPlaylist(plId);
 	}
 
@@ -553,7 +556,7 @@ public class PlaylistService extends AbstractService {
 					for (Playlist p : affectedPs) {
 						PlaylistConfig pc = rbnb.getDbService().getPlaylistConfig(p.getPlaylistId());
 						if (shouldITunesSync(pc))
-							syncITunesIfNecessary(p);
+							syncITunes(p);
 					}
 				}
 			});
@@ -570,13 +573,13 @@ public class PlaylistService extends AbstractService {
 			log.error("Playlist config updated for plid " + plId + " but there is no such playlist");
 			return;
 		}
-		downloadTracksIfNecessary(p);
+		downloadTracksIfNecessary(p, newPc);
 		// Only call to iTunes if necessary as this causes the iTunes program to pop open
 		if (shouldITunesSync(newPc) && !shouldITunesSync(oldPc))
-			syncITunesIfNecessary(p);
+			syncITunes(p);
 	}
 
-	private void syncITunesIfNecessary(final Playlist p) {
+	private void syncITunes(final Playlist p) {
 		try {
 			// If this is one of my playlists, put it under my details
 			User me = rbnb.getUserService().getMyUser();
@@ -597,9 +600,10 @@ public class PlaylistService extends AbstractService {
 				User syncUser = rbnb.getUserService().getKnownUser(ownerId);
 				if (syncUser != null) {
 					rbnb.getITunesService().syncPlaylist(syncUser, p);
+					return;
 				}
 			}
-			// Look up the first owner and use them
+			// If all else fails, look up the first owner and use them
 			long ownerId = p.getOwnerIds().iterator().next();
 			rbnb.getMetadataService().fetchUser(ownerId, new UserCallback() {
 				public void success(User u) {
@@ -623,8 +627,7 @@ public class PlaylistService extends AbstractService {
 		return "true".equalsIgnoreCase(pc.getItem("iTunesExport"));
 	}
 
-	private void downloadTracksIfNecessary(Playlist p) {
-		PlaylistConfig pc = db.getPlaylistConfig(p.getPlaylistId());
+	private void downloadTracksIfNecessary(Playlist p, PlaylistConfig pc) {
 		if (((pc != null) && "true".equalsIgnoreCase(pc.getItem("autoDownload")))) {
 			for (String sid : p.getStreamIds()) {
 				Track t = tracks.getTrack(sid);
