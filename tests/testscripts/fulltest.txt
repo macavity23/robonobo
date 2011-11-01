@@ -142,7 +142,7 @@ D select 2 test files
 E file confirmation sheet
 D select one file, not other
 E file gets added
-D repeat, add other file
+D repeat using 'Share mp3 files' button in music library panel; add other file
 E file get added
 D remove tracks using button
 E tracks removed
@@ -165,10 +165,12 @@ E tracks added
 
 D (mac/win) delete robonobo folders from itunes
 D (mac/win) select 'import from itunes' from button in my library
+E select tracks/playlists sheet
+D leave tracks/playlists selected, click share
 E tracks and playlists imported
 
 D quit app
-D manually edit cfg file, change postLovesDelayMins to 2
+D manually edit cfg file, change postLovesDelayMins to 2, userUpdateDelay to 60
 D start app
 D ensure still logged in as user A
 D using playback panel button, love 4 tracks by 4 different artists, one after the other
@@ -197,27 +199,28 @@ Friends/Facebook/Twitter
 =====================
 D Select File->Show Welcome Page
 E Welcome sheet shows
-D Click 'Add Friends' button in friends tree
+D Click 'Add Friends' button on welcome sheet
 E Add friends sheet appears
 D Close sheet, click 'Add friends' from friend tree
 E Add friends sheet reappears, has explanation of facebook details already having been registered
 D Enter user B's address, click 'Send friend request'
 E user B receives invite
 D as user B, accept invite, register via facebook
-E user B created, receives welcome email, user A receives confirmation
+E user B created, receives welcome email, user A receives confirmation, admin receives new user notification
 D login to app as user B
 E friend A is there
 D log in to app as user A
-G share playlist with user G
+D share playlist with user G
 E user G receives invite email including playlist details
 G as user G, accept invite, register directly
-E user G created, receives welcome email
+E user G created, receives welcome email, user A receives confirmation, admin receives notification
 G login to app as user G
 E friend A is there, playlist is there
 G add track to playlist as user G
 G login to app as user A, restart app
 E playlist is updated, user G is there
-
+D select playlist, click share
+E user G is selected in list of friends, can't unselect
 D make new playlist, add same tracks
 D share playlist with user B
 E user B receives email
@@ -227,16 +230,15 @@ E playlist is there
 D register as user C through rbnb site
 D log into app as user C, restart app
 D click 'Add friends' from friend tree
-E Add Friends sheet appears, including 'add facebook account' option
-D Click 'add facebook account' button
+E Add Friends sheet appears, including 'add friends from facebook' option
+D Click 'add facebook details' button
 E Browser opens facebook-attach page
-D Close web page
-D create playlist, share with user A
-E user A receives friendship request
-D as user A, accept friendship request
-E friendship created
-D wait for robonobo to fetch updated friends
-E new friend & playlists appear in sidebar
+D close web page
+D Add user A as a friend through rbnb app
+E user A gets friend request
+D approve friend request
+D wait 2 mins
+E user A appears as friend in sidebar
 
 D love 4 different tracks by 4 different artists
 
@@ -245,10 +247,10 @@ D click 'post to facebook' button
 E confirmation of need to add facebook details
 D confirm
 E browser opens, asks for login then starts facebook attach process
-D go through facebook attach, wait 2 mins
+D go through facebook attach, wait 30 mins
 E loves are posted to fb
 D love 4 more tracks by different artists
-D go back to app, click 'post to facebook' button again
+D go back to app, click 'post to facebook' button in playlist again
 E visibility warning
 D confirm visibility change
 E post to facebook sheet appears
@@ -260,7 +262,7 @@ D click 'post to twitter' button
 E browser opens, starts twitter attach process
 D go through twitter attach
 D go back to app
-D uncheck 'post loves to twitter'
+D uncheck 'post loves to twitter' in loves panel
 E loves don't get posted to twitter
 D click 'post to twitter' button again on playlist
 E visibility warning
@@ -338,22 +340,22 @@ E track added to radio
 D play first track on radio again, let play through
 E track shifts to end of radio playlist, not added again
 
-D go to friend's playlist (>4 items), hit download automatically
+D go to one of user A's playlists, hit download automatically
 D (mac/win) Check 'sync with iTunes' after one track has downloaded
 E all items in playlist download successfully
 E iTunes opens, playlist appears with correct tracks, gets updated as new tracks come down
 
-D login to another instance as friend user, restart app, add track to playlist
-D wait 5 mins
-E playlist updates and starts downloading
+D ensure logged into app as user B ('main instance')
+D start a second rbnb instance with different homedir/listenUdpPort, log into this instance as user A ('2nd instance')
+
+D on 2nd instance, update playlist
+D wait 2 mins
+E on main instance, playlist updates and starts downloading
 E (mac/win) iTunes playlist updates with new track
-D quit second instance
 
 Comments
 ========
 
-D ensure logged into app as user B ('main instance')
-D start a second rbnb instance with different homedir/listenUdpPort, log into this instance as user A ('2nd instance')
 D on main instance, comment to user A's library, loves, radio and a playlist
 D on 2nd instance, wait for friends & playlists to update
 E on 2nd instance, library, loves, radio and playlist all greenified in sidebar and in playlist comment tab
