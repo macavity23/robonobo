@@ -27,7 +27,7 @@ public class TaskProgressSheet extends Sheet {
 		this.verb = verb;
 		this.total = total;
 		setPreferredSize(new Dimension(500, 120));
-		double[][] cells = { { 20, TableLayout.FILL, 150, 20 }, { 10, 20, 10, 30, 10, 30, 10 } };
+		double[][] cells = { { 20, TableLayout.FILL, 160, 20 }, { 10, 20, 10, 30, 10, 30, 10 } };
 		setLayout(new TableLayout(cells));
 		setName("playback.background.panel");
 		add(new RLabel16B(title), "1,1,2,1");

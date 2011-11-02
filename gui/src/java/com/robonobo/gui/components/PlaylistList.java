@@ -102,6 +102,8 @@ public class PlaylistList extends LeftSidebarList implements UserListener, Playl
 	@Override
 	public String getToolTipText(MouseEvent event) {
 		int idx = locationToIndex(event.getPoint());
+		if(idx < 0)
+			return null;
 		PlaylistListModel m = getModel();
 		int unseen = m.numUnseen(idx);
 		Playlist p = m.getPlaylistAt(idx);

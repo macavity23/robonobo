@@ -17,6 +17,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
 import com.robonobo.common.util.CodeUtil;
+import com.robonobo.core.Platform;
 import com.robonobo.gui.*;
 import com.robonobo.gui.components.TrackList;
 import com.robonobo.gui.components.base.*;
@@ -55,7 +56,9 @@ public abstract class ContentPanel extends JPanel {
 		tabPane.setBorder(BorderFactory.createEmptyBorder(0, 1, 0, 1));
 		tabPane.addTab("track", new TrackTab());
 		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topPane, tabPane);
-		splitPane.setDividerLocation(400);
+		// If we have the menu bar, we have less space to play with, so split our splitpane in a different spot
+		boolean haveMenuBar = Platform.getPlatform().frameContainsMenuBar();
+		splitPane.setDividerLocation(haveMenuBar ? 355 : 400);
 		add(splitPane, "0,0");
 	}
 

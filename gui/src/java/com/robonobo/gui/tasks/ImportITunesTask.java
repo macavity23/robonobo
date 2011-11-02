@@ -1,10 +1,10 @@
 package com.robonobo.gui.tasks;
 
+import static com.robonobo.common.util.CodeUtil.*;
 import static com.robonobo.common.util.FileUtil.*;
 import static com.robonobo.gui.GuiUtil.*;
 
-import java.io.File;
-import java.io.FileFilter;
+import java.io.*;
 import java.util.*;
 
 import com.robonobo.common.concurrent.CatchingRunnable;
@@ -54,17 +54,21 @@ public class ImportITunesTask extends ImportFilesTask {
 		final List<StreamWithFile> sl = new ArrayList<StreamWithFile>();
 		int i = 0;
 		for (File f : files) {
-			if(cancelRequested) {
+			if (cancelRequested) {
 				cancelConfirmed();
 				return;
 			}
-			Stream s = frame.ctrl.getStream(f);
-			StreamWithFile swf = new StreamWithFile();
-			swf.copyFrom(s);
-			swf.file = f;
-			sl.add(swf);
+			try {
+				Stream s = frame.ctrl.getStream(f);
+				StreamWithFile swf = new StreamWithFile();
+				swf.copyFrom(s);
+				swf.file = f;
+				sl.add(swf);
+			} catch (IOException e) {
+				log.error("Caught "+shortClassName(e.getClass())+" importing file "+f.getAbsolutePath()+" - skipping");
+			}
 			tps.setProgress(++i);
-			statusText = "Reading file "+i+" of "+files.size();
+			statusText = "Reading file " + i + " of " + files.size();
 			fireUpdated();
 		}
 		Collections.sort(sl, new StreamComparator());

@@ -1,7 +1,5 @@
 package com.robonobo.core;
 
-import java.awt.Color;
-import java.awt.Font;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.io.File;
@@ -59,6 +57,8 @@ public abstract class Platform {
 
 	public abstract JMenuBar getMenuBar(JFrame frame);
 
+	public abstract boolean frameContainsMenuBar();
+	
 	public abstract boolean shouldSetMenuBarOnDialogs();
 
 	public abstract File getDefaultHomeDirectory();

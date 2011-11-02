@@ -55,6 +55,11 @@ public class UnknownPlatform extends Platform {
 	}
 
 	@Override
+	public boolean frameContainsMenuBar() {
+		return true;
+	}
+	
+	@Override
 	public boolean shouldSetMenuBarOnDialogs() {
 		return false;
 	}

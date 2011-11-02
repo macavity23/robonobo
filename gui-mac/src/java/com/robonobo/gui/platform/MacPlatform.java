@@ -73,6 +73,11 @@ public class MacPlatform extends UnknownPlatform {
 	}
 
 	@Override
+	public boolean frameContainsMenuBar() {
+		return false;
+	}
+	
+	@Override
 	public boolean shouldSetMenuBarOnDialogs() {
 		return true;
 	}
