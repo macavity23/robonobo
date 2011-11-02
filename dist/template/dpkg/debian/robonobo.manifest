@@ -1,4 +1,6 @@
 usr/share/robonobo/robonobo.jar:
  Main-Class: com.robonobo.Robonobo
- Class-Path: /usr/share/java/fast-md5.jar /usr/share/java/commons-cli.jar /usr/share/java/commons-jxpath.jar
- Debian-Java-Parameters: -client -Xmx128m -XX:MaxPermSize=48m -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode
+ Class-Path: /usr/share/java/fast-md5.jar /usr/share/java/commons-cli.jar 
+   /usr/share/java/commons-jxpath.jar
+ Debian-Java-Parameters: -client -Xmx128m -XX:MaxPermSize=48m 
+   -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode
