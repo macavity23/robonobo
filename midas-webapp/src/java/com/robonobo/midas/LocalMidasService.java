@@ -494,7 +494,7 @@ public class LocalMidasService implements MidasService {
 			Stream s = streamDao.getStream(sid);
 			curArtists.add(s.getArtist());
 		}
-		List<String> newArtists = new ArrayList<String>();
+		Set<String> newArtists = new HashSet<String>();
 		for (String sid : newP.getStreamIds()) {
 			if (!oldP.getStreamIds().contains(sid)) {
 				Stream s = streamDao.getStream(sid);
@@ -515,7 +515,7 @@ public class LocalMidasService implements MidasService {
 				for (int j = 0; j <= i; j++) {
 					if (j != 0)
 						sb.append(", ");
-					sb.append(newArtists.get(j));
+					sb.append(al.get(j));
 				}
 				if (i < (newArtists.size() - 1)) {
 					int numOtherArtists = newArtists.size() - (i + 1);

@@ -83,7 +83,7 @@ public class NotificationServiceImpl implements NotificationService {
 				if (sentUids.contains(ownerId))
 					continue;
 				MidasUserConfig muc = userCfgDao.getUserConfig(ownerId);
-				String pceStr = muc.getItem("playlistCommentEmails");
+				String pceStr = (muc == null) ? null : muc.getItem("playlistCommentEmails");
 				boolean pce = (pceStr == null) ? true : Boolean.valueOf(pceStr);
 				if (pce) {
 					MidasUser owner = userDao.getById(ownerId);
@@ -100,7 +100,7 @@ public class NotificationServiceImpl implements NotificationService {
 			long ownerId = Long.parseLong(lm.group(1));
 			if (!sentUids.contains(ownerId)) {
 				MidasUserConfig muc = userCfgDao.getUserConfig(ownerId);
-				String pceStr = muc.getItem("playlistCommentEmails");
+				String pceStr = (muc == null) ? null : muc.getItem("playlistCommentEmails");
 				boolean pce = (pceStr == null) ? true : Boolean.valueOf(pceStr);
 				if (pce) {
 					MidasUser owner = userDao.getById(ownerId);
